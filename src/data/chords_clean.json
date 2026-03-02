@@ -1,0 +1,5510 @@
+[
+  {
+    "Chord Name": "C Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "c",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "C (C Major)",
+    "Notes": "C-E-G",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "Cm (C Minor)",
+    "Notes": "C-Ef-G",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "C7 (C Dominant Seventh)",
+    "Notes": "C-E-G-Bf",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "C5 (C Fifth, Power Chord)",
+    "Notes": "C-G",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Cdim (C Diminished)",
+    "Notes": "C-Ef-Gf",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 2,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Cdim7 (C Diminished Seventh)",
+    "Notes": "C-Ef-Gf-A",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Caug (C Augmented)",
+    "Notes": "C-E-Gs",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 7,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Csus2 (C Suspended 2nd)",
+    "Notes": "C-D-G",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Csus (C Suspended 4th)",
+    "Notes": "C-F-G",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 6,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Cmaj7 (C Major 7th)",
+    "Notes": "C-E-G-B",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Cm7 (C Minor 7th)",
+    "Notes": "C-Ef-G-Bf",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C7sus4 (C Dominant 7th Suspended 4th)",
+    "Notes": "C-F-G-Bf",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Cmaj9 (C Major 9th)",
+    "Notes": "C-E-G-B-D",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Cmaj11 (C Major 11th)",
+    "Notes": "C-E-G-B-D-F",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Cmaj13 (C Major 13th)",
+    "Notes": "C-E-G-B-D-A",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Cmaj9(#11) (C Major 9th, Sharp 11th)",
+    "Notes": "C-E-G-B-D-Fs",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Cmaj13(#11) (C Major 13th, Sharp 11th)",
+    "Notes": "C-E-G-B-D-Fs-A",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Cadd9 (C Major Added 9th)",
+    "Notes": "C-E-G-D",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "C6add9 (C Major 6th, Added 9th)",
+    "Notes": "C-E-G-A-D",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "Cmaj7(b5) (C Major 7th, Flat 5th)",
+    "Notes": "C-E-Gf-B",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Cmaj7(#5) (C Major 7th, Sharp 5th)",
+    "Notes": "C-E-Gs-B",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Cm6 (C Minor 6th)",
+    "Notes": "C-Ef-G-A",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 8,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "Cm9 (C Minor 9th)",
+    "Notes": "C-Ef-G-Bf-D",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Cm11 (C Minor 11th)",
+    "Notes": "C-Ef-G-Bf-D-F",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Cm13 (C Minor 13th)",
+    "Notes": "C-Ef-G-Bf-D-F-A",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Cm(add9) (C Minor, Added 9th)",
+    "Notes": "C-Ef-G-D",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Cm6add9 (C Minor 6th, Added 9th)",
+    "Notes": "C-Ef-G-A-D",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Cmmaj7 (C Minor, Major 7th)",
+    "Notes": "C-Ef-G-B",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Cmmaj9 (C Minor 9th, Major 7th)",
+    "Notes": "C-Ef-G-B-D",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Cm7b5 (C Half-diminished Minor 7)",
+    "Notes": "C-Ef-Gf-Bf",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Cm7#5 (C Minor 7th, Sharp 5th)",
+    "Notes": "C-Ef-Gs-Bf",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C6 (C Major 6th)",
+    "Notes": "C-E-G-A",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 9,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "C9 (C Dominant 9th)",
+    "Notes": "C-E-G-Bf-D",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 7,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "C11 (C Dominant 11th)",
+    "Notes": "C-E-G-Bf-D-F",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "C13 (C Dominant 13th)",
+    "Notes": "C-E-G-Bf-D-A",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "C7b5 (C Dominant 7th, Flat 5th)",
+    "Notes": "C-E-Gf-Bf",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C7#5 (C Dominant 7th, Sharp 5th)",
+    "Notes": "C-E-Gs-Bf",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C7b9 (C Dominant 7th, Flat 9th)",
+    "Notes": "C-E-G-Bf-Df",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C7#9 (C Dominant 7th, Sharp 9th)",
+    "Notes": "C-E-G-Bf-Ds",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C7(b5,b9) (C Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "C-E-Gf-Bf-Df",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C7(b5,#9) (C Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "C-E-Gf-Bf-Ds",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C7(#5,b9) (C Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "C-E-Gs-Bf-Df",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C7(#5,#9) (C Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "C-E-Gs-Bf-Ds",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C9b5 (C Dominat 9th, Flat 5th)",
+    "Notes": "C-E-Gf-Bf-D",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C9#5 (C Dominat 9th, Sharp 5th)",
+    "Notes": "C-E-Gs-Bf-D",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C13#11 (C Dominant 13th, Added Sharp 11th)",
+    "Notes": "C-E-G-Bf-D-Fs-A",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C13b9 (C Dominant 13th, Flat 9th)",
+    "Notes": "C-E-G-Bf-Df-A",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C11b9 (C Dominant 11th, Flat 9th)",
+    "Notes": "C-G-Bf-Df-F",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "Csus2sus4 (C Suspended 2nd, Suspended 4th)",
+    "Notes": "C-D-F-G",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "C-5 (C Major Diminished 5th)",
+    "Notes": "C-E-Gf",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "C#/Db Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "csharp",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "C#/Db (C#/Db Major)",
+    "Notes": "Cs-F-Gs",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "C#/Dbm (C#/Db Minor)",
+    "Notes": "Cs-E-Gs",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "C#/Db7 (C#/Db Dominant Seventh)",
+    "Notes": "Cs-F-Gs-B",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "C#/Db5 (C#/Db Fifth, Power Chord)",
+    "Notes": "Cs-Gs",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "C#/Dbdim (C#/Db Diminished)",
+    "Notes": "Cs-E-G",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 2,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "C#/Dbdim7 (C#/Db Diminished Seventh)",
+    "Notes": "Cs-E-G-As",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C#/Dbaug (C#/Db Augmented)",
+    "Notes": "Cs-F-A",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 6,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "C#/Dbsus2 (C#/Db Suspended 2nd)",
+    "Notes": "Cs-Ds-Gs",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "C#/Dbsus (C#/Db Suspended 4th)",
+    "Notes": "Cs-Fs-Gs",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 6,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "C#/Dbmaj7 (C#/Db Major 7th)",
+    "Notes": "Cs-F-Gs-C",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "C#/Dbm7 (C#/Db Minor 7th)",
+    "Notes": "Cs-E-Gs-B",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 8,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C#/Db7sus4 (C#/Db Dominant 7th Suspended 4th)",
+    "Notes": "Cs-Fs-Gs-B",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C#/Dbmaj9 (C#/Db Major 9th)",
+    "Notes": "Cs-F-Gs-C-Ds",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Dbmaj11 (C#/Db Major 11th)",
+    "Notes": "Cs-F-Gs-C-Ds-Fs",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Dbmaj13 (C#/Db Major 13th)",
+    "Notes": "Cs-F-Gs-C-Ds-As",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Dbmaj9(#11) (C#/Db Major 9th, Sharp 11th)",
+    "Notes": "Cs-F-Gs-C-Ds-G",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Dbmaj13(#11) (C#/Db Major 13th, Sharp 11th)",
+    "Notes": "Cs-F-Gs-C-Ds-G-As",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Dbadd9 (C#/Db Major Added 9th)",
+    "Notes": "Cs-F-Gs-Ds",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "C#/Db6add9 (C#/Db Major 6th, Added 9th)",
+    "Notes": "Cs-F-Gs-As-Ds",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "C#/Dbmaj7(b5) (C#/Db Major 7th, Flat 5th)",
+    "Notes": "Cs-F-G-C",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "C#/Dbmaj7(#5) (C#/Db Major 7th, Sharp 5th)",
+    "Notes": "Cs-F-A-C",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "C#/Dbm6 (C#/Db Minor 6th)",
+    "Notes": "Cs-E-Gs-As",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 8,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "C#/Dbm9 (C#/Db Minor 9th)",
+    "Notes": "Cs-E-Gs-B-Ds",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C#/Dbm11 (C#/Db Minor 11th)",
+    "Notes": "Cs-E-Gs-B-Ds-Fs",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C#/Dbm13 (C#/Db Minor 13th)",
+    "Notes": "Cs-E-Gs-B-Ds-Fs-As",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C#/Dbm(add9) (C#/Db Minor, Added 9th)",
+    "Notes": "Cs-E-Gs-Ds",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C#/Dbm6add9 (C#/Db Minor 6th, Added 9th)",
+    "Notes": "Cs-E-Gs-As-Ds",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C#/Dbmmaj7 (C#/Db Minor, Major 7th)",
+    "Notes": "Cs-E-Gs-C",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "C#/Dbmmaj9 (C#/Db Minor 9th, Major 7th)",
+    "Notes": "Cs-E-Gs-C-Ds",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Dbm7b5 (C#/Db Half-diminished Minor 7)",
+    "Notes": "Cs-E-G-B",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C#/Dbm7#5 (C#/Db Minor 7th, Sharp 5th)",
+    "Notes": "Cs-E-A-B",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "C#/Db6 (C#/Db Major 6th)",
+    "Notes": "Cs-F-Gs-As",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "C#/Db9 (C#/Db Dominant 9th)",
+    "Notes": "Cs-F-Gs-B-Ds",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 7,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "C#/Db11 (C#/Db Dominant 11th)",
+    "Notes": "Cs-F-Gs-B-Ds-Fs",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "C#/Db13 (C#/Db Dominant 13th)",
+    "Notes": "Cs-F-Gs-B-Ds-As",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "C#/Db7b5 (C#/Db Dominant 7th, Flat 5th)",
+    "Notes": "Cs-F-G-B",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Db7#5 (C#/Db Dominant 7th, Sharp 5th)",
+    "Notes": "Cs-F-A-B",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C#/Db7b9 (C#/Db Dominant 7th, Flat 9th)",
+    "Notes": "Cs-F-Gs-B-D",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Db7#9 (C#/Db Dominant 7th, Sharp 9th)",
+    "Notes": "Cs-F-Gs-B-E",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C#/Db7(b5,b9) (C#/Db Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "Cs-F-G-B-D",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Db7(b5,#9) (C#/Db Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "Cs-F-G-B-E",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Db7(#5,b9) (C#/Db Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "Cs-F-A-B-D",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Db7(#5,#9) (C#/Db Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "Cs-F-A-B-E",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C#/Db9b5 (C#/Db Dominat 9th, Flat 5th)",
+    "Notes": "Cs-F-G-B-Ds",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Db9#5 (C#/Db Dominat 9th, Sharp 5th)",
+    "Notes": "Cs-F-A-B-Ds",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C#/Db13#11 (C#/Db Dominant 13th, Added Sharp 11th)",
+    "Notes": "Cs-F-Gs-B-Ds-G-As",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "C#/Db13b9 (C#/Db Dominant 13th, Flat 9th)",
+    "Notes": "Cs-F-Gs-B-D-As",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Db11b9 (C#/Db Dominant 11th, Flat 9th)",
+    "Notes": "Cs-Gs-B-D-Fs",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "C#/Dbsus2sus4 (C#/Db Suspended 2nd, Suspended 4th)",
+    "Notes": "Cs-Ds-Fs-Gs",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "C#/Db-5 (C#/Db Major Diminished 5th)",
+    "Notes": "Cs-F-G",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "D Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "d",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "D (D Major)",
+    "Notes": "D-Fs-A",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "Dm (D Minor)",
+    "Notes": "D-F-A",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "D7 (D Dominant Seventh)",
+    "Notes": "D-Fs-A-C",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "D5 (D Fifth, Power Chord)",
+    "Notes": "D-A",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Ddim (D Diminished)",
+    "Notes": "D-F-Af",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 2,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Ddim7 (D Diminished Seventh)",
+    "Notes": "D-F-Af-B",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Daug (D Augmented)",
+    "Notes": "D-Fs-As",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 6,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Dsus2 (D Suspended 2nd)",
+    "Notes": "D-E-A",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Dsus (D Suspended 4th)",
+    "Notes": "D-G-A",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 7,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Dmaj7 (D Major 7th)",
+    "Notes": "D-Fs-A-Cs",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Dm7 (D Minor 7th)",
+    "Notes": "D-F-A-C",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D7sus4 (D Dominant 7th Suspended 4th)",
+    "Notes": "D-G-A-C",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Dmaj9 (D Major 9th)",
+    "Notes": "D-Fs-A-Cs-E",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Dmaj11 (D Major 11th)",
+    "Notes": "D-Fs-A-Cs-E-G",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Dmaj13 (D Major 13th)",
+    "Notes": "D-Fs-A-Cs-E-B",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Dmaj9(#11) (D Major 9th, Sharp 11th)",
+    "Notes": "D-Fs-A-Cs-E-Gs",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Dmaj13(#11) (D Major 13th, Sharp 11th)",
+    "Notes": "D-Fs-A-Cs-E-Gs-B",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Dadd9 (D Major Added 9th)",
+    "Notes": "D-Fs-A-E",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "D6add9 (D Major 6th, Added 9th)",
+    "Notes": "D-Fs-A-B-E",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "Dmaj7(b5) (D Major 7th, Flat 5th)",
+    "Notes": "D-Fs-Af-Cs",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Dmaj7(#5) (D Major 7th, Sharp 5th)",
+    "Notes": "D-Fs-As-Cs",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Dm6 (D Minor 6th)",
+    "Notes": "D-F-A-B",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "Dm9 (D Minor 9th)",
+    "Notes": "D-F-A-C-E",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Dm11 (D Minor 11th)",
+    "Notes": "D-F-A-C-E-G",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Dm13 (D Minor 13th)",
+    "Notes": "D-F-A-C-E-G-B",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Dm(add9) (D Minor, Added 9th)",
+    "Notes": "D-F-A-E",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Dm6add9 (D Minor 6th, Added 9th)",
+    "Notes": "D-F-A-B-E",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Dmmaj7 (D Minor, Major 7th)",
+    "Notes": "D-F-A-Cs",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Dmmaj9 (D Minor 9th, Major 7th)",
+    "Notes": "D-F-A-Cs-E",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Dm7b5 (D Half-diminished Minor 7)",
+    "Notes": "D-F-Af-C",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Dm7#5 (D Minor 7th, Sharp 5th)",
+    "Notes": "D-F-As-C",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D6 (D Major 6th)",
+    "Notes": "D-Fs-A-B",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "D9 (D Dominant 9th)",
+    "Notes": "D-Fs-A-C-E",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "D11 (D Dominant 11th)",
+    "Notes": "D-Fs-A-C-E-G",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "D13 (D Dominant 13th)",
+    "Notes": "D-Fs-A-C-E-B",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "D7b5 (D Dominant 7th, Flat 5th)",
+    "Notes": "D-Fs-Af-C",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D7#5 (D Dominant 7th, Sharp 5th)",
+    "Notes": "D-Fs-As-C",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 7,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D7b9 (D Dominant 7th, Flat 9th)",
+    "Notes": "D-Fs-A-C-Ef",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D7#9 (D Dominant 7th, Sharp 9th)",
+    "Notes": "D-Fs-A-C-F",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D7(b5,b9) (D Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "D-Fs-Af-C-Ef",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D7(b5,#9) (D Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "D-Fs-Af-C-F",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D7(#5,b9) (D Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "D-Fs-As-C-Ef",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D7(#5,#9) (D Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "D-Fs-As-C-F",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D9b5 (D Dominat 9th, Flat 5th)",
+    "Notes": "D-Fs-Af-C-E",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D9#5 (D Dominat 9th, Sharp 5th)",
+    "Notes": "D-Fs-As-C-E",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D13#11 (D Dominant 13th, Added Sharp 11th)",
+    "Notes": "D-Fs-A-C-E-Gs-B",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D13b9 (D Dominant 13th, Flat 9th)",
+    "Notes": "D-Fs-A-C-Ef-B",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D11b9 (D Dominant 11th, Flat 9th)",
+    "Notes": "D-A-C-Ef-G",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "Dsus2sus4 (D Suspended 2nd, Suspended 4th)",
+    "Notes": "D-E-G-A",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 4,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "D-5 (D Major Diminished 5th)",
+    "Notes": "D-Fs-Af",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "D#/Eb Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "dsharp",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "D#/Eb (D#/Eb Major)",
+    "Notes": "Ds-G-As",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "D#/Ebm (D#/Eb Minor)",
+    "Notes": "Ds-Gf-As",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "D#/Eb7 (D#/Eb Dominant Seventh)",
+    "Notes": "Ds-G-As-Df",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb5 (D#/Eb Fifth, Power Chord)",
+    "Notes": "Ds-As",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "D#/Ebdim (D#/Eb Diminished)",
+    "Notes": "Ds-Gf-A",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 2,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "D#/Ebdim7 (D#/Eb Diminished Seventh)",
+    "Notes": "Ds-Gf-A-C",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D#/Ebaug (D#/Eb Augmented)",
+    "Notes": "Ds-G-B",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 5,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "D#/Ebsus2 (D#/Eb Suspended 2nd)",
+    "Notes": "Ds-F-As",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "D#/Ebsus (D#/Eb Suspended 4th)",
+    "Notes": "Ds-Gs-As",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 6,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "D#/Ebmaj7 (D#/Eb Major 7th)",
+    "Notes": "Ds-G-As-D",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "D#/Ebm7 (D#/Eb Minor 7th)",
+    "Notes": "Ds-Gf-As-Df",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D#/Eb7sus4 (D#/Eb Dominant 7th Suspended 4th)",
+    "Notes": "Ds-Gs-As-Df",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D#/Ebmaj9 (D#/Eb Major 9th)",
+    "Notes": "Ds-G-As-D-F",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Ebmaj11 (D#/Eb Major 11th)",
+    "Notes": "Ds-G-As-D-F-Gs",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Ebmaj13 (D#/Eb Major 13th)",
+    "Notes": "Ds-G-As-D-F-C",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Ebmaj9(#11) (D#/Eb Major 9th, Sharp 11th)",
+    "Notes": "Ds-G-As-D-F-A",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Ebmaj13(#11) (D#/Eb Major 13th, Sharp 11th)",
+    "Notes": "Ds-G-As-D-F-A-C",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Ebadd9 (D#/Eb Major Added 9th)",
+    "Notes": "Ds-G-As-F",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "D#/Eb6add9 (D#/Eb Major 6th, Added 9th)",
+    "Notes": "Ds-G-As-C-F",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "D#/Ebmaj7(b5) (D#/Eb Major 7th, Flat 5th)",
+    "Notes": "Ds-G-A-D",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "D#/Ebmaj7(#5) (D#/Eb Major 7th, Sharp 5th)",
+    "Notes": "Ds-G-B-D",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "D#/Ebm6 (D#/Eb Minor 6th)",
+    "Notes": "Ds-Gf-As-C",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "D#/Ebm9 (D#/Eb Minor 9th)",
+    "Notes": "Ds-Gf-As-Df-F",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D#/Ebm11 (D#/Eb Minor 11th)",
+    "Notes": "Ds-Gf-As-Df-F-Gs",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D#/Ebm13 (D#/Eb Minor 13th)",
+    "Notes": "Ds-Gf-As-Df-F-Gs-C",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D#/Ebm(add9) (D#/Eb Minor, Added 9th)",
+    "Notes": "Ds-Gf-As-F",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D#/Ebm6add9 (D#/Eb Minor 6th, Added 9th)",
+    "Notes": "Ds-Gf-As-C-F",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D#/Ebmmaj7 (D#/Eb Minor, Major 7th)",
+    "Notes": "Ds-Gf-As-D",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "D#/Ebmmaj9 (D#/Eb Minor 9th, Major 7th)",
+    "Notes": "Ds-Gf-As-D-F",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Ebm7b5 (D#/Eb Half-diminished Minor 7)",
+    "Notes": "Ds-Gf-A-Df",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D#/Ebm7#5 (D#/Eb Minor 7th, Sharp 5th)",
+    "Notes": "Ds-Gf-B-Df",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "D#/Eb6 (D#/Eb Major 6th)",
+    "Notes": "Ds-G-As-C",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "D#/Eb9 (D#/Eb Dominant 9th)",
+    "Notes": "Ds-G-As-Df-F",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb11 (D#/Eb Dominant 11th)",
+    "Notes": "Ds-G-As-Df-F-Gs",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb13 (D#/Eb Dominant 13th)",
+    "Notes": "Ds-G-As-Df-F-C",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb7b5 (D#/Eb Dominant 7th, Flat 5th)",
+    "Notes": "Ds-G-A-Df",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Eb7#5 (D#/Eb Dominant 7th, Sharp 5th)",
+    "Notes": "Ds-G-B-Df",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 7,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb7b9 (D#/Eb Dominant 7th, Flat 9th)",
+    "Notes": "Ds-G-As-Df-E",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Eb7#9 (D#/Eb Dominant 7th, Sharp 9th)",
+    "Notes": "Ds-G-As-Df-Fs",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb7(b5,b9) (D#/Eb Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "Ds-G-A-Df-E",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Eb7(b5,#9) (D#/Eb Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "Ds-G-A-Df-Fs",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Eb7(#5,b9) (D#/Eb Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "Ds-G-B-Df-E",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Eb7(#5,#9) (D#/Eb Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "Ds-G-B-Df-Fs",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb9b5 (D#/Eb Dominat 9th, Flat 5th)",
+    "Notes": "Ds-G-A-Df-F",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Eb9#5 (D#/Eb Dominat 9th, Sharp 5th)",
+    "Notes": "Ds-G-B-Df-F",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb13#11 (D#/Eb Dominant 13th, Added Sharp 11th)",
+    "Notes": "Ds-G-As-Df-F-A-C",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "D#/Eb13b9 (D#/Eb Dominant 13th, Flat 9th)",
+    "Notes": "Ds-G-As-Df-E-C",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Eb11b9 (D#/Eb Dominant 11th, Flat 9th)",
+    "Notes": "Ds-As-Df-E-Gs",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "D#/Ebsus2sus4 (D#/Eb Suspended 2nd, Suspended 4th)",
+    "Notes": "Ds-F-Gs-As",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "D#/Eb-5 (D#/Eb Major Diminished 5th)",
+    "Notes": "Ds-G-A",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "E Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "e",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "E (E Major)",
+    "Notes": "E-Gs-B",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "Em (E Minor)",
+    "Notes": "E-G-B",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "E7 (E Dominant Seventh)",
+    "Notes": "E-Gs-B-D",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "E5 (E Fifth, Power Chord)",
+    "Notes": "E-B",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Edim (E Diminished)",
+    "Notes": "E-G-Bf",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 3,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Edim7 (E Diminished Seventh)",
+    "Notes": "E-G-Bf-Cs",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Eaug (E Augmented)",
+    "Notes": "E-Gs-C",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 7,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Esus2 (E Suspended 2nd)",
+    "Notes": "E-Fs-B",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Esus (E Suspended 4th)",
+    "Notes": "E-A-B",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 7,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Emaj7 (E Major 7th)",
+    "Notes": "E-Gs-B-Ds",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Em7 (E Minor 7th)",
+    "Notes": "E-G-B-D",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "E7sus4 (E Dominant 7th Suspended 4th)",
+    "Notes": "E-A-B-D",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Emaj9 (E Major 9th)",
+    "Notes": "E-Gs-B-Ds-Fs",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Emaj11 (E Major 11th)",
+    "Notes": "E-Gs-B-Ds-Fs-A",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Emaj13 (E Major 13th)",
+    "Notes": "E-Gs-B-Ds-Fs-Cs",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Emaj9(#11) (E Major 9th, Sharp 11th)",
+    "Notes": "E-Gs-B-Ds-Fs-As",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Emaj13(#11) (E Major 13th, Sharp 11th)",
+    "Notes": "E-Gs-B-Ds-Fs-As-Cs",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Eadd9 (E Major Added 9th)",
+    "Notes": "E-Gs-B-Fs",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "E6add9 (E Major 6th, Added 9th)",
+    "Notes": "E-Gs-B-Cs-Fs",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "Emaj7(b5) (E Major 7th, Flat 5th)",
+    "Notes": "E-Gs-Bf-Ds",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Emaj7(#5) (E Major 7th, Sharp 5th)",
+    "Notes": "E-Gs-C-Ds",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Em6 (E Minor 6th)",
+    "Notes": "E-G-B-Cs",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "Em9 (E Minor 9th)",
+    "Notes": "E-G-B-D-Fs",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Em11 (E Minor 11th)",
+    "Notes": "E-G-B-D-Fs-A",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Em13 (E Minor 13th)",
+    "Notes": "E-G-B-D-Fs-A-Cs",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Em(add9) (E Minor, Added 9th)",
+    "Notes": "E-G-B-Fs",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Em6add9 (E Minor 6th, Added 9th)",
+    "Notes": "E-G-B-Cs-Fs",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Emmaj7 (E Minor, Major 7th)",
+    "Notes": "E-G-B-Ds",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Emmaj9 (E Minor 9th, Major 7th)",
+    "Notes": "E-G-B-Ds-Fs",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Em7b5 (E Half-diminished Minor 7)",
+    "Notes": "E-G-Bf-D",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Em7#5 (E Minor 7th, Sharp 5th)",
+    "Notes": "E-G-C-D",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "E6 (E Major 6th)",
+    "Notes": "E-Gs-B-Cs",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "E9 (E Dominant 9th)",
+    "Notes": "E-Gs-B-D-Fs",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "E11 (E Dominant 11th)",
+    "Notes": "E-Gs-B-D-Fs-A",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "E13 (E Dominant 13th)",
+    "Notes": "E-Gs-B-D-Fs-Cs",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 6,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "E7b5 (E Dominant 7th, Flat 5th)",
+    "Notes": "E-Gs-Bf-D",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "E7#5 (E Dominant 7th, Sharp 5th)",
+    "Notes": "E-Gs-C-D",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "E7b9 (E Dominant 7th, Flat 9th)",
+    "Notes": "E-Gs-B-D-F",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "E7#9 (E Dominant 7th, Sharp 9th)",
+    "Notes": "E-Gs-B-D-G",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "E7(b5,b9) (E Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "E-Gs-Bf-D-F",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "E7(b5,#9) (E Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "E-Gs-Bf-D-G",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "E7(#5,b9) (E Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "E-Gs-C-D-F",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "E7(#5,#9) (E Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "E-Gs-C-D-G",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "E9b5 (E Dominat 9th, Flat 5th)",
+    "Notes": "E-Gs-Bf-D-Fs",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "E9#5 (E Dominat 9th, Sharp 5th)",
+    "Notes": "E-Gs-C-D-Fs",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "E13#11 (E Dominant 13th, Added Sharp 11th)",
+    "Notes": "E-Gs-B-D-Fs-As-Cs",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "E13b9 (E Dominant 13th, Flat 9th)",
+    "Notes": "E-Gs-B-D-F-Cs",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "E11b9 (E Dominant 11th, Flat 9th)",
+    "Notes": "E-B-D-F-A",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "Esus2sus4 (E Suspended 2nd, Suspended 4th)",
+    "Notes": "E-Fs-A-B",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 4,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "E-5 (E Major Diminished 5th)",
+    "Notes": "E-Gs-Bf",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "F Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "f",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "F (F Major)",
+    "Notes": "F-A-C",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "Fm (F Minor)",
+    "Notes": "F-Af-C",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "F7 (F Dominant Seventh)",
+    "Notes": "F-A-C-Ef",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "F5 (F Fifth, Power Chord)",
+    "Notes": "F-C",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Fdim (F Diminished)",
+    "Notes": "F-Af-B",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 3,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Fdim7 (F Diminished Seventh)",
+    "Notes": "F-Af-B-D",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Faug (F Augmented)",
+    "Notes": "F-A-Cs",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 6,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Fsus2 (F Suspended 2nd)",
+    "Notes": "F-G-C",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Fsus (F Suspended 4th)",
+    "Notes": "F-As-C",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 7,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Fmaj7 (F Major 7th)",
+    "Notes": "F-A-C-E",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Fm7 (F Minor 7th)",
+    "Notes": "F-Af-C-Ef",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F7sus4 (F Dominant 7th Suspended 4th)",
+    "Notes": "F-As-C-Ef",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Fmaj9 (F Major 9th)",
+    "Notes": "F-A-C-E-G",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Fmaj11 (F Major 11th)",
+    "Notes": "F-A-C-E-G-As",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Fmaj13 (F Major 13th)",
+    "Notes": "F-A-C-E-G-D",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Fmaj9(#11) (F Major 9th, Sharp 11th)",
+    "Notes": "F-A-C-E-G-B",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Fmaj13(#11) (F Major 13th, Sharp 11th)",
+    "Notes": "F-A-C-E-G-B-D",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Fadd9 (F Major Added 9th)",
+    "Notes": "F-A-C-G",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "F6add9 (F Major 6th, Added 9th)",
+    "Notes": "F-A-C-D-G",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "Fmaj7(b5) (F Major 7th, Flat 5th)",
+    "Notes": "F-A-B-E",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Fmaj7(#5) (F Major 7th, Sharp 5th)",
+    "Notes": "F-A-Cs-E",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Fm6 (F Minor 6th)",
+    "Notes": "F-Af-C-D",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "Fm9 (F Minor 9th)",
+    "Notes": "F-Af-C-Ef-G",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Fm11 (F Minor 11th)",
+    "Notes": "F-Af-C-Ef-G-As",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Fm13 (F Minor 13th)",
+    "Notes": "F-Af-C-Ef-G-As-D",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Fm(add9) (F Minor, Added 9th)",
+    "Notes": "F-Af-C-G",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Fm6add9 (F Minor 6th, Added 9th)",
+    "Notes": "F-Af-C-D-G",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Fmmaj7 (F Minor, Major 7th)",
+    "Notes": "F-Af-C-E",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Fmmaj9 (F Minor 9th, Major 7th)",
+    "Notes": "F-Af-C-E-G",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Fm7b5 (F Half-diminished Minor 7)",
+    "Notes": "F-Af-B-Ef",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Fm7#5 (F Minor 7th, Sharp 5th)",
+    "Notes": "F-Af-Cs-Ef",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F6 (F Major 6th)",
+    "Notes": "F-A-C-D",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "F9 (F Dominant 9th)",
+    "Notes": "F-A-C-Ef-G",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "F11 (F Dominant 11th)",
+    "Notes": "F-A-C-Ef-G-As",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "F13 (F Dominant 13th)",
+    "Notes": "F-A-C-Ef-G-D",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 6,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "F7b5 (F Dominant 7th, Flat 5th)",
+    "Notes": "F-A-B-Ef",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F7#5 (F Dominant 7th, Sharp 5th)",
+    "Notes": "F-A-Cs-Ef",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F7b9 (F Dominant 7th, Flat 9th)",
+    "Notes": "F-A-C-Ef-Gf",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F7#9 (F Dominant 7th, Sharp 9th)",
+    "Notes": "F-A-C-Ef-Gs",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F7(b5,b9) (F Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "F-A-B-Ef-Gf",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F7(b5,#9) (F Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "F-A-B-Ef-Gs",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F7(#5,b9) (F Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "F-A-Cs-Ef-Gf",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F7(#5,#9) (F Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "F-A-Cs-Ef-Gs",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F9b5 (F Dominat 9th, Flat 5th)",
+    "Notes": "F-A-B-Ef-G",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F9#5 (F Dominat 9th, Sharp 5th)",
+    "Notes": "F-A-Cs-Ef-G",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F13#11 (F Dominant 13th, Added Sharp 11th)",
+    "Notes": "F-A-C-Ef-G-B-D",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F13b9 (F Dominant 13th, Flat 9th)",
+    "Notes": "F-A-C-Ef-Gf-D",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F11b9 (F Dominant 11th, Flat 9th)",
+    "Notes": "F-C-Ef-Gf-As",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "Fsus2sus4 (F Suspended 2nd, Suspended 4th)",
+    "Notes": "F-G-As-C",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 4,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "F-5 (F Major Diminished 5th)",
+    "Notes": "F-A-B",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "F#/Gb Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "fsharp",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "F#/Gb (F#/Gb Major)",
+    "Notes": "Fs-As-Cs",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "F#/Gbm (F#/Gb Minor)",
+    "Notes": "Fs-A-Cs",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "F#/Gb7 (F#/Gb Dominant Seventh)",
+    "Notes": "Fs-As-Cs-E",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb5 (F#/Gb Fifth, Power Chord)",
+    "Notes": "Fs-Cs",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "F#/Gbdim (F#/Gb Diminished)",
+    "Notes": "Fs-A-C",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 2,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "F#/Gbdim7 (F#/Gb Diminished Seventh)",
+    "Notes": "Fs-A-C-Ds",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F#/Gbaug (F#/Gb Augmented)",
+    "Notes": "Fs-As-D",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 5,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "F#/Gbsus2 (F#/Gb Suspended 2nd)",
+    "Notes": "Fs-Gs-Cs",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "F#/Gbsus (F#/Gb Suspended 4th)",
+    "Notes": "Fs-B-Cs",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 6,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "F#/Gbmaj7 (F#/Gb Major 7th)",
+    "Notes": "Fs-As-Cs-F",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "F#/Gbm7 (F#/Gb Minor 7th)",
+    "Notes": "Fs-A-Cs-E",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F#/Gb7sus4 (F#/Gb Dominant 7th Suspended 4th)",
+    "Notes": "Fs-B-Cs-E",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F#/Gbmaj9 (F#/Gb Major 9th)",
+    "Notes": "Fs-As-Cs-F-Gs",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 8,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gbmaj11 (F#/Gb Major 11th)",
+    "Notes": "Fs-As-Cs-F-Gs-B",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gbmaj13 (F#/Gb Major 13th)",
+    "Notes": "Fs-As-Cs-F-Gs-Ds",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gbmaj9(#11) (F#/Gb Major 9th, Sharp 11th)",
+    "Notes": "Fs-As-Cs-F-Gs-C",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gbmaj13(#11) (F#/Gb Major 13th, Sharp 11th)",
+    "Notes": "Fs-As-Cs-F-Gs-C-Ds",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gbadd9 (F#/Gb Major Added 9th)",
+    "Notes": "Fs-As-Cs-Gs",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "F#/Gb6add9 (F#/Gb Major 6th, Added 9th)",
+    "Notes": "Fs-As-Cs-Ds-Gs",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "F#/Gbmaj7(b5) (F#/Gb Major 7th, Flat 5th)",
+    "Notes": "Fs-As-C-F",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "F#/Gbmaj7(#5) (F#/Gb Major 7th, Sharp 5th)",
+    "Notes": "Fs-As-D-F",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "F#/Gbm6 (F#/Gb Minor 6th)",
+    "Notes": "Fs-A-Cs-Ds",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "F#/Gbm9 (F#/Gb Minor 9th)",
+    "Notes": "Fs-A-Cs-E-Gs",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F#/Gbm11 (F#/Gb Minor 11th)",
+    "Notes": "Fs-A-Cs-E-Gs-B",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F#/Gbm13 (F#/Gb Minor 13th)",
+    "Notes": "Fs-A-Cs-E-Gs-B-Ds",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F#/Gbm(add9) (F#/Gb Minor, Added 9th)",
+    "Notes": "Fs-A-Cs-Gs",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F#/Gbm6add9 (F#/Gb Minor 6th, Added 9th)",
+    "Notes": "Fs-A-Cs-Ds-Gs",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F#/Gbmmaj7 (F#/Gb Minor, Major 7th)",
+    "Notes": "Fs-A-Cs-F",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "F#/Gbmmaj9 (F#/Gb Minor 9th, Major 7th)",
+    "Notes": "Fs-A-Cs-F-Gs",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gbm7b5 (F#/Gb Half-diminished Minor 7)",
+    "Notes": "Fs-A-C-E",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F#/Gbm7#5 (F#/Gb Minor 7th, Sharp 5th)",
+    "Notes": "Fs-A-D-E",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "F#/Gb6 (F#/Gb Major 6th)",
+    "Notes": "Fs-As-Cs-Ds",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "F#/Gb9 (F#/Gb Dominant 9th)",
+    "Notes": "Fs-As-Cs-E-Gs",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb11 (F#/Gb Dominant 11th)",
+    "Notes": "Fs-As-Cs-E-Gs-B",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb13 (F#/Gb Dominant 13th)",
+    "Notes": "Fs-As-Cs-E-Gs-Ds",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb7b5 (F#/Gb Dominant 7th, Flat 5th)",
+    "Notes": "Fs-As-C-E",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gb7#5 (F#/Gb Dominant 7th, Sharp 5th)",
+    "Notes": "Fs-As-D-E",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb7b9 (F#/Gb Dominant 7th, Flat 9th)",
+    "Notes": "Fs-As-Cs-E-G",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gb7#9 (F#/Gb Dominant 7th, Sharp 9th)",
+    "Notes": "Fs-As-Cs-E-A",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb7(b5,b9) (F#/Gb Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "Fs-As-C-E-G",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gb7(b5,#9) (F#/Gb Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "Fs-As-C-E-A",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gb7(#5,b9) (F#/Gb Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "Fs-As-D-E-G",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gb7(#5,#9) (F#/Gb Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "Fs-As-D-E-A",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb9b5 (F#/Gb Dominat 9th, Flat 5th)",
+    "Notes": "Fs-As-C-E-Gs",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gb9#5 (F#/Gb Dominat 9th, Sharp 5th)",
+    "Notes": "Fs-As-D-E-Gs",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb13#11 (F#/Gb Dominant 13th, Added Sharp 11th)",
+    "Notes": "Fs-As-Cs-E-Gs-C-Ds",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "F#/Gb13b9 (F#/Gb Dominant 13th, Flat 9th)",
+    "Notes": "Fs-As-Cs-E-G-Ds",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gb11b9 (F#/Gb Dominant 11th, Flat 9th)",
+    "Notes": "Fs-Cs-E-G-B",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "F#/Gbsus2sus4 (F#/Gb Suspended 2nd, Suspended 4th)",
+    "Notes": "Fs-Gs-B-Cs",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "F#/Gb-5 (F#/Gb Major Diminished 5th)",
+    "Notes": "Fs-As-C",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "G Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "g",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "G (G Major)",
+    "Notes": "G-B-D",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "Gm (G Minor)",
+    "Notes": "G-Bf-D",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "G7 (G Dominant Seventh)",
+    "Notes": "G-B-D-F",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "G5 (G Fifth, Power Chord)",
+    "Notes": "G-D",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Gdim (G Diminished)",
+    "Notes": "G-Bf-Df",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 2,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Gdim7 (G Diminished Seventh)",
+    "Notes": "G-Bf-Df-E",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Gaug (G Augmented)",
+    "Notes": "G-B-Ds",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 5,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Gsus2 (G Suspended 2nd)",
+    "Notes": "G-A-D",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Gsus (G Suspended 4th)",
+    "Notes": "G-C-D",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 5,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Gmaj7 (G Major 7th)",
+    "Notes": "G-B-D-Fs",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Gm7 (G Minor 7th)",
+    "Notes": "G-Bf-D-F",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 8,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G7sus4 (G Dominant 7th Suspended 4th)",
+    "Notes": "G-C-D-F",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Gmaj9 (G Major 9th)",
+    "Notes": "G-B-D-Fs-A",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Gmaj11 (G Major 11th)",
+    "Notes": "G-B-D-Fs-A-C",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Gmaj13 (G Major 13th)",
+    "Notes": "G-B-D-Fs-A-E",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Gmaj9(#11) (G Major 9th, Sharp 11th)",
+    "Notes": "G-B-D-Fs-A-Cs",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Gmaj13(#11) (G Major 13th, Sharp 11th)",
+    "Notes": "G-B-D-Fs-A-Cs-E",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Gadd9 (G Major Added 9th)",
+    "Notes": "G-B-D-A",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "G6add9 (G Major 6th, Added 9th)",
+    "Notes": "G-B-D-E-A",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "Gmaj7(b5) (G Major 7th, Flat 5th)",
+    "Notes": "G-B-Df-Fs",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Gmaj7(#5) (G Major 7th, Sharp 5th)",
+    "Notes": "G-B-Ds-Fs",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Gm6 (G Minor 6th)",
+    "Notes": "G-Bf-D-E",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "Gm9 (G Minor 9th)",
+    "Notes": "G-Bf-D-F-A",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Gm11 (G Minor 11th)",
+    "Notes": "G-Bf-D-F-A-C",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Gm13 (G Minor 13th)",
+    "Notes": "G-Bf-D-F-A-C-E",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Gm(add9) (G Minor, Added 9th)",
+    "Notes": "G-Bf-D-A",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Gm6add9 (G Minor 6th, Added 9th)",
+    "Notes": "G-Bf-D-E-A",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Gmmaj7 (G Minor, Major 7th)",
+    "Notes": "G-Bf-D-Fs",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Gmmaj9 (G Minor 9th, Major 7th)",
+    "Notes": "G-Bf-D-Fs-A",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Gm7b5 (G Half-diminished Minor 7)",
+    "Notes": "G-Bf-Df-F",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Gm7#5 (G Minor 7th, Sharp 5th)",
+    "Notes": "G-Bf-Ds-F",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G6 (G Major 6th)",
+    "Notes": "G-B-D-E",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "G9 (G Dominant 9th)",
+    "Notes": "G-B-D-F-A",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "G11 (G Dominant 11th)",
+    "Notes": "G-B-D-F-A-C",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "G13 (G Dominant 13th)",
+    "Notes": "G-B-D-F-A-E",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "G7b5 (G Dominant 7th, Flat 5th)",
+    "Notes": "G-B-Df-F",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G7#5 (G Dominant 7th, Sharp 5th)",
+    "Notes": "G-B-Ds-F",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G7b9 (G Dominant 7th, Flat 9th)",
+    "Notes": "G-B-D-F-Af",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G7#9 (G Dominant 7th, Sharp 9th)",
+    "Notes": "G-B-D-F-As",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G7(b5,b9) (G Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "G-B-Df-F-Af",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G7(b5,#9) (G Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "G-B-Df-F-As",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G7(#5,b9) (G Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "G-B-Ds-F-Af",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G7(#5,#9) (G Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "G-B-Ds-F-As",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G9b5 (G Dominat 9th, Flat 5th)",
+    "Notes": "G-B-Df-F-A",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G9#5 (G Dominat 9th, Sharp 5th)",
+    "Notes": "G-B-Ds-F-A",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G13#11 (G Dominant 13th, Added Sharp 11th)",
+    "Notes": "G-B-D-F-A-Cs-E",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G13b9 (G Dominant 13th, Flat 9th)",
+    "Notes": "G-B-D-F-Af-E",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G11b9 (G Dominant 11th, Flat 9th)",
+    "Notes": "G-D-F-Af-C",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "Gsus2sus4 (G Suspended 2nd, Suspended 4th)",
+    "Notes": "G-A-C-D",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "G-5 (G Major Diminished 5th)",
+    "Notes": "G-B-Df",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "G#/Ab Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "gsharp",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "G#/Ab (G#/Ab Major)",
+    "Notes": "Gs-C-Ds",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "G#/Abm (G#/Ab Minor)",
+    "Notes": "Gs-B-Ds",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "G#/Ab7 (G#/Ab Dominant Seventh)",
+    "Notes": "Gs-C-Ds-Gf",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab5 (G#/Ab Fifth, Power Chord)",
+    "Notes": "Gs-Ds",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "G#/Abdim (G#/Ab Diminished)",
+    "Notes": "Gs-B-D",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 2,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "G#/Abdim7 (G#/Ab Diminished Seventh)",
+    "Notes": "Gs-B-D-F",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G#/Abaug (G#/Ab Augmented)",
+    "Notes": "Gs-C-E",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 6,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "G#/Absus2 (G#/Ab Suspended 2nd)",
+    "Notes": "Gs-As-Ds",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "G#/Absus (G#/Ab Suspended 4th)",
+    "Notes": "Gs-Cs-Ds",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 6,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "G#/Abmaj7 (G#/Ab Major 7th)",
+    "Notes": "Gs-C-Ds-G",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "G#/Abm7 (G#/Ab Minor 7th)",
+    "Notes": "Gs-B-Ds-Gf",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G#/Ab7sus4 (G#/Ab Dominant 7th Suspended 4th)",
+    "Notes": "Gs-Cs-Ds-Gf",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G#/Abmaj9 (G#/Ab Major 9th)",
+    "Notes": "Gs-C-Ds-G-As",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Abmaj11 (G#/Ab Major 11th)",
+    "Notes": "Gs-C-Ds-G-As-Cs",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Abmaj13 (G#/Ab Major 13th)",
+    "Notes": "Gs-C-Ds-G-As-F",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Abmaj9(#11) (G#/Ab Major 9th, Sharp 11th)",
+    "Notes": "Gs-C-Ds-G-As-D",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Abmaj13(#11) (G#/Ab Major 13th, Sharp 11th)",
+    "Notes": "Gs-C-Ds-G-As-D-F",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Abadd9 (G#/Ab Major Added 9th)",
+    "Notes": "Gs-C-Ds-As",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "G#/Ab6add9 (G#/Ab Major 6th, Added 9th)",
+    "Notes": "Gs-C-Ds-F-As",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "G#/Abmaj7(b5) (G#/Ab Major 7th, Flat 5th)",
+    "Notes": "Gs-C-D-G",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "G#/Abmaj7(#5) (G#/Ab Major 7th, Sharp 5th)",
+    "Notes": "Gs-C-E-G",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "G#/Abm6 (G#/Ab Minor 6th)",
+    "Notes": "Gs-B-Ds-F",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "G#/Abm9 (G#/Ab Minor 9th)",
+    "Notes": "Gs-B-Ds-Gf-As",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G#/Abm11 (G#/Ab Minor 11th)",
+    "Notes": "Gs-B-Ds-Gf-As-Cs",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G#/Abm13 (G#/Ab Minor 13th)",
+    "Notes": "Gs-B-Ds-Gf-As-Cs-F",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G#/Abm(add9) (G#/Ab Minor, Added 9th)",
+    "Notes": "Gs-B-Ds-As",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G#/Abm6add9 (G#/Ab Minor 6th, Added 9th)",
+    "Notes": "Gs-B-Ds-F-As",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G#/Abmmaj7 (G#/Ab Minor, Major 7th)",
+    "Notes": "Gs-B-Ds-G",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "G#/Abmmaj9 (G#/Ab Minor 9th, Major 7th)",
+    "Notes": "Gs-B-Ds-G-As",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Abm7b5 (G#/Ab Half-diminished Minor 7)",
+    "Notes": "Gs-B-D-Gf",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G#/Abm7#5 (G#/Ab Minor 7th, Sharp 5th)",
+    "Notes": "Gs-B-E-Gf",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "G#/Ab6 (G#/Ab Major 6th)",
+    "Notes": "Gs-C-Ds-F",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "G#/Ab9 (G#/Ab Dominant 9th)",
+    "Notes": "Gs-C-Ds-Gf-As",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab11 (G#/Ab Dominant 11th)",
+    "Notes": "Gs-C-Ds-Gf-As-Cs",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab13 (G#/Ab Dominant 13th)",
+    "Notes": "Gs-C-Ds-Gf-As-F",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab7b5 (G#/Ab Dominant 7th, Flat 5th)",
+    "Notes": "Gs-C-D-Gf",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Ab7#5 (G#/Ab Dominant 7th, Sharp 5th)",
+    "Notes": "Gs-C-E-Gf",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab7b9 (G#/Ab Dominant 7th, Flat 9th)",
+    "Notes": "Gs-C-Ds-Gf-A",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Ab7#9 (G#/Ab Dominant 7th, Sharp 9th)",
+    "Notes": "Gs-C-Ds-Gf-B",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab7(b5,b9) (G#/Ab Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "Gs-C-D-Gf-A",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Ab7(b5,#9) (G#/Ab Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "Gs-C-D-Gf-B",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Ab7(#5,b9) (G#/Ab Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "Gs-C-E-Gf-A",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Ab7(#5,#9) (G#/Ab Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "Gs-C-E-Gf-B",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab9b5 (G#/Ab Dominat 9th, Flat 5th)",
+    "Notes": "Gs-C-D-Gf-As",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Ab9#5 (G#/Ab Dominat 9th, Sharp 5th)",
+    "Notes": "Gs-C-E-Gf-As",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab13#11 (G#/Ab Dominant 13th, Added Sharp 11th)",
+    "Notes": "Gs-C-Ds-Gf-As-D-F",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "G#/Ab13b9 (G#/Ab Dominant 13th, Flat 9th)",
+    "Notes": "Gs-C-Ds-Gf-A-F",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Ab11b9 (G#/Ab Dominant 11th, Flat 9th)",
+    "Notes": "Gs-Ds-Gf-A-Cs",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "G#/Absus2sus4 (G#/Ab Suspended 2nd, Suspended 4th)",
+    "Notes": "Gs-As-Cs-Ds",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "G#/Ab-5 (G#/Ab Major Diminished 5th)",
+    "Notes": "Gs-C-D",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "A Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "a",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "A (A Major)",
+    "Notes": "A-Cs-E",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "Am (A Minor)",
+    "Notes": "A-C-E",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "A7 (A Dominant Seventh)",
+    "Notes": "A-Cs-E-G",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "A5 (A Fifth, Power Chord)",
+    "Notes": "A-E",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Adim (A Diminished)",
+    "Notes": "A-C-Ef",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 3,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Adim7 (A Diminished Seventh)",
+    "Notes": "A-C-Ef-Fs",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Aaug (A Augmented)",
+    "Notes": "A-Cs-F",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 7,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Asus2 (A Suspended 2nd)",
+    "Notes": "A-B-E",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Asus (A Suspended 4th)",
+    "Notes": "A-D-E",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 7,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Amaj7 (A Major 7th)",
+    "Notes": "A-Cs-E-Gs",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Am7 (A Minor 7th)",
+    "Notes": "A-C-E-G",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A7sus4 (A Dominant 7th Suspended 4th)",
+    "Notes": "A-D-E-G",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Amaj9 (A Major 9th)",
+    "Notes": "A-Cs-E-Gs-B",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Amaj11 (A Major 11th)",
+    "Notes": "A-Cs-E-Gs-B-D",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Amaj13 (A Major 13th)",
+    "Notes": "A-Cs-E-Gs-B-Fs",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Amaj9(#11) (A Major 9th, Sharp 11th)",
+    "Notes": "A-Cs-E-Gs-B-Ds",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Amaj13(#11) (A Major 13th, Sharp 11th)",
+    "Notes": "A-Cs-E-Gs-B-Ds-Fs",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Aadd9 (A Major Added 9th)",
+    "Notes": "A-Cs-E-B",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "A6add9 (A Major 6th, Added 9th)",
+    "Notes": "A-Cs-E-Fs-B",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "Amaj7(b5) (A Major 7th, Flat 5th)",
+    "Notes": "A-Cs-Ef-Gs",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Amaj7(#5) (A Major 7th, Sharp 5th)",
+    "Notes": "A-Cs-F-Gs",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Am6 (A Minor 6th)",
+    "Notes": "A-C-E-Fs",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "Am9 (A Minor 9th)",
+    "Notes": "A-C-E-G-B",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Am11 (A Minor 11th)",
+    "Notes": "A-C-E-G-B-D",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Am13 (A Minor 13th)",
+    "Notes": "A-C-E-G-B-D-Fs",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Am(add9) (A Minor, Added 9th)",
+    "Notes": "A-C-E-B",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Am6add9 (A Minor 6th, Added 9th)",
+    "Notes": "A-C-E-Fs-B",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Ammaj7 (A Minor, Major 7th)",
+    "Notes": "A-C-E-Gs",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Ammaj9 (A Minor 9th, Major 7th)",
+    "Notes": "A-C-E-Gs-B",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Am7b5 (A Half-diminished Minor 7)",
+    "Notes": "A-C-Ef-G",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Am7#5 (A Minor 7th, Sharp 5th)",
+    "Notes": "A-C-F-G",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A6 (A Major 6th)",
+    "Notes": "A-Cs-E-Fs",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "A9 (A Dominant 9th)",
+    "Notes": "A-Cs-E-G-B",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "A11 (A Dominant 11th)",
+    "Notes": "A-Cs-E-G-B-D",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "A13 (A Dominant 13th)",
+    "Notes": "A-Cs-E-G-B-Fs",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "A7b5 (A Dominant 7th, Flat 5th)",
+    "Notes": "A-Cs-Ef-G",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A7#5 (A Dominant 7th, Sharp 5th)",
+    "Notes": "A-Cs-F-G",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A7b9 (A Dominant 7th, Flat 9th)",
+    "Notes": "A-Cs-E-G-Bf",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A7#9 (A Dominant 7th, Sharp 9th)",
+    "Notes": "A-Cs-E-G-C",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A7(b5,b9) (A Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "A-Cs-Ef-G-Bf",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A7(b5,#9) (A Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "A-Cs-Ef-G-C",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A7(#5,b9) (A Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "A-Cs-F-G-Bf",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A7(#5,#9) (A Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "A-Cs-F-G-C",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A9b5 (A Dominat 9th, Flat 5th)",
+    "Notes": "A-Cs-Ef-G-B",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A9#5 (A Dominat 9th, Sharp 5th)",
+    "Notes": "A-Cs-F-G-B",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A13#11 (A Dominant 13th, Added Sharp 11th)",
+    "Notes": "A-Cs-E-G-B-Ds-Fs",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A13b9 (A Dominant 13th, Flat 9th)",
+    "Notes": "A-Cs-E-G-Bf-Fs",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A11b9 (A Dominant 11th, Flat 9th)",
+    "Notes": "A-E-G-Bf-D",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "Asus2sus4 (A Suspended 2nd, Suspended 4th)",
+    "Notes": "A-B-D-E",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 4,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "A-5 (A Major Diminished 5th)",
+    "Notes": "A-Cs-Ef",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "A#/Bb Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "asharp",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "A#/Bb (A#/Bb Major)",
+    "Notes": "As-D-F",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "A#/Bbm (A#/Bb Minor)",
+    "Notes": "As-Df-F",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "A#/Bb7 (A#/Bb Dominant Seventh)",
+    "Notes": "As-D-F-Af",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb5 (A#/Bb Fifth, Power Chord)",
+    "Notes": "As-F",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "A#/Bbdim (A#/Bb Diminished)",
+    "Notes": "As-Df-E",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 3,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "A#/Bbdim7 (A#/Bb Diminished Seventh)",
+    "Notes": "As-Df-E-G",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A#/Bbaug (A#/Bb Augmented)",
+    "Notes": "As-D-Fs",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 5,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "A#/Bbsus2 (A#/Bb Suspended 2nd)",
+    "Notes": "As-C-F",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "A#/Bbsus (A#/Bb Suspended 4th)",
+    "Notes": "As-Ds-F",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 6,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "A#/Bbmaj7 (A#/Bb Major 7th)",
+    "Notes": "As-D-F-A",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "A#/Bbm7 (A#/Bb Minor 7th)",
+    "Notes": "As-Df-F-Af",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A#/Bb7sus4 (A#/Bb Dominant 7th Suspended 4th)",
+    "Notes": "As-Ds-F-Af",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A#/Bbmaj9 (A#/Bb Major 9th)",
+    "Notes": "As-D-F-A-C",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 8,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bbmaj11 (A#/Bb Major 11th)",
+    "Notes": "As-D-F-A-C-Ds",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bbmaj13 (A#/Bb Major 13th)",
+    "Notes": "As-D-F-A-C-G",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bbmaj9(#11) (A#/Bb Major 9th, Sharp 11th)",
+    "Notes": "As-D-F-A-C-E",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bbmaj13(#11) (A#/Bb Major 13th, Sharp 11th)",
+    "Notes": "As-D-F-A-C-E-G",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bbadd9 (A#/Bb Major Added 9th)",
+    "Notes": "As-D-F-C",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "A#/Bb6add9 (A#/Bb Major 6th, Added 9th)",
+    "Notes": "As-D-F-G-C",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "A#/Bbmaj7(b5) (A#/Bb Major 7th, Flat 5th)",
+    "Notes": "As-D-E-A",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "A#/Bbmaj7(#5) (A#/Bb Major 7th, Sharp 5th)",
+    "Notes": "As-D-Fs-A",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "A#/Bbm6 (A#/Bb Minor 6th)",
+    "Notes": "As-Df-F-G",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "A#/Bbm9 (A#/Bb Minor 9th)",
+    "Notes": "As-Df-F-Af-C",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A#/Bbm11 (A#/Bb Minor 11th)",
+    "Notes": "As-Df-F-Af-C-Ds",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A#/Bbm13 (A#/Bb Minor 13th)",
+    "Notes": "As-Df-F-Af-C-Ds-G",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A#/Bbm(add9) (A#/Bb Minor, Added 9th)",
+    "Notes": "As-Df-F-C",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A#/Bbm6add9 (A#/Bb Minor 6th, Added 9th)",
+    "Notes": "As-Df-F-G-C",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A#/Bbmmaj7 (A#/Bb Minor, Major 7th)",
+    "Notes": "As-Df-F-A",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "A#/Bbmmaj9 (A#/Bb Minor 9th, Major 7th)",
+    "Notes": "As-Df-F-A-C",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bbm7b5 (A#/Bb Half-diminished Minor 7)",
+    "Notes": "As-Df-E-Af",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A#/Bbm7#5 (A#/Bb Minor 7th, Sharp 5th)",
+    "Notes": "As-Df-Fs-Af",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "A#/Bb6 (A#/Bb Major 6th)",
+    "Notes": "As-D-F-G",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "A#/Bb9 (A#/Bb Dominant 9th)",
+    "Notes": "As-D-F-Af-C",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb11 (A#/Bb Dominant 11th)",
+    "Notes": "As-D-F-Af-C-Ds",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb13 (A#/Bb Dominant 13th)",
+    "Notes": "As-D-F-Af-C-G",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb7b5 (A#/Bb Dominant 7th, Flat 5th)",
+    "Notes": "As-D-E-Af",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bb7#5 (A#/Bb Dominant 7th, Sharp 5th)",
+    "Notes": "As-D-Fs-Af",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb7b9 (A#/Bb Dominant 7th, Flat 9th)",
+    "Notes": "As-D-F-Af-B",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bb7#9 (A#/Bb Dominant 7th, Sharp 9th)",
+    "Notes": "As-D-F-Af-Cs",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb7(b5,b9) (A#/Bb Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "As-D-E-Af-B",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bb7(b5,#9) (A#/Bb Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "As-D-E-Af-Cs",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bb7(#5,b9) (A#/Bb Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "As-D-Fs-Af-B",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bb7(#5,#9) (A#/Bb Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "As-D-Fs-Af-Cs",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb9b5 (A#/Bb Dominat 9th, Flat 5th)",
+    "Notes": "As-D-E-Af-C",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bb9#5 (A#/Bb Dominat 9th, Sharp 5th)",
+    "Notes": "As-D-Fs-Af-C",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb13#11 (A#/Bb Dominant 13th, Added Sharp 11th)",
+    "Notes": "As-D-F-Af-C-E-G",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "A#/Bb13b9 (A#/Bb Dominant 13th, Flat 9th)",
+    "Notes": "As-D-F-Af-B-G",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bb11b9 (A#/Bb Dominant 11th, Flat 9th)",
+    "Notes": "As-F-Af-B-Ds",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "A#/Bbsus2sus4 (A#/Bb Suspended 2nd, Suspended 4th)",
+    "Notes": "As-C-Ds-F",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 4,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "A#/Bb-5 (A#/Bb Major Diminished 5th)",
+    "Notes": "As-D-E",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "B Chords",
+    "Notes": "",
+    "Steps": "",
+    "Symbols": "b",
+    "Type": "Other",
+    "Variation Count": 0,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "B (B Major)",
+    "Notes": "B-Ds-Fs",
+    "Steps": "1-3-5",
+    "Symbols": "M, maj",
+    "Type": "Major",
+    "Variation Count": 5,
+    "Usage Notes": "folk, pop, country, uplifting"
+  },
+  {
+    "Chord Name": "Bm (B Minor)",
+    "Notes": "B-D-Fs",
+    "Steps": "1-b3-5",
+    "Symbols": "m, min, -",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "melancholy, emotional, dramatic"
+  },
+  {
+    "Chord Name": "B7 (B Dominant Seventh)",
+    "Notes": "B-Ds-Fs-A",
+    "Steps": "1-3-5-b7",
+    "Symbols": "7",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "B5 (B Fifth, Power Chord)",
+    "Notes": "B-Fs",
+    "Steps": "1-5",
+    "Symbols": "5",
+    "Type": "Other",
+    "Variation Count": 10,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Bdim (B Diminished)",
+    "Notes": "B-D-F",
+    "Steps": "1-b3-b5",
+    "Symbols": "dim, °",
+    "Type": "Other",
+    "Variation Count": 2,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Bdim7 (B Diminished Seventh)",
+    "Notes": "B-D-F-Gs",
+    "Steps": "1-b3-b5-6",
+    "Symbols": "dim7, o7, 7dim",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Baug (B Augmented)",
+    "Notes": "B-Ds-G",
+    "Steps": "1-3-#5",
+    "Symbols": "aug, \"+\"",
+    "Type": "Other",
+    "Variation Count": 6,
+    "Usage Notes": "versatile, experimental"
+  },
+  {
+    "Chord Name": "Bsus2 (B Suspended 2nd)",
+    "Notes": "B-Cs-Fs",
+    "Steps": "1-2-5",
+    "Symbols": "sus2",
+    "Type": "Sustained",
+    "Variation Count": 2,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Bsus (B Suspended 4th)",
+    "Notes": "B-E-Fs",
+    "Steps": "1-4-5",
+    "Symbols": "sus, sus4",
+    "Type": "Sustained",
+    "Variation Count": 6,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "Bmaj7 (B Major 7th)",
+    "Notes": "B-Ds-Fs-As",
+    "Steps": "1-3-5-7",
+    "Symbols": "maj7, M7",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Bm7 (B Minor 7th)",
+    "Notes": "B-D-Fs-A",
+    "Steps": "1-b3-5-b7",
+    "Symbols": "m7, min7, -7",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "B7sus4 (B Dominant 7th Suspended 4th)",
+    "Notes": "B-E-Fs-A",
+    "Steps": "1-4-5-b7",
+    "Symbols": "7sus4, 7sus",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "Bmaj9 (B Major 9th)",
+    "Notes": "B-Ds-Fs-As-Cs",
+    "Steps": "1-3-5-7-9",
+    "Symbols": "maj9, M9, maj7(9)",
+    "Type": "Major",
+    "Variation Count": 7,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Bmaj11 (B Major 11th)",
+    "Notes": "B-Ds-Fs-As-Cs-E",
+    "Steps": "1-3-5-7-9-11",
+    "Symbols": "maj11, M11",
+    "Type": "Major",
+    "Variation Count": 1,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Bmaj13 (B Major 13th)",
+    "Notes": "B-Ds-Fs-As-Cs-Gs",
+    "Steps": "1-3-5-7-9-13",
+    "Symbols": "maj13, M13, maj7(9,13),maj7(6/9)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Bmaj9(#11) (B Major 9th, Sharp 11th)",
+    "Notes": "B-Ds-Fs-As-Cs-F",
+    "Steps": "1-3-5-7-9-#11",
+    "Symbols": "maj9(#11), maj7(9,#11)",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Bmaj13(#11) (B Major 13th, Sharp 11th)",
+    "Notes": "B-Ds-Fs-As-Cs-F-Gs",
+    "Steps": "1-3-5-7-9-#11-13",
+    "Symbols": "maj13(#11), maj7(13,#11), maj9(#11,13)",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Badd9 (B Major Added 9th)",
+    "Notes": "B-Ds-Fs-Cs",
+    "Steps": "1-3-5-9",
+    "Symbols": "add9",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "B6add9 (B Major 6th, Added 9th)",
+    "Notes": "B-Ds-Fs-Gs-Cs",
+    "Steps": "1-3-5-6-9",
+    "Symbols": "6add9, add6/9, 6/9",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "Bmaj7(b5) (B Major 7th, Flat 5th)",
+    "Notes": "B-Ds-F-As",
+    "Steps": "1-3-b5-7",
+    "Symbols": "maj7(b5)",
+    "Type": "Major",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Bmaj7(#5) (B Major 7th, Sharp 5th)",
+    "Notes": "B-Ds-G-As",
+    "Steps": "1-3-#5-7",
+    "Symbols": "maj7(#5), maj7+, +7+5",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Bm6 (B Minor 6th)",
+    "Notes": "B-D-Fs-Gs",
+    "Steps": "1-b3-5-6",
+    "Symbols": "m6, min6, m(add6), -6",
+    "Type": "Minor",
+    "Variation Count": 9,
+    "Usage Notes": "dark, emotional"
+  },
+  {
+    "Chord Name": "Bm9 (B Minor 9th)",
+    "Notes": "B-D-Fs-A-Cs",
+    "Steps": "1-b3-5-b7-9",
+    "Symbols": "m9, min9, -9",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Bm11 (B Minor 11th)",
+    "Notes": "B-D-Fs-A-Cs-E",
+    "Steps": "1-b3-5-b7-9-11",
+    "Symbols": "m11, min11, -11",
+    "Type": "Minor",
+    "Variation Count": 5,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Bm13 (B Minor 13th)",
+    "Notes": "B-D-Fs-A-Cs-E-Gs",
+    "Steps": "1-b3-5-b7-9-11-13",
+    "Symbols": "m13, min13, -13",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Bm(add9) (B Minor, Added 9th)",
+    "Notes": "B-D-Fs-Cs",
+    "Steps": "1-b3-5-9",
+    "Symbols": "m(add9), m9(no 7th)",
+    "Type": "Minor",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Bm6add9 (B Minor 6th, Added 9th)",
+    "Notes": "B-D-Fs-Gs-Cs",
+    "Steps": "1-b3-5-6-9",
+    "Symbols": "m6add9, m6/9, min6/9, m(add6,9), -6/9",
+    "Type": "Minor",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Bmmaj7 (B Minor, Major 7th)",
+    "Notes": "B-D-Fs-As",
+    "Steps": "1-b3-5-7",
+    "Symbols": "mmaj7, min(maj7), -(maj7), mM7, m+7",
+    "Type": "Major",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, sophisticated, dreamy, warm"
+  },
+  {
+    "Chord Name": "Bmmaj9 (B Minor 9th, Major 7th)",
+    "Notes": "B-D-Fs-As-Cs",
+    "Steps": "1-b3-5-7-9",
+    "Symbols": "mmaj9, min(maj9), m9(maj7), mM9",
+    "Type": "Major",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, complex harmony, sophisticated"
+  },
+  {
+    "Chord Name": "Bm7b5 (B Half-diminished Minor 7)",
+    "Notes": "B-D-F-A",
+    "Steps": "1-b3-b5-b7",
+    "Symbols": "m7b5, m7-5, ø",
+    "Type": "Minor",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "Bm7#5 (B Minor 7th, Sharp 5th)",
+    "Notes": "B-D-G-A",
+    "Steps": "1-b3-#5-b7",
+    "Symbols": "m7#5, m7+",
+    "Type": "Minor",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, smooth, contemplative"
+  },
+  {
+    "Chord Name": "B6 (B Major 6th)",
+    "Notes": "B-Ds-Fs-Gs",
+    "Steps": "1-3-5-6",
+    "Symbols": "6, M6, maj6, add6",
+    "Type": "Major",
+    "Variation Count": 10,
+    "Usage Notes": "bright, uplifting"
+  },
+  {
+    "Chord Name": "B9 (B Dominant 9th)",
+    "Notes": "B-Ds-Fs-A-Cs",
+    "Steps": "1-3-5-b7-9",
+    "Symbols": "9",
+    "Type": "Dominant",
+    "Variation Count": 8,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "B11 (B Dominant 11th)",
+    "Notes": "B-Ds-Fs-A-Cs-E",
+    "Steps": "1-3-5-b7-9-11",
+    "Symbols": "11",
+    "Type": "Dominant",
+    "Variation Count": 5,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "B13 (B Dominant 13th)",
+    "Notes": "B-Ds-Fs-A-Cs-Gs",
+    "Steps": "1-3-5-b7-9-13",
+    "Symbols": "13",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "blues, jazz, rock, resolution"
+  },
+  {
+    "Chord Name": "B7b5 (B Dominant 7th, Flat 5th)",
+    "Notes": "B-Ds-F-A",
+    "Steps": "1-3-b5-b7",
+    "Symbols": "7b5, 7-5",
+    "Type": "Dominant",
+    "Variation Count": 10,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "B7#5 (B Dominant 7th, Sharp 5th)",
+    "Notes": "B-Ds-G-A",
+    "Steps": "1-3-#5-b7",
+    "Symbols": "7#5, 7maj5, 7+5, +7",
+    "Type": "Dominant",
+    "Variation Count": 9,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "B7b9 (B Dominant 7th, Flat 9th)",
+    "Notes": "B-Ds-Fs-A-C",
+    "Steps": "1-3-5-b7-b9",
+    "Symbols": "7b9, 7-9",
+    "Type": "Dominant",
+    "Variation Count": 6,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "B7#9 (B Dominant 7th, Sharp 9th)",
+    "Notes": "B-Ds-Fs-A-D",
+    "Steps": "1-3-5-b7-#9",
+    "Symbols": "7#9, 7+9, 7b10",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "B7(b5,b9) (B Dominant 7th, Flat 5th, Flat 9th)",
+    "Notes": "B-Ds-F-A-C",
+    "Steps": "1-3-b5-b7-b9",
+    "Symbols": "7(b5,b9), 7(-5,-9)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "B7(b5,#9) (B Dominant 7th, Flat 5th, Sharp 9th)",
+    "Notes": "B-Ds-F-A-D",
+    "Steps": "1-3-b5-b7-#9",
+    "Symbols": "7(b5,#9), 7(-5,+9)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "B7(#5,b9) (B Dominant 7th, Sharp 5th, Flat 9th)",
+    "Notes": "B-Ds-G-A-C",
+    "Steps": "1-3-#5-b7-b9",
+    "Symbols": "7(#5,b9), 7(+5,-9), +7b9",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "B7(#5,#9) (B Dominant 7th, Sharp 5th, Sharp 9th)",
+    "Notes": "B-Ds-G-A-D",
+    "Steps": "1-3-#5-b7-#9",
+    "Symbols": "7(#5,#9), 7(+5,+9), +7#9",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "B9b5 (B Dominat 9th, Flat 5th)",
+    "Notes": "B-Ds-F-A-Cs",
+    "Steps": "1-3-b5-b7-9",
+    "Symbols": "9b5, 7(b5,9), 9-5",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "B9#5 (B Dominat 9th, Sharp 5th)",
+    "Notes": "B-Ds-G-A-Cs",
+    "Steps": "1-3-#5-b7-9",
+    "Symbols": "9#5, 7(#5,9), 9+5, +9",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "B13#11 (B Dominant 13th, Added Sharp 11th)",
+    "Notes": "B-Ds-Fs-A-Cs-F-Gs",
+    "Steps": "1-3-5-b7-9-#11-13",
+    "Symbols": "13#11, 13+11, 7(9,#11,13)",
+    "Type": "Dominant",
+    "Variation Count": 2,
+    "Usage Notes": "blues, jazz, resolution"
+  },
+  {
+    "Chord Name": "B13b9 (B Dominant 13th, Flat 9th)",
+    "Notes": "B-Ds-Fs-A-C-Gs",
+    "Steps": "1-3-5-b7-b9-13",
+    "Symbols": "13b9, 13-9, 7(b9,13)",
+    "Type": "Dominant",
+    "Variation Count": 3,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "B11b9 (B Dominant 11th, Flat 9th)",
+    "Notes": "B-Fs-A-C-E",
+    "Steps": "1-5-b7-b9-11",
+    "Symbols": "11b9, 7sus4(b9)",
+    "Type": "Dominant",
+    "Variation Count": 4,
+    "Usage Notes": "jazz, altered, tension, sophisticated"
+  },
+  {
+    "Chord Name": "Bsus2sus4 (B Suspended 2nd, Suspended 4th)",
+    "Notes": "B-Cs-E-Fs",
+    "Steps": "1-2-4-5",
+    "Symbols": "sus2sus4",
+    "Type": "Sustained",
+    "Variation Count": 3,
+    "Usage Notes": "atmospheric, tension, modern, ambiguous"
+  },
+  {
+    "Chord Name": "B-5 (B Major Diminished 5th)",
+    "Notes": "B-Ds-F",
+    "Steps": "1-3-b5",
+    "Symbols": "-5",
+    "Type": "Major",
+    "Variation Count": 2,
+    "Usage Notes": "bright, uplifting"
+  }
+]

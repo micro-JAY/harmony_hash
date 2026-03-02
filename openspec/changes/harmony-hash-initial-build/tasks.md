@@ -8,10 +8,10 @@
 
 ## 2. Chord Data Layer
 
-- [ ] 2.1 Copy `chords_clean.json` to project data directory and create `lib/chordData.ts` with typed JSON import
-- [ ] 2.2 Build the multi-key chord index — expand Symbols aliases into a Map<string, ChordEntry> keyed by normalized root+symbol
-- [ ] 2.3 Implement SVG path resolution — mapping from chord entry to `public/music_src/chords/<key_folder>/<chord_type_folder>/var_N.svg` with the symbol-to-folder name translation
-- [ ] 2.4 Implement root note normalization (# → s, b → f, ♯ → s, ♭ → f, case-insensitive roots)
+- [x] 2.1 Copy `chords_clean.json` to project data directory and create `lib/chordData.ts` with typed JSON import
+- [x] 2.2 Build the multi-key chord index — expand Symbols aliases into a Map<string, ChordEntry> keyed by normalized root+symbol
+- [x] 2.3 Implement SVG path resolution — mapping from chord entry to `public/music_src/chords/<key_folder>/<chord_type_folder>/var_N.svg` with the symbol-to-folder name translation
+- [x] 2.4 Implement root note normalization (# → s, b → f, ♯ → s, ♭ → f, case-insensitive roots)
 
 ## 3. Harmony Brain — Core Logic
 

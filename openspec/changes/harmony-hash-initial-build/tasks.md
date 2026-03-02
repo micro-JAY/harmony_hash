@@ -56,6 +56,6 @@
 
 - [x] 8.1 Wire global instrument toggle state through all ChordCards
 - [x] 8.2 Apply Tonari Labs design tokens throughout — glow accents on buttons/toggles, dark navy cards, proper typography
-- [ ] 8.3 Test full flow: type "Cmaj7 Am9 Dm7 G7" → see 4 guitar chord cards → toggle to piano → toggle back → cycle variants → randomize
-- [ ] 8.4 Test preset flow: pick "ii V I" → select key "Bb" → verify correct transposition → change key to "F#" → verify update
+- [x] 8.3 Test full flow: type "Cmaj7 Am9 Dm7 G7" → see 4 guitar chord cards → toggle to piano → toggle back → cycle variants → randomize
+- [x] 8.4 Test preset flow: pick "ii V I" → select key "Bb" → verify correct transposition → change key to "F#" → verify update
 - [x] 8.5 Verify all Vitest tests pass

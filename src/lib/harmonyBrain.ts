@@ -173,8 +173,8 @@ const NOTE_DISPLAY = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb"
 // Sharp keys prefer sharps
 const NOTE_DISPLAY_SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
-// Keys that prefer sharp notation
-const SHARP_KEYS = new Set(["C", "G", "D", "A", "E", "B", "Fs", "Cs"]);
+// Keys that prefer sharp notation (excludes C — it uses flats for accidentals like Bb, Eb)
+const SHARP_KEYS = new Set(["G", "D", "A", "E", "B", "Fs", "Cs"]);
 
 interface ParsedNumeral {
   degree: number;      // 0-6
@@ -254,7 +254,10 @@ export function transposeProgression(
     const { degree, isMinor, accidental, suffix, extraSuffix } = parsed;
 
     // Get the scale degree's pitch class
-    const scalePc = scale[degree] + accidental;
+    // Accidentals are applied relative to the MAJOR scale, not the modal scale.
+    // e.g. "bVII" always means a whole step below tonic, regardless of mode.
+    const basePc = accidental !== 0 ? MAJOR_SCALE[degree] : scale[degree];
+    const scalePc = basePc + accidental;
     const chordRootPc = ((keyPc + scalePc) % 12 + 12) % 12;
     const rootName = noteDisplay[chordRootPc];
 
@@ -263,13 +266,14 @@ export function transposeProgression(
     if (suffix) {
       // Explicit suffix from the numeral (e.g. ii° → dim)
       quality = suffix;
+    } else if (accidental !== 0) {
+      // With accidentals (bVII, #IV), the numeral case directly determines quality
+      quality = isMinor ? "m" : "";
     } else if (isMinor) {
       quality = "m";
     } else {
-      // Use the default quality from scale unless the numeral case disagrees
+      // No accidental, no suffix: use scale's default quality for this degree
       const defaultQ = defaultQualities[degree];
-      // If numeral is uppercase, it's major (no suffix or the scale default if major)
-      // If scale says "m" but numeral is uppercase, override to major
       quality = defaultQ === "m" ? "" : defaultQ;
     }
 

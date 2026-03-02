@@ -199,9 +199,9 @@ for (const entry of chordEntries) {
 
   // Register all symbol aliases for this entry
   for (const sym of getAllSymbols(entry)) {
-    // Key format: root + symbol, all lowercase for case-insensitive lookup
-    // For major chord, also register bare root (e.g. "c" → C Major)
-    const lookupKey = (root + sym).toLowerCase();
+    // Key format: root (lowercased) + symbol (case-preserved).
+    // Case matters for quality: "M7" (major 7th) ≠ "m7" (minor 7th)
+    const lookupKey = root.toLowerCase() + sym;
     // Don't overwrite — first entry wins (avoids collisions from duplicate chord names)
     if (!chordIndex.has(lookupKey)) {
       chordIndex.set(lookupKey, indexed);
@@ -231,7 +231,8 @@ export function lookupChord(input: string): IndexedChord | undefined {
   const canonRoot = normalizeRoot(rawRoot);
   if (!canonRoot) return undefined;
 
-  const lookupKey = (canonRoot + quality).toLowerCase();
+  // Root lowercased, quality case-preserved (M7 ≠ m7)
+  const lookupKey = canonRoot.toLowerCase() + quality;
   return chordIndex.get(lookupKey);
 }
 

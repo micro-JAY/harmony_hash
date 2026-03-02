@@ -24,10 +24,10 @@
 
 ## 4. Harmony Brain — Unit Tests
 
-- [ ] 4.1 Write Vitest tests for chord symbol normalization (alias resolution across multiple notation styles)
-- [ ] 4.2 Write Vitest tests for transposition across all 12 keys (major, minor, modal progressions)
-- [ ] 4.3 Write Vitest tests for Drop 2 voicing output — verify Cmaj7 produces G3-C4-E4-B4, triads stay root position
-- [ ] 4.4 Write Vitest tests for edge cases — empty input, unrecognized chords, parenthetical notation, bare root notes
+- [x] 4.1 Write Vitest tests for chord symbol normalization (alias resolution across multiple notation styles)
+- [x] 4.2 Write Vitest tests for transposition across all 12 keys (major, minor, modal progressions)
+- [x] 4.3 Write Vitest tests for Drop 2 voicing output — verify Cmaj7 produces G3-C4-E4-B4, triads stay root position
+- [x] 4.4 Write Vitest tests for edge cases — empty input, unrecognized chords, parenthetical notation, bare root notes
 
 ## 5. UI Components — Input
 

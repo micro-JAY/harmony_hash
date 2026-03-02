@@ -3,3 +3,8 @@
 initial_data/
 .claude/
 .codex/
+
+
+node_modules/
+dist/
+.next/

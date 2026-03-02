@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hh-bg: var(--surface-primary, #0a0e1a);
+  --hh-bg-card: var(--surface-secondary, #111827);
+  --hh-accent: var(--glow-accent, #6366f1);
+  --hh-text: var(--text-primary, #f1f5f9);
+  --hh-text-muted: var(--text-secondary, #94a3b8);
+  --hh-border: var(--border-subtle, #1e293b);
+}
+
+body {
+  margin: 0;
+  background-color: var(--hh-bg);
+  color: var(--hh-text);
+  font-family: var(--font-primary, "Zalando Sans", system-ui, sans-serif);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

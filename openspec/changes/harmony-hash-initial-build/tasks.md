@@ -15,12 +15,12 @@
 
 ## 3. Harmony Brain — Core Logic
 
-- [ ] 3.1 Create `lib/harmonyBrain.ts` with chord symbol parser — splits space-separated input, normalizes each symbol, resolves against the chord index
-- [ ] 3.2 Implement parenthetical stripping and alias matching (e.g. "E7(#9)" → "E7#9", "G13(sus4)" → "G13sus4")
-- [ ] 3.3 Implement roman numeral parser — parse case, accidentals (b, #), diminished (°), and quality from numeral strings
-- [ ] 3.4 Implement scale degree transposition — map numerals to concrete chord names given a key, supporting major, natural minor, harmonic minor, and modal contexts
-- [ ] 3.5 Implement Drop 2 voicing engine — take note names from chord entry, assign octave numbers, drop 2nd-highest note for 4+ note chords
-- [ ] 3.6 Implement note-to-pitch-class mapping (C=0, C#/Db=1, ..., B=11) for piano rendering
+- [x] 3.1 Create `lib/harmonyBrain.ts` with chord symbol parser — splits space-separated input, normalizes each symbol, resolves against the chord index
+- [x] 3.2 Implement parenthetical stripping and alias matching (e.g. "E7(#9)" → "E7#9", "G13(sus4)" → "G13sus4")
+- [x] 3.3 Implement roman numeral parser — parse case, accidentals (b, #), diminished (°), and quality from numeral strings
+- [x] 3.4 Implement scale degree transposition — map numerals to concrete chord names given a key, supporting major, natural minor, harmonic minor, and modal contexts
+- [x] 3.5 Implement Drop 2 voicing engine — take note names from chord entry, assign octave numbers, drop 2nd-highest note for 4+ note chords
+- [x] 3.6 Implement note-to-pitch-class mapping (C=0, C#/Db=1, ..., B=11) for piano rendering
 
 ## 4. Harmony Brain — Unit Tests
 

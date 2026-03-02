@@ -1,0 +1,5 @@
+# Init docs, tools
+.DS_Store
+initial_data/
+.claude/
+.codex/

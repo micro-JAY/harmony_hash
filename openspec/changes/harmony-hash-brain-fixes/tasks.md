@@ -28,6 +28,6 @@
 
 ## 5. Final Verification and Spec Closure
 
-- [ ] 5.1 Run final `npm run build` and `npx vitest run` with all stages applied.
-- [ ] 5.2 Confirm no internal note encoding appears in UI-facing rendering paths.
-- [ ] 5.3 Mark all OpenSpec tasks complete or blocked with rationale.
+- [x] 5.1 Run final `npm run build` and `npx vitest run` with all stages applied.
+- [x] 5.2 Confirm no internal note encoding appears in UI-facing rendering paths.
+- [x] 5.3 Mark all OpenSpec tasks complete or blocked with rationale.

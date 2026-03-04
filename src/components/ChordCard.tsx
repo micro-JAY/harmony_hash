@@ -59,7 +59,7 @@ export default function ChordCard({
         transition: `all var(--duration-normal) var(--ease-out)`,
       }}
     >
-      {instrument === "guitar" && maxVariants > 1 && (
+      {instrument === "guitar" && (
         <button
           type="button"
           aria-label={isLocked ? "Unlock chord card" : "Lock chord card"}

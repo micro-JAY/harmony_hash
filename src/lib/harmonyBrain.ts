@@ -280,6 +280,19 @@ export function transposeProgression(
   });
 }
 
+/**
+ * Transpose an en-dash-separated numeral string (e.g. "I – V – vi – IV")
+ * to concrete chord names in a given key.
+ */
+export function transposeNumeralString(
+  numeralString: string,
+  key: string,
+  scaleType: ScaleType
+): string[] {
+  const numerals = numeralString.split(" – ").map((s) => s.trim());
+  return transposeProgression(numerals, key, scaleType);
+}
+
 /** All 12 chromatic keys for the key selector */
 export const ALL_KEYS = [
   { label: "C", value: "C" },

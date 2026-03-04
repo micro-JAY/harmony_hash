@@ -6,8 +6,8 @@
 
 ## 2. Transposition Integration
 
-- [ ] 2.1 Update `transposeProgression` in `harmonyBrain.ts` to accept a numeral string (split on ` – `) in addition to the existing string array, or add a helper that splits and delegates
-- [ ] 2.2 Ensure scaleType resolution works with the new data shape: group default → subgroup override → passed to transposition
+- [x] 2.1 Update `transposeProgression` in `harmonyBrain.ts` to accept a numeral string (split on ` – `) in addition to the existing string array, or add a helper that splits and delegates
+- [x] 2.2 Ensure scaleType resolution works with the new data shape: group default → subgroup override → passed to transposition
 
 ## 3. Progression Browser UI
 

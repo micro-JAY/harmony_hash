@@ -63,6 +63,8 @@ function getBlackKeyOffset(note: string, octave: number, whiteKeyWidth: number):
 }
 
 export default function PianoKeyboard({ voicedNotes }: PianoKeyboardProps) {
+  // `VoicedNote.name` uses internal chord-data encoding (e.g. Cs/Ef).
+  // Format via `formatNoteForDisplay` before rendering note names in UI text.
   const activeSet = new Map<number, VoicedNote>();
   for (const n of voicedNotes) {
     activeSet.set(n.midi, n);

@@ -4,6 +4,41 @@ import rawChords from "../data/chords_clean.json";
 // ─── Note / Root Helpers ─────────────────────────────────────────────
 
 const NOTE_NAMES = ["C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B"] as const;
+const FLAT_ROOTS = new Set(["Bb", "Eb", "Ab", "Db", "Gb", "Bf", "Ef", "Af", "Df", "Gf", "As"]);
+const INTERNAL_TO_DISPLAY: Record<string, string> = {
+  C: "C",
+  Cs: "C#",
+  D: "D",
+  Ds: "D#",
+  E: "E",
+  F: "F",
+  Fs: "F#",
+  G: "G",
+  Gs: "G#",
+  A: "A",
+  As: "A#",
+  B: "B",
+  Cf: "Cb",
+  Df: "Db",
+  Ef: "Eb",
+  Gf: "Gb",
+  Af: "Ab",
+  Bf: "Bb",
+};
+const SHARP_TO_FLAT_DISPLAY: Record<string, string> = {
+  Cs: "Db",
+  Ds: "Eb",
+  Fs: "Gb",
+  Gs: "Ab",
+  As: "Bb",
+};
+const FLAT_TO_SHARP_DISPLAY: Record<string, string> = {
+  Df: "C#",
+  Ef: "D#",
+  Gf: "F#",
+  Af: "G#",
+  Bf: "A#",
+};
 
 /** Map every common spelling of a root note to the internal canonical form (e.g. "Eb" → "Ef") */
 const ROOT_NORMALIZE: Record<string, string> = {};
@@ -52,6 +87,41 @@ export function splitRootAndQuality(input: string): [string, string] {
     return [one, input.slice(1)];
   }
   return [input, ""];
+}
+
+function normalizeInternalNoteName(raw: string): string {
+  const value = raw.trim();
+  const match = value.match(/^([A-Ga-g])([#bsf♯♭])?$/);
+  if (!match) return value;
+
+  const letter = match[1].toUpperCase();
+  const accidental = match[2];
+  if (!accidental) return letter;
+
+  if (accidental === "#" || accidental === "♯" || accidental.toLowerCase() === "s") {
+    return `${letter}s`;
+  }
+  if (accidental.toLowerCase() === "b" || accidental === "♭" || accidental.toLowerCase() === "f") {
+    return `${letter}f`;
+  }
+  return letter;
+}
+
+export function prefersFlatNotation(root: string): boolean {
+  const normalizedRoot = normalizeInternalNoteName(root);
+  return FLAT_ROOTS.has(root) || FLAT_ROOTS.has(normalizedRoot);
+}
+
+export function formatNoteForDisplay(internalName: string, preferFlats: boolean): string {
+  const normalized = normalizeInternalNoteName(internalName);
+
+  if (preferFlats && SHARP_TO_FLAT_DISPLAY[normalized]) {
+    return SHARP_TO_FLAT_DISPLAY[normalized];
+  }
+  if (!preferFlats && FLAT_TO_SHARP_DISPLAY[normalized]) {
+    return FLAT_TO_SHARP_DISPLAY[normalized];
+  }
+  return INTERNAL_TO_DISPLAY[normalized] ?? internalName;
 }
 
 // ─── SVG Folder Mapping ──────────────────────────────────────────────

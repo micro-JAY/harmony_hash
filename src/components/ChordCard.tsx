@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Instrument, IndexedChord } from "../lib/types";
-import { getSvgPath, parseNotes } from "../lib/chordData";
+import { formatNoteForDisplay, getSvgPath, parseNotes, prefersFlatNotation } from "../lib/chordData";
 import { computeVoicing } from "../lib/harmonyBrain";
 import PianoKeyboard from "./PianoKeyboard";
 
@@ -9,6 +9,11 @@ interface ChordCardProps {
   instrument: Instrument;
   displayName: string;
   variantOverride?: number;  // For randomize
+}
+
+function extractDisplayRoot(chordName: string): string {
+  const match = chordName.match(/^([A-G](?:#|b)?)/);
+  return match ? match[1] : chordName;
 }
 
 export default function ChordCard({ chord, instrument, displayName, variantOverride }: ChordCardProps) {
@@ -27,6 +32,8 @@ export default function ChordCard({ chord, instrument, displayName, variantOverr
   // Piano voicing
   const noteNames = parseNotes(chord.entry);
   const voicing = computeVoicing(noteNames);
+  const preferFlats = prefersFlatNotation(extractDisplayRoot(displayName));
+  const formattedNoteNames = noteNames.map((noteName) => formatNoteForDisplay(noteName, preferFlats));
 
   return (
     <div
@@ -161,7 +168,7 @@ export default function ChordCard({ chord, instrument, displayName, variantOverr
                   fontFamily: "var(--font-mono)",
                 }}
               >
-                {noteNames.join(" – ")}
+                {formattedNoteNames.join(" – ")}
               </span>
             </div>
           </>

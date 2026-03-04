@@ -7,10 +7,10 @@
 
 ## 2. Stage 2 - Note Display Formatting Consistency
 
-- [ ] 2.1 Run pre-stage build/tests and add note display helpers in `src/lib/chordData.ts` (`formatNoteForDisplay`, `prefersFlatNotation`).
-- [ ] 2.2 Update chord note-row rendering in `src/components/ChordCard.tsx` to use formatted note labels aligned with chord-root notation.
-- [ ] 2.3 Add piano-key display formatting guard/comment in `src/components/PianoKeyboard.tsx` for internal note encoding.
-- [ ] 2.4 Re-run build/tests, verify Stage 2 display acceptance cases, and commit `fix: note display format and chord name consistency`.
+- [x] 2.1 Run pre-stage build/tests and add note display helpers in `src/lib/chordData.ts` (`formatNoteForDisplay`, `prefersFlatNotation`).
+- [x] 2.2 Update chord note-row rendering in `src/components/ChordCard.tsx` to use formatted note labels aligned with chord-root notation.
+- [x] 2.3 Add piano-key display formatting guard/comment in `src/components/PianoKeyboard.tsx` for internal note encoding.
+- [x] 2.4 Re-run build/tests, verify Stage 2 display acceptance cases, and commit `fix: note display format and chord name consistency`.
 
 ## 3. Stage 3 - Piano Range and Smart Voicing Placement
 

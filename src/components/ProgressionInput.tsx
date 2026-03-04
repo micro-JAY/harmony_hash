@@ -1,19 +1,31 @@
 import { useState } from "react";
-import type { ParseResult, PresetProgression } from "../lib/types";
-import { parseChordInput, transposeProgression, PRESET_PROGRESSIONS, ALL_KEYS } from "../lib/harmonyBrain";
+import type { ParseResult, TonalityId, Progression, ScaleType } from "../lib/types";
+import { parseChordInput, transposeNumeralString, ALL_KEYS } from "../lib/harmonyBrain";
 import { lookupChord } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
+import { PROGRESSION_LIBRARY } from "../data/progressions";
 
 interface ProgressionInputProps {
   onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
 }
 
+interface SelectedProgression {
+  tonalityId: TonalityId;
+  subgroupIdx: number;
+  progressionIdx: number;
+  progression: Progression;
+  scaleType: ScaleType;
+}
+
 export default function ProgressionInput({ onResult }: ProgressionInputProps) {
   const [freeText, setFreeText] = useState("");
-  const [selectedProgression, setSelectedProgression] = useState<PresetProgression | null>(null);
+  const [selected, setSelected] = useState<SelectedProgression | null>(null);
   const [selectedKey, setSelectedKey] = useState("C");
   const [errors, setErrors] = useState<ParseResult["errors"]>([]);
   const [activeTab, setActiveTab] = useState<"free" | "preset">("free");
+  const [activeTonality, setActiveTonality] = useState<TonalityId>("major");
+
+  const activeGroup = PROGRESSION_LIBRARY.find((g) => g.id === activeTonality)!;
 
   function handleFreeTextSubmit() {
     if (!freeText.trim()) return;
@@ -25,20 +37,37 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
     );
   }
 
-  function handlePresetSelect(progression: PresetProgression) {
-    setSelectedProgression(progression);
-    applyPreset(progression, selectedKey);
+  function handleProgressionSelect(
+    subgroupIdx: number,
+    progressionIdx: number,
+    progression: Progression,
+    scaleType: ScaleType
+  ) {
+    const sel: SelectedProgression = {
+      tonalityId: activeTonality,
+      subgroupIdx,
+      progressionIdx,
+      progression,
+      scaleType,
+    };
+    setSelected(sel);
+    applyProgression(progression, scaleType, selectedKey);
   }
 
   function handleKeyChange(key: string) {
     setSelectedKey(key);
-    if (selectedProgression) {
-      applyPreset(selectedProgression, key);
+    if (selected) {
+      applyProgression(selected.progression, selected.scaleType, key);
     }
   }
 
-  function applyPreset(progression: PresetProgression, key: string) {
-    const chordNames = transposeProgression(progression.numerals, key, progression.scaleType);
+  function handleTonalityChange(tonalityId: TonalityId) {
+    setActiveTonality(tonalityId);
+    setSelected(null);
+  }
+
+  function applyProgression(progression: Progression, scaleType: ScaleType, key: string) {
+    const chordNames = transposeNumeralString(progression.numerals, key, scaleType);
     const resolved: Array<{ input: string; chord: IndexedChord }> = [];
     const errs: ParseResult["errors"] = [];
 
@@ -55,11 +84,14 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
     onResult(resolved, errs);
   }
 
-  // Group progressions by category
-  const grouped = PRESET_PROGRESSIONS.reduce<Record<string, PresetProgression[]>>((acc, p) => {
-    (acc[p.category] ??= []).push(p);
-    return acc;
-  }, {});
+  function isActive(subgroupIdx: number, progressionIdx: number): boolean {
+    return (
+      selected !== null &&
+      selected.tonalityId === activeTonality &&
+      selected.subgroupIdx === subgroupIdx &&
+      selected.progressionIdx === progressionIdx
+    );
+  }
 
   return (
     <section className="w-full max-w-4xl mx-auto px-4">
@@ -123,79 +155,110 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
         </div>
       )}
 
-      {/* Preset Progression Picker */}
+      {/* Progression Browser */}
       {activeTab === "preset" && (
         <div className="flex flex-col gap-4">
-          {/* Key Selector */}
-          <div className="flex items-center gap-3">
-            <label
-              className="text-sm"
-              style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
-            >
-              Key
-            </label>
-            <select
-              value={selectedKey}
-              onChange={(e) => handleKeyChange(e.target.value)}
-              className="px-3 py-2 rounded-lg text-sm outline-none"
-              style={{
-                backgroundColor: "var(--surface-overlay)",
-                color: "var(--text-primary)",
-                border: "1px solid var(--border-subtle)",
-              }}
-            >
-              {ALL_KEYS.map((k) => (
-                <option key={k.value} value={k.value}>
-                  {k.label}
-                </option>
-              ))}
-            </select>
+          {/* Key + Tonality Selectors */}
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <label
+                className="text-sm"
+                style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
+              >
+                Key
+              </label>
+              <select
+                value={selectedKey}
+                onChange={(e) => handleKeyChange(e.target.value)}
+                className="px-3 py-2 rounded-lg text-sm outline-none"
+                style={{
+                  backgroundColor: "var(--surface-overlay)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                {ALL_KEYS.map((k) => (
+                  <option key={k.value} value={k.value}>
+                    {k.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label
+                className="text-sm"
+                style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
+              >
+                Tonality
+              </label>
+              <select
+                value={activeTonality}
+                onChange={(e) => handleTonalityChange(e.target.value as TonalityId)}
+                className="px-3 py-2 rounded-lg text-sm outline-none"
+                style={{
+                  backgroundColor: "var(--surface-overlay)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                {PROGRESSION_LIBRARY.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* Progression Groups */}
-          <div className="flex flex-col gap-3">
-            {Object.entries(grouped).map(([category, progressions]) => (
-              <div key={category}>
-                <h3
-                  className="text-xs uppercase mb-2"
-                  style={{
-                    color: "var(--text-muted)",
-                    letterSpacing: "var(--tracking-caps)",
-                    fontWeight: "var(--weight-semibold)",
-                  }}
-                >
-                  {category}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {progressions.map((p) => {
-                    const isActive = selectedProgression?.name === p.name;
-                    return (
-                      <button
-                        key={p.name}
-                        onClick={() => handlePresetSelect(p)}
-                        className="px-3 py-1.5 rounded-lg text-sm transition-all"
-                        style={{
-                          backgroundColor: isActive
-                            ? "var(--interactive-accent-bg)"
-                            : "var(--surface-overlay)",
-                          color: isActive
-                            ? "var(--interactive-accent-text)"
-                            : "var(--text-secondary)",
-                          border: isActive
-                            ? "1px solid var(--interactive-accent-border)"
-                            : "1px solid var(--border-subtle)",
-                          fontFamily: "var(--font-mono)",
-                          fontWeight: isActive ? "var(--weight-semibold)" : "var(--weight-regular)",
-                          transitionDuration: "var(--duration-normal)",
-                        }}
-                      >
-                        {p.name}
-                      </button>
-                    );
-                  })}
+          {/* Subgroups + Progression Buttons */}
+          <div className="flex flex-col gap-4">
+            {activeGroup.subgroups.map((subgroup, sIdx) => {
+              const scaleType = subgroup.scaleType ?? activeGroup.scaleType;
+              return (
+                <div key={sIdx}>
+                  <h3
+                    className="text-xs uppercase mb-2"
+                    style={{
+                      color: "var(--text-muted)",
+                      letterSpacing: "var(--tracking-caps)",
+                      fontWeight: "var(--weight-semibold)",
+                    }}
+                  >
+                    {subgroup.label}
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {subgroup.progressions.map((p, pIdx) => {
+                      const active = isActive(sIdx, pIdx);
+                      return (
+                        <button
+                          key={pIdx}
+                          onClick={() => handleProgressionSelect(sIdx, pIdx, p, scaleType)}
+                          title={p.name}
+                          className="px-3 py-1.5 rounded-lg text-sm transition-all"
+                          style={{
+                            backgroundColor: active
+                              ? "var(--interactive-accent-bg)"
+                              : "var(--surface-overlay)",
+                            color: active
+                              ? "var(--interactive-accent-text)"
+                              : "var(--text-secondary)",
+                            border: active
+                              ? "1px solid var(--interactive-accent-border)"
+                              : "1px solid var(--border-subtle)",
+                            fontFamily: "var(--font-mono)",
+                            fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
+                            transitionDuration: "var(--duration-normal)",
+                          }}
+                        >
+                          {p.numerals}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

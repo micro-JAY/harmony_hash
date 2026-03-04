@@ -11,11 +11,11 @@
 
 ## 3. Progression Browser UI
 
-- [ ] 3.1 Replace the category-grouped button layout in `ProgressionInput.tsx` with a Tonality selector (4 options: Major, Minor, Modal, Advanced) using the same styling pattern as the Key selector
-- [ ] 3.2 Render subgroups for the active tonality: all-caps label per subgroup using `--text-muted` color, small font
-- [ ] 3.3 Render pill buttons per progression under each subgroup with `numerals` as label and `name` as `title` tooltip
-- [ ] 3.4 Wire up button click to call transposition with the correct scaleType (subgroup override or group default) and selected key
-- [ ] 3.5 Maintain gold accent highlight on selected button (`--interactive-accent-bg/text/border`) and deselect on tonality switch
+- [x] 3.1 Replace the category-grouped button layout in `ProgressionInput.tsx` with a Tonality selector (4 options: Major, Minor, Modal, Advanced) using the same styling pattern as the Key selector
+- [x] 3.2 Render subgroups for the active tonality: all-caps label per subgroup using `--text-muted` color, small font
+- [x] 3.3 Render pill buttons per progression under each subgroup with `numerals` as label and `name` as `title` tooltip
+- [x] 3.4 Wire up button click to call transposition with the correct scaleType (subgroup override or group default) and selected key
+- [x] 3.5 Maintain gold accent highlight on selected button (`--interactive-accent-bg/text/border`) and deselect on tonality switch
 
 ## 4. Verification
 

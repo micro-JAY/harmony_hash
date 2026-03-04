@@ -19,6 +19,6 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `npm run build` — confirm zero type errors
-- [ ] 4.2 Manual verification: select each tonality, verify subgroups and progressions render correctly, click progressions in different keys and verify chord cards update
-- [ ] 4.3 Verify Free Input tab is completely unchanged
+- [x] 4.1 Run `npm run build` — confirm zero type errors
+- [x] 4.2 Manual verification: select each tonality, verify subgroups and progressions render correctly, click progressions in different keys and verify chord cards update
+- [x] 4.3 Verify Free Input tab is completely unchanged

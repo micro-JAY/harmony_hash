@@ -8,3 +8,10 @@ initial_data/
 node_modules/
 dist/
 .next/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

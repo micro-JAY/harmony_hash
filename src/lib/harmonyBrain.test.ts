@@ -130,41 +130,61 @@ describe("computeVoicing", () => {
     const voicing = computeVoicing(["C", "E", "G"]);
     expect(voicing.voicingType).toBe("root");
     expect(voicing.notes).toHaveLength(3);
+    expect(voicing.notes.map((n) => `${n.name}${n.octave}`)).toEqual(["C3", "E3", "G3"]);
     // All in same hand
     expect(voicing.notes.every((n) => n.hand === "right")).toBe(true);
   });
 
-  it("applies Drop 2 to Cmaj7 (C-E-G-B)", () => {
-    const voicing = computeVoicing(["C", "E", "G", "B"]);
+  it("applies Drop 2 when the dropped note remains within the visible range", () => {
+    const voicing = computeVoicing(["B", "D", "Fs", "A"]);
     expect(voicing.voicingType).toBe("drop2");
     expect(voicing.notes).toHaveLength(4);
-
-    // In Drop 2, the 2nd-highest note (G) drops down an octave
-    // Closed position: C4-E4-G4-B4
-    // Drop 2: G3-C4-E4-B4
     const noteNames = voicing.notes.map((n) => `${n.name}${n.octave}`);
-    expect(noteNames).toEqual(["G3", "C4", "E4", "B4"]);
+    expect(noteNames).toEqual(["Fs3", "B3", "D4", "A4"]);
   });
 
-  it("marks dropped note as left hand", () => {
+  it("skips Drop 2 when dropping would underflow below C3", () => {
     const voicing = computeVoicing(["C", "E", "G", "B"]);
+    expect(voicing.voicingType).toBe("root");
+    expect(voicing.notes.map((n) => `${n.name}${n.octave}`)).toEqual(["C3", "E3", "G3", "B3"]);
+  });
+
+  it("marks dropped note as left hand for drop-2 voicings", () => {
+    const voicing = computeVoicing(["B", "D", "Fs", "A"]);
     const leftHandNotes = voicing.notes.filter((n) => n.hand === "left");
     expect(leftHandNotes).toHaveLength(1);
-    expect(leftHandNotes[0].name).toBe("G");
+    expect(leftHandNotes[0].name).toBe("Fs");
     expect(leftHandNotes[0].octave).toBe(3);
   });
 
-  it("handles extended chords (5+ notes)", () => {
-    // Cmaj9: C-E-G-B-D
+  it("handles extended chords (5+ notes) while keeping notes visible", () => {
+    // Cmaj9: C-E-G-B-D (drop would underflow below C3, so root position is used)
     const voicing = computeVoicing(["C", "E", "G", "B", "D"]);
-    expect(voicing.voicingType).toBe("drop2");
+    expect(voicing.voicingType).toBe("root");
     expect(voicing.notes).toHaveLength(5);
+    expect(voicing.notes.every((note) => note.midi >= 48 && note.midi <= 83)).toBe(true);
   });
 
   it("returns empty for no notes", () => {
     const voicing = computeVoicing([]);
     expect(voicing.notes).toHaveLength(0);
     expect(voicing.voicingType).toBe("root");
+  });
+
+  it("keeps common triads and sevenths fully visible in C3-B5", () => {
+    const chords = [
+      ["As", "D", "F"],       // Bb
+      ["B", "Ds", "Fs"],      // B
+      ["Fs", "As", "Cs"],     // F#
+      ["As", "D", "F", "A"],  // Bbmaj7
+      ["A", "C", "E", "G"],   // Am7
+    ];
+
+    for (const chord of chords) {
+      const voicing = computeVoicing(chord);
+      expect(voicing.notes).toHaveLength(chord.length);
+      expect(voicing.notes.every((note) => note.midi >= 48 && note.midi <= 83)).toBe(true);
+    }
   });
 });
 

@@ -4,9 +4,9 @@ interface PianoKeyboardProps {
   voicedNotes: VoicedNote[];
 }
 
-// 2-octave keyboard: C3 to B4 = 24 white keys + black keys
+// 3-octave keyboard: C3 to B5
 const OCTAVE_START = 3;
-const OCTAVE_END = 4;
+const OCTAVE_END = 5;
 
 interface KeyDef {
   note: string;

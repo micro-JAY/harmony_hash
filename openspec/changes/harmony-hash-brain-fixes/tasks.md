@@ -14,10 +14,10 @@
 
 ## 3. Stage 3 - Piano Range and Smart Voicing Placement
 
-- [ ] 3.1 Run pre-stage build/tests and expand piano keyboard rendering range from C3-B4 to C3-B5.
-- [ ] 3.2 Implement smart voicing start-octave selection in `computeVoicing` to prefer the lowest fully visible voicing in MIDI 48-83.
-- [ ] 3.3 Guard Drop 2 application to avoid underflow below C3 and preserve complete visible chord tones.
-- [ ] 3.4 Re-run build/tests, verify Stage 3 piano acceptance cases, and commit `fix: piano 3-octave range and smart voicing start octave`.
+- [x] 3.1 Run pre-stage build/tests and expand piano keyboard rendering range from C3-B4 to C3-B5.
+- [x] 3.2 Implement smart voicing start-octave selection in `computeVoicing` to prefer the lowest fully visible voicing in MIDI 48-83.
+- [x] 3.3 Guard Drop 2 application to avoid underflow below C3 and preserve complete visible chord tones.
+- [x] 3.4 Re-run build/tests, verify Stage 3 piano acceptance cases, and commit `fix: piano 3-octave range and smart voicing start octave`.
 
 ## 4. Stage 4 - Variant Override Handoff and Guitar Card Locking
 

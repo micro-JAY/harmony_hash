@@ -56,74 +56,91 @@ export function noteToPitchClass(note: string): number {
 
 /**
  * Compute a voiced chord from raw note names.
- * - Triads: root position starting at C4
- * - 4+ note chords: Drop 2 voicing (2nd-highest note drops one octave)
+ * - Triads: root position
+ * - 4+ note chords: Drop 2 unless the dropped note would fall below C3
+ * - Starts from the lowest octave that keeps the full voicing visible in C3-B5
  */
+const VISIBLE_MIDI_MIN = 48; // C3
+const VISIBLE_MIDI_MAX = 83; // B5
+
+function buildClosedVoicing(noteNames: string[], pitchClasses: number[], startOctave: number): VoicedNote[] {
+  const closed: VoicedNote[] = [];
+
+  for (let i = 0; i < noteNames.length; i++) {
+    const pc = pitchClasses[i];
+    let octave = startOctave;
+    let midi = pc + (octave + 1) * 12;
+
+    if (i > 0) {
+      const prevMidi = closed[i - 1].midi;
+      while (midi <= prevMidi) {
+        octave++;
+        midi = pc + (octave + 1) * 12;
+      }
+    }
+
+    closed.push({
+      name: noteNames[i],
+      pitchClass: pc,
+      octave,
+      midi,
+      hand: "right",
+    });
+  }
+
+  return closed;
+}
+
+function isWithinVisibleRange(notes: VoicedNote[]): boolean {
+  return notes.every((note) => note.midi >= VISIBLE_MIDI_MIN && note.midi <= VISIBLE_MIDI_MAX);
+}
+
+function buildVoicingForStartOctave(
+  noteNames: string[],
+  pitchClasses: number[],
+  startOctave: number
+): VoicedChord {
+  const closed = buildClosedVoicing(noteNames, pitchClasses, startOctave);
+
+  if (noteNames.length <= 3) {
+    return { notes: closed, voicingType: "root" };
+  }
+
+  // 4+ notes: Drop 2 (2nd from top of the first 4 notes)
+  const dropIndex = Math.min(noteNames.length, 4) - 2;
+  const droppedCandidate = { ...closed[dropIndex] };
+  droppedCandidate.octave -= 1;
+  droppedCandidate.midi = droppedCandidate.pitchClass + (droppedCandidate.octave + 1) * 12;
+
+  // Keep chord tones visible on C3-B5 keyboard by skipping drops that underflow below C3.
+  if (droppedCandidate.midi < VISIBLE_MIDI_MIN) {
+    return { notes: closed, voicingType: "root" };
+  }
+
+  droppedCandidate.hand = "left";
+  const remaining = closed.filter((_, i) => i !== dropIndex).map((note) => ({ ...note, hand: "right" as const }));
+  const notes = [droppedCandidate, ...remaining].sort((a, b) => a.midi - b.midi);
+  return { notes, voicingType: "drop2" };
+}
+
 export function computeVoicing(noteNames: string[]): VoicedChord {
   if (noteNames.length === 0) {
     return { notes: [], voicingType: "root" };
   }
 
   const pitchClasses = noteNames.map((n) => noteToPitchClass(n));
-
-  if (noteNames.length <= 3) {
-    // Triads: root position, all in octave 4
-    const notes: VoicedNote[] = noteNames.map((name, i) => {
-      const pc = pitchClasses[i];
-      // If a note is lower than the root in pitch class, bump it up
-      const octave = pc < pitchClasses[0] ? 5 : 4;
-      return {
-        name,
-        pitchClass: pc,
-        octave,
-        midi: pc + (octave + 1) * 12,
-        hand: "right" as const,
-      };
-    });
-    return { notes, voicingType: "root" };
+  const octave3Voicing = buildVoicingForStartOctave(noteNames, pitchClasses, 3);
+  if (isWithinVisibleRange(octave3Voicing.notes)) {
+    return octave3Voicing;
   }
 
-  // 4+ notes: Drop 2 voicing
-  // Start with closed voicing in octave 4 (ascending from root)
-  const closed: VoicedNote[] = [];
-
-  for (let i = 0; i < noteNames.length; i++) {
-    const pc = pitchClasses[i];
-    // Ensure ascending order from root
-    let octave = 4;
-    if (i > 0) {
-      // If this pc is <= the previous note's effective pitch, bump octave
-      const prevMidi = closed[i - 1].midi;
-      let midi = pc + (octave + 1) * 12;
-      while (midi <= prevMidi) {
-        octave++;
-        midi = pc + (octave + 1) * 12;
-      }
-    }
-    closed.push({
-      name: noteNames[i],
-      pitchClass: pc,
-      octave,
-      midi: pc + (octave + 1) * 12,
-      hand: "right",
-    });
+  const octave4Voicing = buildVoicingForStartOctave(noteNames, pitchClasses, 4);
+  if (isWithinVisibleRange(octave4Voicing.notes)) {
+    return octave4Voicing;
   }
 
-  // Drop 2: take the 2nd-highest note and drop it down an octave
-  // For extended chords (5+ notes), apply Drop 2 to first 4 notes only
-  const dropIndex = Math.min(noteNames.length, 4) - 2; // 2nd from top of first 4
-  const droppedNote = { ...closed[dropIndex] };
-  droppedNote.octave -= 1;
-  droppedNote.midi = droppedNote.pitchClass + (droppedNote.octave + 1) * 12;
-  droppedNote.hand = "left";
-
-  // Build final voicing: dropped note first (lowest), then remaining in order
-  const remaining = closed.filter((_, i) => i !== dropIndex);
-  remaining.forEach((n) => (n.hand = "right"));
-
-  const notes = [droppedNote, ...remaining].sort((a, b) => a.midi - b.midi);
-
-  return { notes, voicingType: "drop2" };
+  // Fallback to the lower register so at least the bass side remains visible.
+  return octave3Voicing;
 }
 
 // ─── 3.3 / 3.4: Roman Numeral Parser & Transposition ────────────────

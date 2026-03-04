@@ -21,10 +21,10 @@
 
 ## 4. Stage 4 - Variant Override Handoff and Guitar Card Locking
 
-- [ ] 4.1 Run pre-stage build/tests and refactor variant override flow so card arrows remain functional after Randomize All.
-- [ ] 4.2 Add parent-managed per-card lock state and lock-toggle UI in guitar cards using `lucide-react` `Lock`/`Unlock` icons.
-- [ ] 4.3 Update randomize-all behavior to skip locked cards while keeping unlocked cards randomizable.
-- [ ] 4.4 Re-run build/tests, verify Stage 4 acceptance cases, and commit `feat: chord card lock and fix randomize variant arrows`.
+- [x] 4.1 Run pre-stage build/tests and refactor variant override flow so card arrows remain functional after Randomize All.
+- [x] 4.2 Add parent-managed per-card lock state and lock-toggle UI in guitar cards using `lucide-react` `Lock`/`Unlock` icons.
+- [x] 4.3 Update randomize-all behavior to skip locked cards while keeping unlocked cards randomizable.
+- [x] 4.4 Re-run build/tests, verify Stage 4 acceptance cases, and commit `feat: chord card lock and fix randomize variant arrows`.
 
 ## 5. Final Verification and Spec Closure
 

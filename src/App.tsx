@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import type { Instrument, IndexedChord, ParseError } from "./lib/types";
 import Header from "./components/Header";
 import ProgressionInput from "./components/ProgressionInput";
@@ -9,28 +9,62 @@ interface DisplayChord {
   chord: IndexedChord;
 }
 
+function clampVariant(variant: number, maxVariants: number): number {
+  if (!Number.isFinite(variant)) return 1;
+  if (maxVariants <= 1) return 1;
+  if (variant < 1) return 1;
+  if (variant > maxVariants) return maxVariants;
+  return Math.floor(variant);
+}
+
 function App() {
   const [instrument, setInstrument] = useState<Instrument>("guitar");
   const [chords, setChords] = useState<DisplayChord[]>([]);
-  const [randomVariants, setRandomVariants] = useState<Record<number, number>>({});
+  const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
+  const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
 
-  const handleResult = useCallback(
-    (resolved: DisplayChord[], _errors: ParseError[]) => {
-      setChords(resolved);
-      setRandomVariants({});
-    },
-    []
-  );
+  const handleResult = useCallback((resolved: DisplayChord[], _errors: ParseError[]) => {
+    setChords(resolved);
+    setCardVariants({});
+    setLockedCards(new Set());
+  }, []);
+
+  function getVariantForCard(index: number, maxVariants: number): number {
+    return clampVariant(cardVariants[index] ?? 1, maxVariants);
+  }
+
+  function handleCardVariantChange(index: number, nextVariant: number, maxVariants: number) {
+    setCardVariants((prev) => ({
+      ...prev,
+      [index]: clampVariant(nextVariant, maxVariants),
+    }));
+  }
+
+  function handleToggleLock(index: number) {
+    setLockedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }
 
   function randomizeAll() {
-    const variants: Record<number, number> = {};
-    chords.forEach((c, i) => {
-      const max = c.chord.variationCount;
-      if (max > 1) {
-        variants[i] = Math.floor(Math.random() * max) + 1;
-      }
+    setCardVariants((prev) => {
+      const next = { ...prev };
+      chords.forEach((chordResult, index) => {
+        const maxVariants = chordResult.chord.variationCount;
+        if (lockedCards.has(index)) {
+          next[index] = clampVariant(prev[index] ?? 1, maxVariants);
+          return;
+        }
+        next[index] = maxVariants > 1 ? Math.floor(Math.random() * maxVariants) + 1 : 1;
+      });
+      return next;
     });
-    setRandomVariants(variants);
   }
 
   return (
@@ -70,15 +104,23 @@ function App() {
         {chords.length > 0 && (
           <section className="w-full max-w-7xl mx-auto px-4">
             <div className="flex flex-wrap justify-center gap-4">
-              {chords.map((c, i) => (
-                <ChordCard
-                  key={`${c.input}-${i}`}
-                  chord={c.chord}
-                  instrument={instrument}
-                  displayName={c.input}
-                  variantOverride={randomVariants[i]}
-                />
-              ))}
+              {chords.map((chordResult, index) => {
+                const maxVariants = chordResult.chord.variationCount;
+                return (
+                  <ChordCard
+                    key={`${chordResult.input}-${index}`}
+                    chord={chordResult.chord}
+                    instrument={instrument}
+                    displayName={chordResult.input}
+                    variant={getVariantForCard(index, maxVariants)}
+                    onVariantChange={(nextVariant) =>
+                      handleCardVariantChange(index, nextVariant, maxVariants)
+                    }
+                    isLocked={lockedCards.has(index)}
+                    onToggleLock={() => handleToggleLock(index)}
+                  />
+                );
+              })}
             </div>
           </section>
         )}

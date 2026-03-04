@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Lock, Unlock } from "lucide-react";
 import type { Instrument, IndexedChord } from "../lib/types";
 import { formatNoteForDisplay, getSvgPath, parseNotes, prefersFlatNotation } from "../lib/chordData";
 import { computeVoicing } from "../lib/harmonyBrain";
@@ -8,7 +8,10 @@ interface ChordCardProps {
   chord: IndexedChord;
   instrument: Instrument;
   displayName: string;
-  variantOverride?: number;  // For randomize
+  variant: number;
+  onVariantChange: (variant: number) => void;
+  isLocked: boolean;
+  onToggleLock: () => void;
 }
 
 function extractDisplayRoot(chordName: string): string {
@@ -16,17 +19,28 @@ function extractDisplayRoot(chordName: string): string {
   return match ? match[1] : chordName;
 }
 
-export default function ChordCard({ chord, instrument, displayName, variantOverride }: ChordCardProps) {
-  const [currentVariant, setCurrentVariant] = useState(1);
-  const variant = variantOverride ?? currentVariant;
+export default function ChordCard({
+  chord,
+  instrument,
+  displayName,
+  variant,
+  onVariantChange,
+  isLocked,
+  onToggleLock,
+}: ChordCardProps) {
   const maxVariants = chord.variationCount;
+  const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
 
   function prevVariant() {
-    setCurrentVariant((v) => (v <= 1 ? maxVariants : v - 1));
+    if (maxVariants <= 1) return;
+    const nextVariant = boundedVariant <= 1 ? maxVariants : boundedVariant - 1;
+    onVariantChange(nextVariant);
   }
 
   function nextVariant() {
-    setCurrentVariant((v) => (v >= maxVariants ? 1 : v + 1));
+    if (maxVariants <= 1) return;
+    const nextVariant = boundedVariant >= maxVariants ? 1 : boundedVariant + 1;
+    onVariantChange(nextVariant);
   }
 
   // Piano voicing
@@ -37,7 +51,7 @@ export default function ChordCard({ chord, instrument, displayName, variantOverr
 
   return (
     <div
-      className="flex flex-col items-center rounded-xl overflow-hidden"
+      className="relative flex flex-col items-center rounded-xl overflow-hidden"
       style={{
         backgroundColor: "var(--surface-raised)",
         border: "1px solid var(--border-subtle)",
@@ -45,6 +59,24 @@ export default function ChordCard({ chord, instrument, displayName, variantOverr
         transition: `all var(--duration-normal) var(--ease-out)`,
       }}
     >
+      {instrument === "guitar" && maxVariants > 1 && (
+        <button
+          type="button"
+          aria-label={isLocked ? "Unlock chord card" : "Lock chord card"}
+          title={isLocked ? "Unlock" : "Lock"}
+          onClick={onToggleLock}
+          className="absolute top-2 right-2 rounded-md p-1 transition-colors"
+          style={{
+            backgroundColor: "var(--surface-highlight)",
+            border: `1px solid ${isLocked ? "var(--border-accent)" : "var(--border-subtle)"}`,
+            color: isLocked ? "var(--text-accent)" : "var(--text-muted)",
+            zIndex: 2,
+          }}
+        >
+          {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
+        </button>
+      )}
+
       {/* Chord Name */}
       <div
         className="w-full text-center py-3 px-4"
@@ -76,7 +108,7 @@ export default function ChordCard({ chord, instrument, displayName, variantOverr
           <>
             {chord.svgBasePath ? (
               <img
-                src={getSvgPath(chord, variant)}
+                src={getSvgPath(chord, boundedVariant)}
                 alt={`${displayName} guitar chord diagram`}
                 className="w-44 h-auto"
                 style={{ filter: "invert(0.9) hue-rotate(10deg) brightness(1.1)" }}
@@ -120,7 +152,7 @@ export default function ChordCard({ chord, instrument, displayName, variantOverr
                     textAlign: "center",
                   }}
                 >
-                  {variant} / {maxVariants}
+                  {boundedVariant} / {maxVariants}
                 </span>
                 <button
                   onClick={nextVariant}

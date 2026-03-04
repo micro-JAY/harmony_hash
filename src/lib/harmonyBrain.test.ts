@@ -106,6 +106,21 @@ describe("transposeProgression", () => {
     expect(result[1]).toBe("F");
     expect(result[2]).toBe("C");
   });
+
+  it("does not duplicate minor quality for lowercase numerals with m-suffix extensions", () => {
+    const result = transposeProgression(["im", "im7", "iim9"], "A", "natural_minor");
+    expect(result).toEqual(["Am", "Am7", "Bm9"]);
+  });
+
+  it("preserves maj extensions when lower-case numeral suffix starts with maj", () => {
+    const result = transposeProgression(["iimaj7"], "A", "natural_minor");
+    expect(result).toEqual(["Bmmaj7"]);
+  });
+
+  it("resolves slash numerals using the primary numeral token", () => {
+    const result = transposeProgression(["I/III", "V/ii", "ii"], "F", "major");
+    expect(result).toEqual(["F", "C", "Gm"]);
+  });
 });
 
 // ─── 4.3: Drop 2 Voicing ────────────────────────────────────────────

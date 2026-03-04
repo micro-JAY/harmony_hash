@@ -220,12 +220,23 @@ function parseNumeral(numeral: string): ParsedNumeral | null {
     remaining = remaining.replace(/^(\+|aug)/, "");
   }
 
+  let extraSuffix = remaining;
+
+  // Lowercase numerals already encode minor quality.
+  // Normalize iim7/im to avoid duplicated quality output (Amm7/Amm).
+  if (isMinor && extraSuffix.startsWith("m")) {
+    const nextChar = extraSuffix.charAt(1);
+    if (!nextChar || /[0-9]/.test(nextChar)) {
+      extraSuffix = extraSuffix.slice(1);
+    }
+  }
+
   return {
     degree,
     isMinor,
     accidental,
     suffix,
-    extraSuffix: remaining,
+    extraSuffix,
   };
 }
 
@@ -247,7 +258,9 @@ export function transposeProgression(
   const noteDisplay = useSharp ? NOTE_DISPLAY_SHARP : NOTE_DISPLAY;
 
   return numerals.map((numeral) => {
-    const parsed = parseNumeral(numeral);
+    // Slash-numeral bass notes are currently display-only; resolve the main chord token.
+    const primaryNumeral = numeral.split("/")[0].trim();
+    const parsed = parseNumeral(primaryNumeral);
     if (!parsed) return numeral; // unparseable, return raw
 
     const { degree, isMinor, accidental, suffix, extraSuffix } = parsed;

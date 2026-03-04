@@ -4,7 +4,6 @@ import type {
   ParseError,
   VoicedChord,
   VoicedNote,
-  PresetProgression,
   ScaleType,
 } from "./types";
 import { lookupChord, normalizeRoot, NOTE_NAMES } from "./chordData";
@@ -280,33 +279,6 @@ export function transposeProgression(
     return rootName + quality + extraSuffix;
   });
 }
-
-// ─── Preset Progressions ─────────────────────────────────────────────
-
-export const PRESET_PROGRESSIONS: PresetProgression[] = [
-  // Major
-  { name: "I V vi IV", numerals: ["I", "V", "vi", "IV"], category: "Major", scaleType: "major" },
-  { name: "ii V I", numerals: ["ii", "V", "I"], category: "Major", scaleType: "major" },
-  { name: "I IV V", numerals: ["I", "IV", "V"], category: "Major", scaleType: "major" },
-  { name: "I IV ii V", numerals: ["I", "IV", "ii", "V"], category: "Major", scaleType: "major" },
-  { name: "I iii IV V", numerals: ["I", "iii", "IV", "V"], category: "Major", scaleType: "major" },
-
-  // Natural Minor (Aeolian)
-  { name: "i VI VII", numerals: ["i", "VI", "VII"], category: "Natural Minor (Aeolian)", scaleType: "natural_minor" },
-  { name: "i iv v", numerals: ["i", "iv", "v"], category: "Natural Minor (Aeolian)", scaleType: "natural_minor" },
-  { name: "i VII VI VII", numerals: ["i", "VII", "VI", "VII"], category: "Natural Minor (Aeolian)", scaleType: "natural_minor" },
-
-  // Harmonic Minor
-  { name: "i V", numerals: ["i", "V"], category: "Harmonic Minor", scaleType: "harmonic_minor" },
-  { name: "ii° V i", numerals: ["ii°", "V", "i"], category: "Harmonic Minor", scaleType: "harmonic_minor" },
-  { name: "i iv V i", numerals: ["i", "iv", "V", "i"], category: "Harmonic Minor", scaleType: "harmonic_minor" },
-
-  // Modal
-  { name: "im IV (Dorian)", numerals: ["i", "IV"], category: "Modal", scaleType: "dorian" },
-  { name: "I bVII IV (Mixolydian)", numerals: ["I", "bVII", "IV"], category: "Modal", scaleType: "mixolydian" },
-  { name: "I II (Lydian)", numerals: ["I", "II"], category: "Modal", scaleType: "lydian" },
-  { name: "i bVII bVI bVII (Phrygian)", numerals: ["i", "bVII", "bVI", "bVII"], category: "Modal", scaleType: "phrygian" },
-];
 
 /** All 12 chromatic keys for the key selector */
 export const ALL_KEYS = [

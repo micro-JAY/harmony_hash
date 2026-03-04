@@ -56,4 +56,26 @@ export interface PresetProgression {
   scaleType: ScaleType;
 }
 
+// ─── Progression Library Types ──────────────────────────────────────
+
+export interface Progression {
+  name: string;          // e.g. "The Axis (Pop Standard)"
+  numerals: string;      // e.g. "I – V – vi – IV"
+}
+
+export interface Subgroup {
+  label: string;         // e.g. "The Foundations (Rock, Pop, Folk)"
+  scaleType?: ScaleType; // Override group default when subgroup has different harmonic context
+  progressions: Progression[];
+}
+
+export type TonalityId = "major" | "minor" | "modal" | "advanced";
+
+export interface TonalityGroup {
+  id: TonalityId;
+  label: string;         // Display label e.g. "Major"
+  scaleType: ScaleType;  // Default scale for this tonality
+  subgroups: Subgroup[];
+}
+
 export type Instrument = "guitar" | "piano";

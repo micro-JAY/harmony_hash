@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import type { ParseResult, TonalityId, Progression, ScaleType } from "../lib/types";
 import { parseChordInput, transposeNumeralString, ALL_KEYS } from "../lib/harmonyBrain";
 import { lookupChord } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
 import { PROGRESSION_LIBRARY } from "../data/progressions";
+import MinorBlendModal from "./MinorBlendModal";
 
 interface ProgressionInputProps {
   onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
@@ -24,6 +26,7 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
   const [errors, setErrors] = useState<ParseResult["errors"]>([]);
   const [activeTab, setActiveTab] = useState<"free" | "preset">("free");
   const [activeTonality, setActiveTonality] = useState<TonalityId>("major");
+  const [minorHelpOpen, setMinorHelpOpen] = useState(false);
 
   const activeGroup = PROGRESSION_LIBRARY.find((g) => g.id === activeTonality)!;
 
@@ -208,6 +211,36 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
                   </option>
                 ))}
               </select>
+              {activeTonality === "minor" && (
+                <button
+                  className="minor-help-btn"
+                  onClick={() => setMinorHelpOpen(true)}
+                  aria-label="What is the Minor Blend?"
+                  title="What is the Minor Blend?"
+                  style={{
+                    width: "22px",
+                    height: "22px",
+                    backgroundColor: "var(--surface-overlay)",
+                    color: "var(--text-muted)",
+                    border: "1px solid var(--border-subtle)",
+                    borderRadius: "50%",
+                    fontSize: "var(--text-xs)",
+                    fontWeight: "var(--weight-semibold)",
+                    cursor: "help",
+                    transition: "all var(--duration-normal) var(--ease-out)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--text-accent)";
+                    e.currentTarget.style.borderColor = "var(--interactive-accent-border)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "var(--text-muted)";
+                    e.currentTarget.style.borderColor = "var(--border-subtle)";
+                  }}
+                >
+                  ?
+                </button>
+              )}
             </div>
           </div>
 
@@ -281,6 +314,10 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {minorHelpOpen && <MinorBlendModal onClose={() => setMinorHelpOpen(false)} />}
+      </AnimatePresence>
     </section>
   );
 }

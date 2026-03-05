@@ -7,10 +7,10 @@
 
 ## 2. Stage 2 - Piano Fingering vs Notes Display Toggle
 
-- [ ] 2.1 Run pre-stage checks (`npm run build` and `npx vitest run`).
-- [ ] 2.2 Add per-card piano display mode state and compact `Notes` / `Fingering` toggle in `src/components/ChordCard.tsx` (piano mode only).
-- [ ] 2.3 Update `src/components/PianoKeyboard.tsx` and related types (if needed) to support `displayMode`, note labels in notes mode, fingering labels in fingering mode, and root-key accent styling in fingering mode.
-- [ ] 2.4 Validate piano-mode toggle behavior and unchanged guitar behavior, run post-stage checks, and commit `feat: piano fingering vs note names display toggle`.
+- [x] 2.1 Run pre-stage checks (`npm run build` and `npx vitest run`).
+- [x] 2.2 Add per-card piano display mode state and compact `Notes` / `Fingering` toggle in `src/components/ChordCard.tsx` (piano mode only).
+- [x] 2.3 Update `src/components/PianoKeyboard.tsx` and related types (if needed) to support `displayMode`, note labels in notes mode, fingering labels in fingering mode, and root-key accent styling in fingering mode.
+- [x] 2.4 Validate piano-mode toggle behavior and unchanged guitar behavior, run post-stage checks, and commit `feat: piano fingering vs note names display toggle`.
 
 ## 3. Final Verification
 

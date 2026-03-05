@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Lock, Unlock } from "lucide-react";
-import type { Instrument, IndexedChord } from "../lib/types";
+import type { Instrument, IndexedChord, PianoDisplayMode } from "../lib/types";
 import { formatNoteForDisplay, getSvgPath, parseNotes, prefersFlatNotation } from "../lib/chordData";
 import { computeVoicing } from "../lib/harmonyBrain";
 import PianoKeyboard from "./PianoKeyboard";
@@ -30,6 +31,7 @@ export default function ChordCard({
 }: ChordCardProps) {
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
+  const [pianoDisplay, setPianoDisplay] = useState<PianoDisplayMode>("notes");
 
   function prevVariant() {
     if (maxVariants <= 1) return;
@@ -177,7 +179,48 @@ export default function ChordCard({
           </>
         ) : (
           <>
-            <PianoKeyboard voicedNotes={voicing.notes} />
+            <div
+              className="flex rounded-full p-0.5 self-end"
+              style={{
+                backgroundColor: "var(--surface-overlay)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              {(["notes", "fingering"] as const).map((mode) => {
+                const active = pianoDisplay === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setPianoDisplay(mode)}
+                    className="px-2.5 py-1 text-xs rounded-full transition-all"
+                    style={{
+                      backgroundColor: active
+                        ? "var(--interactive-accent-bg)"
+                        : "transparent",
+                      color: active
+                        ? "var(--interactive-accent-text)"
+                        : "var(--text-muted)",
+                      border: active
+                        ? "1px solid var(--interactive-accent-border)"
+                        : "1px solid transparent",
+                      fontWeight: active
+                        ? "var(--weight-semibold)"
+                        : "var(--weight-regular)",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    {mode === "notes" ? "Notes" : "Fingering"}
+                  </button>
+                );
+              })}
+            </div>
+            <PianoKeyboard
+              voicedNotes={voicing.notes}
+              displayMode={pianoDisplay}
+              preferFlats={preferFlats}
+              rootNote={noteNames[0] ?? ""}
+            />
             <div className="flex gap-2 mt-1">
               {voicing.voicingType === "drop2" && (
                 <span

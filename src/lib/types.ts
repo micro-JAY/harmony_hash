@@ -80,3 +80,4 @@ export interface TonalityGroup {
 
 export type Instrument = "guitar" | "piano";
 export type PianoDisplayMode = "notes" | "fingering";
+export type GuitarDisplayMode = "fingering" | "intervals" | "notes";

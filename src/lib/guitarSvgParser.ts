@@ -46,11 +46,19 @@ const X_TO_STRING_INDEX: Record<number, number> = {
 const FRET_ROW_Y = [56, 96, 136, 176];
 const Y_TOLERANCE = 10; // Tolerance for matching Y to a fret row
 
+// Open string indicators sit at cy ≈ 19, r=8 (above the fretboard)
+const OPEN_STRING_Y = 19;
+const OPEN_STRING_Y_TOLERANCE = 8;
+
 function closestFretRow(cy: number): number | null {
   for (let i = 0; i < FRET_ROW_Y.length; i++) {
     if (Math.abs(cy - FRET_ROW_Y[i]) <= Y_TOLERANCE) return i;
   }
   return null;
+}
+
+function isOpenStringIndicator(cy: number): boolean {
+  return Math.abs(cy - OPEN_STRING_Y) <= OPEN_STRING_Y_TOLERANCE;
 }
 
 function closestStringIndex(cx: number): number | null {
@@ -98,9 +106,17 @@ export function parseGuitarSvg(svgText: string): ParsedGuitarSvg | null {
     const r = parseFloat(circle.getAttribute("r") || "0");
 
     const stringIdx = closestStringIndex(cx);
-    const fretRow = closestFretRow(cy);
+    if (stringIdx === null) continue;
 
-    if (stringIdx === null || fretRow === null) continue;
+    // Open string indicators (cy ≈ 19, r=8) represent fret 0
+    if (isOpenStringIndicator(cy)) {
+      const pitchClass = GUITAR_STRING_PITCH_CLASSES[stringIdx]; // fret 0 = open string
+      dots.push({ cx, cy, r, stringIndex: stringIdx, fretNumber: 0, pitchClass });
+      continue;
+    }
+
+    const fretRow = closestFretRow(cy);
+    if (fretRow === null) continue;
 
     const absoluteFret = fretOffset + fretRow;
     const pitchClass = (GUITAR_STRING_PITCH_CLASSES[stringIdx] + absoluteFret) % 12;

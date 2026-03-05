@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Lock, Unlock } from "lucide-react";
-import type { Instrument, IndexedChord, PianoDisplayMode } from "../lib/types";
-import { formatNoteForDisplay, getSvgPath, parseNotes, prefersFlatNotation } from "../lib/chordData";
+import type { Instrument, IndexedChord, PianoDisplayMode, GuitarDisplayMode } from "../lib/types";
+import { formatNoteForDisplay, parseNotes, prefersFlatNotation } from "../lib/chordData";
+import GuitarChordDiagram from "./GuitarChordDiagram";
 import { computeVoicing } from "../lib/harmonyBrain";
 import PianoKeyboard from "./PianoKeyboard";
 
@@ -32,6 +33,7 @@ export default function ChordCard({
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
   const [pianoDisplay, setPianoDisplay] = useState<PianoDisplayMode>("notes");
+  const [guitarDisplay, setGuitarDisplay] = useState<GuitarDisplayMode>("fingering");
 
   function prevVariant() {
     if (maxVariants <= 1) return;
@@ -108,12 +110,50 @@ export default function ChordCard({
       <div className="p-4 flex flex-col items-center gap-2">
         {instrument === "guitar" ? (
           <>
+            {/* Guitar display mode toggle */}
+            <div
+              className="flex rounded-full p-0.5 self-end"
+              style={{
+                backgroundColor: "var(--surface-overlay)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              {(["fingering", "intervals", "notes"] as const).map((mode) => {
+                const active = guitarDisplay === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setGuitarDisplay(mode)}
+                    className="px-2.5 py-1 text-xs rounded-full transition-all"
+                    style={{
+                      backgroundColor: active
+                        ? "var(--interactive-accent-bg)"
+                        : "transparent",
+                      color: active
+                        ? "var(--interactive-accent-text)"
+                        : "var(--text-muted)",
+                      border: active
+                        ? "1px solid var(--interactive-accent-border)"
+                        : "1px solid transparent",
+                      fontWeight: active
+                        ? "var(--weight-semibold)"
+                        : "var(--weight-regular)",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    {mode === "fingering" ? "Fingering" : mode === "intervals" ? "Intervals" : "Notes"}
+                  </button>
+                );
+              })}
+            </div>
+
             {chord.svgBasePath ? (
-              <img
-                src={getSvgPath(chord, boundedVariant)}
-                alt={`${displayName} guitar chord diagram`}
-                className="w-44 h-auto"
-                style={{ filter: "invert(0.9) hue-rotate(10deg) brightness(1.1)" }}
+              <GuitarChordDiagram
+                chord={chord}
+                variant={boundedVariant}
+                displayMode={guitarDisplay}
+                preferFlats={preferFlats}
               />
             ) : (
               <div

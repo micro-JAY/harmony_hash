@@ -14,6 +14,6 @@
 
 ## 3. Final Verification
 
-- [ ] 3.1 Run final `npm run build` and `npx vitest run` with both stages applied.
-- [ ] 3.2 Confirm modal and piano toggle acceptance criteria from this change request.
-- [ ] 3.3 Mark all OpenSpec tasks complete or explicitly blocked with reason.
+- [x] 3.1 Run final `npm run build` and `npx vitest run` with both stages applied.
+- [x] 3.2 Confirm modal and piano toggle acceptance criteria from this change request.
+- [x] 3.3 Mark all OpenSpec tasks complete or explicitly blocked with reason.

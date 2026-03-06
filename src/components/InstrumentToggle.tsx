@@ -1,4 +1,5 @@
 import type { Instrument } from "../lib/types";
+import { useT } from "../i18n/I18nContext";
 
 interface InstrumentToggleProps {
   instrument: Instrument;
@@ -6,6 +7,7 @@ interface InstrumentToggleProps {
 }
 
 export default function InstrumentToggle({ instrument, onInstrumentChange }: InstrumentToggleProps) {
+  const t = useT();
   return (
     <div
       className="flex rounded-full p-1"
@@ -16,6 +18,7 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
         return (
           <button
             key={inst}
+            type="button"
             onClick={() => onInstrumentChange(inst)}
             className="px-4 py-1.5 rounded-full text-sm font-medium transition-all"
             style={{
@@ -28,7 +31,7 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
               transitionTimingFunction: "var(--ease-out)",
             }}
           >
-            {inst === "guitar" ? "Guitar" : "Piano"}
+            {t(inst)}
           </button>
         );
       })}

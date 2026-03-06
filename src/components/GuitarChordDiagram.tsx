@@ -265,5 +265,5 @@ export default function GuitarChordDiagram({
     );
   }
 
-  return <div ref={containerRef} className="w-44 h-auto" />;
+  return <div ref={containerRef} className="w-44 h-auto flex justify-center" />;
 }

@@ -6,6 +6,7 @@ import { lookupChord } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
 import { PROGRESSION_LIBRARY } from "../data/progressions";
 import MinorBlendModal from "./MinorBlendModal";
+import { useT } from "../i18n/I18nContext";
 
 interface ProgressionInputProps {
   onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
@@ -20,6 +21,7 @@ interface SelectedProgression {
 }
 
 export default function ProgressionInput({ onResult }: ProgressionInputProps) {
+  const t = useT();
   const [freeText, setFreeText] = useState("");
   const [selected, setSelected] = useState<SelectedProgression | null>(null);
   const [selectedKey, setSelectedKey] = useState("C");
@@ -113,7 +115,7 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
               transitionDuration: "var(--duration-normal)",
             }}
           >
-            {tab === "free" ? "Free Input" : "Progressions"}
+            {tab === "free" ? t("freeInput") : "Progressions"}
           </button>
         ))}
       </div>
@@ -126,7 +128,7 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFreeTextSubmit()}
-            placeholder="Cmaj7 Dm7 G7 C ..."
+            placeholder={t("freeInputHint")}
             className="flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all"
             style={{
               backgroundColor: "var(--surface-overlay)",
@@ -168,7 +170,7 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
                 className="text-sm"
                 style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
               >
-                Key
+                {t("key")}
               </label>
               <select
                 value={selectedKey}
@@ -193,7 +195,7 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
                 className="text-sm"
                 style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
               >
-                Tonality
+                {t("tonality")}
               </label>
               <select
                 value={activeTonality}

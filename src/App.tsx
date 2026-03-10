@@ -3,6 +3,7 @@ import type { Instrument, IndexedChord, ParseError } from "./lib/types";
 import Header from "./components/Header";
 import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
+import { useT } from "./i18n/I18nContext";
 
 interface DisplayChord {
   input: string;
@@ -18,6 +19,7 @@ function clampVariant(variant: number, maxVariants: number): number {
 }
 
 function App() {
+  const t = useT();
   const [instrument, setInstrument] = useState<Instrument>("guitar");
   const [chords, setChords] = useState<DisplayChord[]>([]);
   const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
@@ -132,7 +134,7 @@ function App() {
               className="text-center max-w-md"
               style={{ color: "var(--text-muted)", fontSize: "var(--text-base)" }}
             >
-              Type a chord progression above or pick a preset to get started.
+              {t("emptyStateHint")}
               <br />
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)" }}>
                 Try: Cmaj7 Am9 Dm7 G7

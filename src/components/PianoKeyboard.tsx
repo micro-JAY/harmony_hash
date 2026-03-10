@@ -1,4 +1,3 @@
-import { formatNoteForDisplay } from "../lib/chordData";
 import type { PianoDisplayMode, VoicedNote } from "../lib/types";
 
 interface PianoKeyboardProps {
@@ -109,7 +108,6 @@ function getBlackKeyOffset(note: string, octave: number, whiteKeyWidth: number):
 export default function PianoKeyboard({
   voicedNotes,
   displayMode,
-  preferFlats,
   rootNote,
 }: PianoKeyboardProps) {
   const activeSet = new Map<number, VoicedNote>();
@@ -131,7 +129,7 @@ export default function PianoKeyboard({
 
   function getActiveLabel(active: VoicedNote): string {
     if (displayMode === "notes") {
-      return formatNoteForDisplay(active.name, preferFlats);
+      return ""; // keys are highlighted — no label needed
     }
     return fingeringByMidi.get(active.midi) ?? "";
   }

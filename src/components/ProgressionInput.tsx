@@ -115,7 +115,7 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
               transitionDuration: "var(--duration-normal)",
             }}
           >
-            {tab === "free" ? t("freeInput") : "Progressions"}
+            {tab === "free" ? t("freeInput") : t("progressions")}
           </button>
         ))}
       </div>

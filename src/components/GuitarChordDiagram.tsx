@@ -238,6 +238,15 @@ export default function GuitarChordDiagram({
       rect.setAttribute("stroke", "var(--border-default)");
     }
 
+    // Scale SVG to fill container width. Capture original dimensions before overriding.
+    const origW = svgEl.getAttribute("width") || "230";
+    const origH = svgEl.getAttribute("height") || "230";
+    if (!svgEl.getAttribute("viewBox")) {
+      svgEl.setAttribute("viewBox", `0 0 ${origW} ${origH}`);
+    }
+    svgEl.setAttribute("width", "100%");
+    svgEl.setAttribute("height", "auto");
+
     const serializer = new XMLSerializer();
     const html = serializer.serializeToString(svgEl);
     // Safe: SVG sourced from local static files with script tags stripped

@@ -167,9 +167,13 @@ export default function GuitarChordDiagram({
 
       // Add text labels in intervals/notes modes
       if (displayMode !== "fingering") {
-        const label = displayMode === "intervals"
-          ? (intervalMap.get(dot.pitchClass) ?? "?")
-          : (noteNameMap.get(dot.pitchClass) ?? "?");
+        const rawLabel = displayMode === "intervals"
+          ? intervalMap.get(dot.pitchClass)
+          : noteNameMap.get(dot.pitchClass);
+
+        if (rawLabel == null) continue; // no label for unmapped dots — skip silently
+
+        const label = rawLabel;
 
         const textEl = doc.createElementNS("http://www.w3.org/2000/svg", "text");
         textEl.setAttribute("x", String(dot.cx));
@@ -265,5 +269,11 @@ export default function GuitarChordDiagram({
     );
   }
 
-  return <div ref={containerRef} className="w-44 h-auto flex justify-center" />;
+  return (
+    <div
+      ref={containerRef}
+      className="w-44 h-auto"
+      style={{ display: "flex", justifyContent: "center" }}
+    />
+  );
 }

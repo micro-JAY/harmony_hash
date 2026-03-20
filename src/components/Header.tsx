@@ -34,8 +34,8 @@ export default function Header({ instrument, onInstrumentChange }: HeaderProps) 
             color: "var(--text-primary)",
           }}
         >
-          Harmony
-          <span style={{ color: "var(--text-accent)" }}> Hash</span>
+          HARMONY
+          <span style={{ color: "var(--text-accent)" }}> HASH</span>
         </h1>
         <span
           className="text-xs uppercase tracking-widest"
@@ -45,7 +45,7 @@ export default function Header({ instrument, onInstrumentChange }: HeaderProps) 
             fontWeight: "var(--weight-medium)",
           }}
         >
-          Tonari Labs
+          TONARI LABS
         </span>
       </div>
 

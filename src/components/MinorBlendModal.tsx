@@ -38,7 +38,7 @@ function EnContent() {
           marginBottom: "var(--space-4)",
         }}
       >
-        If you&apos;re using Harmony Hash and you notice a chord in a minor progression feels
+        If you&apos;re using HARMONY HASH and you notice a chord in a minor progression feels
         &quot;brighter&quot; or has a note that isn&apos;t in your starting scale, don&apos;t worry — it&apos;s not a
         bug. It&apos;s the secret to professional songwriting.
       </p>
@@ -175,7 +175,7 @@ function EnContent() {
           marginTop: "var(--space-1)",
         }}
       >
-        Summary for Harmony Hash
+        Summary for HARMONY HASH
       </h2>
 
       <p
@@ -251,7 +251,7 @@ function JaContent() {
           marginBottom: "var(--space-4)",
         }}
       >
-        Harmony Hashを使っていて、マイナー進行の中のコードが「明るく」感じたり、元のスケールにない音が含まれていても心配しないでください。バグではありません。プロの作曲の秘訣なんです。
+        HARMONY HASHを使っていて、マイナー進行の中のコードが「明るく」感じたり、元のスケールにない音が含まれていても心配しないでください。バグではありません。プロの作曲の秘訣なんです。
       </p>
 
       <p
@@ -377,7 +377,7 @@ function JaContent() {
           marginTop: "var(--space-1)",
         }}
       >
-        Harmony Hashのまとめ
+        HARMONY HASHのまとめ
       </h2>
 
       <p

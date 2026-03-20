@@ -17,43 +17,16 @@ export default function Header({ instrument, onInstrumentChange }: HeaderProps) 
   const { locale, setLocale } = useLocale();
 
   return (
-    <header
-      className="flex items-center justify-between px-6 py-4 border-b"
-      style={{
-        borderColor: "var(--border-subtle)",
-        backgroundColor: "var(--surface-raised)",
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <h1
-          className="text-2xl font-bold tracking-tight"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: "var(--weight-bold)",
-            letterSpacing: "var(--tracking-tight)",
-            color: "var(--text-primary)",
-          }}
-        >
-          HARMONY
-          <span style={{ color: "var(--text-accent)" }}> HASH</span>
-        </h1>
-        <span
-          className="text-xs uppercase tracking-widest"
-          style={{
-            color: "var(--text-muted)",
-            letterSpacing: "var(--tracking-caps)",
-            fontWeight: "var(--weight-medium)",
-          }}
-        >
-          TONARI LABS
+    <header className="tonari-topbar">
+      <div className="tonari-brand">
+        <span className="tonari-brand__name">
+          HARMONY <span className="tonari-brand__name--accent">HASH</span>
         </span>
+        <span className="tonari-brand__org">TONARI LABS</span>
       </div>
 
       <div className="flex items-center gap-3">
-        <div
-          className="flex rounded-full p-1"
-          style={{ backgroundColor: "var(--surface-overlay)" }}
-        >
+        <div className="tonari-locale-switcher">
           {LOCALES.map((loc) => {
             const active = locale === loc.value;
             return (
@@ -61,16 +34,8 @@ export default function Header({ instrument, onInstrumentChange }: HeaderProps) 
                 key={loc.value}
                 type="button"
                 onClick={() => setLocale(loc.value)}
-                className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
-                  backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
-                  color: active ? "var(--interactive-accent-text)" : "var(--text-muted)",
-                  border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
-                  transitionDuration: "var(--duration-normal)",
-                  transitionTimingFunction: "var(--ease-out)",
-                }}
+                className={`tonari-locale-switcher__btn${active ? " tonari-locale-switcher__btn--active" : ""}`}
+                aria-pressed={active}
               >
                 {loc.label}
               </button>

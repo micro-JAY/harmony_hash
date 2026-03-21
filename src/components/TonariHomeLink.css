@@ -1,0 +1,56 @@
+.tonari-home-link {
+  position: fixed;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: var(--z-sticky);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3);
+  text-decoration: none;
+  transition: border-color var(--duration-normal) var(--ease-out),
+              background var(--duration-normal) var(--ease-out);
+}
+
+.tonari-home-link:hover {
+  border-color: var(--border-default);
+  background: var(--surface-overlay);
+}
+
+.tonari-home-link__arrow {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.tonari-home-link:hover .tonari-home-link__arrow {
+  color: var(--text-accent);
+}
+
+.tonari-home-link__text {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  color: var(--text-secondary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.tonari-home-link:hover .tonari-home-link__text {
+  color: var(--text-primary);
+}
+
+@media (max-width: 480px) {
+  .tonari-home-link {
+    top: var(--space-3);
+    left: var(--space-3);
+    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  }
+
+  .tonari-home-link__text {
+    font-size: 0.6rem;
+  }
+}

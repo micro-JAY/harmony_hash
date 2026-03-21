@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { Instrument, IndexedChord, ParseError } from "./lib/types";
 import Header from "./components/Header";
+import TonariHomeLink from "./components/TonariHomeLink";
 import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
@@ -71,6 +72,7 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <TonariHomeLink />
       <Header instrument={instrument} onInstrumentChange={setInstrument} />
 
       <main className="flex-1 flex flex-col gap-8 py-8">

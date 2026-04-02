@@ -75,7 +75,7 @@ function App() {
 
       <main className="flex-1 flex flex-col gap-8 py-8">
         {/* Input Section */}
-        <ProgressionInput onResult={handleResult} />
+        <ProgressionInput onResult={handleResult} chordsEmpty={chords.length === 0} />
 
         {/* Action Bar */}
         {chords.length > 0 && instrument === "guitar" && (

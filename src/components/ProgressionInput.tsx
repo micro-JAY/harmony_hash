@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { ParseResult, TonalityId, Progression, ScaleType } from "../lib/types";
 import { parseChordInput, transposeNumeralString, ALL_KEYS } from "../lib/harmonyBrain";
@@ -6,10 +6,12 @@ import { lookupChord } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
 import { PROGRESSION_LIBRARY } from "../data/progressions";
 import MinorBlendModal from "./MinorBlendModal";
+import ChordReferenceGrid from "./ChordReferenceGrid";
 import { useT } from "../i18n/I18nContext";
 
 interface ProgressionInputProps {
   onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
+  chordsEmpty: boolean;
 }
 
 interface SelectedProgression {
@@ -20,9 +22,10 @@ interface SelectedProgression {
   scaleType: ScaleType;
 }
 
-export default function ProgressionInput({ onResult }: ProgressionInputProps) {
+export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionInputProps) {
   const t = useT();
   const [freeText, setFreeText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<SelectedProgression | null>(null);
   const [selectedKey, setSelectedKey] = useState("C");
   const [errors, setErrors] = useState<ParseResult["errors"]>([]);
@@ -124,6 +127,7 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
       {activeTab === "free" && (
         <div className="flex gap-3">
           <input
+            ref={inputRef}
             type="text"
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
@@ -158,6 +162,15 @@ export default function ProgressionInput({ onResult }: ProgressionInputProps) {
             Run
           </button>
         </div>
+      )}
+
+      {/* Chord Reference Grid — Free Input empty state only */}
+      {activeTab === "free" && chordsEmpty && (
+        <ChordReferenceGrid
+          inputValue={freeText}
+          setInputValue={setFreeText}
+          inputRef={inputRef}
+        />
       )}
 
       {/* Progression Browser */}

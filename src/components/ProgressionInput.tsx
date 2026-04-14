@@ -102,7 +102,7 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
   }
 
   return (
-    <section className="w-full max-w-4xl mx-auto px-4">
+    <section className="w-full max-w-6xl mx-auto px-4">
       {/* Tab Switcher */}
       <div className="flex gap-1 mb-4">
         {(["free", "preset"] as const).map((tab) => (

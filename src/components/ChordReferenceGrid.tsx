@@ -1,17 +1,17 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { lookupChord } from "../lib/chordData";
 
 // ─── Quality Group Type ─────────────────────────────────────────────
 
-export type QualityGroup = "basic" | "7ths" | "9ths+" | "sus" | "alt";
+export type QualityGroup = "basic" | "9ths+" | "sus" | "alt";
 
 // ─── Root Colors (intentional chromatic identity — not design tokens) ─
 
 export const ROOT_COLORS: Record<string, string> = {
-  "C":  "#E85D5D", "C#": "#E8875D", "D":  "#E8B45D", "Eb": "#D4C84A",
-  "E":  "#8FCC52", "F":  "#4ABF8A", "F#": "#4AB8BF", "G":  "#4A8ABF",
-  "Ab": "#5D6EE8", "A":  "#8A5DE8", "Bb": "#C05DE8", "B":  "#E85DBB",
+  "C":  "#B8D4F0", "C#": "#A3C6E8", "D":  "#8FB8E0", "Eb": "#7AAAD8",
+  "E":  "#669CCF", "F":  "#528EC7", "F#": "#3E80BF", "G":  "#2E6FAF",
+  "Ab": "#1F5E9F", "A":  "#154E8F", "Bb": "#0C3F7F", "B":  "#05306F",
 };
 
 // ─── Quality Candidates (checked at runtime against the chord index) ─
@@ -25,11 +25,13 @@ const QUALITY_CANDIDATES = [
   { label: "sus4",  suffix: "sus4",  group: "sus"   as const },
   { label: "6",     suffix: "6",     group: "basic" as const },
   { label: "m6",    suffix: "m6",    group: "basic" as const },
-  { label: "7",     suffix: "7",     group: "7ths"  as const },
-  { label: "maj7",  suffix: "maj7",  group: "7ths"  as const },
-  { label: "m7",    suffix: "m7",    group: "7ths"  as const },
+  { label: "7",     suffix: "7",     group: "basic" as const },
+  { label: "maj7",  suffix: "maj7",  group: "basic" as const },
+  { label: "m7",    suffix: "m7",    group: "basic" as const },
   { label: "9",     suffix: "9",     group: "9ths+" as const },
   { label: "11",    suffix: "11",    group: "9ths+" as const },
+  { label: "maj11", suffix: "maj11", group: "9ths+" as const },
+  { label: "m11",   suffix: "m11",   group: "9ths+" as const },
   { label: "dim7",  suffix: "dim7",  group: "alt"   as const },
   { label: "m7b5",  suffix: "m7b5",  group: "alt"   as const },
   { label: "aug7",  suffix: "+7",    group: "alt"   as const },
@@ -61,12 +63,11 @@ export const ROOTS = ROOT_DISPLAY_ORDER.filter(
 // ─── Group Labels ───────────────────────────────────────────────────
 
 const GROUP_LABELS: { id: QualityGroup | "all"; label: string }[] = [
-  { id: "all",   label: "All" },
   { id: "basic", label: "Basic" },
-  { id: "7ths",  label: "7ths" },
   { id: "9ths+", label: "9ths+" },
   { id: "sus",   label: "Sus" },
   { id: "alt",   label: "Alt" },
+  { id: "all",   label: "All" },
 ];
 
 // ─── Props ──────────────────────────────────────────────────────────
@@ -86,27 +87,23 @@ export default function ChordReferenceGrid({
 }: ChordReferenceGridProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [flashCell, setFlashCell] = useState<string | null>(null);
-  const [activeGroup, setActiveGroup] = useState<QualityGroup | "all">("all");
-  const [lastInserted, setLastInserted] = useState<string | null>(null);
-  const [showUndo, setShowUndo] = useState(false);
-  const undoTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [activeGroup, setActiveGroup] = useState<QualityGroup | "all">(() => {
+    const visited = localStorage.getItem("harmony_visited");
+    if (!visited) {
+      localStorage.setItem("harmony_visited", "1");
+      return "basic";
+    }
+    return "basic";
+  });
+  const [insertHistory, setInsertHistory] = useState<string[]>([]);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    };
-  }, []);
-
-  // Reset filter and undo when grid collapses
+  // Reset filter and history when grid collapses
   function handleToggle() {
     const next = !isOpen;
     setIsOpen(next);
     if (!next) {
-      setActiveGroup("all");
-      setLastInserted(null);
-      setShowUndo(false);
-      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+      setActiveGroup("basic");
+      setInsertHistory([]);
     }
   }
 
@@ -124,24 +121,22 @@ export default function ChordReferenceGrid({
     inputRef.current?.focus();
     setFlashCell(chordName);
     setTimeout(() => setFlashCell(null), 300);
-    setLastInserted(chordName);
-    setShowUndo(true);
-    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    undoTimeoutRef.current = setTimeout(() => setShowUndo(false), 3000);
+    setInsertHistory((prev) => [...prev, chordName]);
   }
 
-  // ── Undo handler ──
+  // ── Undo handler — pops the last inserted chord ──
   function handleUndo() {
-    if (!lastInserted) return;
+    if (!insertHistory.length) return;
+    const last = insertHistory[insertHistory.length - 1];
     const tokens = inputValue.trimEnd().split(" ");
-    const idx = tokens.lastIndexOf(lastInserted);
+    const idx = tokens.lastIndexOf(last);
     if (idx !== -1) tokens.splice(idx, 1);
     setInputValue(tokens.join(" "));
-    setLastInserted(null);
-    setShowUndo(false);
-    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    setInsertHistory((prev) => prev.slice(0, -1));
     inputRef.current?.focus();
   }
+
+  const canUndo = insertHistory.length > 0 && inputValue.trim().length > 0;
 
   // ── Group filter handler ──
   function handleGroupSelect(group: QualityGroup | "all") {
@@ -172,7 +167,7 @@ export default function ChordReferenceGrid({
         </button>
 
         <AnimatePresence>
-          {showUndo && (
+          {canUndo && (
             <motion.button
               initial={{ opacity: 0, x: -4 }}
               animate={{ opacity: 1, x: 0 }}

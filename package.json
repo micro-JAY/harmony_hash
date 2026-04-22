@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "postbuild": "printf '.DS_Store\\n._*\\n' > dist/.assetsignore",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "deploy": "npm run build && npx wrangler deploy --assets dist --name harmony --compatibility-date 2025-09-27"
   },
   "dependencies": {
     "framer-motion": "^12.35.0",

@@ -54,9 +54,9 @@
 
 ## 8. Client fetch wrapper
 
-- [ ] 8.1 Create `src/lib/progressionClient.ts` exporting `ProgressionResponse` interface and `generateProgression(prompt)` function
-- [ ] 8.2 Switch endpoint between `localhost:8787` (dev) and `/api/progression` (prod) via `import.meta.env.DEV`
-- [ ] 8.3 Surface Worker error bodies as `Error` messages with HTTP status
+- [x] 8.1 Create `src/lib/progressionClient.ts` exporting `ProgressionResponse` interface and `generateProgression(prompt)` function
+- [x] 8.2 Switch endpoint between `localhost:8787` (dev) and `/api/progression` (prod) via `import.meta.env.DEV`
+- [x] 8.3 Surface Worker error bodies as `Error` messages with HTTP status
 
 ## 9. ProgressionAgent component
 

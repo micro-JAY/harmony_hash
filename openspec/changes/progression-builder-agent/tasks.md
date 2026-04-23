@@ -60,13 +60,13 @@
 
 ## 9. ProgressionAgent component
 
-- [ ] 9.1 Create `src/components/ProgressionAgent.tsx` with `ProgressionAgentProps { onResult }`
-- [ ] 9.2 Render a textarea (2–3 rows) + "Build progression" button using design-system tokens (no hardcoded hex/px/rem)
-- [ ] 9.3 Implement loading state (disabled button, spinner or shimmer)
-- [ ] 9.4 Implement error state (message + retry button) that leaves any previous chord cards intact
-- [ ] 9.5 On success, resolve each returned chord name via `lookupChord` (from `chordData.ts`) into `DisplayChord` and call `onResult`
-- [ ] 9.6 Render the `rationale` as a subtitle above the cards area (cleared during loading)
-- [ ] 9.7 Clear rationale when a new request starts
+- [x] 9.1 Create `src/components/ProgressionAgent.tsx` with `ProgressionAgentProps { onResult }`
+- [x] 9.2 Render a textarea (2–3 rows) + "Build progression" button using design-system tokens (no hardcoded hex/px/rem)
+- [x] 9.3 Implement loading state (disabled button, spinner or shimmer)
+- [x] 9.4 Implement error state (message + retry button) that leaves any previous chord cards intact
+- [x] 9.5 On success, resolve each returned chord name via `lookupChord` (from `chordData.ts`) into `DisplayChord` and call `onResult`
+- [x] 9.6 Render the `rationale` as a subtitle above the cards area (cleared during loading)
+- [x] 9.7 Clear rationale when a new request starts
 
 ## 10. Wire ProgressionAgent into Progressions tab
 

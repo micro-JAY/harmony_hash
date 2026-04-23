@@ -7,50 +7,50 @@
 
 ## 2. Cloudflare Worker scaffold
 
-- [ ] 2.1 Install `@anthropic-ai/sdk` as a workspace dependency
-- [ ] 2.2 Create `worker/index.ts` with fetch handler routing `POST /api/progression` and `OPTIONS /api/progression`
-- [ ] 2.3 Create `worker/tsconfig.json` extending the project's base config, targeting the Worker runtime
-- [ ] 2.4 Update `wrangler.jsonc` to set `main: "worker/index.ts"`, keep the existing assets block, and pin `compatibility_date`
-- [ ] 2.5 Create `worker/.dev.vars.example` with `ANTHROPIC_API_KEY=` placeholder; confirm `.dev.vars*` is gitignored
-- [ ] 2.6 Create `worker/README.md` documenting local dev (`wrangler dev`), production secret (`wrangler secret put ANTHROPIC_API_KEY`), and CORS config
+- [x] 2.1 Install `@anthropic-ai/sdk` as a workspace dependency
+- [x] 2.2 Create `worker/index.ts` with fetch handler routing `POST /api/progression` and `OPTIONS /api/progression`
+- [x] 2.3 Create `worker/tsconfig.json` extending the project's base config, targeting the Worker runtime
+- [x] 2.4 Update `wrangler.jsonc` to set `main: "worker/index.ts"`, keep the existing assets block, and pin `compatibility_date`
+- [x] 2.5 Create `.dev.vars.example` at repo root with `ANTHROPIC_API_KEY=` placeholder; confirm `.dev.vars*` is gitignored
+- [x] 2.6 Create `worker/README.md` documenting local dev (`wrangler dev`), production secret (`wrangler secret put ANTHROPIC_API_KEY`), and CORS config
 
 ## 3. Worker request validation
 
-- [ ] 3.1 Parse JSON body; return HTTP 400 on malformed JSON or missing `prompt`
-- [ ] 3.2 Reject empty / whitespace-only prompts with HTTP 400
-- [ ] 3.3 Reject prompts longer than 500 characters with HTTP 400
-- [ ] 3.4 Return HTTP 204 for OPTIONS preflight with appropriate CORS headers
+- [x] 3.1 Parse JSON body; return HTTP 400 on malformed JSON or missing `prompt`
+- [x] 3.2 Reject empty / whitespace-only prompts with HTTP 400
+- [x] 3.3 Reject prompts longer than 500 characters with HTTP 400
+- [x] 3.4 Return HTTP 204 for OPTIONS preflight with appropriate CORS headers
 
 ## 4. Worker agent tool loop
 
-- [ ] 4.1 Embed the exact Workbench system prompt as a string constant
-- [ ] 4.2 Embed the exact `lookup_chord` tool definition as a constant
-- [ ] 4.3 Initialize `messages` with the user prompt and call `anthropic.messages.create` with model `claude-opus-4-7`, `max_tokens: 1024`, system prompt, and tool registered
-- [ ] 4.4 When `stop_reason === "tool_use"`, append the assistant message, execute each `tool_use` via `lookupChordForAgent`, append `tool_result` blocks, and continue
-- [ ] 4.5 When `stop_reason === "end_turn"`, find the first text block and parse it as JSON
-- [ ] 4.6 Any other `stop_reason` throws an unexpected-state error
-- [ ] 4.7 Hard-cap at 8 iterations; return HTTP 504 with `{ "error": "Agent did not converge" }` on exceeded cap
+- [x] 4.1 Embed the exact Workbench system prompt as a string constant
+- [x] 4.2 Embed the exact `lookup_chord` tool definition as a constant
+- [x] 4.3 Initialize `messages` with the user prompt and call `anthropic.messages.create` with model `claude-opus-4-7`, `max_tokens: 1024`, system prompt, and tool registered
+- [x] 4.4 When `stop_reason === "tool_use"`, append the assistant message, execute each `tool_use` via `lookupChordForAgent`, append `tool_result` blocks, and continue
+- [x] 4.5 When `stop_reason === "end_turn"`, find the first text block and parse it as JSON
+- [x] 4.6 Any other `stop_reason` throws an unexpected-state error
+- [x] 4.7 Hard-cap at 8 iterations; return HTTP 504 with `{ "error": "Agent did not converge" }` on exceeded cap
 
 ## 5. Worker output validation and response shaping
 
-- [ ] 5.1 Validate parsed JSON: object with exactly 4 string chords, non-empty `key`, non-empty `rationale`
-- [ ] 5.2 Return HTTP 500 with error details if validation fails
-- [ ] 5.3 Return HTTP 200 with the validated JSON on success, including CORS headers
-- [ ] 5.4 Never surface the raw Anthropic API key or internal stack traces to the client
+- [x] 5.1 Validate parsed JSON: object with exactly 4 string chords, non-empty `key`, non-empty `rationale`
+- [x] 5.2 Return HTTP 500 with error details if validation fails
+- [x] 5.3 Return HTTP 200 with the validated JSON on success, including CORS headers
+- [x] 5.4 Never surface the raw Anthropic API key or internal stack traces to the client
 
 ## 6. Worker CORS
 
-- [ ] 6.1 Read `env.ALLOWED_ORIGIN`, defaulting to `*` when missing
-- [ ] 6.2 Add CORS headers to every response (200, 400, 500, 504)
-- [ ] 6.3 Verify `wrangler dev` serves requests from `http://localhost:5173` successfully
+- [x] 6.1 Read `env.ALLOWED_ORIGIN`, defaulting to `*` when missing
+- [x] 6.2 Add CORS headers to every response (200, 400, 500, 504)
+- [x] 6.3 Verify `wrangler dev` serves requests from `http://localhost:5173` successfully
 
 ## 7. Local verification
 
-- [ ] 7.1 Populate `worker/.dev.vars` with a real `ANTHROPIC_API_KEY` for local testing (DO NOT commit)
-- [ ] 7.2 Run `wrangler dev` and curl `POST /api/progression` with `{"prompt":"something melancholic in minor with jazz feel"}` — expect valid JSON with 4 chords
-- [ ] 7.3 Run curl with `{"prompt":"altered dominants and quartal voicings in F minor"}` — expect valid JSON (may take more tool-loop iterations)
-- [ ] 7.4 Run curl with `{"prompt":""}` — expect HTTP 400
-- [ ] 7.5 Run curl with a 600-character prompt — expect HTTP 400
+- [ ] 7.1 (User step) Populate `.dev.vars` at repo root with a real `ANTHROPIC_API_KEY` for local testing (DO NOT commit)
+- [ ] 7.2 (User step) Run `wrangler dev` and curl `POST /api/progression` with `{"prompt":"something melancholic in minor with jazz feel"}` — expect valid JSON with 4 chords
+- [ ] 7.3 (User step) Run curl with `{"prompt":"altered dominants and quartal voicings in F minor"}` — expect valid JSON (may take more tool-loop iterations)
+- [x] 7.4 Run curl with `{"prompt":""}` — expect HTTP 400 (verified with placeholder key)
+- [x] 7.5 Run curl with a 501+ character prompt — expect HTTP 400 (verified with placeholder key)
 
 ## 8. Client fetch wrapper
 

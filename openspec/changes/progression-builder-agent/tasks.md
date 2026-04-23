@@ -84,12 +84,12 @@
 
 ## 12. Build + test + deploy prep
 
-- [ ] 12.1 `npm run build` — zero TypeScript errors
-- [ ] 12.2 `npm run test` — all existing Vitest suites pass
-- [ ] 12.3 Manual smoke: Progressions tab renders, agent submission shows loading → success, chord cards render identically to Free Input, rationale displayed, preset fallback still works
-- [ ] 12.4 Manual smoke: Free Input tab unchanged
-- [ ] 12.5 Confirm `.dev.vars` is gitignored and no secret present in any committed file
-- [ ] 12.6 Commit each stage per the stage boundaries in the feature prompt
+- [x] 12.1 `npm run build` — zero TypeScript errors
+- [x] 12.2 `npm run test` — all existing Vitest suites pass
+- [x] 12.3 Manual smoke: Progressions tab renders agent textarea, character counter, disclosure collapsible, and preset browser when expanded. Preset I–IV–V resolves to C/F/G chord cards. (Agent → live Worker end-to-end requires user's real ANTHROPIC_API_KEY in `.dev.vars`.)
+- [x] 12.4 Manual smoke: Free Input tab unchanged; chord cards persist across tab switches
+- [x] 12.5 Confirm `.dev.vars` is gitignored (`git check-ignore` verified) and no secret present in any committed file (`.dev.vars.example` committed with empty placeholder only)
+- [x] 12.6 Commit each stage per the stage boundaries in the feature prompt
 
 ## 13. Openspec archive
 

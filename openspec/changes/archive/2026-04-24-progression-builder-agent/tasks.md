@@ -46,9 +46,9 @@
 
 ## 7. Local verification
 
-- [ ] 7.1 (User step) Populate `.dev.vars` at repo root with a real `ANTHROPIC_API_KEY` for local testing (DO NOT commit)
-- [ ] 7.2 (User step) Run `wrangler dev` and curl `POST /api/progression` with `{"prompt":"something melancholic in minor with jazz feel"}` — expect valid JSON with 4 chords
-- [ ] 7.3 (User step) Run curl with `{"prompt":"altered dominants and quartal voicings in F minor"}` — expect valid JSON (may take more tool-loop iterations)
+- [x] 7.1 User populated `.dev.vars` at repo root with a real `ANTHROPIC_API_KEY`; wrangler bound it as a hidden env var
+- [x] 7.2 `curl -d '{"prompt":"something melancholic in minor with jazz feel"}'` → `{"chords":["Am9","Dm9","Bm7b5","E7"],"key":"A minor","rationale":"..."}` HTTP 200 in 6.0s
+- [x] 7.3 `curl -d '{"prompt":"altered dominants and quartal voicings in F minor"}'` → `{"chords":["Fm11","Bbm11","Dbmaj9","C7b9"],"key":"F minor","rationale":"..."}` HTTP 200 in 7.8s
 - [x] 7.4 Run curl with `{"prompt":""}` — expect HTTP 400 (verified with placeholder key)
 - [x] 7.5 Run curl with a 501+ character prompt — expect HTTP 400 (verified with placeholder key)
 
@@ -86,11 +86,11 @@
 
 - [x] 12.1 `npm run build` — zero TypeScript errors
 - [x] 12.2 `npm run test` — all existing Vitest suites pass
-- [x] 12.3 Manual smoke: Progressions tab renders agent textarea, character counter, disclosure collapsible, and preset browser when expanded. Preset I–IV–V resolves to C/F/G chord cards. (Agent → live Worker end-to-end requires user's real ANTHROPIC_API_KEY in `.dev.vars`.)
+- [x] 12.3 Manual smoke: Progressions tab renders agent textarea, character counter, disclosure collapsible, and preset browser when expanded. Preset I–IV–V resolves to C/F/G chord cards. Agent end-to-end verified with live key: "dreamy lo-fi vibes with smooth changes" → Fmaj7, Em7, Dm9, Cmaj9 with rationale rendered above the cards.
 - [x] 12.4 Manual smoke: Free Input tab unchanged; chord cards persist across tab switches
 - [x] 12.5 Confirm `.dev.vars` is gitignored (`git check-ignore` verified) and no secret present in any committed file (`.dev.vars.example` committed with empty placeholder only)
 - [x] 12.6 Commit each stage per the stage boundaries in the feature prompt
 
 ## 13. Openspec archive
 
-- [ ] 13.1 After all stages merged, run `/opsx:archive progression-builder-agent`
+- [x] 13.1 After all stages merged, run `/opsx:archive progression-builder-agent`

@@ -7,6 +7,7 @@ import type { IndexedChord } from "../lib/types";
 import { PROGRESSION_LIBRARY } from "../data/progressions";
 import MinorBlendModal from "./MinorBlendModal";
 import ChordReferenceGrid from "./ChordReferenceGrid";
+import ProgressionAgent from "./ProgressionAgent";
 import { useT } from "../i18n/I18nContext";
 
 interface ProgressionInputProps {
@@ -173,9 +174,50 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
         />
       )}
 
-      {/* Progression Browser */}
+      {/* Agent + Progression Browser */}
       {activeTab === "preset" && (
         <div className="flex flex-col gap-4">
+          <ProgressionAgent
+            onResult={onResult}
+            placeholder={t("agentPromptPlaceholder")}
+          />
+
+          <details
+            className="rounded-lg"
+            style={{
+              border: "1px solid var(--border-subtle)",
+              backgroundColor: "var(--surface-overlay)",
+            }}
+          >
+            <summary
+              className="px-4 py-3 cursor-pointer select-none text-sm flex items-center gap-2"
+              style={{
+                color: "var(--text-secondary)",
+                fontWeight: "var(--weight-medium)",
+                listStyle: "none",
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  display: "inline-block",
+                  width: "0.5rem",
+                  height: "0.5rem",
+                  borderRight: "2px solid currentColor",
+                  borderBottom: "2px solid currentColor",
+                  transform: "rotate(-45deg)",
+                  transition: "transform var(--duration-normal) var(--ease-out)",
+                }}
+                className="progression-agent-disclosure"
+              />
+              {t("orPickPreset")}
+            </summary>
+            <div
+              className="px-4 pb-4 pt-2 flex flex-col gap-4"
+              style={{
+                borderTop: "1px solid var(--border-subtle)",
+              }}
+            >
           {/* Key + Tonality Selectors */}
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-3">
@@ -308,6 +350,8 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
               );
             })}
           </div>
+            </div>
+          </details>
         </div>
       )}
 

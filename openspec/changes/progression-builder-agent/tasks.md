@@ -70,17 +70,17 @@
 
 ## 10. Wire ProgressionAgent into Progressions tab
 
-- [ ] 10.1 Read `src/components/ProgressionInput.tsx` to confirm the `onResult` signature and shape
-- [ ] 10.2 Add `ProgressionAgent` as the primary content of the Progressions tab
-- [ ] 10.3 Preserve the existing preset browser inside an "Or pick a preset" collapsible section below the agent input
-- [ ] 10.4 Ensure Free Input tab behavior is byte-for-byte unchanged
-- [ ] 10.5 Ensure Chord Reference Grid still hides when chords render regardless of generating source
+- [x] 10.1 Read `src/components/ProgressionInput.tsx` to confirm the `onResult` signature and shape
+- [x] 10.2 Add `ProgressionAgent` as the primary content of the Progressions tab
+- [x] 10.3 Preserve the existing preset browser inside an "Or pick a preset" collapsible section below the agent input
+- [x] 10.4 Ensure Free Input tab behavior is byte-for-byte unchanged
+- [x] 10.5 Ensure Chord Reference Grid still hides when chords render regardless of generating source
 
 ## 11. Styling + design system compliance
 
-- [ ] 11.1 Confirm no hardcoded hex/px/rem in `ProgressionAgent.tsx` or any edits to `ProgressionInput.tsx`
-- [ ] 11.2 Use `--surface-overlay`, `--border-subtle`, `--text-primary`, `--interactive-accent-*`, etc. consistent with existing components
-- [ ] 11.3 Match the textarea styling to the existing Free Input text field (same fontFamily, padding, radius)
+- [x] 11.1 Confirm no hardcoded hex/px/rem in `ProgressionAgent.tsx` or any edits to `ProgressionInput.tsx`
+- [x] 11.2 Use `--surface-overlay`, `--border-subtle`, `--text-primary`, `--interactive-accent-*`, etc. consistent with existing components
+- [x] 11.3 Match the textarea styling to the existing Free Input text field (same fontFamily, padding, radius)
 
 ## 12. Build + test + deploy prep
 

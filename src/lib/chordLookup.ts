@@ -1,4 +1,10 @@
-import { lookupChord, splitRootAndQuality, normalizeRoot } from "./chordData";
+import {
+  formatNoteForDisplay,
+  lookupChord,
+  normalizeRoot,
+  prefersFlatNotation,
+  splitRootAndQuality,
+} from "./chordData";
 
 export interface ChordLookupResult {
   valid: boolean;
@@ -30,7 +36,10 @@ function findSuggestion(chordName: string): string | undefined {
   const canonRoot = normalizeRoot(rawRoot);
   if (!canonRoot) return undefined;
 
-  const displayRoot = rawRoot;
+  // Anchor candidates on the canonical root so enharmonic and mixed-case
+  // inputs (e.g. "eb", "E♭", "D#") collapse to one well-formed spelling
+  // that the dictionary will always recognise if a match exists.
+  const displayRoot = formatNoteForDisplay(canonRoot, prefersFlatNotation(rawRoot));
 
   for (let i = quality.length - 1; i >= 0; i--) {
     const candidate = displayRoot + quality.slice(0, i);

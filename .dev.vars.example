@@ -2,7 +2,9 @@
 # `.dev.vars*` is gitignored — never commit real keys.
 ANTHROPIC_API_KEY=
 
-# Optional. Leave blank to default to "*" during local development.
-# In production, set this via `wrangler secret put ALLOWED_ORIGIN` or the dashboard
-# (e.g. https://harmony.tonari.ai).
+# Optional in local dev. When unset, the Worker permits localhost origins only
+# (http://localhost:*, http://127.0.0.1:*) and rejects every other cross-origin request.
+# In production, this MUST be set to a comma-separated allowlist of origins
+# (e.g. "https://harmony.tonari.ai") via `wrangler secret put ALLOWED_ORIGIN` or the
+# Cloudflare dashboard — otherwise the endpoint fails closed for browser callers.
 ALLOWED_ORIGIN=

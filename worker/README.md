@@ -45,14 +45,20 @@ Wrangler prompts for the value; Cloudflare stores it as an encrypted secret avai
 
 ## CORS
 
-The Worker reads `env.ALLOWED_ORIGIN`. If unset, it defaults to `*` (convenient for `wrangler dev` while the Vite app runs at `http://localhost:5173`).
+The Worker **fails closed** for cross-origin browser requests and reads `env.ALLOWED_ORIGIN` to decide what to allow.
 
-For production, set the origin to lock access to the production host:
+- **`ALLOWED_ORIGIN` unset (dev fallback):** the Worker permits `http://localhost:*` and `http://127.0.0.1:*` only. Every other cross-origin request gets no `Access-Control-Allow-Origin` header back, so browsers reject the response. Preflight requests from disallowed origins receive `403`. Same-origin requests and non-browser callers (curl, etc.) are unaffected since they don't send `Origin`.
+- **`ALLOWED_ORIGIN` set (production):** value is a comma-separated allowlist. Only origins in the list receive CORS headers back. `*` is supported as an explicit opt-in for public endpoints.
+
+Set the production allowlist before deploying:
 
 ```sh
 npx wrangler secret put ALLOWED_ORIGIN
 # enter: https://harmony.tonari.ai
+# or a comma-separated list: https://harmony.tonari.ai,https://staging.harmony.tonari.ai
 ```
+
+Leaving `ALLOWED_ORIGIN` unset on a deployed Worker means only localhost browsers can talk to it — which is almost certainly not what you want in production.
 
 ## Running locally
 

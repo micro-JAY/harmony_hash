@@ -57,12 +57,12 @@ export default {
 
     if (url.pathname === "/api/progression") {
       if (request.method === "OPTIONS") {
-        return corsPreflight(env);
+        return corsPreflight(request, env);
       }
       if (request.method === "POST") {
         return handleProgression(request, env);
       }
-      return jsonResponse({ error: "Method not allowed" }, 405, env);
+      return jsonResponse({ error: "Method not allowed" }, 405, request, env);
     }
 
     return env.ASSETS.fetch(request);
@@ -70,22 +70,28 @@ export default {
 };
 
 async function handleProgression(request: Request, env: Env): Promise<Response> {
+  const requestOrigin = request.headers.get("Origin");
+  if (requestOrigin && !isOriginPermitted(requestOrigin, env)) {
+    return jsonResponse({ error: "Origin not allowed" }, 403, request, env);
+  }
+
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return jsonResponse({ error: "Request body must be valid JSON" }, 400, env);
+    return jsonResponse({ error: "Request body must be valid JSON" }, 400, request, env);
   }
 
   const prompt = extractPrompt(body);
   if (!prompt.ok) {
-    return jsonResponse({ error: prompt.error }, 400, env);
+    return jsonResponse({ error: prompt.error }, 400, request, env);
   }
 
   if (!env.ANTHROPIC_API_KEY) {
     return jsonResponse(
       { error: "Server misconfigured: missing API key" },
       500,
+      request,
       env,
     );
   }
@@ -94,16 +100,16 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
 
   try {
     const result = await runAgent(prompt.value, anthropic);
-    return jsonResponse(result, 200, env);
+    return jsonResponse(result, 200, request, env);
   } catch (err) {
     if (err instanceof AgentNonConvergenceError) {
-      return jsonResponse({ error: "Agent did not converge" }, 504, env);
+      return jsonResponse({ error: "Agent did not converge" }, 504, request, env);
     }
     if (err instanceof AgentValidationError) {
-      return jsonResponse({ error: err.message }, 500, env);
+      return jsonResponse({ error: err.message }, 500, request, env);
     }
     const message = err instanceof Error ? err.message : "Unknown agent error";
-    return jsonResponse({ error: sanitizeError(message) }, 500, env);
+    return jsonResponse({ error: sanitizeError(message) }, 500, request, env);
   }
 }
 
@@ -248,30 +254,68 @@ function sanitizeError(message: string): string {
   return message.replace(/sk-[a-zA-Z0-9_\-]+/g, "[redacted]");
 }
 
-function allowedOrigin(env: Env): string {
-  return env.ALLOWED_ORIGIN && env.ALLOWED_ORIGIN.length > 0 ? env.ALLOWED_ORIGIN : "*";
+const DEV_ORIGIN_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
+
+function parseAllowlist(env: Env): string[] | null {
+  const configured = env.ALLOWED_ORIGIN?.trim();
+  if (!configured) return null;
+  return configured
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
-function corsHeaders(env: Env): Record<string, string> {
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin(env),
+function isOriginPermitted(origin: string, env: Env): boolean {
+  const allowlist = parseAllowlist(env);
+  if (allowlist) {
+    return allowlist.includes("*") || allowlist.includes(origin);
+  }
+  // Dev fallback when ALLOWED_ORIGIN is unset: only permit localhost origins.
+  return DEV_ORIGIN_PATTERN.test(origin);
+}
+
+function resolveCorsOrigin(request: Request, env: Env): string | null {
+  const origin = request.headers.get("Origin");
+  if (!origin) return null;
+  if (!isOriginPermitted(origin, env)) return null;
+  const allowlist = parseAllowlist(env);
+  if (allowlist?.includes("*") && !allowlist.includes(origin)) return "*";
+  return origin;
+}
+
+function corsHeaders(request: Request, env: Env): Record<string, string> {
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
+  const origin = resolveCorsOrigin(request, env);
+  if (origin) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+  return headers;
 }
 
-function corsPreflight(env: Env): Response {
-  return new Response(null, { status: 204, headers: corsHeaders(env) });
+function corsPreflight(request: Request, env: Env): Response {
+  const origin = request.headers.get("Origin");
+  if (origin && !isOriginPermitted(origin, env)) {
+    return new Response(null, { status: 403 });
+  }
+  return new Response(null, { status: 204, headers: corsHeaders(request, env) });
 }
 
-function jsonResponse(body: unknown, status: number, env: Env): Response {
+function jsonResponse(
+  body: unknown,
+  status: number,
+  request: Request,
+  env: Env,
+): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      ...corsHeaders(env),
+      ...corsHeaders(request, env),
     },
   });
 }

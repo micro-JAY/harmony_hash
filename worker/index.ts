@@ -243,6 +243,16 @@ function parseAndValidateProgression(raw: string): ProgressionResult {
     throw new AgentValidationError("'rationale' must be a non-empty string");
   }
 
+  // Defense-in-depth: even though the system prompt instructs Claude to verify
+  // every chord via the lookup_chord tool, re-verify each final chord against
+  // the dictionary so an unverified answer never reaches the client.
+  const unverified = chords.filter((chord) => !lookupChordForAgent(chord).valid);
+  if (unverified.length > 0) {
+    throw new AgentValidationError(
+      `Agent returned unverified chord(s): ${unverified.join(", ")}`,
+    );
+  }
+
   return {
     chords,
     key: obj.key.trim(),

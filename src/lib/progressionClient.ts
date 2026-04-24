@@ -4,6 +4,13 @@ export interface ProgressionResponse {
   rationale: string;
 }
 
+export class ProgressionResponseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ProgressionResponseError";
+  }
+}
+
 const DEV_ENDPOINT = "http://localhost:8787/api/progression";
 const PROD_ENDPOINT = "/api/progression";
 
@@ -20,7 +27,46 @@ export async function generateProgression(prompt: string): Promise<ProgressionRe
     throw new Error(await formatError(res));
   }
 
-  return (await res.json()) as ProgressionResponse;
+  let payload: unknown;
+  try {
+    payload = await res.json();
+  } catch {
+    throw new ProgressionResponseError("Server returned invalid JSON");
+  }
+
+  return assertProgressionResponse(payload);
+}
+
+function assertProgressionResponse(payload: unknown): ProgressionResponse {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new ProgressionResponseError("Server response was not an object");
+  }
+  const obj = payload as Record<string, unknown>;
+
+  if (!Array.isArray(obj.chords)) {
+    throw new ProgressionResponseError("Response 'chords' must be an array");
+  }
+  if (obj.chords.length !== 4) {
+    throw new ProgressionResponseError(
+      `Response 'chords' must contain exactly 4 entries, received ${obj.chords.length}`,
+    );
+  }
+  const chords: string[] = [];
+  for (const entry of obj.chords) {
+    if (typeof entry !== "string" || entry.trim().length === 0) {
+      throw new ProgressionResponseError("Every chord must be a non-empty string");
+    }
+    chords.push(entry);
+  }
+
+  if (typeof obj.key !== "string" || obj.key.trim().length === 0) {
+    throw new ProgressionResponseError("Response 'key' must be a non-empty string");
+  }
+  if (typeof obj.rationale !== "string" || obj.rationale.trim().length === 0) {
+    throw new ProgressionResponseError("Response 'rationale' must be a non-empty string");
+  }
+
+  return { chords, key: obj.key, rationale: obj.rationale };
 }
 
 async function formatError(res: Response): Promise<string> {

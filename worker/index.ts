@@ -71,7 +71,7 @@ export default {
 
 async function handleProgression(request: Request, env: Env): Promise<Response> {
   const requestOrigin = request.headers.get("Origin");
-  if (requestOrigin && !isOriginPermitted(requestOrigin, env)) {
+  if (requestOrigin && !isOriginPermitted(requestOrigin, request, env)) {
     return jsonResponse({ error: "Origin not allowed" }, 403, request, env);
   }
 
@@ -264,32 +264,48 @@ function sanitizeError(message: string): string {
   return message.replace(/sk-[a-zA-Z0-9_\-]+/g, "[redacted]");
 }
 
+const LOCAL_HOST_PATTERN = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
 const DEV_ORIGIN_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
 
-function parseAllowlist(env: Env): string[] | null {
+// The canonical production origin lives in source so a missing/stale/shadowed
+// ALLOWED_ORIGIN secret can't 403 production. ALLOWED_ORIGIN remains supported
+// as an additive list (comma-separated, or "*") for staging or one-off origins.
+const BUILTIN_ALLOWED_ORIGINS: readonly string[] = ["https://harmony.tonari.ai"];
+
+function parseEnvAllowlist(env: Env): string[] {
   const configured = env.ALLOWED_ORIGIN?.trim();
-  if (!configured) return null;
+  if (!configured) return [];
   return configured
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
 
-function isOriginPermitted(origin: string, env: Env): boolean {
-  const allowlist = parseAllowlist(env);
-  if (allowlist) {
-    return allowlist.includes("*") || allowlist.includes(origin);
+function workerIsLocal(request: Request): boolean {
+  try {
+    return LOCAL_HOST_PATTERN.test(new URL(request.url).host);
+  } catch {
+    return false;
   }
-  // Dev fallback when ALLOWED_ORIGIN is unset: only permit localhost origins.
-  return DEV_ORIGIN_PATTERN.test(origin);
+}
+
+function isOriginPermitted(origin: string, request: Request, env: Env): boolean {
+  if (BUILTIN_ALLOWED_ORIGINS.includes(origin)) return true;
+  const envList = parseEnvAllowlist(env);
+  if (envList.includes("*") || envList.includes(origin)) return true;
+  // Only honor the localhost CORS fallback when the Worker itself is running
+  // locally (under `wrangler dev`). Otherwise a deployed Worker would accept
+  // browser requests from any localhost page, and CORS is the only gate on
+  // this Anthropic-backed endpoint.
+  return workerIsLocal(request) && DEV_ORIGIN_PATTERN.test(origin);
 }
 
 function resolveCorsOrigin(request: Request, env: Env): string | null {
   const origin = request.headers.get("Origin");
   if (!origin) return null;
-  if (!isOriginPermitted(origin, env)) return null;
-  const allowlist = parseAllowlist(env);
-  if (allowlist?.includes("*") && !allowlist.includes(origin)) return "*";
+  if (!isOriginPermitted(origin, request, env)) return null;
+  const envList = parseEnvAllowlist(env);
+  if (envList.includes("*") && !envList.includes(origin)) return "*";
   return origin;
 }
 
@@ -309,7 +325,7 @@ function corsHeaders(request: Request, env: Env): Record<string, string> {
 
 function corsPreflight(request: Request, env: Env): Response {
   const origin = request.headers.get("Origin");
-  if (origin && !isOriginPermitted(origin, env)) {
+  if (origin && !isOriginPermitted(origin, request, env)) {
     return new Response(null, { status: 403 });
   }
   return new Response(null, { status: 204, headers: corsHeaders(request, env) });

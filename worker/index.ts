@@ -266,9 +266,14 @@ function sanitizeError(message: string): string {
 
 const DEV_ORIGIN_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
 
-function parseAllowlist(env: Env): string[] | null {
+// The canonical production origin lives in source so a missing/stale/shadowed
+// ALLOWED_ORIGIN secret can't 403 production. ALLOWED_ORIGIN remains supported
+// as an additive list (comma-separated, or "*") for staging or one-off origins.
+const BUILTIN_ALLOWED_ORIGINS: readonly string[] = ["https://harmony.tonari.ai"];
+
+function parseEnvAllowlist(env: Env): string[] {
   const configured = env.ALLOWED_ORIGIN?.trim();
-  if (!configured) return null;
+  if (!configured) return [];
   return configured
     .split(",")
     .map((entry) => entry.trim())
@@ -276,20 +281,18 @@ function parseAllowlist(env: Env): string[] | null {
 }
 
 function isOriginPermitted(origin: string, env: Env): boolean {
-  const allowlist = parseAllowlist(env);
-  if (allowlist) {
-    return allowlist.includes("*") || allowlist.includes(origin);
-  }
-  // Dev fallback when ALLOWED_ORIGIN is unset: only permit localhost origins.
-  return DEV_ORIGIN_PATTERN.test(origin);
+  if (BUILTIN_ALLOWED_ORIGINS.includes(origin)) return true;
+  if (DEV_ORIGIN_PATTERN.test(origin)) return true;
+  const envList = parseEnvAllowlist(env);
+  return envList.includes("*") || envList.includes(origin);
 }
 
 function resolveCorsOrigin(request: Request, env: Env): string | null {
   const origin = request.headers.get("Origin");
   if (!origin) return null;
   if (!isOriginPermitted(origin, env)) return null;
-  const allowlist = parseAllowlist(env);
-  if (allowlist?.includes("*") && !allowlist.includes(origin)) return "*";
+  const envList = parseEnvAllowlist(env);
+  if (envList.includes("*") && !envList.includes(origin)) return "*";
   return origin;
 }
 

@@ -8,9 +8,6 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
-  "vars": {
-    "ALLOWED_ORIGIN": "https://harmony.tonari.ai"
-  },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1

@@ -71,7 +71,7 @@ export default {
 
 async function handleProgression(request: Request, env: Env): Promise<Response> {
   const requestOrigin = request.headers.get("Origin");
-  if (requestOrigin && !isOriginPermitted(requestOrigin, env)) {
+  if (requestOrigin && !isOriginPermitted(requestOrigin, request, env)) {
     return jsonResponse({ error: "Origin not allowed" }, 403, request, env);
   }
 
@@ -264,6 +264,7 @@ function sanitizeError(message: string): string {
   return message.replace(/sk-[a-zA-Z0-9_\-]+/g, "[redacted]");
 }
 
+const LOCAL_HOST_PATTERN = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
 const DEV_ORIGIN_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
 
 // The canonical production origin lives in source so a missing/stale/shadowed
@@ -280,17 +281,29 @@ function parseEnvAllowlist(env: Env): string[] {
     .filter(Boolean);
 }
 
-function isOriginPermitted(origin: string, env: Env): boolean {
+function workerIsLocal(request: Request): boolean {
+  try {
+    return LOCAL_HOST_PATTERN.test(new URL(request.url).host);
+  } catch {
+    return false;
+  }
+}
+
+function isOriginPermitted(origin: string, request: Request, env: Env): boolean {
   if (BUILTIN_ALLOWED_ORIGINS.includes(origin)) return true;
-  if (DEV_ORIGIN_PATTERN.test(origin)) return true;
   const envList = parseEnvAllowlist(env);
-  return envList.includes("*") || envList.includes(origin);
+  if (envList.includes("*") || envList.includes(origin)) return true;
+  // Only honor the localhost CORS fallback when the Worker itself is running
+  // locally (under `wrangler dev`). Otherwise a deployed Worker would accept
+  // browser requests from any localhost page, and CORS is the only gate on
+  // this Anthropic-backed endpoint.
+  return workerIsLocal(request) && DEV_ORIGIN_PATTERN.test(origin);
 }
 
 function resolveCorsOrigin(request: Request, env: Env): string | null {
   const origin = request.headers.get("Origin");
   if (!origin) return null;
-  if (!isOriginPermitted(origin, env)) return null;
+  if (!isOriginPermitted(origin, request, env)) return null;
   const envList = parseEnvAllowlist(env);
   if (envList.includes("*") && !envList.includes(origin)) return "*";
   return origin;
@@ -312,7 +325,7 @@ function corsHeaders(request: Request, env: Env): Record<string, string> {
 
 function corsPreflight(request: Request, env: Env): Response {
   const origin = request.headers.get("Origin");
-  if (origin && !isOriginPermitted(origin, env)) {
+  if (origin && !isOriginPermitted(origin, request, env)) {
     return new Response(null, { status: 403 });
   }
   return new Response(null, { status: 204, headers: corsHeaders(request, env) });

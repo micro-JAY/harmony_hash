@@ -61,6 +61,14 @@ describe("lookupChord slash chords", () => {
     expect(lookupChord("D/F#/A")).toBeUndefined();
   });
 
+  it("resolves dictionary chords whose quality contains a slash (e.g. 6/9)", () => {
+    const result = lookupChord("C6/9");
+    expect(result).toBeDefined();
+    // Dictionary alias, not a slash chord — no bass should be attached.
+    expect(result?.bass).toBeUndefined();
+    expect(result?.displayName).not.toContain("/9");
+  });
+
   it("does not mutate the cached upper chord entry", () => {
     const plainD = lookupChord("D");
     const slashed = lookupChord("D/A");

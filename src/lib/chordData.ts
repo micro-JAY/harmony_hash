@@ -297,7 +297,18 @@ export function lookupChord(input: string): IndexedChord | undefined {
   // Strip parentheses: "E7(#9)" → "E7#9"
   const cleaned = input.replace(/[()]/g, "");
 
-  // Slash chord: "D/F#" → look up D, attach F# as bass. Single slash only;
+  // Try the dictionary first so quality suffixes that contain "/" (e.g. "6/9",
+  // "m6/9", "add6/9") resolve via their registered aliases before we treat
+  // "/" as a bass-note separator.
+  const [rawRoot, quality] = splitRootAndQuality(cleaned);
+  const canonRoot = normalizeRoot(rawRoot);
+  if (canonRoot) {
+    const lookupKey = canonRoot.toLowerCase() + quality;
+    const direct = chordIndex.get(lookupKey);
+    if (direct) return direct;
+  }
+
+  // Fall through: parse "D/F#" as upper chord + bass note. Single slash only;
   // nested slashes (e.g. "D/F#/A") are rejected.
   const slashIdx = cleaned.indexOf("/");
   if (slashIdx > 0) {
@@ -316,13 +327,7 @@ export function lookupChord(input: string): IndexedChord | undefined {
     };
   }
 
-  const [rawRoot, quality] = splitRootAndQuality(cleaned);
-  const canonRoot = normalizeRoot(rawRoot);
-  if (!canonRoot) return undefined;
-
-  // Root lowercased, quality case-preserved (M7 ≠ m7)
-  const lookupKey = canonRoot.toLowerCase() + quality;
-  return chordIndex.get(lookupKey);
+  return undefined;
 }
 
 /** Get SVG path for a specific variant */

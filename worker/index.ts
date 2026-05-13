@@ -17,6 +17,8 @@ const MODEL = "claude-opus-4-7";
 const MAX_ITERATIONS = 8;
 const MAX_PROMPT_LENGTH = 500;
 const MAX_TOKENS = 1024;
+const MIN_CHORDS = 3;
+const MAX_CHORDS = 8;
 
 const SYSTEM_PROMPT = `Always respond with ONLY a valid JSON object in this exact shape:
 {
@@ -26,10 +28,11 @@ const SYSTEM_PROMPT = `Always respond with ONLY a valid JSON object in this exac
 }
 
 Rules:
-- "chords" must contain exactly 4 chord names as strings.
-- Each chord name must be a root note (A through G, optionally with # or b) followed by an optional quality suffix from this list: m, dim, aug, sus2, sus4, 6, m6, 7, maj7, m7, 9, 11, dim7, m7b5, aug7, add9, madd9, maj9, m9, 7sus4, 13.
+- "chords" must contain between ${MIN_CHORDS} and ${MAX_CHORDS} chord names as strings. Aim for ${MIN_CHORDS}-6 by default; only go longer (up to ${MAX_CHORDS}) when the user explicitly asks for a longer progression or the style clearly demands it.
+- Each chord name is a root note (A through G, optionally with # or b) followed by an optional quality suffix. Common suffixes: m, dim, aug, sus2, sus4, 6, m6, 7, maj7, m7, 9, 11, dim7, m7b5, aug7, add9, madd9, maj9, m9, 7sus4, 13. Richer extensions and alterations (e.g. maj7#11, 7b9, 13#11, 7#5) may also be available — always verify any chord via the lookup_chord tool before including it.
+- Slash chords are allowed: "<chord>/<bassNote>" where bassNote is a root note (e.g. D/F#, C/G, Am7/E). Use them when bass-line motion improves the progression. Verify the full slash form via lookup_chord — the tool accepts slash chords.
+- Pick chord qualities that fit the genre and mood. Don't default to only triads or only seventh chords; reach for sus2/sus4, extensions, alterations, and slash inversions when they serve the request.
 - Use # for sharps and b for flats. Never use ♯ or ♭.
-- Never use slash chords (no "/" in any chord name).
 - Never use parentheses in chord names.
 - Do not include any text before or after the JSON.
 - Output must be valid parseable JSON.
@@ -243,9 +246,9 @@ function parseAndValidateProgression(raw: string): ProgressionResult {
   if (!Array.isArray(obj.chords)) {
     throw new AgentValidationError("'chords' field must be an array");
   }
-  if (obj.chords.length !== 4) {
+  if (obj.chords.length < MIN_CHORDS || obj.chords.length > MAX_CHORDS) {
     throw new AgentValidationError(
-      `'chords' must contain exactly 4 entries, received ${obj.chords.length}`,
+      `'chords' must contain between ${MIN_CHORDS} and ${MAX_CHORDS} entries, received ${obj.chords.length}`,
     );
   }
   const chords: string[] = [];

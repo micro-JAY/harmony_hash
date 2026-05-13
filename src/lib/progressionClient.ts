@@ -64,9 +64,9 @@ function assertProgressionResponse(payload: unknown): ProgressionResponse {
   if (!Array.isArray(obj.chords)) {
     throw new ProgressionResponseError("Response 'chords' must be an array");
   }
-  if (obj.chords.length !== 4) {
+  if (obj.chords.length < 3 || obj.chords.length > 8) {
     throw new ProgressionResponseError(
-      `Response 'chords' must contain exactly 4 entries, received ${obj.chords.length}`,
+      `Response 'chords' must contain between 3 and 8 entries, received ${obj.chords.length}`,
     );
   }
   const chords: string[] = [];

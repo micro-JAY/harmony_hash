@@ -297,6 +297,25 @@ export function lookupChord(input: string): IndexedChord | undefined {
   // Strip parentheses: "E7(#9)" → "E7#9"
   const cleaned = input.replace(/[()]/g, "");
 
+  // Slash chord: "D/F#" → look up D, attach F# as bass. Single slash only;
+  // nested slashes (e.g. "D/F#/A") are rejected.
+  const slashIdx = cleaned.indexOf("/");
+  if (slashIdx > 0) {
+    const upperRaw = cleaned.slice(0, slashIdx);
+    const bassRaw = cleaned.slice(slashIdx + 1);
+    if (bassRaw.includes("/")) return undefined;
+    const upperChord = lookupChord(upperRaw);
+    if (!upperChord) return undefined;
+    const canonBass = normalizeRoot(bassRaw);
+    if (!canonBass) return undefined;
+    const displayBass = formatNoteForDisplay(canonBass, prefersFlatNotation(bassRaw));
+    return {
+      ...upperChord,
+      bass: displayBass,
+      displayName: `${upperChord.displayName}/${displayBass}`,
+    };
+  }
+
   const [rawRoot, quality] = splitRootAndQuality(cleaned);
   const canonRoot = normalizeRoot(rawRoot);
   if (!canonRoot) return undefined;

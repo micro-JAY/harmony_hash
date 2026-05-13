@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatNoteForDisplay, prefersFlatNotation } from "./chordData";
+import { formatNoteForDisplay, lookupChord, prefersFlatNotation } from "./chordData";
 
 describe("formatNoteForDisplay", () => {
   it("formats sharp-encoded notes to # notation", () => {
@@ -33,5 +33,39 @@ describe("prefersFlatNotation", () => {
   it("returns false for natural and sharp roots", () => {
     expect(prefersFlatNotation("C")).toBe(false);
     expect(prefersFlatNotation("F#")).toBe(false);
+  });
+});
+
+describe("lookupChord slash chords", () => {
+  it("resolves a slash chord and bakes bass into displayName", () => {
+    const result = lookupChord("D/F#");
+    expect(result).toBeDefined();
+    expect(result?.bass).toBe("F#");
+    expect(result?.displayName).toBe("D/F#");
+    expect(result?.svgBasePath).toBe(lookupChord("D")?.svgBasePath);
+  });
+
+  it("preserves the upper chord quality through the slash", () => {
+    const result = lookupChord("Am7/E");
+    expect(result).toBeDefined();
+    expect(result?.bass).toBe("E");
+    expect(result?.displayName).toBe("Am7/E");
+    expect(result?.quality).toBe(lookupChord("Am7")?.quality);
+  });
+
+  it("rejects an unknown bass note", () => {
+    expect(lookupChord("D/Z")).toBeUndefined();
+  });
+
+  it("rejects nested slashes", () => {
+    expect(lookupChord("D/F#/A")).toBeUndefined();
+  });
+
+  it("does not mutate the cached upper chord entry", () => {
+    const plainD = lookupChord("D");
+    const slashed = lookupChord("D/A");
+    expect(slashed?.displayName).toBe("D/A");
+    expect(plainD?.displayName).toBe("D");
+    expect(plainD?.bass).toBeUndefined();
   });
 });

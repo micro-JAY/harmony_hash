@@ -13,6 +13,24 @@ export class ProgressionResponseError extends Error {
 
 const DEV_ENDPOINT = "http://localhost:8787/api/progression";
 const PROD_ENDPOINT = "/api/progression";
+const DEV_HEALTH_ENDPOINT = "http://localhost:8787/api/health";
+const PROD_HEALTH_ENDPOINT = "/api/health";
+
+export interface HealthResponse {
+  ok: boolean;
+  bindings: { anthropicApiKey: boolean };
+}
+
+export async function checkHealth(signal?: AbortSignal): Promise<HealthResponse> {
+  const endpoint = import.meta.env.DEV ? DEV_HEALTH_ENDPOINT : PROD_HEALTH_ENDPOINT;
+  const res = await fetch(endpoint, { method: "GET", signal });
+  if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
+  const payload = (await res.json()) as Partial<HealthResponse>;
+  if (typeof payload?.ok !== "boolean" || typeof payload.bindings?.anthropicApiKey !== "boolean") {
+    throw new Error("Health response malformed");
+  }
+  return { ok: payload.ok, bindings: { anthropicApiKey: payload.bindings.anthropicApiKey } };
+}
 
 export async function generateProgression(prompt: string): Promise<ProgressionResponse> {
   const endpoint = import.meta.env.DEV ? DEV_ENDPOINT : PROD_ENDPOINT;

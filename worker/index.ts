@@ -65,9 +65,29 @@ export default {
       return jsonResponse({ error: "Method not allowed" }, 405, request, env);
     }
 
+    if (url.pathname === "/api/health") {
+      if (request.method === "OPTIONS") {
+        return corsPreflight(request, env);
+      }
+      if (request.method === "GET") {
+        return handleHealth(request, env);
+      }
+      return jsonResponse({ error: "Method not allowed" }, 405, request, env);
+    }
+
     return env.ASSETS.fetch(request);
   },
 };
+
+function handleHealth(request: Request, env: Env): Response {
+  const anthropicApiKey = Boolean(env.ANTHROPIC_API_KEY);
+  return jsonResponse(
+    { ok: anthropicApiKey, bindings: { anthropicApiKey } },
+    200,
+    request,
+    env,
+  );
+}
 
 async function handleProgression(request: Request, env: Env): Promise<Response> {
   const requestOrigin = request.headers.get("Origin");

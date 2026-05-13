@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { IndexedChord, ParseError } from "../lib/types";
 import { lookupChord } from "../lib/chordData";
-import { generateProgression } from "../lib/progressionClient";
+import { checkHealth, generateProgression } from "../lib/progressionClient";
+
+type HealthStatus = "checking" | "ready" | "unavailable";
 
 interface DisplayChord {
   input: string;
@@ -21,6 +23,18 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
   const [error, setError] = useState<string | null>(null);
   const [rationale, setRationale] = useState<string | null>(null);
   const [resolvedKey, setResolvedKey] = useState<string | null>(null);
+  const [health, setHealth] = useState<HealthStatus>("checking");
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    checkHealth(ctrl.signal)
+      .then((res) => setHealth(res.ok ? "ready" : "unavailable"))
+      .catch((err) => {
+        if (err instanceof Error && err.name === "AbortError") return;
+        setHealth("unavailable");
+      });
+    return () => ctrl.abort();
+  }, []);
 
   const trimmed = prompt.trim();
   const overLength = prompt.length > MAX_PROMPT;
@@ -152,12 +166,15 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
             ? `${Math.abs(remaining)} over the ${MAX_PROMPT}-character limit`
             : `${remaining} characters left`}
         </span>
-        <span
-          className="text-xs"
-          style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
-        >
-          ⌘↵ to build
-        </span>
+        <div className="flex items-center gap-3">
+          <HealthPill status={health} />
+          <span
+            className="text-xs"
+            style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
+          >
+            ⌘↵ to build
+          </span>
+        </div>
       </div>
 
       {error && (
@@ -231,5 +248,46 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         }
       `}</style>
     </div>
+  );
+}
+
+function HealthPill({ status }: { status: HealthStatus }) {
+  const { dot, label, title } = {
+    checking: {
+      dot: "var(--text-muted)",
+      label: "Checking…",
+      title: "Checking API status",
+    },
+    ready: {
+      dot: "var(--status-success-text, #4ade80)",
+      label: "API ready",
+      title: "API is reachable and configured",
+    },
+    unavailable: {
+      dot: "var(--status-error-text, #f87171)",
+      label: "Service unavailable",
+      title: "API is unreachable or missing required config",
+    },
+  }[status];
+
+  return (
+    <span
+      className="text-xs inline-flex items-center gap-1.5"
+      style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
+      title={title}
+      aria-live="polite"
+    >
+      <span
+        aria-hidden
+        style={{
+          width: "0.5rem",
+          height: "0.5rem",
+          borderRadius: "var(--radius-full)",
+          backgroundColor: dot,
+          display: "inline-block",
+        }}
+      />
+      {label}
+    </span>
   );
 }

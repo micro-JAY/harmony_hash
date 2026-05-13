@@ -12,9 +12,10 @@ export interface IndexedChord {
   entry: ChordEntry;
   root: string;          // Canonical root e.g. "C", "Cs", "Ef"
   quality: string;       // The symbol that matched e.g. "maj7", "m7"
-  displayName: string;   // Short display name e.g. "Cmaj7"
+  displayName: string;   // Short display name e.g. "Cmaj7", "D/F#"
   svgBasePath: string;   // e.g. "/music_src/chords/c/maj7"
   variationCount: number;
+  bass?: string;         // Display bass note for slash chords e.g. "F#". Diagram still renders the upper triad until bass-aware SVGs exist.
 }
 
 export interface ParseResult {

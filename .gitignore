@@ -19,4 +19,5 @@ dist/
 
 # long-horizon files
 preflight.log
-docs/inspiration/
+docs/inspiration/*
+!docs/inspiration/README.md

@@ -60,27 +60,6 @@ Use the **Guitar / Piano** toggle at the top to switch the view across all cards
 
 ---
 
-## Piano Voicing — Roadmap
-
-The piano renderer ships with a foundation and grows in planned stages:
-
-**v1 — Shipped**
-Drop 2 voicing for seventh chords and above (the 2nd-highest note drops an octave, creating an open, spread sound). Root position for triads. Left/right hand split shown visually.
-
-**v2 — Voice Leading**
-Smooth voice leading between chords in a progression. The app will calculate the minimal movement between voicings — so instead of jumping position between every chord, the hands stay close and the progression flows. This is what separates a competent pianist from a musical one.
-
-**v3 — Extended Voicing Styles**
-Drop 3, rootless voicings (for playing over a bassist), and shell voicings (3rd + 7th only, no root or 5th). Each chord card will show a style selector so you can try them side by side.
-
-**v4 — Interval Spacing & Spread Voicings**
-9th/10th interval spacing for the wide, lush textures common in R&B, gospel, and neo-soul. Upper structure triads for dominant chords. Two-hand spread voicings that more closely reflect how pianists actually use the full range of the instrument.
-
-**v5 — Playback**
-Hear the progression. A lightweight synth renders the voiced chords in sequence so you can audition how the voice leading actually sounds before you sit down at the keys.
-
----
-
 ## About
 
 Harmony Hash is part of the [Tonari Labs](https://tonari.ai) suite of music and creative tools.

@@ -15,3 +15,8 @@ dist/
 !.dev.vars.example
 .env*
 !.env.example
+
+
+# long-horizon files
+preflight.log
+docs/inspiration/

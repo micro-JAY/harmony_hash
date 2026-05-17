@@ -41,3 +41,35 @@
 **Next concrete step.** Finish commit 2 of the planning PR, push, open the PR, self-merge on green. Then open `chore/baseline-fix` against fresh main, then start v2.
 
 **Current state.** Branch `chore/long-horizon-plan`, working in `docs/long_horizon_plan.md` and `openspec/changes/long-horizon-plan/`. Commit 1 already landed locally (scope correction). Commit 2 in progress (plan + log + openspec change).
+
+---
+
+## 2026-05-17 — Phase 0 closed; Piano Voicings v2 (Voice Leading) shipped
+
+**Three PRs merged today, all green CI:**
+
+- **PR [#14](https://github.com/micro-JAY/harmony_hash/pull/14)** — planning artifacts + scope/cadence corrections (eac596e). Milestones 0.1 and 0.2 done.
+- **PR [#15](https://github.com/micro-JAY/harmony_hash/pull/15)** — lint baseline fix + archive of `long-horizon-plan` (1cd2ab9). Milestone 0.3 done; main is now lint-clean.
+- **PR [#16](https://github.com/micro-JAY/harmony_hash/pull/16)** — Piano Voicings v2 (Voice Leading) (04aa233). Milestone 1.1 done.
+
+**v2 engine design.** `computeVoiceLedProgression(progressionNotes)` in `src/lib/harmonyBrain.ts`. The first chord uses the existing `computeVoicing`; each subsequent chord enumerates candidate voicings (inversions × octave starts × {default Drop 2 / closed root} for 4+ note chords) filtered to C3-B5, and picks the candidate minimizing a voicing-distance metric (sum of each candidate note's distance to its nearest prior note; common tones cost 0; single-semitone steps cost 1). Ties broken by lower average MIDI for determinism. Candidate set always includes `computeVoicing`'s output, so the worst-case is "no worse than default."
+
+**Hand-traced & locked down by tests.** ii-V-I in C: Dm7=[50,53,57,60] → G7=[50,53,55,59] (inversion 2 of [G,B,D,F], 3 semitones of motion) → Cmaj7=[52,55,59,60] (inversion 1 of [C,E,G,B], 2 semitones). Cumulative voice-led motion = 5; naive `computeVoicing`-per-chord = 13. Test asserts `voiceLedTotal < naiveTotal`.
+
+**UI wire-up.** `App.tsx` lifts voicing computation out of `ChordCard.tsx`, memoizes `computeVoiceLedProgression(chords.map(c => parseNotes(c.chord.entry)))`, threads each voicing into its `ChordCard` by index. `ChordCard.tsx` now takes a `voicing: VoicedChord` prop instead of computing internally. No new selectors, pills, or toggles — v2 is the new default. Single-chord paths are byte-for-byte identical.
+
+**Manual smoke via Playwright MCP.** Started `npm run dev` on localhost:5173, typed "Dm7 G7 Cmaj7" → switched to Piano view, then decoded active-key DOM positions back to MIDI. Result matched the engine's hand-traced output exactly. Pre-existing console errors on `GuitarChordDiagram` (`<svg> height="auto"`) surfaced; flagged as a follow-up.
+
+**Decision.** No committed Playwright baselines in v2's PR. Reason: the harness doesn't exist yet (milestone 1.2 lands it). The before/during/after cadence kicks in for v3 onward. v2's PR documented the smoke verification numerically (MIDI values via DOM evaluation).
+
+**Decision.** Used the simple "min-distance per candidate note" metric rather than 1:1 voice-assignment (Hungarian algorithm). Reason: the simpler metric produces visibly smoother voicings on the canonical test cases (ii-V-I, I-vi-IV-V, vamps) at much lower complexity, and the candidate set always includes the default so the worst case is bounded. If post-v3 we find counterexamples where proper voice-assignment matters, that's a follow-up — flagging here so the choice is reconsidered later.
+
+**Decision.** Folded the v2 archive move + spec delta + plan/log updates into a single `chore/archive-piano-voicings-v2` PR rather than a bare-bones archive commit, since updating the plan + log alongside is what the prompt's archive cadence calls for ("Update `docs/long_horizon_plan.md` to mark milestone 1.1 Done with PR link. Add dated entry to `docs/long_horizon_log.md`.").
+
+**Q (still open):** add `npm run lint` to CI? Tracked from yesterday's entry; no answer yet.
+
+**Q (new):** confirm the simple voicing-distance metric over Hungarian assignment is acceptable through v5. If a counterexample emerges later, swap is contained to one function.
+
+**Next concrete step.** Open the v2 archive PR, then start milestone 1.2 (Playwright harness) which becomes the first UI-touching milestone to enforce before/during/after cadence. After that: v3 (Drop 3 + rootless + shell voicings).
+
+**Current state.** Branch `chore/archive-piano-voicings-v2` off main (which is at 04aa233 = post-v2). Archive move + spec delta + plan/log updates staged. About to commit, push, PR, self-merge.

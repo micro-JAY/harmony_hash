@@ -9,15 +9,15 @@ Status legend: **Done** · **In Progress** · **Pending** · **Blocked** · **Ca
 
 ---
 
-## Phase 0 — Orient (in flight)
+## Phase 0 — Orient
 
 | # | Milestone | Branch | Change-id | PR | Status |
 |---|-----------|--------|-----------|----|--------|
-| 0.1 | Scope correction + Playwright cadence in the prompt/inspiration/CLAUDE docs | `chore/long-horizon-plan` | (this) `long-horizon-plan` | TBD | In Progress |
-| 0.2 | Long-horizon plan + log + first openspec change | `chore/long-horizon-plan` | `long-horizon-plan` | TBD | In Progress |
-| 0.3 | Lint baseline fix to make `npm run lint` green on main | `chore/baseline-fix` | `lint-baseline-fix` | TBD | Pending |
+| 0.1 | Scope correction + Playwright cadence in the prompt/inspiration/CLAUDE docs | `chore/long-horizon-plan` | (folded into) `long-horizon-plan` | [#14](https://github.com/micro-JAY/harmony_hash/pull/14) | **Done** |
+| 0.2 | Long-horizon plan + log + first openspec change | `chore/long-horizon-plan` | `long-horizon-plan` (archived 2026-05-17) | [#14](https://github.com/micro-JAY/harmony_hash/pull/14) | **Done** |
+| 0.3 | Lint baseline fix to make `npm run lint` green on main | `chore/baseline-fix` | (no openspec — pure chore) | [#15](https://github.com/micro-JAY/harmony_hash/pull/15) | **Done** |
 
-**Why 0.3 exists.** `npm run lint` exits 1 on main with 6 pre-existing errors + 1 warning (App.tsx unused `_errors`, ChordReferenceGrid + I18nContext fast-refresh boundaries, GuitarChordDiagram set-state-in-effect, worker no-useless-escape). CI only runs build + test, so these drifted in undetected. Per the contract every PR must pass lint (`§5 gate 3`), so main needs to be clean before v2 starts.
+**Why 0.3 existed.** `npm run lint` exited 1 on main with 6 pre-existing errors + 1 warning (App.tsx unused `_errors`, ChordReferenceGrid + I18nContext fast-refresh boundaries, GuitarChordDiagram set-state-in-effect, worker no-useless-escape). CI only runs build + test, so these drifted in undetected. PR #15 cleaned them all; lint is now exit 0 on main.
 
 ---
 
@@ -27,7 +27,7 @@ The canonical roadmap lives in `docs/inspiration/README.md` under "Piano Voicing
 
 | # | Milestone | Branch | Change-id | Capabilities touched | Tests | Status |
 |---|-----------|--------|-----------|----------------------|-------|--------|
-| 1.1 | **v2 — Voice Leading** — minimal voice movement between consecutive voicings in a progression. Pure engine function `computeVoiceLedProgression(chords): VoicedChord[]` that re-anchors each chord's voicing (via inversion + octave choice) to minimize Σ\|Δmidi\| from the prior chord while keeping all notes in C3–B5. First chord uses existing `computeVoicing` as the anchor. Wire through `ChordCard.tsx` so the piano view consumes the voice-led sequence when a progression has ≥2 chords. | `feat/piano-voicings-v2-voice-leading` | `piano-voicings-v2-voice-leading` | `harmony-brain` (engine), `chord-card-display` (rendering note) | vitest: hand-verified note sets for ii–V–I, I–vi–IV–V, ii–V–i (harmonic minor), modal vamps. MIDI range invariant. First-chord-equivalence with `computeVoicing`. Single-chord input passes through unchanged. | Pending |
+| 1.1 | **v2 — Voice Leading** — minimal voice movement between consecutive voicings in a progression. Pure engine function `computeVoiceLedProgression(chords): VoicedChord[]` that re-anchors each chord's voicing (via inversion + octave choice) to minimize Σ\|Δmidi\| from the prior chord while keeping all notes in C3–B5. First chord uses existing `computeVoicing` as the anchor. Wire through `ChordCard.tsx` so the piano view consumes the voice-led sequence when a progression has ≥2 chords. | `feat/piano-voicings-v2-voice-leading` | `piano-voicings-v2-voice-leading` (archived 2026-05-17) | `harmony-brain` (engine), `chord-card-display` (rendering note) | 9 new vitest assertions: hand-verified note sets for ii–V–I in C, I–vi–IV–V in C, ii°–V–i in A harmonic minor, repeated-chord vamp stabilization, MIDI 48-83 invariant across 5-note chords + high-root triads + Dm9-G13, common-tone retention, first-chord-equivalence. Manual smoke via Playwright MCP confirmed DOM-decoded MIDI matches engine output exactly. 48 → 57 tests. | [#16](https://github.com/micro-JAY/harmony_hash/pull/16) **Done** |
 | 1.2 | **Playwright harness** — set up `playwright.config.ts`, install browsers (CI permitting), one smoke spec that loads the SPA on `npm run preview`, captures a baseline screenshot of the chord card view for fixture chords. Establishes the §3.4 before/during/after cadence used from v2 onward. | `chore/add-playwright-harness` | `add-playwright-harness` | new capability spec `playwright-visual-tests` | One first spec; CI job (lightweight: chromium only) | Pending |
 | 1.3 | **v3 — Extended Voicing Styles** — Drop 3, rootless A/B, shell. Each chord gains a style selector when in piano mode. Engine: `computeVoicingForStyle(noteNames, style): VoicedChord`. UI: in-card style pill toggle (parallel to the guitar Fingering/Intervals/Notes pattern). | `feat/piano-voicings-v3-extended` | `piano-voicings-v3-extended-styles` | `harmony-brain`, `chord-card-display` | Per-style hand-verified note sets across triads, 7ths, 9ths, alt dominants. Playwright before/during/after. | Pending |
 | 1.4 | **v4 — Interval Spacing & Spread** — 9th/10th spread voicings; upper-structure triads for dominant chords; two-hand spread. Optional widened MIDI range; if widening, propose it explicitly in the change. | `feat/piano-voicings-v4-spread` | `piano-voicings-v4-spread` | `harmony-brain`, `chord-card-display` | Spread-voicing fixtures; MIDI range invariant or documented widening; Playwright before/during/after. | Pending |

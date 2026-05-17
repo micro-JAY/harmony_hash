@@ -4,6 +4,7 @@ import type {
   Instrument,
   IndexedChord,
   GuitarDisplayMode,
+  PianoDisplayMode,
   VoicedChord,
   VoicingStyle,
 } from "../lib/types";
@@ -67,6 +68,7 @@ export default function ChordCard({
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
   const [guitarDisplay, setGuitarDisplay] = useState<GuitarDisplayMode>("fingering");
+  const [pianoDisplay, setPianoDisplay] = useState<PianoDisplayMode>("notes");
 
   function prevVariant() {
     if (maxVariants <= 1) return;
@@ -96,23 +98,21 @@ export default function ChordCard({
         boxShadow: isPlaying ? "var(--glow-accent)" : "none",
       }}
     >
-      {instrument === "guitar" && (
-        <button
-          type="button"
-          aria-label={isLocked ? "Unlock chord card" : "Lock chord card"}
-          title={isLocked ? "Unlock" : "Lock"}
-          onClick={onToggleLock}
-          className="absolute top-2 right-2 rounded-md p-1 transition-colors"
-          style={{
-            backgroundColor: "var(--surface-highlight)",
-            border: `1px solid ${isLocked ? "var(--border-accent)" : "var(--border-subtle)"}`,
-            color: isLocked ? "var(--text-accent)" : "var(--text-muted)",
-            zIndex: 2,
-          }}
-        >
-          {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
-        </button>
-      )}
+      <button
+        type="button"
+        aria-label={isLocked ? "Unlock chord card" : "Lock chord card"}
+        title={isLocked ? "Unlock" : "Lock"}
+        onClick={onToggleLock}
+        className="absolute top-2 right-2 rounded-md p-1 transition-colors"
+        style={{
+          backgroundColor: "var(--surface-highlight)",
+          border: `1px solid ${isLocked ? "var(--border-accent)" : "var(--border-subtle)"}`,
+          color: isLocked ? "var(--text-accent)" : "var(--text-muted)",
+          zIndex: 2,
+        }}
+      >
+        {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
+      </button>
 
       {/* Chord Name */}
       <div
@@ -297,11 +297,45 @@ export default function ChordCard({
 
             <PianoKeyboard
               voicedNotes={voicing.notes}
-              displayMode="notes"
+              displayMode={pianoDisplay}
               preferFlats={preferFlats}
               rootNote={noteNames[0] ?? ""}
             />
-            <div className="flex gap-2 mt-1">
+            <div className="flex gap-2 mt-1 items-center">
+              {/* Notes / Fingering display toggle (per-card). */}
+              <div
+                className="flex rounded-full p-0.5"
+                style={{
+                  backgroundColor: "var(--surface-overlay)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                {(["notes", "fingering"] as const).map((mode) => {
+                  const active = pianoDisplay === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setPianoDisplay(mode)}
+                      className="px-2 py-0.5 text-xs rounded-full transition-all"
+                      style={{
+                        backgroundColor: active
+                          ? "var(--interactive-accent-bg)"
+                          : "transparent",
+                        color: active
+                          ? "var(--interactive-accent-text)"
+                          : "var(--text-muted)",
+                        fontWeight: active
+                          ? "var(--weight-semibold)"
+                          : "var(--weight-regular)",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
+                      {mode === "notes" ? "Notes" : "Fingering"}
+                    </button>
+                  );
+                })}
+              </div>
               {VOICING_TYPE_LABEL[voicing.voicingType] && (
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"

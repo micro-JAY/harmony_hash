@@ -5,9 +5,20 @@ import Header from "./components/Header";
 import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
-import { computeVoiceLedProgression } from "./lib/harmonyBrain";
+import { computeVoiceLedProgression, isStyleApplicable } from "./lib/harmonyBrain";
 import { parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
+
+// Explicit (non-Auto) styles randomize cycles through. Auto is omitted
+// because it would defeat the "shake it up" intent of the button.
+const RANDOM_PIANO_STYLES: ReadonlyArray<VoicingStyle> = [
+  "drop2",
+  "drop3",
+  "rootless",
+  "shell",
+  "spread",
+  "two-hand",
+];
 
 const PLAYBACK_BPM = 80;
 
@@ -122,15 +133,35 @@ function App() {
   }, [chords, pianoVoicings]);
 
   function randomizeAll() {
-    setCardVariants((prev) => {
+    if (instrument === "guitar") {
+      setCardVariants((prev) => {
+        const next = { ...prev };
+        chords.forEach((chordResult, index) => {
+          const maxVariants = chordResult.chord.variationCount;
+          if (lockedCards.has(index)) {
+            next[index] = clampVariant(prev[index] ?? 1, maxVariants);
+            return;
+          }
+          next[index] = maxVariants > 1 ? Math.floor(Math.random() * maxVariants) + 1 : 1;
+        });
+        return next;
+      });
+      return;
+    }
+    // Piano: pick a random applicable explicit style per unlocked card.
+    setPianoStyles((prev) => {
       const next = { ...prev };
       chords.forEach((chordResult, index) => {
-        const maxVariants = chordResult.chord.variationCount;
-        if (lockedCards.has(index)) {
-          next[index] = clampVariant(prev[index] ?? 1, maxVariants);
+        if (lockedCards.has(index)) return;
+        const notes = parseNotes(chordResult.chord.entry);
+        const applicable = RANDOM_PIANO_STYLES.filter((style) =>
+          isStyleApplicable(notes, style),
+        );
+        if (applicable.length === 0) {
+          next[index] = "auto";
           return;
         }
-        next[index] = maxVariants > 1 ? Math.floor(Math.random() * maxVariants) + 1 : 1;
+        next[index] = applicable[Math.floor(Math.random() * applicable.length)];
       });
       return next;
     });
@@ -145,7 +176,7 @@ function App() {
         <ProgressionInput onResult={handleResult} chordsEmpty={chords.length === 0} />
 
         {/* Action Bar */}
-        {chords.length > 0 && instrument === "guitar" && (
+        {chords.length > 0 && (
           <div className="flex justify-center">
             <button
               onClick={randomizeAll}
@@ -164,7 +195,7 @@ function App() {
                 e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg)";
               }}
             >
-              Randomize All Variants
+              {instrument === "guitar" ? "Randomize All Variants" : "Randomize All Voicings"}
             </button>
           </div>
         )}

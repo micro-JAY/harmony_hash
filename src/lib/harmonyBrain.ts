@@ -4,6 +4,7 @@ import type {
   ParseError,
   VoicedChord,
   VoicedNote,
+  VoicingStyle,
   ScaleType,
 } from "./types";
 import { lookupChord, normalizeRoot, NOTE_NAMES } from "./chordData";
@@ -273,20 +274,177 @@ function pickBestCandidate(prior: VoicedNote[], candidates: VoicedChord[]): Voic
  * leading. The first chord anchors with `computeVoicing`'s default;
  * each subsequent chord is chosen for minimum voice movement from the
  * prior while keeping every note inside C3-B5.
+ *
+ * Optional `styles` constrains each chord to a specific voicing style
+ * (auto / drop2 / drop3 / rootless / shell). If omitted, every chord
+ * uses "auto" — equivalent to the v2 behavior.
  */
-export function computeVoiceLedProgression(progressionNotes: string[][]): VoicedChord[] {
+export function computeVoiceLedProgression(
+  progressionNotes: string[][],
+  styles?: ReadonlyArray<VoicingStyle>,
+): VoicedChord[] {
   if (progressionNotes.length === 0) return [];
 
-  const first = computeVoicing(progressionNotes[0]);
+  const styleAt = (i: number): VoicingStyle => styles?.[i] ?? "auto";
+  const first = computeVoicingForStyle(progressionNotes[0], styleAt(0));
   if (progressionNotes.length === 1) return [first];
 
   const result: VoicedChord[] = [first];
   for (let i = 1; i < progressionNotes.length; i++) {
-    const candidates = enumerateVoicingCandidates(progressionNotes[i]);
+    const candidates = enumerateVoicingCandidatesForStyle(progressionNotes[i], styleAt(i));
     const best = pickBestCandidate(result[i - 1].notes, candidates);
     result.push(best);
   }
   return result;
+}
+
+// ─── 3.8: Extended Voicing Styles (v3) ──────────────────────────────
+
+/**
+ * Whether the chord notes (canonical order: root, 3rd, 5th, 7th, ...)
+ * contain a 7th interval above the root. Used to gate Shell style.
+ */
+function hasSeventh(noteNames: string[]): boolean {
+  if (noteNames.length < 4) return false;
+  const rootPc = noteToPitchClass(noteNames[0]);
+  const fourthPc = noteToPitchClass(noteNames[3]);
+  if (rootPc < 0 || fourthPc < 0) return false;
+  const interval = ((fourthPc - rootPc) % 12 + 12) % 12;
+  return interval === 10 || interval === 11;
+}
+
+/**
+ * Whether a voicing style is applicable to the given chord. Triads
+ * can only use Auto; Shell requires a true 7th interval; Drop 3 /
+ * Rootless require 4+ chord tones.
+ */
+export function isStyleApplicable(noteNames: string[], style: VoicingStyle): boolean {
+  if (noteNames.length === 0) return false;
+  if (style === "auto") return true;
+  if (style === "shell") return noteNames.length >= 4 && hasSeventh(noteNames);
+  return noteNames.length >= 4;
+}
+
+/** Closed-position candidate set (inversions × octaves). Used for rootless / shell. */
+function enumerateClosedCandidates(noteNames: string[], voicingType: VoicedChord["voicingType"]): VoicedChord[] {
+  if (noteNames.length === 0) return [];
+  const candidates: VoicedChord[] = [];
+  const seen = new Set<string>();
+
+  for (let invIdx = 0; invIdx < noteNames.length; invIdx++) {
+    const inv = rotateNoteNames(noteNames, invIdx);
+    const pitchClasses = inv.map((n) => noteToPitchClass(n));
+    for (const oct of VOICE_LED_OCTAVE_STARTS) {
+      const v: VoicedChord = {
+        notes: buildClosedVoicing(inv, pitchClasses, oct),
+        voicingType,
+      };
+      if (!isWithinVisibleRange(v.notes)) continue;
+      const sig = voicingSignature(v);
+      if (seen.has(sig)) continue;
+      seen.add(sig);
+      candidates.push(v);
+    }
+  }
+  return candidates;
+}
+
+/**
+ * Build a Drop N voicing at the given octave start. `dropDistance` is
+ * 2 for Drop 2 (drop the 2nd-from-top of the first 4 notes) or 3 for
+ * Drop 3 (drop the 3rd-from-top of the first 4 notes). Returns null
+ * when the dropped note would underflow C3.
+ */
+function buildDropNVoicing(
+  noteNames: string[],
+  pitchClasses: number[],
+  startOctave: number,
+  dropDistance: 2 | 3,
+): VoicedChord | null {
+  if (noteNames.length < 4) return null;
+  const closed = buildClosedVoicing(noteNames, pitchClasses, startOctave);
+  const dropIndex = Math.min(noteNames.length, 4) - dropDistance;
+  if (dropIndex < 0 || dropIndex >= closed.length) return null;
+
+  const dropped = { ...closed[dropIndex] };
+  dropped.octave -= 1;
+  dropped.midi = dropped.pitchClass + (dropped.octave + 1) * 12;
+  if (dropped.midi < VISIBLE_MIDI_MIN) return null;
+
+  dropped.hand = "left";
+  const remaining = closed
+    .filter((_, i) => i !== dropIndex)
+    .map((note) => ({ ...note, hand: "right" as const }));
+  const notes = [dropped, ...remaining].sort((a, b) => a.midi - b.midi);
+  return { notes, voicingType: dropDistance === 2 ? "drop2" : "drop3" };
+}
+
+/** All in-range Drop N candidates across inversions × octaves. */
+function enumerateDropCandidates(noteNames: string[], dropDistance: 2 | 3): VoicedChord[] {
+  if (noteNames.length < 4) return [];
+  const candidates: VoicedChord[] = [];
+  const seen = new Set<string>();
+
+  for (let invIdx = 0; invIdx < noteNames.length; invIdx++) {
+    const inv = rotateNoteNames(noteNames, invIdx);
+    const pitchClasses = inv.map((n) => noteToPitchClass(n));
+    for (const oct of VOICE_LED_OCTAVE_STARTS) {
+      const v = buildDropNVoicing(inv, pitchClasses, oct, dropDistance);
+      if (!v) continue;
+      if (!isWithinVisibleRange(v.notes)) continue;
+      const sig = voicingSignature(v);
+      if (seen.has(sig)) continue;
+      seen.add(sig);
+      candidates.push(v);
+    }
+  }
+  return candidates;
+}
+
+/**
+ * Enumerate all candidates for a chord under a given style. Returns
+ * [] when the style isn't applicable; callers should fall back to
+ * "auto" or `computeVoicing` in that case.
+ */
+export function enumerateVoicingCandidatesForStyle(
+  noteNames: string[],
+  style: VoicingStyle,
+): VoicedChord[] {
+  if (!isStyleApplicable(noteNames, style)) return [];
+
+  if (style === "auto") {
+    return enumerateVoicingCandidates(noteNames);
+  }
+  if (style === "drop2") {
+    return enumerateDropCandidates(noteNames, 2);
+  }
+  if (style === "drop3") {
+    return enumerateDropCandidates(noteNames, 3);
+  }
+  if (style === "rootless") {
+    // Omit the root; voice the remaining chord tones in closed inversions.
+    return enumerateClosedCandidates(noteNames.slice(1), "rootless");
+  }
+  if (style === "shell") {
+    // 3rd + 7th only (assumes canonical chord order; gated by hasSeventh).
+    return enumerateClosedCandidates([noteNames[1], noteNames[3]], "shell");
+  }
+  return [];
+}
+
+/**
+ * Compute a single voiced chord for the given style. Returns the
+ * first deterministic candidate — root inversion at the lowest
+ * starting octave that fits C3-B5 — which is the canonical voicing
+ * a jazz pianist would reach for in that style. Falls back to
+ * `computeVoicing` when the style isn't applicable.
+ */
+export function computeVoicingForStyle(noteNames: string[], style: VoicingStyle): VoicedChord {
+  if (!isStyleApplicable(noteNames, style)) {
+    return computeVoicing(noteNames);
+  }
+  const candidates = enumerateVoicingCandidatesForStyle(noteNames, style);
+  return candidates[0] ?? computeVoicing(noteNames);
 }
 
 // ─── 3.3 / 3.4: Roman Numeral Parser & Transposition ────────────────

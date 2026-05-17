@@ -47,16 +47,16 @@
 
 ## 8. PR
 
-- [ ] 8.1 Commit per logical unit (1: archive previous + plan/log; 2: engine + tests + types; 3: UI + e2e + spec deltas).
-- [ ] 8.2 Push `feat/piano-voicings-v4-spread`.
-- [ ] 8.3 Open PR with template noting the UST deferral.
-- [ ] 8.4 Self-merge when both CI jobs green.
+- [x] 8.1 Two commits on the branch (archive + feat).
+- [x] 8.2 Pushed `feat/piano-voicings-v4-spread`.
+- [x] 8.3 Opened PR #20 with template + UST deferral writeup in body and proposal.
+- [x] 8.4 Self-merged when both CI jobs green — landed as squash commit on 2026-05-17.
 
 ## 9. Archive
 
-- [ ] 9.1 Bundle into v5's branch as the first commit per the established bundled-archive pattern.
-- [ ] 9.2 Update `docs/long_horizon_plan.md` milestone 1.4 → Done with PR link.
-- [ ] 9.3 Add dated entry to `docs/long_horizon_log.md`.
+- [x] 9.1 Bundled into v5's branch (`feat/piano-voicings-v5-playback`) as the first commit.
+- [x] 9.2 Update `docs/long_horizon_plan.md` milestone 1.4 → Done with PR link.
+- [x] 9.3 Add dated entry to `docs/long_horizon_log.md`.
 
 ## 10. UST follow-up
 

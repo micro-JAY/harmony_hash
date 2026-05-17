@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Play, Square } from "lucide-react";
 import type { Instrument, IndexedChord, ParseError, VoicingStyle } from "./lib/types";
 import Header from "./components/Header";
 import ProgressionInput from "./components/ProgressionInput";
@@ -6,6 +7,21 @@ import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
 import { computeVoiceLedProgression } from "./lib/harmonyBrain";
 import { parseNotes } from "./lib/chordData";
+import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
+
+const PLAYBACK_BPM = 80;
+
+interface AudioContextLike {
+  state: "suspended" | "running" | "closed";
+  resume(): Promise<void>;
+}
+
+function createAudioContext(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctor) return null;
+  return new Ctor();
+}
 
 interface DisplayChord {
   input: string;
@@ -27,12 +43,16 @@ function App() {
   const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
   const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
+  const [activeChordIndex, setActiveChordIndex] = useState<number | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const playbackHandleRef = useRef<PlaybackHandle | null>(null);
 
   const handleResult = useCallback((resolved: DisplayChord[], _errors: ParseError[]) => {
     setChords(resolved);
     setCardVariants({});
     setLockedCards(new Set());
     setPianoStyles({});
+    playbackHandleRef.current?.stop();
   }, []);
 
   const getPianoStyle = useCallback(
@@ -72,6 +92,34 @@ function App() {
     const styles = chords.map((_, i) => getPianoStyle(i));
     return computeVoiceLedProgression(noteSets, styles);
   }, [chords, getPianoStyle]);
+
+  const isPlaying = activeChordIndex !== null;
+
+  function handleTogglePlayback() {
+    if (isPlaying) {
+      playbackHandleRef.current?.stop();
+      return;
+    }
+    if (pianoVoicings.length === 0) return;
+    if (!audioContextRef.current) {
+      audioContextRef.current = createAudioContext();
+    }
+    const ctx = audioContextRef.current;
+    if (!ctx) return;
+    if ((ctx as AudioContextLike).state === "suspended") {
+      void (ctx as AudioContextLike).resume();
+    }
+    const schedule = buildPlaybackSchedule(pianoVoicings, PLAYBACK_BPM);
+    playbackHandleRef.current = playSchedule(schedule, ctx, setActiveChordIndex);
+  }
+
+  // Stop any in-flight playback when the progression changes or the
+  // component unmounts. The cleanup uses the ref snapshot at effect time.
+  useEffect(() => {
+    return () => {
+      playbackHandleRef.current?.stop();
+    };
+  }, [chords, pianoVoicings]);
 
   function randomizeAll() {
     setCardVariants((prev) => {
@@ -121,6 +169,33 @@ function App() {
           </div>
         )}
 
+        {/* Playback bar (piano only) */}
+        {chords.length > 0 && instrument === "piano" && (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={handleTogglePlayback}
+              aria-label={isPlaying ? "Stop playback" : "Play progression"}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all"
+              style={{
+                backgroundColor: isPlaying
+                  ? "var(--interactive-accent-bg)"
+                  : "var(--interactive-warm-bg)",
+                color: isPlaying
+                  ? "var(--interactive-accent-text)"
+                  : "var(--interactive-warm-text)",
+                border: `1px solid ${isPlaying ? "var(--interactive-accent-border)" : "var(--interactive-warm-border)"}`,
+                fontWeight: "var(--weight-medium)",
+                transitionDuration: "var(--duration-normal)",
+                fontFamily: "var(--font-body)",
+              }}
+            >
+              {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+              {isPlaying ? "Stop" : "Play progression"}
+            </button>
+          </div>
+        )}
+
         {/* Chord Cards */}
         {chords.length > 0 && (
           <section className="w-full max-w-7xl mx-auto px-4">
@@ -142,6 +217,7 @@ function App() {
                     voicing={pianoVoicings[index]}
                     pianoStyle={getPianoStyle(index)}
                     onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
+                    isPlaying={activeChordIndex === index}
                   />
                 );
               })}

@@ -128,3 +128,27 @@ v4 ships spread + two-hand; UST deferred to a follow-up openspec change.
 **Q (open):** when should UST land? Either as a separate openspec change ("piano-voicings-ust") proposing how to handle the "adds chromatic tones" issue (e.g. by surfacing as a new chord type the user opted into via chord input like "G7+UST"), or as part of v4.5 with a richer chord-tone model.
 
 **Current state.** Branch `feat/piano-voicings-v4-spread` off main (which is at 54203da = post-v3). Archive housekeeping + spec deltas committed in the first commit. About to design + implement v4 spread + two-hand.
+
+---
+
+## 2026-05-17 — Milestone 1.4 (v4 Spread + Two-Hand) shipped; UST deferred
+
+**PR [#20](https://github.com/micro-JAY/harmony_hash/pull/20)** — `feat(piano): voicings v4 — Spread + Two-Hand voicings`. Both CI jobs green; landed on 2026-05-17.
+
+**Engine.** Two new builders + a generic enumerator:
+- `buildSpreadVoicing` — root in LH at startOctave; every subsequent tone in RH starting at least one octave above the root, ascending. The 3rd lands a 10th above the root (16 semitones for major, 15 for minor 3rds). For high-root chords like Bmaj7, RH skips oct 4 and starts at oct 5 to clear the LH root.
+- `buildTwoHandVoicing` — LH = root + 5th (root only for triads), RH = remaining tones one octave above LH root.
+- `enumerateRootBassCandidates` — generic candidate enumerator, varies only the starting octave because the root-in-bass rule makes inversion irrelevant for these styles.
+
+**Music theory locked down.**
+- Spread Cmaj7 = `[48, 64, 67, 71]`. Dm7 = `[50, 65, 69, 72]`. G7 = `[55, 71, 74, 77]`. C triad = `[48, 64, 67]`. Bmaj7 = `[59, 75, 78, 82]`.
+- Two-hand Cmaj7 = `[48, 55, 64, 71]`. G7 = `[55, 62, 71, 77]`. C triad = `[48, 64, 67]` with LH=root only.
+- Voice-led spread ii-V-I in C: `[50,65,69,72]` → `[55,71,74,77]` → `[60,76,79,83]`. The engine bumps Cmaj7 to oct 4 to stay close to G7's upper register — locked down in a new e2e test.
+
+**Scope decision: UST deferred.** UST as a piano technique inherently introduces chromatic tones not in the chord's `Notes` field (e.g. D major triad over G7 needs F# and A — neither exists in G7's `[G, B, D, F]`). That breaks the engine's "render the chord's notes" contract. Two design options sketched in v4's proposal — new chord type or extension-hint mechanism. Both warrant their own openspec change. Filed as `piano-voicings-ust` to be picked up after v5 ships.
+
+**Playwright before/during/after**: the addition of 2 more pills to the style toggle (5 → 7) landed within the existing 10% pixel-ratio tolerance against v3's baseline — no regeneration needed.
+
+**Next concrete step.** v5 (Playback). Lightweight WebAudio synth that plays the voiced progression in sequence. Design: pure `buildPlaybackSchedule(voicings, bpm): PlaybackEvent[]` for unit testability + side-effecting `playSchedule(schedule, audioContext)` for actual audio. UI: global "Play progression" button + active-chord glow during playback. Honor prefers-reduced-motion for the glow.
+
+**Current state.** Branch `feat/piano-voicings-v5-playback` off main (post-v4). Archive housekeeping committed; this log entry being added as part of the same housekeeping wave before v5 code lands.

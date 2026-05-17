@@ -232,3 +232,37 @@ The system SHALL accept an optional `styles` array on `computeVoiceLedProgressio
 #### Scenario: Mid-progression fallback
 - **WHEN** a style is not applicable to a specific chord (e.g. shell on a triad)
 - **THEN** that chord SHALL fall back to `computeVoicing`'s output and voice-leading SHALL continue from the fallback voicing
+
+### Requirement: Spread voicing
+The system SHALL compute a 10th-interval "spread" voicing: the root sits in the left hand at the chosen starting octave; every subsequent chord tone sits in the right hand starting at least one octave above the root and ascending.
+
+#### Scenario: Cmaj7 spread
+- **WHEN** computing `computeVoicingForStyle(["C","E","G","B"], "spread")`
+- **THEN** the result SHALL be MIDI `[48, 64, 67, 71]` (C3 LH, E4 G4 B4 RH) with `voicingType: "spread"`
+
+#### Scenario: High-root spread pushes RH into oct 5
+- **WHEN** computing `computeVoicingForStyle(["B","Ds","Fs","As"], "spread")`
+- **THEN** the result SHALL be MIDI `[59, 75, 78, 82]` — the RH skips oct 4 to stay above the LH root + 12
+
+#### Scenario: Root is left hand, rest is right hand
+- **WHEN** any spread voicing is computed
+- **THEN** the first note (root) SHALL have `hand: "left"` and every subsequent note SHALL have `hand: "right"`
+
+#### Scenario: Spread applies to triads
+- **WHEN** `isStyleApplicable(notes, "spread")` is called on a chord with 3+ notes
+- **THEN** it SHALL return `true`
+
+### Requirement: Two-hand voicing
+The system SHALL compute a "two-hand spread" voicing: the left hand plays root + 5th (or root only for triads); the right hand plays the remaining chord tones (3rd + 7th + extensions) starting one octave above the LH root.
+
+#### Scenario: Cmaj7 two-hand
+- **WHEN** computing `computeVoicingForStyle(["C","E","G","B"], "two-hand")`
+- **THEN** the result SHALL be MIDI `[48, 55, 64, 71]` (LH C3-G3, RH E4-B4) with `voicingType: "two-hand"`
+
+#### Scenario: Triad two-hand simplifies to LH=root only
+- **WHEN** computing `computeVoicingForStyle(["C","E","G"], "two-hand")`
+- **THEN** the result SHALL be MIDI `[48, 64, 67]` with LH = C3 and RH = E4 + G4
+
+#### Scenario: Hands are visually separated for 4+ note chords
+- **WHEN** any two-hand voicing is computed for a 4+ note chord
+- **THEN** at least one note SHALL have `hand: "left"` and at least one SHALL have `hand: "right"`

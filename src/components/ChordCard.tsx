@@ -31,6 +31,8 @@ const PIANO_STYLE_OPTIONS: ReadonlyArray<{ value: VoicingStyle; label: string }>
   { value: "drop3", label: "Drop 3" },
   { value: "rootless", label: "Rootless" },
   { value: "shell", label: "Shell" },
+  { value: "spread", label: "Spread" },
+  { value: "two-hand", label: "Two-Hand" },
 ];
 
 const VOICING_TYPE_LABEL: Partial<Record<VoicedChord["voicingType"], string>> = {
@@ -38,6 +40,8 @@ const VOICING_TYPE_LABEL: Partial<Record<VoicedChord["voicingType"], string>> = 
   drop3: "Drop 3",
   rootless: "Rootless",
   shell: "Shell",
+  spread: "Spread",
+  "two-hand": "Two-Hand",
 };
 
 function extractDisplayRoot(chordName: string): string {

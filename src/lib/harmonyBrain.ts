@@ -315,12 +315,16 @@ function hasSeventh(noteNames: string[]): boolean {
 
 /**
  * Whether a voicing style is applicable to the given chord. Triads
- * can only use Auto; Shell requires a true 7th interval; Drop 3 /
- * Rootless require 4+ chord tones.
+ * can only use Auto, Spread, or Two-Hand-with-root-and-fifth — wait,
+ * Two-Hand requires the 5th to exist (noteNames[2]) so triads work.
+ * Shell requires a true 7th interval; Drop 2 / Drop 3 / Rootless
+ * require 4+ chord tones. Spread is available for any non-empty chord.
  */
 export function isStyleApplicable(noteNames: string[], style: VoicingStyle): boolean {
   if (noteNames.length === 0) return false;
   if (style === "auto") return true;
+  if (style === "spread") return noteNames.length >= 3;
+  if (style === "two-hand") return noteNames.length >= 3;
   if (style === "shell") return noteNames.length >= 4 && hasSeventh(noteNames);
   return noteNames.length >= 4;
 }
@@ -402,6 +406,141 @@ function enumerateDropCandidates(noteNames: string[], dropDistance: 2 | 3): Voic
 }
 
 /**
+ * Build a 10th-interval spread voicing: root in the left hand at
+ * `startOctave`, every subsequent chord tone in the right hand
+ * starting at least one octave above the root and ascending. The
+ * 3rd lands a 10th above the root (12 + chord's 3rd interval), the
+ * lush spacing that defines R&B / gospel / neo-soul piano.
+ *
+ * Returns null when any note overflows C3-B5.
+ */
+function buildSpreadVoicing(
+  noteNames: string[],
+  pitchClasses: number[],
+  startOctave: number,
+): VoicedChord | null {
+  if (noteNames.length < 3) return null;
+  const root: VoicedNote = {
+    name: noteNames[0],
+    pitchClass: pitchClasses[0],
+    octave: startOctave,
+    midi: pitchClasses[0] + (startOctave + 1) * 12,
+    hand: "left",
+  };
+  const notes: VoicedNote[] = [root];
+  let prevMidi = root.midi;
+  const rhFloor = root.midi + 12; // RH starts at least an octave above LH
+
+  for (let i = 1; i < noteNames.length; i++) {
+    let oct = startOctave + 1;
+    let midi = pitchClasses[i] + (oct + 1) * 12;
+    const floor = i === 1 ? rhFloor : prevMidi;
+    while (midi <= floor) {
+      oct++;
+      midi = pitchClasses[i] + (oct + 1) * 12;
+    }
+    notes.push({
+      name: noteNames[i],
+      pitchClass: pitchClasses[i],
+      octave: oct,
+      midi,
+      hand: "right",
+    });
+    prevMidi = midi;
+  }
+  return { notes, voicingType: "spread" };
+}
+
+/**
+ * Build a two-hand spread voicing: LH plays root (+ 5th when present),
+ * RH plays 3rd + 7th + extensions starting one octave above the root.
+ * For triads the LH simplifies to just the root.
+ */
+function buildTwoHandVoicing(
+  noteNames: string[],
+  pitchClasses: number[],
+  startOctave: number,
+): VoicedChord | null {
+  if (noteNames.length < 3) return null;
+
+  const lhIndices: number[] = [0]; // root always in LH
+  if (noteNames.length >= 4) lhIndices.push(2); // include the 5th when present
+  const rhIndices: number[] = [];
+  for (let i = 0; i < noteNames.length; i++) {
+    if (!lhIndices.includes(i)) rhIndices.push(i);
+  }
+
+  // Build LH at startOctave, notes ascending.
+  const lh: VoicedNote[] = [];
+  let prev = -Infinity;
+  for (const i of lhIndices) {
+    let oct = startOctave;
+    let midi = pitchClasses[i] + (oct + 1) * 12;
+    while (midi <= prev) {
+      oct++;
+      midi = pitchClasses[i] + (oct + 1) * 12;
+    }
+    lh.push({
+      name: noteNames[i],
+      pitchClass: pitchClasses[i],
+      octave: oct,
+      midi,
+      hand: "left",
+    });
+    prev = midi;
+  }
+
+  // RH starts at `startOctave + 1`. The while-loop preserves ascending
+  // order against the previous note (which begins as the last LH note),
+  // so RH naturally sits above LH without an explicit floor.
+  const rh: VoicedNote[] = [];
+  prev = lh[lh.length - 1].midi;
+  for (const i of rhIndices) {
+    let oct = startOctave + 1;
+    let midi = pitchClasses[i] + (oct + 1) * 12;
+    while (midi <= prev) {
+      oct++;
+      midi = pitchClasses[i] + (oct + 1) * 12;
+    }
+    rh.push({
+      name: noteNames[i],
+      pitchClass: pitchClasses[i],
+      octave: oct,
+      midi,
+      hand: "right",
+    });
+    prev = midi;
+  }
+
+  return { notes: [...lh, ...rh], voicingType: "two-hand" };
+}
+
+/**
+ * Enumerate spread / two-hand candidates across octave starts.
+ * Inversions don't apply (root is by definition in the bass), so we
+ * only vary the starting octave.
+ */
+function enumerateRootBassCandidates(
+  noteNames: string[],
+  builder: (notes: string[], pcs: number[], oct: number) => VoicedChord | null,
+): VoicedChord[] {
+  if (noteNames.length === 0) return [];
+  const candidates: VoicedChord[] = [];
+  const seen = new Set<string>();
+  const pitchClasses = noteNames.map((n) => noteToPitchClass(n));
+  for (const oct of VOICE_LED_OCTAVE_STARTS) {
+    const v = builder(noteNames, pitchClasses, oct);
+    if (!v) continue;
+    if (!isWithinVisibleRange(v.notes)) continue;
+    const sig = voicingSignature(v);
+    if (seen.has(sig)) continue;
+    seen.add(sig);
+    candidates.push(v);
+  }
+  return candidates;
+}
+
+/**
  * Enumerate all candidates for a chord under a given style. Returns
  * [] when the style isn't applicable; callers should fall back to
  * "auto" or `computeVoicing` in that case.
@@ -428,6 +567,12 @@ export function enumerateVoicingCandidatesForStyle(
   if (style === "shell") {
     // 3rd + 7th only (assumes canonical chord order; gated by hasSeventh).
     return enumerateClosedCandidates([noteNames[1], noteNames[3]], "shell");
+  }
+  if (style === "spread") {
+    return enumerateRootBassCandidates(noteNames, buildSpreadVoicing);
+  }
+  if (style === "two-hand") {
+    return enumerateRootBassCandidates(noteNames, buildTwoHandVoicing);
   }
   return [];
 }

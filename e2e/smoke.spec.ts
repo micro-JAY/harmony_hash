@@ -97,6 +97,37 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     });
   });
 
+  test("piano style selector applies Spread to every card and the keyboard widens", async ({ page }) => {
+    await page.goto("/");
+
+    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
+    await input.fill("Dm7 G7 Cmaj7");
+    await input.press("Enter");
+    await page.getByRole("button", { name: "Piano" }).click();
+
+    await expect(page.locator("h3", { hasText: "Dm7" })).toBeVisible();
+
+    // Click "Spread" on every card. Voice-led spread chain through ii-V-I:
+    //   Dm7   → [D3, F4, A4, C5]     = [50, 65, 69, 72]
+    //   G7    → [G3, B4, D5, F5]     = [55, 71, 74, 77]
+    //   Cmaj7 → [C4, E5, G5, B5]     = [60, 76, 79, 83]   (engine bumps to oct 4
+    //                                                       to stay close to G7's upper register)
+    const spreadButtons = page.getByRole("button", { name: "Spread" });
+    const count = await spreadButtons.count();
+    for (let i = 0; i < count; i++) {
+      await spreadButtons.nth(i).click();
+    }
+
+    await expect(page.locator("text=Spread").nth(count)).toBeVisible();
+
+    const cards = await page.evaluate(decodePianoMidis);
+    expect(cards).toEqual([
+      { name: "Dm7", midis: [50, 65, 69, 72] },
+      { name: "G7", midis: [55, 71, 74, 77] },
+      { name: "Cmaj7", midis: [60, 76, 79, 83] },
+    ]);
+  });
+
   test("piano style selector applies Shell to a chord and re-voices the keyboard", async ({ page }) => {
     await page.goto("/");
 

@@ -22,13 +22,13 @@
 
 ## 4. Ship the planning PR
 
-- [ ] 4.1 Commit plan + log + openspec change as commit 2 on `chore/long-horizon-plan`
-- [ ] 4.2 Push the branch
-- [ ] 4.3 Open the PR with the standard template (What / Why / Test summary / Risks / Follow-ups). Test summary records that `npm run build` and `npm run test` are green and `npm run lint` is the known-red baseline tracked by milestone 0.3
-- [ ] 4.4 Wait for CI green (build + test only, per `.github/workflows/ci.yml`)
-- [ ] 4.5 Self-merge with `gh pr merge --squash --delete-branch`
-- [ ] 4.6 `git switch main && git pull` to land the merge locally
+- [x] 4.1 Commit plan + log + openspec change as commit 2 on `chore/long-horizon-plan`
+- [x] 4.2 Push the branch
+- [x] 4.3 Open the PR with the standard template (What / Why / Test summary / Risks / Follow-ups). Test summary records that `npm run build` and `npm run test` are green and `npm run lint` is the known-red baseline tracked by milestone 0.3
+- [x] 4.4 Wait for CI green (build + test only, per `.github/workflows/ci.yml`)
+- [x] 4.5 Self-merge with `gh pr merge --squash --delete-branch` — landed as squash commit `eac596e` (PR #14, merged 2026-05-17)
+- [x] 4.6 `git switch main && git pull` to land the merge locally
 
 ## 5. Archive
 
-- [ ] 5.1 After PR merges, move this change directory: `mv openspec/changes/long-horizon-plan openspec/changes/archive/$(date +%Y-%m-%d)-long-horizon-plan` — committed as a follow-up to `main` (no spec deltas to apply, so the archive move is the only step)
+- [x] 5.1 Move this change directory: `git mv openspec/changes/long-horizon-plan openspec/changes/archive/2026-05-17-long-horizon-plan` — committed alongside the lint baseline fix on `chore/baseline-fix` (no spec deltas to apply, so the archive move is the only artifact)

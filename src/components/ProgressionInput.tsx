@@ -171,6 +171,7 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
           inputValue={freeText}
           setInputValue={setFreeText}
           inputRef={inputRef}
+          keyContext={{ key: selectedKey, scaleType: activeGroup.scaleType }}
         />
       )}
 

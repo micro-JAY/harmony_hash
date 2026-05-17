@@ -1,6 +1,20 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { lookupChord } from "../lib/chordData";
+import { isRootDiatonic } from "../lib/theory";
+import type { ScaleType } from "../lib/types";
+
+export type SuggestionMode = "off" | "diatonic";
+
+export interface KeyContext {
+  key: string;
+  scaleType: ScaleType;
+}
+
+const MODE_OPTIONS: ReadonlyArray<{ value: SuggestionMode; label: string }> = [
+  { value: "off", label: "Off" },
+  { value: "diatonic", label: "Diatonic" },
+];
 
 // ─── Quality Group Type ─────────────────────────────────────────────
 
@@ -76,6 +90,12 @@ interface ChordReferenceGridProps {
   inputValue: string;
   setInputValue: (value: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
+  /**
+   * Optional key + scale context used by the suggestion overlay's
+   * Diatonic mode. When absent or when mode is "off", the grid
+   * renders every cell at full opacity (current default behavior).
+   */
+  keyContext?: KeyContext;
 }
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -84,6 +104,7 @@ export default function ChordReferenceGrid({
   inputValue,
   setInputValue,
   inputRef,
+  keyContext,
 }: ChordReferenceGridProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [flashCell, setFlashCell] = useState<string | null>(null);
@@ -96,6 +117,17 @@ export default function ChordReferenceGrid({
     return "basic";
   });
   const [insertHistory, setInsertHistory] = useState<string[]>([]);
+  const [suggestionMode, setSuggestionMode] = useState<SuggestionMode>("off");
+
+  // Pre-compute diatonic status per root once per render; cell renders
+  // pull from this rather than re-evaluating in each cell loop.
+  const diatonicByRoot = new Map<string, boolean>();
+  if (suggestionMode === "diatonic" && keyContext) {
+    for (const root of ROOTS) {
+      diatonicByRoot.set(root, isRootDiatonic(root, keyContext.key, keyContext.scaleType));
+    }
+  }
+  const overlayActive = suggestionMode === "diatonic" && !!keyContext;
 
   // Reset filter and history when grid collapses
   function handleToggle() {
@@ -206,6 +238,79 @@ export default function ChordReferenceGrid({
             transition={{ duration: 0.2, ease: "easeInOut" }}
             style={{ overflow: "hidden" }}
           >
+            {/* Suggestion-mode toggle (Off / Diatonic). Disabled when
+                no keyContext is available (Free Input with no key inferred). */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "10px 0 2px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "var(--text-xs)",
+                  color: "var(--text-muted)",
+                  fontFamily: "var(--font-body)",
+                  letterSpacing: "var(--tracking-caps)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Suggest
+              </span>
+              <div
+                style={{
+                  display: "inline-flex",
+                  borderRadius: "999px",
+                  padding: "2px",
+                  background: "var(--surface-overlay)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                {MODE_OPTIONS.map((opt) => {
+                  const active = suggestionMode === opt.value;
+                  const disabled = opt.value === "diatonic" && !keyContext;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setSuggestionMode(opt.value)}
+                      style={{
+                        padding: "3px 10px",
+                        borderRadius: "999px",
+                        border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
+                        background: active ? "var(--interactive-accent-bg)" : "transparent",
+                        color: disabled
+                          ? "var(--interactive-disabled-text)"
+                          : active
+                            ? "var(--interactive-accent-text)"
+                            : "var(--text-muted)",
+                        fontSize: "var(--text-xs)",
+                        fontFamily: "var(--font-body)",
+                        fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
+                        cursor: disabled ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {overlayActive && keyContext && (
+                <span
+                  style={{
+                    fontSize: "var(--text-xs)",
+                    color: "var(--text-muted)",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  in {keyContext.key} {keyContext.scaleType.replace("_", " ")}
+                </span>
+              )}
+            </div>
+
             {/* Group Filter Chips */}
             <div
               style={{
@@ -276,8 +381,12 @@ export default function ChordReferenceGrid({
                 {/* Data Rows */}
                 {ROOTS.map((root) => {
                   const rootColor = ROOT_COLORS[root] ?? "var(--text-secondary)";
+                  // When the suggestion overlay is on, dim non-diatonic rows
+                  // so the diatonic ones (1/IV/V/vi/etc.) stand out.
+                  const isDiatonic = overlayActive ? diatonicByRoot.get(root) ?? false : true;
+                  const rowOpacity = overlayActive && !isDiatonic ? 0.35 : 1;
                   return (
-                    <div key={root} style={{ display: "contents" }}>
+                    <div key={root} style={{ display: "contents", opacity: rowOpacity }}>
                       {/* Root label */}
                       <span
                         style={{
@@ -288,6 +397,7 @@ export default function ChordReferenceGrid({
                           color: rootColor,
                           alignSelf: "center",
                           userSelect: "none",
+                          opacity: rowOpacity,
                         }}
                       >
                         {root}

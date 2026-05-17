@@ -190,3 +190,38 @@ v4 ships spread + two-hand; UST deferred to a follow-up openspec change.
 **Next concrete step.** Phase 2 begins. Item 2.1 (piano view parity with guitar) is the most natural follow-on: bring lock-toggle + Randomize All + Notes/Fingering display toggle to piano cards. Engine support is already there (v3+v4 produced seven voicing styles; randomization just needs to cycle them per-card).
 
 **Current state.** Branch `feat/piano-view-parity` off main (post-v5 = post-Phase-1). Archive housekeeping for v5 in flight as the branch's first commit. Then 2.1 code.
+
+---
+
+## 2026-05-17 — Milestones 2.1 (piano view parity) and 2.2 (suggestion overlay — Off + Diatonic slice) shipped
+
+**PR [#22](https://github.com/micro-JAY/harmony_hash/pull/22)** — `feat(piano): view parity with guitar — lock, randomize, Notes/Fingering toggle`. Both CI jobs green; landed 2026-05-17.
+
+**2.1 in three moves:**
+- Lock toggle no longer gated to guitar — same `lockedCards: Set<number>` state drives both instruments.
+- `randomizeAll()` branches by instrument: guitar = existing variant randomization; piano = pick a uniformly-random applicable explicit style (auto excluded) per unlocked card. New `RANDOM_PIANO_STYLES` list filtered through `isStyleApplicable`.
+- Notes / Fingering pill toggle wired into `ChordCard` via local `pianoDisplay` state. The `PianoDisplayMode` type has existed since 2026-03-06; this PR finally surfaces it in the UI.
+
+**Side-by-side voicing comparison view** (the "optional" piece of 2.1) deferred. Filed in the plan as 2.1.x. Engine support is there from v3 + v4; the UX is a separate design pattern from per-card toggles.
+
+**2.2 audit + minimal slice (this PR, [#23](https://github.com/micro-JAY/harmony_hash/pull/23)).** The audit confirmed the suggestion overlay didn't exist in `ChordReferenceGrid.tsx` — no mode toggle, no scoring engine, no diatonic gating. Shipping the **minimum useful slice**: a new pure-function theory module + an Off / Diatonic mode toggle on the grid. Non-diatonic rows dim to 35% opacity when active. Key + scale type pulled from `ProgressionInput.tsx`'s existing `selectedKey` + `activeGroup.scaleType` state.
+
+**Jazz and Modal modes deferred.** Each needs its own scoring engine (Jazz: voice-leading + tritone-sub + ii-V detection; Modal: parent-mode coloring). Filed as `suggestion-overlay-jazz` and `suggestion-overlay-modal` follow-up changes. The minimum slice still delivers: the grid stops being "every chord that exists" and starts being "where to look in this key."
+
+**Theory module groundwork.** `src/lib/theory/` is set up to be the shared engine for Phase 2 items 2.3 (Improv Insight), 2.5 (Mood/Genre filter), 2.7 (Scale Synthesia), and 2.9 (Note Neural Network). v1 exports `pitchClassOf`, `scalePitchClasses`, `isRootDiatonic`, `scaleDegreeOf` — all pure, all unit-tested. Subsequent Phase 2 items extend this module rather than duplicate scoring logic.
+
+**Decision.** Use opacity (35%) rather than fill or border-glow for the dimming because: (1) the existing cell rendering uses a lot of color state already (root color, flash state, hover state) — adding a fourth color layer would clash; (2) opacity is the cheapest visual cue that doesn't require any new tokens; (3) Jazz mode will introduce variable-strength styling when it lands, at which point a richer encoding makes sense.
+
+**Decision.** Free Input doesn't have its own key picker yet — the suggestion overlay uses `selectedKey` from the (shared) ProgressionInput state, which defaults to "C". A "guess key from typed chords" inference layer is filed as a future investigation. Today's behavior: the user can change keys via the Progressions-tab dropdown, and the overlay updates accordingly.
+
+**Phase 2 items 2.3, 2.4, 2.5 remain** before the prompt's Definition of Done is met. Each is its own openspec change + PR. Pacing: Improv Insight (2.3) shares the most engine code with 2.2's theory module; progression library expansion (2.4) is mostly data + a UX hook; Mood/Genre (2.5) is a JSON dataset + filter UI.
+
+**Q (still open):** add `npm run lint` to CI. No answer yet.
+
+**Q (still open):** Hungarian voice-assignment vs the min-distance metric. Still no counterexample to demand the swap.
+
+**Q (still open):** Free Input key inference. UX investigation deferred.
+
+**Next concrete step.** Phase 2 item 2.3 — Improv Insight. Progression-aware scale suggestions with motion/tension/palette/style metadata. The `src/lib/theory/` module gets extended with scale-membership scoring against a chord progression. UI: a "Compatible Scales" panel that surfaces ranked scales per progression.
+
+**Current state.** Branch `feat/suggestion-overlay-diatonic` off main (post-2.1). 2.2 staged for commit; PR after.

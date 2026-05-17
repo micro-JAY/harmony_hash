@@ -23,6 +23,8 @@ interface ChordCardProps {
   voicing: VoicedChord;
   pianoStyle: VoicingStyle;
   onPianoStyleChange: (style: VoicingStyle) => void;
+  /** True when this card is the currently-sounding chord during playback. */
+  isPlaying?: boolean;
 }
 
 const PIANO_STYLE_OPTIONS: ReadonlyArray<{ value: VoicingStyle; label: string }> = [
@@ -60,6 +62,7 @@ export default function ChordCard({
   voicing,
   pianoStyle,
   onPianoStyleChange,
+  isPlaying = false,
 }: ChordCardProps) {
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
@@ -84,11 +87,13 @@ export default function ChordCard({
   return (
     <div
       className="relative flex flex-col items-center rounded-xl overflow-hidden"
+      data-playing={isPlaying ? "true" : undefined}
       style={{
         backgroundColor: "var(--surface-raised)",
-        border: "1px solid var(--border-subtle)",
+        border: `1px solid ${isPlaying ? "var(--border-accent)" : "var(--border-subtle)"}`,
         minWidth: instrument === "piano" ? "440px" : "200px",
         transition: `all var(--duration-normal) var(--ease-out)`,
+        boxShadow: isPlaying ? "var(--glow-accent)" : "none",
       }}
     >
       {instrument === "guitar" && (

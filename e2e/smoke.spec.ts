@@ -128,6 +128,31 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     ]);
   });
 
+  test("Play progression highlights the active chord card during playback", async ({ page }) => {
+    await page.goto("/");
+
+    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
+    await input.fill("Dm7 G7 Cmaj7");
+    await input.press("Enter");
+    await page.getByRole("button", { name: "Piano" }).click();
+    await expect(page.locator("h3", { hasText: "Dm7" })).toBeVisible();
+
+    // Before clicking Play, no card should carry the playing marker.
+    expect(await page.locator('[data-playing="true"]').count()).toBe(0);
+
+    const play = page.getByRole("button", { name: "Play progression" });
+    await expect(play).toBeVisible();
+    await play.click();
+
+    // The audio context's user-gesture lock may swallow the first
+    // schedule; the visual marker is the real contract: at least one
+    // chord card must be flagged playing within a beat.
+    await expect(page.locator('[data-playing="true"]').first()).toBeVisible({ timeout: 2000 });
+
+    // Stop control becomes available while playing.
+    await expect(page.getByRole("button", { name: "Stop playback" })).toBeVisible();
+  });
+
   test("piano style selector applies Shell to a chord and re-voices the keyboard", async ({ page }) => {
     await page.goto("/");
 

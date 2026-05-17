@@ -54,13 +54,13 @@
 
 ## 8. PR
 
-- [ ] 8.1 Commit per logical unit (1: archive previous + plan/log; 2: engine + tests + types; 3: UI; 4: e2e + spec deltas).
-- [ ] 8.2 Push `feat/piano-voicings-v3-extended-styles`.
-- [ ] 8.3 Open PR with template + embed the new baseline screenshot in the body.
-- [ ] 8.4 Self-merge when both `build-and-test` and `playwright` CI jobs are green.
+- [x] 8.1 Commit per logical unit (4 commits on the branch: archive previous, engine, UI, e2e).
+- [x] 8.2 Pushed `feat/piano-voicings-v3-extended-styles`.
+- [x] 8.3 Opened PR #19 with template + describe-as-text baseline (image attachment not viable via gh CLI).
+- [x] 8.4 Self-merged when both `build-and-test` and `playwright` CI jobs green — landed as squash commit `54203da` on 2026-05-17.
 
 ## 9. Archive
 
-- [ ] 9.1 Bundle into the next milestone's branch (v4) as the first commit, per the new bundled-archive pattern.
-- [ ] 9.2 Update `docs/long_horizon_plan.md` milestone 1.3 → Done with PR link.
-- [ ] 9.3 Add dated entry to `docs/long_horizon_log.md`.
+- [x] 9.1 Bundled into the v4 branch (`feat/piano-voicings-v4-spread`) as the first commit per the bundled-archive pattern.
+- [x] 9.2 Update `docs/long_horizon_plan.md` milestone 1.3 → Done with PR link.
+- [x] 9.3 Add dated entry to `docs/long_horizon_log.md`.

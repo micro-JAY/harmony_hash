@@ -660,3 +660,142 @@ describe("computeVoiceLedProgression with per-chord styles", () => {
     expect(withAuto).toEqual(withoutStyles);
   });
 });
+
+// ─── 4.7: v4 — Spread + Two-Hand Voicings ──────────────────────────
+
+describe("v4: spread voicing", () => {
+  it("Cmaj7 spread places root in LH and stacks the rest a 10th and above", () => {
+    const v = computeVoicingForStyle(["C", "E", "G", "B"], "spread");
+    // C3 (LH) + E4 / G4 / B4 (RH). E4 is a major 10th above C3 (16 semitones).
+    expect(v.notes.map((n) => n.midi)).toEqual([48, 64, 67, 71]);
+    expect(v.voicingType).toBe("spread");
+    expect(v.notes[0].hand).toBe("left");
+    expect(v.notes.slice(1).every((n) => n.hand === "right")).toBe(true);
+  });
+
+  it("Dm7 spread — D3 (LH) + F4 A4 C5 (RH)", () => {
+    const v = computeVoicingForStyle(["D", "F", "A", "C"], "spread");
+    expect(v.notes.map((n) => n.midi)).toEqual([50, 65, 69, 72]);
+    expect(v.voicingType).toBe("spread");
+  });
+
+  it("G7 spread — G3 (LH) + B4 D5 F5 (RH)", () => {
+    const v = computeVoicingForStyle(["G", "B", "D", "F"], "spread");
+    expect(v.notes.map((n) => n.midi)).toEqual([55, 71, 74, 77]);
+    expect(v.voicingType).toBe("spread");
+  });
+
+  it("C major triad spread — C3 (LH) + E4 G4 (RH)", () => {
+    const v = computeVoicingForStyle(["C", "E", "G"], "spread");
+    expect(v.notes.map((n) => n.midi)).toEqual([48, 64, 67]);
+    expect(v.voicingType).toBe("spread");
+  });
+
+  it("Bmaj7 spread pushes RH into octave 5 to clear the LH root", () => {
+    // B3 = 59. RH must start > 71 (B3 + 12). D#5 = 75, F#5 = 78, A#5 = 82.
+    const v = computeVoicingForStyle(["B", "Ds", "Fs", "As"], "spread");
+    expect(v.notes.map((n) => n.midi)).toEqual([59, 75, 78, 82]);
+    expect(v.voicingType).toBe("spread");
+  });
+
+  it("Cmaj9 spread keeps the 9th above the 7th in the upper register", () => {
+    // C3 + E4 + G4 + B4 + D5.
+    const v = computeVoicingForStyle(["C", "E", "G", "B", "D"], "spread");
+    expect(v.notes.map((n) => n.midi)).toEqual([48, 64, 67, 71, 74]);
+    expect(v.voicingType).toBe("spread");
+  });
+
+  it("isStyleApplicable lets spread run on triads but not empty inputs", () => {
+    expect(isStyleApplicable(["C", "E", "G"], "spread")).toBe(true);
+    expect(isStyleApplicable(["C", "E", "G", "B"], "spread")).toBe(true);
+    expect(isStyleApplicable([], "spread")).toBe(false);
+  });
+});
+
+describe("v4: two-hand voicing", () => {
+  it("Cmaj7 two-hand — LH [C3, G3] RH [E4, B4]", () => {
+    const v = computeVoicingForStyle(["C", "E", "G", "B"], "two-hand");
+    expect(v.notes.map((n) => n.midi)).toEqual([48, 55, 64, 71]);
+    expect(v.notes[0].hand).toBe("left");
+    expect(v.notes[1].hand).toBe("left");
+    expect(v.notes[2].hand).toBe("right");
+    expect(v.notes[3].hand).toBe("right");
+    expect(v.voicingType).toBe("two-hand");
+  });
+
+  it("Dm7 two-hand — LH [D3, A3] RH [F4, C5]", () => {
+    const v = computeVoicingForStyle(["D", "F", "A", "C"], "two-hand");
+    expect(v.notes.map((n) => n.midi)).toEqual([50, 57, 65, 72]);
+    expect(v.voicingType).toBe("two-hand");
+  });
+
+  it("G7 two-hand — LH [G3, D4] RH [B4, F5]", () => {
+    // 5th of G7 = D, which is at pc 2. D3 = 50, but D3 < G3 in our chord
+    // notes — buildClosedVoicing pushes D up to D4 = 62 (next-above-G3).
+    const v = computeVoicingForStyle(["G", "B", "D", "F"], "two-hand");
+    expect(v.notes.map((n) => n.midi)).toEqual([55, 62, 71, 77]);
+    expect(v.voicingType).toBe("two-hand");
+  });
+
+  it("C triad two-hand simplifies to LH [C3] RH [E4, G4]", () => {
+    // For 3-note chords, LH gets only the root; the 5th joins the RH.
+    const v = computeVoicingForStyle(["C", "E", "G"], "two-hand");
+    expect(v.notes.map((n) => n.midi)).toEqual([48, 64, 67]);
+    expect(v.notes[0].hand).toBe("left");
+    expect(v.notes.slice(1).every((n) => n.hand === "right")).toBe(true);
+  });
+
+  it("Cmaj9 two-hand spreads the 9th into the upper RH range", () => {
+    // LH [C3, G3]; RH [E4, B4, D5].
+    const v = computeVoicingForStyle(["C", "E", "G", "B", "D"], "two-hand");
+    expect(v.notes.map((n) => n.midi)).toEqual([48, 55, 64, 71, 74]);
+    expect(v.voicingType).toBe("two-hand");
+  });
+
+  it("isStyleApplicable two-hand requires 3+ notes", () => {
+    expect(isStyleApplicable(["C", "E", "G"], "two-hand")).toBe(true);
+    expect(isStyleApplicable(["C", "E", "G", "B"], "two-hand")).toBe(true);
+    expect(isStyleApplicable([], "two-hand")).toBe(false);
+  });
+});
+
+describe("v4 voice-leading", () => {
+  it("ii-V-I in C with all-spread keeps the wide R&B/gospel sound throughout", () => {
+    const result = computeVoiceLedProgression(
+      [
+        ["D", "F", "A", "C"],
+        ["G", "B", "D", "F"],
+        ["C", "E", "G", "B"],
+      ],
+      ["spread", "spread", "spread"],
+    );
+    expect(result).toHaveLength(3);
+    // First chord uses computeVoicingForStyle's canonical spread.
+    expect(result[0].notes.map((n) => n.midi)).toEqual([50, 65, 69, 72]);
+    expect(result[0].voicingType).toBe("spread");
+    // Subsequent chords pick the oct-3 or oct-4 candidate that minimizes
+    // motion. Every chord still preserves the spread shape: root in LH,
+    // chord tones a 10th-or-more above.
+    for (const chord of result) {
+      expect(chord.voicingType).toBe("spread");
+      expect(chord.notes.every((n) => n.midi >= 48 && n.midi <= 83)).toBe(true);
+    }
+  });
+
+  it("two-hand across ii-V-I keeps LH+RH split for every chord", () => {
+    const result = computeVoiceLedProgression(
+      [
+        ["D", "F", "A", "C"],
+        ["G", "B", "D", "F"],
+        ["C", "E", "G", "B"],
+      ],
+      ["two-hand", "two-hand", "two-hand"],
+    );
+    expect(result).toHaveLength(3);
+    for (const chord of result) {
+      expect(chord.voicingType).toBe("two-hand");
+      expect(chord.notes.some((n) => n.hand === "left")).toBe(true);
+      expect(chord.notes.some((n) => n.hand === "right")).toBe(true);
+    }
+  });
+});

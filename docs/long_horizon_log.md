@@ -97,3 +97,34 @@
 **Next concrete step.** v3 (Piano Voicings — Extended Styles): Drop 3, rootless A/B, shell voicings. Engine: `computeVoicingForStyle(noteNames, style)` returning a `VoicedChord` for any of the named styles. UI: per-card style selector (parallel to the guitar Fingering/Intervals/Notes pattern). Playwright cadence kicks in for the first time on this milestone.
 
 **Current state.** Branch `feat/piano-voicings-v3-extended-styles` off main (which is at 572cc27 = post-1.2). About to commit the v1.2 archive housekeeping as the first commit on this branch, then design + implement v3.
+
+---
+
+## 2026-05-17 — Milestone 1.3 (v3 Extended Styles) shipped
+
+**PR [#19](https://github.com/micro-JAY/harmony_hash/pull/19)** — `feat(piano): voicings v3 — Drop 3, Rootless, Shell + per-card style selector` (squash commit `54203da`). Both `build-and-test` and `playwright` CI jobs green.
+
+**Engine.** Added `VoicingStyle = "auto" | "drop2" | "drop3" | "rootless" | "shell"`, extended `VoicedChord.voicingType` to match. Five new module-private helpers (`isStyleApplicable`, `enumerateClosedCandidates`, `buildDropNVoicing`, `enumerateDropCandidates`, `enumerateVoicingCandidatesForStyle`) plus two new public exports (`computeVoicingForStyle`, expanded `computeVoiceLedProgression` with optional `styles` arg). Auto path is byte-for-byte v2; explicit styles constrain the candidate set.
+
+**Music theory locked down.** Hand-verified MIDI sets for Cmaj7, Dm7, G7 across all 4 explicit styles. Drop 3 underflows at oct 3 for most chords → resolves at oct 4. Rootless drops noteNames[0] and voices the remaining 3-4 notes. Shell is gated by `hasSeventh(noteNames)` — interval from root to noteNames[3] must be 10 or 11 semitones — so C6 and Cadd9 don't pick up a meaningless shell. All-shell ii-V-I in C: `[F3,C4] → [F3,B3] → [E3,B3]` — 2 semitones of cumulative motion.
+
+**UI.** Per-card pill toggle above the keyboard: Auto / Drop 2 / Drop 3 / Rootless / Shell. Non-applicable styles disabled per chord. The "Drop 2" pill below the keyboard generalized to show any non-root voicingType.
+
+**Playwright before/during/after.** First milestone where the cadence actually ran. Before: existing baseline from 1.2 captured the v2 view. During: re-ran e2e after the UI commit, visual diff failed (expected — added toggle row) but DOM-decoded MIDI passed. After: regenerated baseline + added a second e2e test that clicks "Shell" on every card and asserts the shell voice-led MIDI chain.
+
+**Decision.** Shipped `rootless` as one style (not "rootless A" + "rootless B"). The inversion difference between A and B (3rd in bass vs 7th in bass) is what voice-leading already picks naturally. Explicit A/B controls would be Phase 2 piano-parity territory.
+
+**Decision.** Cross-platform Playwright baseline held on Linux CI on first try, with the 10% pixel-ratio + 0.3 per-pixel threshold. Confirms the milestone 1.2 tolerance picks are workable.
+
+**Bundled-archive pattern working.** v3's branch started with `chore(openspec): archive add-playwright-harness + update plan/log` and continued straight into the engine work. Saved one CI cycle compared to a separate archive PR.
+
+**Next concrete step.** v4 (Interval Spacing & Spread Voicings). Three concepts in the inspiration spec:
+1. **Spread (10th interval)** — root in LH (oct 3), 3rd at +12-15 semitones in oct 4, rest of chord above. Wide, lush R&B/gospel sound.
+2. **Upper structure triad (UST)** — for dominant chords, play a triad from the chord's upper extensions over LH = root + b7. **Deferring**: USTs imply chromatic tones not present in the input chord's note set (e.g. D major over G7 introduces F#), which breaks the "render the chord's notes" contract. Tracked as a follow-up after a separate design pass.
+3. **Two-hand spread** — LH = root + 5th at oct 3, RH = 3rd + 7th + extensions at oct 4+.
+
+v4 ships spread + two-hand; UST deferred to a follow-up openspec change.
+
+**Q (open):** when should UST land? Either as a separate openspec change ("piano-voicings-ust") proposing how to handle the "adds chromatic tones" issue (e.g. by surfacing as a new chord type the user opted into via chord input like "G7+UST"), or as part of v4.5 with a richer chord-tone model.
+
+**Current state.** Branch `feat/piano-voicings-v4-spread` off main (which is at 54203da = post-v3). Archive housekeeping + spec deltas committed in the first commit. About to design + implement v4 spread + two-hand.

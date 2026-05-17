@@ -43,7 +43,7 @@ export interface VoicedNote {
   hand: "left" | "right";
 }
 
-export type VoicingType = "root" | "drop2" | "drop3" | "rootless" | "shell";
+export type VoicingType = "root" | "drop2" | "drop3" | "rootless" | "shell" | "spread" | "two-hand";
 
 export interface VoicedChord {
   notes: VoicedNote[];
@@ -55,7 +55,14 @@ export interface VoicedChord {
  * engine pick whichever closed or Drop 2 voicing minimizes movement.
  * Explicit styles constrain the candidate set to that style only.
  */
-export type VoicingStyle = "auto" | "drop2" | "drop3" | "rootless" | "shell";
+export type VoicingStyle =
+  | "auto"
+  | "drop2"
+  | "drop3"
+  | "rootless"
+  | "shell"
+  | "spread"
+  | "two-hand";
 
 export type ScaleType = "major" | "natural_minor" | "harmonic_minor" | "dorian" | "mixolydian" | "lydian" | "phrygian";
 

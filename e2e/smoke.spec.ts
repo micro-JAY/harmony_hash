@@ -64,7 +64,7 @@ function decodePianoMidis(): Array<{ name: string; midis: number[] | null }> {
 }
 
 test.describe("Piano voice leading — visual + DOM regression", () => {
-  test("ii-V-I in C major renders the v2 voice-led MIDI set", async ({ page }) => {
+  test("ii-V-I in C major renders the v2 voice-led MIDI set (auto style)", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/HARMONY HASH/);
 
@@ -81,11 +81,9 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     await expect(page.locator("h3", { hasText: "G7" })).toBeVisible();
     await expect(page.locator("h3", { hasText: "Cmaj7" })).toBeVisible();
 
-    // Decode the active-key MIDI sets from the rendered DOM and assert they
-    // match the hand-traced voice-led voicings unit-tested in
-    // src/lib/harmonyBrain.test.ts.
+    // Default style is "Auto" for every card — voice-leading still produces
+    // the v2 voice-led MIDI set.
     const cards = await page.evaluate(decodePianoMidis);
-
     expect(cards).toEqual([
       { name: "Dm7", midis: [50, 53, 57, 60] },
       { name: "G7", midis: [50, 53, 55, 59] },
@@ -93,9 +91,43 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     ]);
 
     // Visual regression snapshot. Baseline lives in the spec's sibling
-    // -snapshots/ directory and is committed alongside the spec.
+    // __screenshots__/ directory and is committed alongside the spec.
     await expect(page).toHaveScreenshot("voice-leading-piano-iiVI-c.png", {
       fullPage: true,
     });
+  });
+
+  test("piano style selector applies Shell to a chord and re-voices the keyboard", async ({ page }) => {
+    await page.goto("/");
+
+    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
+    await input.fill("Dm7 G7 Cmaj7");
+    await input.press("Enter");
+    await page.getByRole("button", { name: "Piano" }).click();
+
+    await expect(page.locator("h3", { hasText: "Dm7" })).toBeVisible();
+
+    // Each piano card has a style toggle: Auto / Drop 2 / Drop 3 / Rootless / Shell.
+    // Click "Shell" on every card and assert the resulting voicings match the
+    // shell-only voice-led chain unit-tested in src/lib/harmonyBrain.test.ts:
+    //   Dm7   → [F3, C4]   = [53, 60]
+    //   G7    → [F3, B3]   = [53, 59]
+    //   Cmaj7 → [E3, B3]   = [52, 59]
+    const shellButtons = page.getByRole("button", { name: "Shell" });
+    const count = await shellButtons.count();
+    for (let i = 0; i < count; i++) {
+      await shellButtons.nth(i).click();
+    }
+
+    // Wait for the "Shell" voicingType label to appear on each card as a
+    // proxy for the re-render landing.
+    await expect(page.locator("text=Shell").nth(count)).toBeVisible();
+
+    const cards = await page.evaluate(decodePianoMidis);
+    expect(cards).toEqual([
+      { name: "Dm7", midis: [53, 60] },
+      { name: "G7", midis: [53, 59] },
+      { name: "Cmaj7", midis: [52, 59] },
+    ]);
   });
 });

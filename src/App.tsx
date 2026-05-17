@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import type { Instrument, IndexedChord, ParseError } from "./lib/types";
+import type { Instrument, IndexedChord, ParseError, VoicingStyle } from "./lib/types";
 import Header from "./components/Header";
 import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
@@ -26,12 +26,23 @@ function App() {
   const [chords, setChords] = useState<DisplayChord[]>([]);
   const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
+  const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
 
   const handleResult = useCallback((resolved: DisplayChord[], _errors: ParseError[]) => {
     setChords(resolved);
     setCardVariants({});
     setLockedCards(new Set());
+    setPianoStyles({});
   }, []);
+
+  const getPianoStyle = useCallback(
+    (index: number): VoicingStyle => pianoStyles[index] ?? "auto",
+    [pianoStyles],
+  );
+
+  function handlePianoStyleChange(index: number, style: VoicingStyle) {
+    setPianoStyles((prev) => ({ ...prev, [index]: style }));
+  }
 
   function getVariantForCard(index: number, maxVariants: number): number {
     return clampVariant(cardVariants[index] ?? 1, maxVariants);
@@ -56,10 +67,11 @@ function App() {
     });
   }
 
-  const pianoVoicings = useMemo(
-    () => computeVoiceLedProgression(chords.map((c) => parseNotes(c.chord.entry))),
-    [chords],
-  );
+  const pianoVoicings = useMemo(() => {
+    const noteSets = chords.map((c) => parseNotes(c.chord.entry));
+    const styles = chords.map((_, i) => getPianoStyle(i));
+    return computeVoiceLedProgression(noteSets, styles);
+  }, [chords, getPianoStyle]);
 
   function randomizeAll() {
     setCardVariants((prev) => {
@@ -128,6 +140,8 @@ function App() {
                     isLocked={lockedCards.has(index)}
                     onToggleLock={() => handleToggleLock(index)}
                     voicing={pianoVoicings[index]}
+                    pianoStyle={getPianoStyle(index)}
+                    onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
                   />
                 );
               })}

@@ -4,9 +4,12 @@ import {
   transposeProgression,
   computeVoicing,
   computeVoiceLedProgression,
+  computeVoicingForStyle,
+  enumerateVoicingCandidatesForStyle,
+  isStyleApplicable,
   noteToPitchClass,
 } from "./harmonyBrain";
-import type { VoicedChord, VoicedNote } from "./types";
+import type { VoicedChord, VoicedNote, VoicingStyle } from "./types";
 
 // ─── 4.1: Chord Symbol Normalization ─────────────────────────────────
 
@@ -442,5 +445,218 @@ describe("computeVoiceLedProgression", () => {
     expect(firstMidis.has(52)).toBe(true);
     expect(secondMidis).toContain(48);
     expect(secondMidis).toContain(52);
+  });
+});
+
+// ─── 4.6: Extended Voicing Styles (v3) ─────────────────────────────
+
+describe("isStyleApplicable", () => {
+  it("auto is always applicable for non-empty chords", () => {
+    expect(isStyleApplicable(["C", "E", "G"], "auto")).toBe(true);
+    expect(isStyleApplicable(["C", "E", "G", "B"], "auto")).toBe(true);
+    expect(isStyleApplicable([], "auto")).toBe(false);
+  });
+
+  it("drop2/drop3/rootless require 4+ notes", () => {
+    for (const style of ["drop2", "drop3", "rootless"] as const) {
+      expect(isStyleApplicable(["C", "E", "G"], style)).toBe(false);
+      expect(isStyleApplicable(["C", "E", "G", "B"], style)).toBe(true);
+      expect(isStyleApplicable(["C", "E", "G", "B", "D"], style)).toBe(true);
+    }
+  });
+
+  it("shell requires 4+ notes AND a true 7th interval", () => {
+    expect(isStyleApplicable(["C", "E", "G"], "shell")).toBe(false);
+    // Cmaj7 (B is a major 7) — applicable
+    expect(isStyleApplicable(["C", "E", "G", "B"], "shell")).toBe(true);
+    // C7 (Bf is a minor 7) — applicable
+    expect(isStyleApplicable(["C", "E", "G", "Bf"], "shell")).toBe(true);
+    // C6 (A is a major 6, not a 7) — NOT applicable
+    expect(isStyleApplicable(["C", "E", "G", "A"], "shell")).toBe(false);
+    // Cadd9 (D is a 9 in position 3, no 7th in chord) — NOT applicable
+    expect(isStyleApplicable(["C", "E", "G", "D"], "shell")).toBe(false);
+  });
+});
+
+describe("computeVoicingForStyle", () => {
+  it("auto matches computeVoicing", () => {
+    const noteNames = ["C", "E", "G", "B"];
+    expect(computeVoicingForStyle(noteNames, "auto")).toEqual(computeVoicing(noteNames));
+  });
+
+  it("returns canonical Drop 2 voicing for Cmaj7", () => {
+    // Drop 2 underflows at oct 3 (G2=43 < C3=48); resolves at oct 4.
+    // Closed [C4, E4, G4, B4]; drop G4 → G3=55. Sorted: G3-C4-E4-B4.
+    const v = computeVoicingForStyle(["C", "E", "G", "B"], "drop2");
+    expect(v.notes.map((n) => n.midi)).toEqual([55, 60, 64, 71]);
+    expect(v.voicingType).toBe("drop2");
+  });
+
+  it("returns canonical Drop 2 voicing for Dm7 (already fits at oct 3 in the v2 default)", () => {
+    // Dm7 drop2 underflows at oct 3 (A2=45). At oct 4: closed [D4,F4,A4,C5];
+    // drop A4 → A3=57. Sorted: A3-D4-F4-C5.
+    const v = computeVoicingForStyle(["D", "F", "A", "C"], "drop2");
+    expect(v.notes.map((n) => n.midi)).toEqual([57, 62, 65, 72]);
+    expect(v.voicingType).toBe("drop2");
+  });
+
+  it("returns canonical Drop 3 voicing for Cmaj7", () => {
+    // Drop 3 underflows at oct 3 (E2=40); resolves at oct 4.
+    // Closed [C4, E4, G4, B4]; drop E4 → E3=52. Sorted: E3-C4-G4-B4.
+    const v = computeVoicingForStyle(["C", "E", "G", "B"], "drop3");
+    expect(v.notes.map((n) => n.midi)).toEqual([52, 60, 67, 71]);
+    expect(v.voicingType).toBe("drop3");
+  });
+
+  it("returns canonical Drop 3 voicing for G7", () => {
+    // G7 closed at oct 3: [55, 59, 62, 65]. Drop B3=59 → B2=47 (<48) underflow.
+    // Oct 4: closed [67, 71, 74, 77]. Drop B4=71 → B3=59. Sorted: B3-G4-D5-F5.
+    const v = computeVoicingForStyle(["G", "B", "D", "F"], "drop3");
+    expect(v.notes.map((n) => n.midi)).toEqual([59, 67, 74, 77]);
+    expect(v.voicingType).toBe("drop3");
+  });
+
+  it("returns rootless voicing for Cmaj7 — [E, G, B]", () => {
+    const v = computeVoicingForStyle(["C", "E", "G", "B"], "rootless");
+    expect(v.notes.map((n) => n.midi)).toEqual([52, 55, 59]);
+    expect(v.voicingType).toBe("rootless");
+  });
+
+  it("returns rootless voicing for Cmaj9 — [E, G, B, D]", () => {
+    // Cmaj9 = [C, E, G, B, D]. Rootless drops C → [E, G, B, D]. Closed oct 3.
+    const v = computeVoicingForStyle(["C", "E", "G", "B", "D"], "rootless");
+    expect(v.notes.map((n) => n.midi)).toEqual([52, 55, 59, 62]);
+    expect(v.voicingType).toBe("rootless");
+  });
+
+  it("returns shell voicing for Cmaj7 — [E, B] (3rd + 7th)", () => {
+    const v = computeVoicingForStyle(["C", "E", "G", "B"], "shell");
+    expect(v.notes.map((n) => n.midi)).toEqual([52, 59]);
+    expect(v.voicingType).toBe("shell");
+  });
+
+  it("returns shell voicing for Dm7 — [F, C] (3rd + b7)", () => {
+    // Dm7 [D, F, A, C]; index 1 = F, index 3 = C. Closed at oct 3: F3=53,
+    // C must go above F3 → C4=60.
+    const v = computeVoicingForStyle(["D", "F", "A", "C"], "shell");
+    expect(v.notes.map((n) => n.midi)).toEqual([53, 60]);
+    expect(v.voicingType).toBe("shell");
+  });
+
+  it("returns shell voicing for G7 — [B, F]", () => {
+    // G7 [G, B, D, F]; shell = [B, F]. Closed oct 3: B3=59, F=53→65. Sorted: 59-65.
+    const v = computeVoicingForStyle(["G", "B", "D", "F"], "shell");
+    expect(v.notes.map((n) => n.midi)).toEqual([59, 65]);
+    expect(v.voicingType).toBe("shell");
+  });
+
+  it("falls back to computeVoicing when style is not applicable (triad + drop2)", () => {
+    const v = computeVoicingForStyle(["C", "E", "G"], "drop2");
+    expect(v.notes.map((n) => n.midi)).toEqual([48, 52, 55]);
+    expect(v.voicingType).toBe("root");
+  });
+
+  it("falls back to computeVoicing for C6 shell (no true 7th)", () => {
+    const v = computeVoicingForStyle(["C", "E", "G", "A"], "shell");
+    // computeVoicing returns the closed root for C6 (drop2 of A would
+    // underflow). Notes: C3, E3, G3, A3 = MIDI [48, 52, 55, 57].
+    expect(v.notes.map((n) => n.midi)).toEqual([48, 52, 55, 57]);
+    expect(v.voicingType).toBe("root");
+  });
+});
+
+describe("enumerateVoicingCandidatesForStyle", () => {
+  it("returns the canonical voicing as candidate 0", () => {
+    const candidates = enumerateVoicingCandidatesForStyle(["C", "E", "G", "B"], "drop2");
+    expect(candidates[0].notes.map((n) => n.midi)).toEqual([55, 60, 64, 71]);
+    expect(candidates[0].voicingType).toBe("drop2");
+    expect(candidates.length).toBeGreaterThan(1); // multiple inversions × octaves
+  });
+
+  it("returns an empty list for non-applicable styles", () => {
+    expect(enumerateVoicingCandidatesForStyle(["C", "E", "G"], "drop2")).toEqual([]);
+    expect(enumerateVoicingCandidatesForStyle(["C", "E", "G", "A"], "shell")).toEqual([]);
+  });
+
+  it("all candidates stay within MIDI 48-83", () => {
+    for (const style of ["auto", "drop2", "drop3", "rootless", "shell"] as VoicingStyle[]) {
+      const candidates = enumerateVoicingCandidatesForStyle(["C", "E", "G", "B"], style);
+      for (const cand of candidates) {
+        expect(cand.notes.every((n) => n.midi >= 48 && n.midi <= 83)).toBe(true);
+      }
+    }
+  });
+});
+
+describe("computeVoiceLedProgression with per-chord styles", () => {
+  it("ii-V-I in C with all-shell produces a 2-note voice-led chain", () => {
+    const result = computeVoiceLedProgression(
+      [
+        ["D", "F", "A", "C"], // Dm7
+        ["G", "B", "D", "F"], // G7
+        ["C", "E", "G", "B"], // Cmaj7
+      ],
+      ["shell", "shell", "shell"],
+    );
+
+    expect(result).toHaveLength(3);
+    // Dm7 shell: canonical = [F3, C4] = [53, 60]
+    expect(result[0].notes.map((n) => n.midi)).toEqual([53, 60]);
+    expect(result[0].voicingType).toBe("shell");
+    // G7 shell voice-led from [53, 60]: best is [F3, B3] = [53, 59] (1 semitone of motion).
+    expect(result[1].notes.map((n) => n.midi)).toEqual([53, 59]);
+    expect(result[1].voicingType).toBe("shell");
+    // Cmaj7 shell voice-led from [53, 59]: best is [E3, B3] = [52, 59].
+    expect(result[2].notes.map((n) => n.midi)).toEqual([52, 59]);
+    expect(result[2].voicingType).toBe("shell");
+  });
+
+  it("mixed-style progressions (drop2, rootless, auto) voice-lead chord-by-chord", () => {
+    const result = computeVoiceLedProgression(
+      [
+        ["D", "F", "A", "C"], // Dm7
+        ["G", "B", "D", "F"], // G7
+        ["C", "E", "G", "B"], // Cmaj7
+      ],
+      ["drop2", "rootless", "auto"],
+    );
+
+    expect(result).toHaveLength(3);
+    expect(result[0].voicingType).toBe("drop2");
+    expect(result[1].voicingType).toBe("rootless");
+    // "auto" Cmaj7 from a 3-note rootless prior — engine should pick a smooth Cmaj7.
+    expect(result[2].voicingType).toMatch(/root|drop2/);
+    for (const chord of result) {
+      expect(chord.notes.every((n) => n.midi >= 48 && n.midi <= 83)).toBe(true);
+    }
+  });
+
+  it("falls back gracefully when a style isn't applicable mid-progression", () => {
+    // First chord is a triad — shell isn't applicable. Engine falls back to
+    // computeVoicing for that chord without crashing.
+    const result = computeVoiceLedProgression(
+      [
+        ["C", "E", "G"],       // C major triad
+        ["G", "B", "D", "F"],  // G7
+      ],
+      ["shell", "shell"],
+    );
+
+    expect(result).toHaveLength(2);
+    // First chord: not applicable → computeVoicing default → [48, 52, 55]
+    expect(result[0].notes.map((n) => n.midi)).toEqual([48, 52, 55]);
+    // Second chord: shell applies → enumerated candidates picked for voice-leading.
+    expect(result[1].voicingType).toBe("shell");
+  });
+
+  it("explicit styles[] of all 'auto' reproduces the v2 behavior exactly", () => {
+    const progression = [
+      ["D", "F", "A", "C"],
+      ["G", "B", "D", "F"],
+      ["C", "E", "G", "B"],
+    ];
+    const withoutStyles = computeVoiceLedProgression(progression);
+    const withAuto = computeVoiceLedProgression(progression, ["auto", "auto", "auto"]);
+    expect(withAuto).toEqual(withoutStyles);
   });
 });

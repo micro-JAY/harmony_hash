@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { Lock, Unlock } from "lucide-react";
-import type { Instrument, IndexedChord, GuitarDisplayMode, VoicedChord } from "../lib/types";
+import type {
+  Instrument,
+  IndexedChord,
+  GuitarDisplayMode,
+  VoicedChord,
+  VoicingStyle,
+} from "../lib/types";
 import { formatNoteForDisplay, parseNotes, prefersFlatNotation } from "../lib/chordData";
+import { isStyleApplicable } from "../lib/harmonyBrain";
 import GuitarChordDiagram from "./GuitarChordDiagram";
 import PianoKeyboard from "./PianoKeyboard";
 
@@ -14,7 +21,24 @@ interface ChordCardProps {
   isLocked: boolean;
   onToggleLock: () => void;
   voicing: VoicedChord;
+  pianoStyle: VoicingStyle;
+  onPianoStyleChange: (style: VoicingStyle) => void;
 }
+
+const PIANO_STYLE_OPTIONS: ReadonlyArray<{ value: VoicingStyle; label: string }> = [
+  { value: "auto", label: "Auto" },
+  { value: "drop2", label: "Drop 2" },
+  { value: "drop3", label: "Drop 3" },
+  { value: "rootless", label: "Rootless" },
+  { value: "shell", label: "Shell" },
+];
+
+const VOICING_TYPE_LABEL: Partial<Record<VoicedChord["voicingType"], string>> = {
+  drop2: "Drop 2",
+  drop3: "Drop 3",
+  rootless: "Rootless",
+  shell: "Shell",
+};
 
 function extractDisplayRoot(chordName: string): string {
   const match = chordName.match(/^([A-G](?:#|b)?)/);
@@ -30,6 +54,8 @@ export default function ChordCard({
   isLocked,
   onToggleLock,
   voicing,
+  pianoStyle,
+  onPianoStyleChange,
 }: ChordCardProps) {
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
@@ -217,6 +243,49 @@ export default function ChordCard({
           </>
         ) : (
           <>
+            {/* Piano voicing-style toggle (v3): Auto / Drop 2 / Drop 3 / Rootless / Shell */}
+            <div
+              className="flex flex-wrap rounded-full p-0.5 self-end gap-0.5"
+              style={{
+                backgroundColor: "var(--surface-overlay)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              {PIANO_STYLE_OPTIONS.map((opt) => {
+                const applicable = isStyleApplicable(noteNames, opt.value);
+                const active = pianoStyle === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    disabled={!applicable}
+                    onClick={() => onPianoStyleChange(opt.value)}
+                    className="px-2.5 py-1 text-xs rounded-full transition-all"
+                    style={{
+                      backgroundColor: active
+                        ? "var(--interactive-accent-bg)"
+                        : "transparent",
+                      color: !applicable
+                        ? "var(--interactive-disabled-text)"
+                        : active
+                          ? "var(--interactive-accent-text)"
+                          : "var(--text-muted)",
+                      border: active
+                        ? "1px solid var(--interactive-accent-border)"
+                        : "1px solid transparent",
+                      fontWeight: active
+                        ? "var(--weight-semibold)"
+                        : "var(--weight-regular)",
+                      fontFamily: "var(--font-body)",
+                      cursor: applicable ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
             <PianoKeyboard
               voicedNotes={voicing.notes}
               displayMode="notes"
@@ -224,7 +293,7 @@ export default function ChordCard({
               rootNote={noteNames[0] ?? ""}
             />
             <div className="flex gap-2 mt-1">
-              {voicing.voicingType === "drop2" && (
+              {VOICING_TYPE_LABEL[voicing.voicingType] && (
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
                   style={{
@@ -234,7 +303,7 @@ export default function ChordCard({
                     fontFamily: "var(--font-mono)",
                   }}
                 >
-                  Drop 2
+                  {VOICING_TYPE_LABEL[voicing.voicingType]}
                 </span>
               )}
               <span

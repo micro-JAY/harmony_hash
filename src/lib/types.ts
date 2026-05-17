@@ -43,10 +43,19 @@ export interface VoicedNote {
   hand: "left" | "right";
 }
 
+export type VoicingType = "root" | "drop2" | "drop3" | "rootless" | "shell";
+
 export interface VoicedChord {
   notes: VoicedNote[];
-  voicingType: "root" | "drop2";
+  voicingType: VoicingType;
 }
+
+/**
+ * Per-card voicing style. "auto" (the default) lets the voice-leading
+ * engine pick whichever closed or Drop 2 voicing minimizes movement.
+ * Explicit styles constrain the candidate set to that style only.
+ */
+export type VoicingStyle = "auto" | "drop2" | "drop3" | "rootless" | "shell";
 
 export type ScaleType = "major" | "natural_minor" | "harmonic_minor" | "dorian" | "mixolydian" | "lydian" | "phrygian";
 

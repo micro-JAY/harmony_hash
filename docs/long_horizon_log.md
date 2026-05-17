@@ -73,3 +73,27 @@
 **Next concrete step.** Open the v2 archive PR, then start milestone 1.2 (Playwright harness) which becomes the first UI-touching milestone to enforce before/during/after cadence. After that: v3 (Drop 3 + rootless + shell voicings).
 
 **Current state.** Branch `chore/archive-piano-voicings-v2` off main (which is at 04aa233 = post-v2). Archive move + spec delta + plan/log updates staged. About to commit, push, PR, self-merge.
+
+---
+
+## 2026-05-17 — Milestone 1.2 (Playwright harness) shipped
+
+**PR [#18](https://github.com/micro-JAY/harmony_hash/pull/18)** — `chore(e2e): add Playwright harness with first voice-leading smoke spec` (squash commit `572cc27`). Both `build-and-test` and the new `playwright` CI job green on Linux.
+
+**Design.** `@playwright/test ^1.60.0` + `playwright.config.ts` + one smoke spec at `e2e/smoke.spec.ts` that loads the SPA, types "Dm7 G7 Cmaj7", switches to Piano, and asserts the rendered MIDI exactly matches the v2 voice-led set. `expect(page).toHaveScreenshot` provides the loose CSS-regression backstop; the DOM-decoded MIDI assertion is the strong contract.
+
+**Cross-platform.** Used `snapshotPathTemplate: "{testDir}/__screenshots__/{testFileName}/{arg}{ext}"` to drop the `{projectName}/{platform}` suffix Playwright adds by default. With a 10% pixel-ratio and 0.3 per-pixel threshold on `toHaveScreenshot`, the macOS-generated baseline passes against the Linux CI render. If a real regression slips through this tolerance later, we tighten.
+
+**CI.** New `playwright` job runs in parallel with `build-and-test`. Chromium-only (no Firefox/WebKit), no browser caching yet (`actions/cache` is a follow-up). Adds ~2-3 min per push.
+
+**Process change locked in.** The before/during/after cadence is now operable from v3 onward. v3 (Drop 3 + rootless + shell) will add the per-card style selector — first milestone with a real visual contract to lock down.
+
+**Q (already open):** add `npm run lint` to CI — still no answer; defaulting to "no, unless the operator asks." Not blocking.
+
+**Q (resolved by this PR):** the cross-platform snapshot strategy works with generous tolerance. Will tighten in a future small chore if it starts masking real regressions.
+
+**Decision.** Bundle next milestone's archive housekeeping into the next milestone's branch as the first commit, instead of separate `chore/archive-*` PRs. Saves ~3 min CI wait per archive and keeps PR count manageable across the rest of the long-horizon run. v2 used a separate archive PR (#17); v3 onward starts with archive commits.
+
+**Next concrete step.** v3 (Piano Voicings — Extended Styles): Drop 3, rootless A/B, shell voicings. Engine: `computeVoicingForStyle(noteNames, style)` returning a `VoicedChord` for any of the named styles. UI: per-card style selector (parallel to the guitar Fingering/Intervals/Notes pattern). Playwright cadence kicks in for the first time on this milestone.
+
+**Current state.** Branch `feat/piano-voicings-v3-extended-styles` off main (which is at 572cc27 = post-1.2). About to commit the v1.2 archive housekeeping as the first commit on this branch, then design + implement v3.

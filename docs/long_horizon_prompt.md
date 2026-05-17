@@ -112,7 +112,11 @@ Then wire UI into `src/components/PianoKeyboard.tsx` (and likely `ChordCard.tsx`
 - **Unit (vitest)**: voicing-engine outputs verified against hand-written expected note sets across every chord quality touched (triads, 7ths, 9ths, 11ths, 13ths, altered dominants). Cover enharmonic edge cases and inversion correctness. Cover the MIDI 48–83 range invariant.
 - **Component-level**: piano view renders the right keys lit for a fixture set. Use vitest's DOM testing utilities (or add @testing-library if not present — flag it in the openspec change).
 - **Regression**: existing `harmonyBrain.test.ts` and `chordData.test.ts` must all stay green.
-- **Playwright**: add when the first UI-touching milestone (likely v2 or v3) lands. Spec the addition in its own openspec change (`add-playwright-harness`). After that, every UI-touching version's PR gets Playwright coverage and committed `__screenshots__/` baselines.
+- **Playwright** (once the harness exists): use it **before, during, and after** any UI-touching milestone, not just at the end.
+  - **Before**: capture a baseline screenshot of the relevant view (piano card, chord card, progression) on `main` so you can detect regressions you didn't intend. Commit the baseline if it's new; otherwise just record it locally as the comparison target for this branch.
+  - **During**: re-run focused Playwright tests after each meaningful UI commit so you catch breakage in the commit that introduced it, not three commits later. Cheap and fast — if it slows you down, scope the tests tighter.
+  - **After**: full Playwright run, updated baseline screenshots committed, before flipping the PR out of draft.
+  Add when the first UI-touching milestone (likely v2 or v3) lands. Spec the harness addition in its own openspec change (`add-playwright-harness`). After that, every UI-touching version's PR gets this before/during/after cadence and committed `__screenshots__/` baselines.
 
 ### 3.5 Ship
 
@@ -134,7 +138,7 @@ Enter this phase only after v5 is merged. Each named feature uses its **Tonari-n
 
 Ship in this order unless a dependency forces a swap. Each item: its own openspec change, branch, PR, tests.
 
-1. **Voice Explore — piano view layout upgrade.** A named-voicings grid layout that renders one chord across several voicing styles side by side (Root Position, 1st/2nd/3rd Inversion, Shell, Rootless A, Rootless B, etc.). This sits on top of the v3 engine output. Reuse `PianoKeyboard.tsx` for each card; new wrapper component `VoiceExplore.tsx` hosts the grid. Color-code notes by interval role (root / 3rd / 5th / 7th / extensions) using Tonari palette tokens.
+1. **Piano view extensions — parity with the guitar view (existing scope, not a new feature).** The guitar side of `ChordCard.tsx` already has multiple voicings per chord with ← → cycling, "Randomize All" across the progression, and per-card variant locking. Bring the piano side to the same level: variant cycling across the voicing styles produced by v2–v5, "Randomize All" that picks a valid piano voicing for every chord, lock-variant per card. Extend `PianoKeyboard.tsx` and `ChordCard.tsx` in place — no new top-level component, no new feature name. Once v3 lands (Drop 3, rootless, shell), add a side-by-side voicing comparison layout inside the existing card (or as a card expansion), with notes color-coded by interval role using Tonari palette tokens. The screenshot `docs/inspiration/voice explore - harmony hash (piano view).PNG` shows the layout to aim for.
 
 2. **Verify and extend the existing suggestion overlay on the chord grid.** `ChordReferenceGrid.tsx` is already in the repo; the `suggestions_jazz_mode.png` and `suggestions_diatonic_mode.png` screenshots may already match. Spend the first task auditing what's shipped vs the screenshots. If gaps exist, fill them (border-glow strength = fit strength; mode toggle `Jazz` / `Diatonic` / `Modal` / `Off`; pure-function scoring with unit tests).
 
@@ -172,7 +176,7 @@ In this exact order, fix-and-retry on any failure. Do not skip a gate.
 4. **Unit tests** — `npm run test` (vitest). All green, including new ones.
 5. **Single-file regression check** when you change shared lib code: `npx vitest run src/lib/harmonyBrain.test.ts` and `npx vitest run src/lib/chordData.test.ts`. Both must pass — these libs are imported by both the SPA and the Worker.
 6. **Worker smoke** when you change anything in `worker/`, `wrangler.jsonc`, or `src/lib/chordLookup.ts`: `npm run build` then `npx wrangler dev` and curl `/api/health`. The Worker fails closed on CORS — verify origins still load.
-7. **Playwright** (once the harness exists): `npx playwright test`. All green. Run headed once locally if a visual change is involved; commit updated baseline screenshots.
+7. **Playwright** (once the harness exists): `npx playwright test`. All green. When the change touches UI, this gate runs three times in the milestone lifecycle — before starting (baseline on `main`), during (focused checks after each meaningful UI commit), and after (full run with updated baselines). See §3.4 for detail. Commit updated baseline screenshots in the same PR as the UI change.
 8. **Production build** — already covered by step 2's `vite build`; confirm `dist/` produced without warnings you introduced.
 9. **Manual smoke via Playwright or browser**: load app, exercise the new feature end-to-end, capture before/after screenshots for the PR.
 10. **Bundle-size check** if you've added deps — note delta in PR description.

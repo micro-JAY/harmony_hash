@@ -6,9 +6,9 @@ The workspace-level `../CLAUDE.md` defines the Tonari Labs stack and design-syst
 
 ## Current focus
 
-Harmony Hash is mid–long-horizon run on the **Piano Voicing Roadmap (v1 → v5)** followed by an **inspiration-led Phase 2 feature wave** (Voice Explore piano layout, Note Neural Network, Improv Insight, Scale Synthesia, Circle of Fifths, mood/genre filtering, guitar fretboard as first-class view).
+Harmony Hash is mid–long-horizon run on the **Piano Voicing Roadmap (v1 → v5)** followed by an **inspiration-led Phase 2 feature wave** (piano view feature parity with guitar, Note Neural Network, Improv Insight, Scale Synthesia, Circle of Fifths, mood/genre filtering, guitar fretboard as first-class view).
 
-The contract for this run is in `docs/long_horizon_prompt.md`. Re-read it whenever you resume. **The canonical v1–v5 spec lives in `docs/inspiration/README.md`** under the "Piano Voicing — Roadmap" heading at the bottom. That folder is gitignored (local-only working reference); the file is on disk but won't be in the public repo. v1 (Drop 2 voicing) is already shipped in `src/lib/harmonyBrain.ts` and `src/components/PianoKeyboard.tsx`.
+The contract for this run is in `docs/long_horizon_prompt.md`. Re-read it whenever you resume. **The canonical v1–v5 spec lives in `docs/inspiration/README.md`** under the "Piano Voicing — Roadmap" heading at the bottom. The README is tracked in the repo; the screenshots alongside it are gitignored (local-only reference). v1 (Drop 2 voicing) is already shipped in `src/lib/harmonyBrain.ts` and `src/components/PianoKeyboard.tsx`.
 
 Live state of the run lives in:
 

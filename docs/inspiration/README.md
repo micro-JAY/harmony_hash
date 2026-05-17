@@ -45,15 +45,15 @@ Take: scope discipline (six things, not twenty), positions + note-order shuffle 
 
 Each named feature has a **Tonari-native code/UI name** in bold. Use these names — not the inspiration-app names — in branches, components, and PR titles.
 
-### **Voice Explore** — piano view layout upgrade
+### Piano view extensions — bring piano to parity with guitar
 
-**Reference for:** the piano view layout, played alongside the v1–v5 voicing engine work.
+**Reference for:** extending the **existing Harmony Hash piano view** with the affordances the guitar view already has (variant cycling, randomize-all, lock variation), plus a side-by-side voicing comparison view that becomes possible once v3 ships.
 
-The current `PianoKeyboard.tsx` already renders Drop 2 voicings (v1). What's missing is the **named-voicings grid layout** — instead of one keyboard per chord, show the same chord across several named voicings side by side so a learner can compare them.
+This is **not a new feature** — it's the natural extension of `src/components/PianoKeyboard.tsx` and `src/components/ChordCard.tsx`. The guitar side of those components already has multiple voicings per chord (← → arrows), a "Randomize All" button, and per-card variant locking. The piano side needs the equivalent for piano voicings produced by v2–v5.
 
-- `voice explore - harmony hash (piano view).PNG` — Fm7 in seven labeled voicings: Root Position, 1st/2nd/3rd Inversion, Shell, Rootless A, Rootless B. Each is its own card on a clean labeled keyboard with notes color-coded by interval role (`F Root` red, `G# min 3rd` olive, `C 5th` blue, `D# b7` pink). One chord builder up top, instrument toggle on the right (Guitar/Bass/Piano), a notes-toggle for showing letter labels.
+- `voice explore - harmony hash (piano view).PNG` — **this is what the piano view of Harmony Hash should look like.** Fm7 rendered across seven labeled voicings (Root Position, 1st/2nd/3rd Inversion, Shell, Rootless A, Rootless B), each on a clean labeled keyboard with notes color-coded by interval role (`F Root` red, `G# min 3rd` olive, `C 5th` blue, `D# b7` pink). One chord builder up top, instrument toggle on the right, a notes-toggle for letter labels. Filename was originally "voicing explorer" in the source product — kept as `voice explore` so it sorts alongside the other inspiration files. Similar to the already existing guitar view, once extended chords are added we should see intervals and/or fingering as options for the view. Along with the ability to lock or randomize voicings at a per-chord level.
 
-The vocabulary (Shell, Rootless A/B) overlaps with the v3 roadmap below — when v3 lands, that's when this layout becomes possible. Don't build the layout before the engine that feeds it.
+The named-voicing vocabulary (Shell, Rootless A/B) ships with v3. Until then, the piano view's parity work is variant cycling + randomize + lock for the Drop 2 voicings v1 already produces, plus the voice-leading variants v2 introduces.
 
 ### **Note Neural Network** — modal relationships
 
@@ -122,7 +122,7 @@ Smooth voice leading between chords in a progression. Calculate minimal movement
 
 ### v3 — Extended Voicing Styles
 
-Drop 3, rootless voicings (for playing over a bassist), and shell voicings (3rd + 7th only, no root or 5th). Each chord card shows a style selector to try them side by side. **This is the engine that unlocks the Voice Explore layout** described in the Phase 2 section above.
+Drop 3, rootless voicings (for playing over a bassist), and shell voicings (3rd + 7th only, no root or 5th). Each chord card shows a style selector to try them side by side. **This is the engine that unlocks the side-by-side piano voicing comparison view** described in the Phase 2 section above.
 
 ### v4 — Interval Spacing & Spread Voicings
 

@@ -143,6 +143,152 @@ export function computeVoicing(noteNames: string[]): VoicedChord {
   return octave3Voicing;
 }
 
+// ─── 3.7: Voice-Leading Across a Progression ────────────────────────
+
+const VOICE_LED_OCTAVE_STARTS = [3, 4] as const;
+
+function rotateNoteNames(noteNames: string[], offset: number): string[] {
+  return [...noteNames.slice(offset), ...noteNames.slice(0, offset)];
+}
+
+function voicingSignature(v: VoicedChord): string {
+  const midis = v.notes.map((n) => n.midi).slice().sort((a, b) => a - b);
+  return `${midis.join(",")}:${v.voicingType}`;
+}
+
+/**
+ * Enumerate every C3-B5-visible voicing candidate for a single chord:
+ * each cyclic rotation (inversion) × each starting octave × {default
+ * spacing, alternative spacing for 4+ note chords when both fit}.
+ *
+ * The set always includes `computeVoicing(noteNames)`'s output when it
+ * fits the visible range, so the worst-case voice-leading choice can
+ * never be worse than the existing default.
+ */
+function enumerateVoicingCandidates(noteNames: string[]): VoicedChord[] {
+  if (noteNames.length === 0) return [];
+
+  const candidates: VoicedChord[] = [];
+  const seen = new Set<string>();
+
+  const addIfVisible = (v: VoicedChord) => {
+    if (!isWithinVisibleRange(v.notes)) return;
+    const sig = voicingSignature(v);
+    if (seen.has(sig)) return;
+    seen.add(sig);
+    candidates.push(v);
+  };
+
+  for (let invIdx = 0; invIdx < noteNames.length; invIdx++) {
+    const inv = rotateNoteNames(noteNames, invIdx);
+    const pitchClasses = inv.map((n) => noteToPitchClass(n));
+
+    for (const oct of VOICE_LED_OCTAVE_STARTS) {
+      const defaultVoicing = buildVoicingForStartOctave(inv, pitchClasses, oct);
+      addIfVisible(defaultVoicing);
+
+      // 4+ note chords: if the default at this octave is Drop 2, also
+      // consider the closed-position alternative (and vice versa is
+      // covered automatically because buildVoicingForStartOctave already
+      // falls back to closed when Drop 2 underflows).
+      if (inv.length >= 4 && defaultVoicing.voicingType === "drop2") {
+        const closedAlt: VoicedChord = {
+          notes: buildClosedVoicing(inv, pitchClasses, oct),
+          voicingType: "root",
+        };
+        addIfVisible(closedAlt);
+      }
+    }
+  }
+
+  // Defensive fallback for chords whose every candidate underflows or
+  // overflows the visible range — surface `computeVoicing`'s relaxed
+  // output rather than returning zero candidates downstream.
+  if (candidates.length === 0) {
+    candidates.push(computeVoicing(noteNames));
+  }
+
+  return candidates;
+}
+
+/**
+ * Sum of minimum semitone distances: each candidate note's distance
+ * to its nearest prior note, summed. Common tones contribute 0; a
+ * single-semitone step contributes 1. Empty prior or candidate → 0
+ * so the metric stays well-defined for the first chord and edge cases.
+ */
+function voicingDistance(prior: VoicedNote[], candidate: VoicedNote[]): number {
+  if (prior.length === 0 || candidate.length === 0) return 0;
+  let total = 0;
+  for (const c of candidate) {
+    let minDelta = Infinity;
+    for (const p of prior) {
+      const delta = Math.abs(c.midi - p.midi);
+      if (delta < minDelta) minDelta = delta;
+    }
+    total += minDelta;
+  }
+  return total;
+}
+
+function averageMidi(notes: VoicedNote[]): number {
+  if (notes.length === 0) return 0;
+  let sum = 0;
+  for (const n of notes) sum += n.midi;
+  return sum / notes.length;
+}
+
+/**
+ * Pick the candidate with minimum voicing-distance from `prior`. On
+ * ties, prefer the candidate with the lower average MIDI — matches
+ * `computeVoicing`'s existing preference for the lower register and
+ * keeps the result deterministic.
+ */
+function pickBestCandidate(prior: VoicedNote[], candidates: VoicedChord[]): VoicedChord {
+  let best = candidates[0];
+  let bestDistance = voicingDistance(prior, best.notes);
+  let bestAvgMidi = averageMidi(best.notes);
+
+  for (let i = 1; i < candidates.length; i++) {
+    const cand = candidates[i];
+    const dist = voicingDistance(prior, cand.notes);
+    if (dist > bestDistance) continue;
+    if (dist < bestDistance) {
+      best = cand;
+      bestDistance = dist;
+      bestAvgMidi = averageMidi(cand.notes);
+      continue;
+    }
+    const avg = averageMidi(cand.notes);
+    if (avg < bestAvgMidi) {
+      best = cand;
+      bestAvgMidi = avg;
+    }
+  }
+  return best;
+}
+
+/**
+ * Compute voicings for an ordered progression with smooth voice
+ * leading. The first chord anchors with `computeVoicing`'s default;
+ * each subsequent chord is chosen for minimum voice movement from the
+ * prior while keeping every note inside C3-B5.
+ */
+export function computeVoiceLedProgression(progressionNotes: string[][]): VoicedChord[] {
+  if (progressionNotes.length === 0) return [];
+
+  const first = computeVoicing(progressionNotes[0]);
+  if (progressionNotes.length === 1) return [first];
+
+  const result: VoicedChord[] = [first];
+  for (let i = 1; i < progressionNotes.length; i++) {
+    const candidates = enumerateVoicingCandidates(progressionNotes[i]);
+    const best = pickBestCandidate(result[i - 1].notes, candidates);
+    result.push(best);
+  }
+  return result;
+}
+
 // ─── 3.3 / 3.4: Roman Numeral Parser & Transposition ────────────────
 
 const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11]; // W-W-H-W-W-W-H

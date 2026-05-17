@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Lock, Unlock } from "lucide-react";
-import type { Instrument, IndexedChord, GuitarDisplayMode } from "../lib/types";
+import type { Instrument, IndexedChord, GuitarDisplayMode, VoicedChord } from "../lib/types";
 import { formatNoteForDisplay, parseNotes, prefersFlatNotation } from "../lib/chordData";
 import GuitarChordDiagram from "./GuitarChordDiagram";
-import { computeVoicing } from "../lib/harmonyBrain";
 import PianoKeyboard from "./PianoKeyboard";
 
 interface ChordCardProps {
@@ -14,6 +13,7 @@ interface ChordCardProps {
   onVariantChange: (variant: number) => void;
   isLocked: boolean;
   onToggleLock: () => void;
+  voicing: VoicedChord;
 }
 
 function extractDisplayRoot(chordName: string): string {
@@ -29,6 +29,7 @@ export default function ChordCard({
   onVariantChange,
   isLocked,
   onToggleLock,
+  voicing,
 }: ChordCardProps) {
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
@@ -46,9 +47,7 @@ export default function ChordCard({
     onVariantChange(nextVariant);
   }
 
-  // Piano voicing
   const noteNames = parseNotes(chord.entry);
-  const voicing = computeVoicing(noteNames);
   const preferFlats = prefersFlatNotation(extractDisplayRoot(displayName));
   const formattedNoteNames = noteNames.map((noteName) => formatNoteForDisplay(noteName, preferFlats));
 

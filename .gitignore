@@ -21,3 +21,8 @@ dist/
 preflight.log
 docs/inspiration/*
 !docs/inspiration/README.md
+
+# Playwright MCP scratch (manual-smoke output; Playwright harness will land
+# its own committed __screenshots__/ baselines in milestone 1.2).
+.playwright-mcp/
+v2-voice-leading-piano-*.png

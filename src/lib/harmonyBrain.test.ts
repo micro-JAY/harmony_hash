@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { parseChordInput, transposeProgression, computeVoicing, noteToPitchClass } from "./harmonyBrain";
+import {
+  parseChordInput,
+  transposeProgression,
+  computeVoicing,
+  computeVoiceLedProgression,
+  noteToPitchClass,
+} from "./harmonyBrain";
+import type { VoicedChord, VoicedNote } from "./types";
 
 // ─── 4.1: Chord Symbol Normalization ─────────────────────────────────
 
@@ -239,4 +246,201 @@ describe("noteToPitchClass", () => {
   it("maps Gs (G-sharp) to 8", () => expect(noteToPitchClass("Gs")).toBe(8));
   it("maps Bf (B-flat) to 10", () => expect(noteToPitchClass("Bf")).toBe(10));
   it("returns -1 for unknown", () => expect(noteToPitchClass("X")).toBe(-1));
+});
+
+// ─── 4.5: Voice-Leading Across a Progression ───────────────────────
+
+function midis(v: VoicedChord): number[] {
+  return v.notes.map((n) => n.midi);
+}
+
+function totalDistance(progression: VoicedChord[]): number {
+  // Sum of `voicingDistance(prev, curr)` style metric (re-implemented
+  // here to keep the test independent of the engine's private helper).
+  let total = 0;
+  for (let i = 1; i < progression.length; i++) {
+    const prev = progression[i - 1].notes;
+    const curr = progression[i].notes;
+    for (const c of curr) {
+      let min = Infinity;
+      for (const p of prev) {
+        const d = Math.abs(c.midi - p.midi);
+        if (d < min) min = d;
+      }
+      total += min;
+    }
+  }
+  return total;
+}
+
+function naiveProgression(progressionNotes: string[][]): VoicedChord[] {
+  return progressionNotes.map((notes) => computeVoicing(notes));
+}
+
+function withinVisibleRange(notes: VoicedNote[]): boolean {
+  return notes.every((n) => n.midi >= 48 && n.midi <= 83);
+}
+
+describe("computeVoiceLedProgression", () => {
+  it("returns an empty list for empty input", () => {
+    expect(computeVoiceLedProgression([])).toEqual([]);
+  });
+
+  it("returns computeVoicing's output unchanged for a single-chord input", () => {
+    const single = [["C", "E", "G"]];
+    const result = computeVoiceLedProgression(single);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(computeVoicing(single[0]));
+  });
+
+  it("anchors the first chord with computeVoicing in multi-chord progressions", () => {
+    const result = computeVoiceLedProgression([
+      ["D", "F", "A", "C"],
+      ["G", "B", "D", "F"],
+    ]);
+    expect(result[0]).toEqual(computeVoicing(["D", "F", "A", "C"]));
+  });
+
+  it("voice-leads ii-V-I in C major with reduced cumulative motion", () => {
+    const progression = [
+      ["D", "F", "A", "C"], // Dm7
+      ["G", "B", "D", "F"], // G7
+      ["C", "E", "G", "B"], // Cmaj7
+    ];
+    const result = computeVoiceLedProgression(progression);
+
+    expect(result).toHaveLength(3);
+
+    // Dm7 anchors at the default (root position, oct 3) — Drop 2
+    // underflows because dropping A3 lands at A2 (MIDI 45 < 48).
+    expect(midis(result[0])).toEqual([50, 53, 57, 60]);
+    expect(result[0].voicingType).toBe("root");
+
+    // G7 picks inversion [D, F, G, B] at oct 3 (3 semitones of motion).
+    expect(midis(result[1])).toEqual([50, 53, 55, 59]);
+    expect(result[1].voicingType).toBe("root");
+
+    // Cmaj7 picks inversion [E, G, B, C] at oct 3 (2 semitones of motion).
+    expect(midis(result[2])).toEqual([52, 55, 59, 60]);
+    expect(result[2].voicingType).toBe("root");
+
+    // Voice-led cumulative distance must be strictly less than naive.
+    const led = totalDistance(result);
+    const naive = totalDistance(naiveProgression(progression));
+    expect(led).toBeLessThan(naive);
+    expect(led).toBe(5); // 3 (Dm7→G7) + 2 (G7→Cmaj7)
+  });
+
+  it("voice-leads I-vi-IV-V triads in C major", () => {
+    const progression = [
+      ["C", "E", "G"],
+      ["A", "C", "E"],
+      ["F", "A", "C"],
+      ["G", "B", "D"],
+    ];
+    const result = computeVoiceLedProgression(progression);
+
+    expect(result).toHaveLength(4);
+
+    // C: default closed voicing at oct 3
+    expect(midis(result[0])).toEqual([48, 52, 55]);
+
+    // Am: inversion [C, E, A] retains C3 + E3, moves G3→A3 (2 semitones)
+    expect(midis(result[1])).toEqual([48, 52, 57]);
+
+    // F: inversion [C, F, A] retains C3 + A3, moves E3→F3 (1 semitone)
+    expect(midis(result[2])).toEqual([48, 53, 57]);
+
+    // G: inversion [D, G, B] – D3 G3 B3
+    expect(midis(result[3])).toEqual([50, 55, 59]);
+
+    // Each chord uses closed root-position spacing (triads only).
+    for (const chord of result) {
+      expect(chord.voicingType).toBe("root");
+    }
+
+    // Voice-led beats naive.
+    expect(totalDistance(result)).toBeLessThan(totalDistance(naiveProgression(progression)));
+  });
+
+  it("voice-leads ii°-V-i in A harmonic minor", () => {
+    // ii° = Bdim = B-D-F; V = E (major triad) = E-G#-B; i = Am = A-C-E
+    const progression = [
+      ["B", "D", "F"],
+      ["E", "Gs", "B"],
+      ["A", "C", "E"],
+    ];
+    const result = computeVoiceLedProgression(progression);
+
+    expect(result).toHaveLength(3);
+    // Bdim anchors at oct 3 closed.
+    expect(midis(result[0])).toEqual([59, 62, 65]); // B3, D4, F4
+
+    // E (major) voice-leads with smooth motion.
+    // Subsequent voicings stay within the visible range.
+    expect(withinVisibleRange(result[1].notes)).toBe(true);
+    expect(withinVisibleRange(result[2].notes)).toBe(true);
+
+    // Voice-led beats naive on cumulative motion.
+    expect(totalDistance(result)).toBeLessThanOrEqual(totalDistance(naiveProgression(progression)));
+  });
+
+  it("stabilizes a repeated-chord vamp (Dm7-G7-Dm7-G7)", () => {
+    const progression = [
+      ["D", "F", "A", "C"],
+      ["G", "B", "D", "F"],
+      ["D", "F", "A", "C"],
+      ["G", "B", "D", "F"],
+    ];
+    const result = computeVoiceLedProgression(progression);
+
+    expect(result).toHaveLength(4);
+    // Positions 0 and 2 are the same chord and must voice identically.
+    expect(midis(result[0])).toEqual(midis(result[2]));
+    expect(result[0].voicingType).toBe(result[2].voicingType);
+    // Likewise positions 1 and 3.
+    expect(midis(result[1])).toEqual(midis(result[3]));
+    expect(result[1].voicingType).toBe(result[3].voicingType);
+  });
+
+  it("keeps every voicing within MIDI 48-83 across many progressions", () => {
+    const progressions: string[][][] = [
+      // ii-V-I C
+      [["D", "F", "A", "C"], ["G", "B", "D", "F"], ["C", "E", "G", "B"]],
+      // I-vi-IV-V C
+      [["C", "E", "G"], ["A", "C", "E"], ["F", "A", "C"], ["G", "B", "D"]],
+      // ii°-V-i in A harmonic minor
+      [["B", "D", "F"], ["E", "Gs", "B"], ["A", "C", "E"]],
+      // Cmaj9 → Fmaj9 (5-note chords)
+      [["C", "E", "G", "B", "D"], ["F", "A", "C", "E", "G"]],
+      // High-root triad chain (Bb, B, Fs major)
+      [["As", "D", "F"], ["B", "Ds", "Fs"], ["Fs", "As", "Cs"]],
+      // Modal vamp: Dm9 → G13
+      [["D", "F", "A", "C", "E"], ["G", "B", "D", "F", "A"]],
+    ];
+
+    for (const progression of progressions) {
+      const result = computeVoiceLedProgression(progression);
+      for (const chord of result) {
+        expect(withinVisibleRange(chord.notes)).toBe(true);
+      }
+    }
+  });
+
+  it("retains common tones at the same MIDI position when possible", () => {
+    // C major → Am: both contain C and E. Voice-led Am should retain
+    // C3 (48) and E3 (52) at the same MIDI positions used for C major.
+    const progression = [
+      ["C", "E", "G"],
+      ["A", "C", "E"],
+    ];
+    const result = computeVoiceLedProgression(progression);
+    const firstMidis = new Set(midis(result[0]));
+    const secondMidis = midis(result[1]);
+    // The shared pitch classes (C=0, E=4) should appear as 48 and 52.
+    expect(firstMidis.has(48)).toBe(true);
+    expect(firstMidis.has(52)).toBe(true);
+    expect(secondMidis).toContain(48);
+    expect(secondMidis).toContain(52);
+  });
 });

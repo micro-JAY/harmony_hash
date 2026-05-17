@@ -26,3 +26,9 @@ docs/inspiration/*
 # its own committed __screenshots__/ baselines in milestone 1.2).
 .playwright-mcp/
 v2-voice-leading-piano-*.png
+
+# Playwright runtime outputs — committed baseline screenshots in
+# e2e/<spec>.spec.ts-snapshots/ remain tracked.
+playwright-report/
+test-results/
+.playwright/

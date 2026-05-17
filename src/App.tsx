@@ -1,9 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Instrument, IndexedChord, ParseError } from "./lib/types";
 import Header from "./components/Header";
 import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
+import { computeVoiceLedProgression } from "./lib/harmonyBrain";
+import { parseNotes } from "./lib/chordData";
 
 interface DisplayChord {
   input: string;
@@ -53,6 +55,11 @@ function App() {
       return next;
     });
   }
+
+  const pianoVoicings = useMemo(
+    () => computeVoiceLedProgression(chords.map((c) => parseNotes(c.chord.entry))),
+    [chords],
+  );
 
   function randomizeAll() {
     setCardVariants((prev) => {
@@ -120,6 +127,7 @@ function App() {
                     }
                     isLocked={lockedCards.has(index)}
                     onToggleLock={() => handleToggleLock(index)}
+                    voicing={pianoVoicings[index]}
                   />
                 );
               })}

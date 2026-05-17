@@ -66,11 +66,9 @@ export default function GuitarChordDiagram({
   const svgUrl = getSvgPath(chord, variant);
 
   useEffect(() => {
-    if (!svgUrl) {
-      setFailed(true);
-      setLoading(false);
-      return;
-    }
+    // Render handles `!svgUrl` via the `failed || !svgUrl` early-return branch,
+    // so no state change is needed here — bail out before any setState fires.
+    if (!svgUrl) return;
 
     const cached = cacheRef.current.get(svgUrl);
     if (cached) {
@@ -252,7 +250,7 @@ export default function GuitarChordDiagram({
     // Safe: SVG sourced from local static files with script tags stripped
     containerRef.current.replaceChildren();
     containerRef.current.insertAdjacentHTML("afterbegin", html);
-  }, [svgData, displayMode, preferFlats, chord.entry, chord.root]);
+  }, [svgData, displayMode, preferFlats, chord.entry]);
 
   useEffect(() => {
     applyOverlays();

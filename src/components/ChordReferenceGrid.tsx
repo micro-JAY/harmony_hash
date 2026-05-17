@@ -4,11 +4,11 @@ import { lookupChord } from "../lib/chordData";
 
 // ─── Quality Group Type ─────────────────────────────────────────────
 
-export type QualityGroup = "basic" | "9ths+" | "sus" | "alt";
+type QualityGroup = "basic" | "9ths+" | "sus" | "alt";
 
 // ─── Root Colors (intentional chromatic identity — not design tokens) ─
 
-export const ROOT_COLORS: Record<string, string> = {
+const ROOT_COLORS: Record<string, string> = {
   "C":  "#B8D4F0", "C#": "#A3C6E8", "D":  "#8FB8E0", "Eb": "#7AAAD8",
   "E":  "#669CCF", "F":  "#528EC7", "F#": "#3E80BF", "G":  "#2E6FAF",
   "Ab": "#1F5E9F", "A":  "#154E8F", "Bb": "#0C3F7F", "B":  "#05306F",
@@ -46,7 +46,7 @@ const QUALITY_CANDIDATES = [
 // ─── Runtime-Derived Columns & Rows ─────────────────────────────────
 
 // Use C as the probe root — all valid qualities exist on every root
-export const QUALITIES = QUALITY_CANDIDATES.filter(
+const QUALITIES = QUALITY_CANDIDATES.filter(
   (q) => lookupChord("C" + q.suffix) !== undefined
 );
 
@@ -56,7 +56,7 @@ const ROOT_DISPLAY_ORDER = [
 ];
 
 // Only include roots that actually exist in the index
-export const ROOTS = ROOT_DISPLAY_ORDER.filter(
+const ROOTS = ROOT_DISPLAY_ORDER.filter(
   (r) => lookupChord(r) !== undefined
 );
 

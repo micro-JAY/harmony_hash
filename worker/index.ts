@@ -284,7 +284,7 @@ function parseAndValidateProgression(raw: string): ProgressionResult {
 }
 
 function sanitizeError(message: string): string {
-  return message.replace(/sk-[a-zA-Z0-9_\-]+/g, "[redacted]");
+  return message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]");
 }
 
 const LOCAL_HOST_PATTERN = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;

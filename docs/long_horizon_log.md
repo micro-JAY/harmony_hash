@@ -152,3 +152,41 @@ v4 ships spread + two-hand; UST deferred to a follow-up openspec change.
 **Next concrete step.** v5 (Playback). Lightweight WebAudio synth that plays the voiced progression in sequence. Design: pure `buildPlaybackSchedule(voicings, bpm): PlaybackEvent[]` for unit testability + side-effecting `playSchedule(schedule, audioContext)` for actual audio. UI: global "Play progression" button + active-chord glow during playback. Honor prefers-reduced-motion for the glow.
 
 **Current state.** Branch `feat/piano-voicings-v5-playback` off main (post-v4). Archive housekeeping committed; this log entry being added as part of the same housekeeping wave before v5 code lands.
+
+---
+
+## 2026-05-17 — Milestone 1.5 (v5 Playback) shipped; **Phase 1 COMPLETE**
+
+**PR [#21](https://github.com/micro-JAY/harmony_hash/pull/21)** — `feat(piano): voicings v5 — playback (WebAudio synth + active-chord indicator)`. Both CI jobs green; landed 2026-05-17.
+
+**Engine.** New `src/lib/audioEngine.ts`:
+- `buildPlaybackSchedule(voicings, bpm, beatsPerChord = 2)` — pure function; one PlaybackEvent per chord with absolute start time, duration, MIDI list, and chordIndex.
+- `midiToFrequency(midi)` — equal temperament, A4=440Hz.
+- `playSchedule(schedule, audioContext, onChordChange?)` — side-effecting. Per chord: one OscillatorNode per MIDI note (triangle wave) + GainNode with soft ADSR envelope (attack 20ms → 70% decay → release 50ms before chord end). Schedules onChordChange via setTimeout for UI active-chord highlighting. Returns PlaybackHandle with stop().
+
+**Why triangle waves not sines:** layered sine waves over 4-5 chord tones beat harshly; triangles stay warm without faking a piano sound we don't have. Synth is intentionally not piano-emulating — it's a synth that doesn't pretend.
+
+**UI.** App.tsx adds:
+- `activeChordIndex` state + `audioContextRef` + `playbackHandleRef`.
+- "Play progression" toggle button (Play / Square icons) when piano + chords ≥ 1.
+- Cleanup `useEffect` on `[chords, pianoVoicings]` stops in-flight playback when chords / styles change.
+- AudioContext lazily created on first user gesture (Safari + iOS compatibility via `webkitAudioContext` fallback).
+- ChordCard accepts `isPlaying?` prop; flips border + box-shadow to `--glow-accent` when active.
+
+**Playwright cadence (before/during/after).** Before: v4 baseline. During: focused e2e after engine/UI commits; visual diff blew past tolerance (added Play button) — expected. After: regenerated baseline + added a new e2e test that clicks Play and asserts the visual `data-playing="true"` marker appears on a card within 2 seconds + the Stop control becomes visible. Audio output itself isn't asserted (fragile in headless); the visual contract is what carries the test value.
+
+**Decision.** No prefers-reduced-motion gate on the active-chord glow because it's a static `box-shadow` with no animation — doesn't violate WCAG SC 2.3.1. If a beat-flash animation is added later, that change should gate behind `useReducedMotion`.
+
+**Bundle delta tally for Phase 1:** v2 = +1.3 KB raw. v3 = +2 KB. v4 = +1 KB. v5 = +1.5 KB. Total: ~+5.8 KB raw / +1.5 KB gzip. Voice-leading engine + four extended styles + playback for less bundle than a single icon font. WebAudio + framer-motion already vendored.
+
+**Phase 1 complete.** Five milestones (v1 already there; v2-v5 shipped this session) plus the Playwright harness milestone. The piano view goes from "Drop 2 / closed root only" at the start of the session to "auto voice-leading + seven explicit styles + audio playback with visual indicator" at the end.
+
+**Q (still open):** add `npm run lint` to CI. Defer.
+
+**Q (still open):** UST design — picked up post-Phase-1.
+
+**Q (still open):** tighten Playwright cross-platform tolerance. Still no real regression to demand it; held across all four UI-touching milestones.
+
+**Next concrete step.** Phase 2 begins. Item 2.1 (piano view parity with guitar) is the most natural follow-on: bring lock-toggle + Randomize All + Notes/Fingering display toggle to piano cards. Engine support is already there (v3+v4 produced seven voicing styles; randomization just needs to cycle them per-card).
+
+**Current state.** Branch `feat/piano-view-parity` off main (post-v5 = post-Phase-1). Archive housekeeping for v5 in flight as the branch's first commit. Then 2.1 code.

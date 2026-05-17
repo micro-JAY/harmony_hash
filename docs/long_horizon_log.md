@@ -225,3 +225,124 @@ v4 ships spread + two-hand; UST deferred to a follow-up openspec change.
 **Next concrete step.** Phase 2 item 2.3 — Improv Insight. Progression-aware scale suggestions with motion/tension/palette/style metadata. The `src/lib/theory/` module gets extended with scale-membership scoring against a chord progression. UI: a "Compatible Scales" panel that surfaces ranked scales per progression.
 
 **Current state.** Branch `feat/suggestion-overlay-diatonic` off main (post-2.1). 2.2 staged for commit; PR after.
+
+---
+
+## 2026-05-17 — Session handoff (Phase 1 + 2.1 + 2.2 shipped; 2.3-2.5 remain)
+
+**Session totals:** 11 PRs merged across the session — every Phase 1 milestone (v1 was already there; v2 voice leading, the Playwright harness, v3 extended styles, v4 spread + two-hand, v5 playback) plus Phase 2 items 2.1 (piano view parity) and 2.2 (suggestion overlay — Off + Diatonic slice). Each PR landed with both `build-and-test` and `playwright` CI jobs green.
+
+**PR ledger:**
+
+| PR | Branch | Landed | Milestone |
+|----|--------|--------|-----------|
+| [#14](https://github.com/micro-JAY/harmony_hash/pull/14) | chore/long-horizon-plan | eac596e | 0.1 + 0.2 (planning) |
+| [#15](https://github.com/micro-JAY/harmony_hash/pull/15) | chore/baseline-fix | 1cd2ab9 | 0.3 (lint baseline + first archive) |
+| [#16](https://github.com/micro-JAY/harmony_hash/pull/16) | feat/piano-voicings-v2-voice-leading | 04aa233 | 1.1 (voice leading) |
+| [#17](https://github.com/micro-JAY/harmony_hash/pull/17) | chore/archive-piano-voicings-v2 | bb6f34c | v2 archive |
+| [#18](https://github.com/micro-JAY/harmony_hash/pull/18) | chore/add-playwright-harness | 572cc27 | 1.2 (Playwright harness) |
+| [#19](https://github.com/micro-JAY/harmony_hash/pull/19) | feat/piano-voicings-v3-extended-styles | 54203da | 1.3 (Drop 3 + rootless + shell) |
+| [#20](https://github.com/micro-JAY/harmony_hash/pull/20) | feat/piano-voicings-v4-spread | 86f5909 | 1.4 (spread + two-hand) |
+| [#21](https://github.com/micro-JAY/harmony_hash/pull/21) | feat/piano-voicings-v5-playback | aace25e | 1.5 (playback) — **Phase 1 closed** |
+| [#22](https://github.com/micro-JAY/harmony_hash/pull/22) | feat/piano-view-parity | 8cc7203 | 2.1 (piano view parity) |
+| [#23](https://github.com/micro-JAY/harmony_hash/pull/23) | feat/suggestion-overlay-diatonic | 736b713 | 2.2 (Off + Diatonic) |
+| **this PR** | chore/session-handoff | — | plan/log housekeeping + handoff |
+
+**Code reality at handoff:**
+- Test suite: 120 vitest assertions (chord-data 12 / harmony-brain 82 / audio-engine 11 / theory 15) + 4 Playwright e2e. All green on `main`.
+- Bundle: 510 KB raw / 133 KB gzip. Phase 1 (v2-v5) added ~5.8 KB raw / 1.5 KB gzip combined; Phase 2 adds another ~1 KB raw across 2.1 + 2.2.
+- Engine surface: 7 voicing styles (auto / drop2 / drop3 / rootless / shell / spread / two-hand), voice-leading across progressions, audio playback with active-chord visual, theory module v1 (pitch classes, scale sets, diatonic test, scale-degree lookup).
+- UI surface: piano cards now have lock + Randomize + style toggle + Notes/Fingering toggle + voicing-type pill + Play/Stop progression + active-chord glow. Chord-grid suggestion overlay (Off / Diatonic) ships behind a mode pill toggle.
+
+**What's still needed for Definition of Done:**
+
+Per `docs/long_horizon_prompt.md §10`, the run is done when:
+- ✅ v2-v5 each have a merged PR + archived openspec + spec deltas + Playwright coverage (where UI is touched).
+- ✅ At least items 2.1-2.5 of Phase 2 are merged. **2.1 + 2.2 done; 2.3 + 2.4 + 2.5 remain.**
+- ❌ Items 2.6-2.9 either merged or have an opened PR + open openspec change + clear next step logged. **Not started.**
+- ✅ Plan reconciles every milestone as Done / Blocked / Cancelled — being updated in this PR.
+- ❌ `docs/long_horizon_summary.md` exists with the full ledger. **Pending end-of-run.**
+
+**The remaining Phase 2 items 2.3-2.5 — concrete design notes for the resuming session:**
+
+### 2.3 — Improv Insight (largest of the three)
+
+Build a "Compatible Scales" panel that ranks scales against the current progression. Live next to (or below) the chord cards.
+
+Engine work in `src/lib/theory/`:
+- Add `chordToneSet(noteNames: string[]): Set<number>` — the pitch-class set of a chord's notes (use the existing `parseNotes` + `noteToPitchClass`).
+- Add `progressionToneSet(progression): Set<number>` — union over all chords in a progression.
+- Add `scoreScale(scaleType, scaleRoot, progressionToneSet): { overlap, missing, accidentals }` — for each scale candidate, compute: how many of the progression's pitches are in the scale (`overlap`), how many pitches in the scale aren't used (`missing`), how many progression pitches are outside the scale (`accidentals`). The match % = `overlap / progressionToneSet.size`.
+- Add metadata derivation:
+  - `motion(scaleType): "smooth" | "jumpy"` — based on the scale's interval variance.
+  - `tension(scaleType): "rises" | "static" | "falls"` — based on the scale's tritone count.
+  - `palette(scaleType): "diatonic" | "chromatic"` — modes of major = diatonic; harmonic/melodic minor + altered + symmetric = chromatic.
+  - `style(scaleType): "modal" | "tonal" | "blues"` — Lydian / Mixolydian / Phrygian = modal; major / natural minor = tonal; blues + pentatonic = blues.
+
+These are pure-function decompositions; each gets unit tests with hand-picked expected outputs.
+
+UI work in a new component `src/components/ImprovInsight.tsx`:
+- Two-tab layout: "Per chord" and "Whole progression."
+- "Per chord" tab: tabs across the top for each chord in the progression; selecting one shows the ranked scales for that chord alone.
+- "Whole progression" tab: ranked scales for the union over all chords.
+- Each row: scale name, match %, motion/tension/palette/style badges, "also known as" enharmonic equivalents.
+- Open/close via a "Show compatible scales" button in the action bar (only when a progression is rendered).
+
+This is at least one full PR's worth of work. Spec deltas in a new `improv-insight` capability.
+
+### 2.4 — Common Progressions library expansion
+
+Audit pass: read `src/data/progressions.ts` against the inspiration "Common Progressions" examples (`I–IV–I–V (Resolving)`, `ii–V–I`, etc.). The current library is already substantial — fill named gaps where they exist and verify the existing entries match.
+
+Engine work:
+- Add `src/data/progression-library.ts` if a richer schema is needed (with `description`, `genre`, `era` fields beyond name + numerals).
+- If the schema stays as-is, this is a pure data PR: append entries to the existing `progressions.ts` and the `hh-library.md` document.
+
+UI work in `ProgressionInput.tsx`:
+- The preset browser already exists. Drop-in of the new entries is automatic via the existing render.
+- Potentially add a search/filter affordance if the list grows beyond what's pleasant to scroll. Defer if the existing list is fine.
+
+Smallest of the three. Mostly data work + audit.
+
+### 2.5 — Mood / Genre filter
+
+JSON-driven mapping mood → scale-set + chord-quality weights. The minimum vocabulary the prompt lists: Bright, Dark, Jazzy, Bluesy, Latin, Film Noir, Ethereal, Happy, Melancholy, Heroic, Ancient, Lively.
+
+Engine work in `src/data/moods.json` + `src/lib/theory/`:
+- `MoodId = "bright" | "dark" | ...` (TS-typed).
+- `moodSchema`: `{ id: MoodId, label: string, scales: ScaleType[], qualityWeights: Record<ChordQuality, number> }`.
+- `filterByMood(chord-candidates, mood): scored-candidates` — runs each candidate against the mood's quality weights + scale memberships.
+
+UI:
+- Pill row of moods above the chord grid or as a sidebar.
+- Active mood biases the suggestion overlay (extending 2.2's overlay to "mood-weighted" mode) AND filters the progression library (extending 2.4 with mood-tagged filtering).
+
+Bigger lift than 2.4 because it touches both overlay + library. But shares the theory module v2.2 set up.
+
+**Design + integration notes for the resuming session:**
+
+- **Theory module versioning.** Today's `src/lib/theory/index.ts` exports four functions (`pitchClassOf`, `scalePitchClasses`, `isRootDiatonic`, `scaleDegreeOf`). The Phase 2.3 / 2.5 extensions ADD functions to this module — they should not modify the existing four. The 2.2 PR's test suite locks the canonical behavior of v1.
+- **No new dependencies.** Phase 1 added zero new top-level dependencies. The Phase 2 work should hold that line — everything can be pure functions + existing React + framer-motion + lucide.
+- **Bundled-archive pattern.** Each Phase 2 milestone's first commit archives the previous milestone, applies its spec deltas to canonical specs, and updates the plan + log. This session adopted that pattern from milestone 1.2 onward; it works well.
+- **Playwright cadence.** Holding the 10% pixel-ratio + 0.3 per-pixel tolerance across six UI-touching milestones (1.2 → 1.3 → 1.4 → 1.5 → 2.1 → 2.2). No real regression to demand tightening. Keep it.
+- **Open Qs ledger** (track these in the resuming session's log entries):
+  - Add `npm run lint` to CI? Status: unresolved.
+  - Hungarian voice-assignment vs the simpler min-distance metric in `harmonyBrain.computeVoiceLedProgression`? Status: no counterexample observed through Phase 1.
+  - Cross-platform Playwright snapshot tolerance — when (if ever) does it mask a real regression? Status: held across six milestones, no false-positive observed.
+  - Free Input key inference (guess key from typed chords) — UX investigation deferred from 2.2.
+  - UST design path — chromatic-tone insertion (new chord type vs extension hint mechanism). Status: deferred from v4 to a post-Phase-1 `piano-voicings-ust` openspec change. Not blocked, just unscheduled.
+
+**This handoff PR's scope:**
+
+- Plan-table updates that didn't land in 2.2's PR (an Edit stalled on a stale-context mismatch): 2.1 → Done, 2.2 → Done, deferred sub-items inserted as 2.1.x / 2.2.x.a / 2.2.x.b rows.
+- This dated log entry.
+- No code changes. No archive moves (2.1 + 2.2 archives already moved in their respective branches' first commits per the bundled-archive pattern).
+
+**Next concrete step (for whoever picks this up):**
+
+1. Read `docs/long_horizon_prompt.md` + this log entry's "design notes for 2.3-2.5" section + `docs/long_horizon_plan.md`.
+2. Start with 2.4 (smallest) if you want a fast warmup win, OR start with 2.3 (largest) if you want to get the substantive feature behind you first.
+3. Branch from `main`; the bundled-archive pattern means the new branch's first commit should be `chore(openspec): archive suggestion-overlay-diatonic + plan/log` (move 2.2's openspec change directory + apply its `chord-grid-suggestions` capability to a new canonical `openspec/specs/chord-grid-suggestions/spec.md` + log a "Phase 2.3 / 2.4 begin" entry).
+4. From there: openspec change → engine first → tests → UI → e2e → PR → self-merge — same rhythm Phase 1 used.
+
+**Session-end note.** The work has been continuous and the commits incremental, so cache warmth has stayed high and each PR has gone through CI quickly. The bundled-archive pattern has been worth it — saved roughly a 3-minute CI cycle per milestone. Keep doing that.

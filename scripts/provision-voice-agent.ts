@@ -6,9 +6,9 @@
  * agent/system-prompt.md or src/voice/toolSchemas.ts:
  *
  *   ELEVENLABS_API_KEY=sk_...                       \
- *   HH_ALLOWED_HOSTS=harmonyhash.app,localhost      \
+ *   HH_ALLOWED_HOSTS=harmony.tonari.ai,localhost    \
  *   [HH_VOICE_AGENT_ID=agent_...]  [HH_VOICE_ID=...] \
- *   npx tsx scripts/provision-agent.ts
+ *   npx tsx scripts/provision-voice-agent.ts
  *
  * Without HH_VOICE_AGENT_ID it creates a new agent and prints its id — set
  * that as HH_VOICE_AGENT_ID (server env) and pass it to <VoiceAgentProvider
@@ -78,7 +78,8 @@ const body = {
   },
   platform_settings: {
     summary_language: "en",
-    // Auth on: the browser must connect via a signed URL (signedUrlRoute.ts).
+    // Auth on: the browser must connect via a signed URL, minted by the Worker's
+    // POST /api/voice/signed-url route (backed by src/lib/elevenLabsAuth.ts).
     auth: { enable_auth: true, allowlist },
   },
 };

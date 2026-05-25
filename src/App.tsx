@@ -56,6 +56,10 @@ function App() {
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
   const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
   const [activeChordIndex, setActiveChordIndex] = useState<number | null>(null);
+  // Voice-companion highlight, kept SEPARATE from activeChordIndex: the latter is
+  // the playback cursor (isPlaying derives from it), so the agent highlighting a
+  // chord must not look like playback or block the Play button / play tool.
+  const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackHandleRef = useRef<PlaybackHandle | null>(null);
 
@@ -64,6 +68,7 @@ function App() {
     setCardVariants({});
     setLockedCards(new Set());
     setPianoStyles({});
+    setHighlightedChordIndex(null);
     playbackHandleRef.current?.stop();
   }, []);
 
@@ -201,7 +206,7 @@ function App() {
           if (activeIndexRef.current === null) togglePlaybackRef.current();
         },
         randomizeVoicings: () => randomizeAllRef.current(),
-        setHighlight: (index) => setActiveChordIndex(index),
+        setHighlight: (index) => setHighlightedChordIndex(index),
       }),
     [handleResult],
   );
@@ -299,7 +304,7 @@ function App() {
                     voicing={pianoVoicings[index]}
                     pianoStyle={getPianoStyle(index)}
                     onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
-                    isPlaying={activeChordIndex === index}
+                    isPlaying={activeChordIndex === index || highlightedChordIndex === index}
                   />
                 );
               })}

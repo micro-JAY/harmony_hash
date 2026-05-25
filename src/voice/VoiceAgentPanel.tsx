@@ -21,7 +21,7 @@ import { useProgressionAgentTools } from "./useProgressionAgentTools";
 export function VoiceAgentPanel() {
   const { bridge, agentId, signedUrlEndpoint, transcript } = useVoiceAgent();
   const { startSession, endSession } = useConversationControls();
-  const { status } = useConversationStatus();
+  const { status, message } = useConversationStatus();
 
   // Register the progression-builder tools for the lifetime of this panel.
   useProgressionAgentTools(bridge);
@@ -32,16 +32,26 @@ export function VoiceAgentPanel() {
   const live = status === "connected";
   const state: "live" | "wait" | "idle" = live ? "live" : connecting ? "wait" : "idle";
 
+  // startSession resolves before the WebSocket/mic handshake finishes, so a
+  // failed connection (denied mic, dropped session) surfaces via status — not
+  // the handleStart catch. Fold it in so connection failures aren't silent.
+  const displayError =
+    error ?? (status === "error" ? (message ?? "The voice session ran into a problem.") : null);
+
   const handleStart = useCallback(async () => {
     setError(null);
     setConnecting(true);
     try {
       if (signedUrlEndpoint) {
         const res = await fetch(signedUrlEndpoint, { method: "POST" });
-        if (!res.ok) throw new Error(`Auth endpoint returned ${res.status}`);
-        const data = (await res.json()) as { signedUrl?: string; error?: string };
-        if (!data.signedUrl) {
-          throw new Error(data.error ?? "Auth endpoint did not return a signedUrl");
+        // The Worker always replies JSON (even on failure); read its { error } so
+        // the user sees a real message rather than a bare status code.
+        const data = (await res.json().catch(() => ({}))) as {
+          signedUrl?: string;
+          error?: string;
+        };
+        if (!res.ok || !data.signedUrl) {
+          throw new Error(data.error ?? "Couldn't start the voice session — please try again.");
         }
         await startSession({ signedUrl: data.signedUrl });
       } else {
@@ -195,7 +205,7 @@ export function VoiceAgentPanel() {
         </ul>
       )}
 
-      {error && (
+      {displayError && (
         <p
           role="alert"
           className="rounded-lg"
@@ -209,7 +219,7 @@ export function VoiceAgentPanel() {
             border: "1px solid var(--status-error-border)",
           }}
         >
-          {error}
+          {displayError}
         </p>
       )}
 

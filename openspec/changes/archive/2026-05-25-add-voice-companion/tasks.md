@@ -46,5 +46,5 @@
 
 ## 8. Close-out
 - [x] 8.1 Full code review of touched + indirectly-affected files; fix criticals.
-- [ ] 8.2 Apply spec delta to `openspec/specs/voice-companion/spec.md`; archive the change. **(deferred to PR merge, per the workflow)**
+- [x] 8.2 Apply spec delta to `openspec/specs/voice-companion/spec.md`; archive the change.
 - [x] 8.3 Dated entry in `docs/long_horizon_log.md`; reconcile `docs/long_horizon_plan.md`.

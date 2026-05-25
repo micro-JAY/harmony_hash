@@ -48,6 +48,28 @@ function clampVariant(variant: number, maxVariants: number): number {
   return Math.floor(variant);
 }
 
+// Reindex an index-keyed map/set after removing one position: drop the removed
+// index and shift everything above it down by one, so per-card state stays
+// aligned with the chords that remain.
+function shiftIndexedRecord<T>(map: Record<number, T>, removed: number): Record<number, T> {
+  const next: Record<number, T> = {};
+  for (const key of Object.keys(map)) {
+    const i = Number(key);
+    if (i < removed) next[i] = map[i];
+    else if (i > removed) next[i - 1] = map[i];
+  }
+  return next;
+}
+
+function shiftIndexedSet(set: ReadonlySet<number>, removed: number): Set<number> {
+  const next = new Set<number>();
+  for (const i of set) {
+    if (i < removed) next.add(i);
+    else if (i > removed) next.add(i - 1);
+  }
+  return next;
+}
+
 function App() {
   const t = useT();
   const [instrument, setInstrument] = useState<Instrument>("guitar");
@@ -173,6 +195,21 @@ function App() {
     });
   }
 
+  // Remove one chord and REINDEX the per-card maps so surviving chords keep their
+  // variant/lock/style choices (index-keyed state would otherwise misalign). The
+  // voice companion's remove_chord tool uses this — an intentionally LOCAL edit,
+  // unlike handleResult which resets the whole timeline.
+  const removeChordAt = useCallback((index: number) => {
+    setChords((prev) => prev.filter((_, i) => i !== index));
+    setCardVariants((prev) => shiftIndexedRecord(prev, index));
+    setPianoStyles((prev) => shiftIndexedRecord(prev, index));
+    setLockedCards((prev) => shiftIndexedSet(prev, index));
+    setHighlightedChordIndex((h) =>
+      h === null || h === index ? null : h > index ? h - 1 : h,
+    );
+    playbackHandleRef.current?.stop();
+  }, []);
+
   // ── Voice companion bridge ──────────────────────────────────────────────
   // Tool callbacks fire OUTSIDE React's render cycle, so the bridge reads live
   // state through refs (never closing over the chords array) and calls the
@@ -180,12 +217,14 @@ function App() {
   const chordsRef = useRef(chords);
   const instrumentRef = useRef(instrument);
   const activeIndexRef = useRef(activeChordIndex);
+  const pianoVoicingsRef = useRef(pianoVoicings);
   const randomizeAllRef = useRef(randomizeAll);
   const togglePlaybackRef = useRef(handleTogglePlayback);
   useEffect(() => {
     chordsRef.current = chords;
     instrumentRef.current = instrument;
     activeIndexRef.current = activeChordIndex;
+    pianoVoicingsRef.current = pianoVoicings;
     randomizeAllRef.current = randomizeAll;
     togglePlaybackRef.current = handleTogglePlayback;
   });
@@ -200,15 +239,17 @@ function App() {
       createProgressionBridge({
         getChords: () => chordsRef.current,
         getInstrument: () => instrumentRef.current,
+        getVoicings: () => pianoVoicingsRef.current,
         setProgression: (next) => handleResult(next, []),
         appendChords: (next) => setChords((prev) => [...prev, ...next]),
+        removeChordAt: (index) => removeChordAt(index),
         startPlayback: () => {
           if (activeIndexRef.current === null) togglePlaybackRef.current();
         },
         randomizeVoicings: () => randomizeAllRef.current(),
         setHighlight: (index) => setHighlightedChordIndex(index),
       }),
-    [handleResult],
+    [handleResult, removeChordAt],
   );
 
   return (

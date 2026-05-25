@@ -71,14 +71,13 @@ const body = {
   },
   platform_settings: {
     summary_language: "en",
-    // Signed-URL auth ONLY. Per ElevenLabs guidance, enable_auth (signed URLs) and
-    // a hostname allowlist are ALTERNATIVE auth modes — do not configure both. We
-    // use signed URLs (the recommended client-side default): the browser connects
+    // Signed-URL auth ONLY (the recommended client-side mode): the browser connects
     // via the Worker's POST /api/voice/signed-url route (src/lib/elevenLabsAuth.ts).
-    // No allowlist key → a fresh create is pure signed-URL auth. (PATCH merges and
-    // the API rejects allowlist:null, so an agent created earlier WITH an allowlist
-    // keeps it until recreated — harmless when every served origin is allowlisted.)
-    auth: { enable_auth: true },
+    // An EMPTY allowlist is the single-mode state — it's the ElevenLabs default for a
+    // fresh agent (no host restriction, NOT "block all"). Setting it explicitly (vs
+    // omitting the key) also CLEARS any prior allowlist when PATCHing in place; the
+    // API rejects allowlist:null, and a bare PATCH merges and would keep stale hosts.
+    auth: { enable_auth: true, allowlist: [] },
   },
 };
 

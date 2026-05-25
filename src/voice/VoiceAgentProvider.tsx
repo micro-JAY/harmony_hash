@@ -1,48 +1,22 @@
 import { ConversationProvider } from "@elevenlabs/react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import type { ProgressionBridge } from "./types";
-
-export interface TranscriptEntry {
-  id: number;
-  role: "user" | "agent";
-  text: string;
-}
-
-interface VoiceAgentContextValue {
-  bridge: ProgressionBridge;
-  agentId: string;
-  /** Optional; explicit `undefined` is allowed so the value can be spread from props. */
-  signedUrlEndpoint?: string | undefined;
-  transcript: TranscriptEntry[];
-}
-
-const VoiceAgentContext = createContext<VoiceAgentContextValue | null>(null);
-
-/** Read voice-agent config/state. Throws if used outside <VoiceAgentProvider/>. */
-export function useVoiceAgent(): VoiceAgentContextValue {
-  const ctx = useContext(VoiceAgentContext);
-  if (!ctx) {
-    throw new Error("Voice agent hooks must be used inside <VoiceAgentProvider>");
-  }
-  return ctx;
-}
+import {
+  VoiceAgentContext,
+  type TranscriptEntry,
+  type VoiceAgentContextValue,
+} from "./voiceAgentContext";
 
 export interface VoiceAgentProviderProps {
-  /** Adapter over the host app's progression-builder store (see exampleAdapter.ts). */
+  /** Adapter over the host app's progression-builder state (see progressionBridge.ts). */
   bridge: ProgressionBridge;
-  /** ElevenLabs agent id printed by scripts/provision-agent.ts. */
+  /** ElevenLabs agent id printed by scripts/provision-voice-agent.ts. */
   agentId: string;
   /**
-   * Endpoint that mints a short-lived signed URL (see src/server/signedUrlRoute.ts).
-   * Required because the provisioned agent has authentication enabled. Omit only
-   * for a public dev agent, in which case the bare agentId is used to connect.
+   * Endpoint that mints a short-lived signed URL (the Worker's
+   * /api/voice/signed-url). Required because the provisioned agent has
+   * authentication enabled. Omit only for a public dev agent, in which case the
+   * bare agentId is used to connect.
    */
   signedUrlEndpoint?: string;
   children: ReactNode;
@@ -61,8 +35,8 @@ export function VoiceAgentProvider({
 }: VoiceAgentProviderProps) {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
 
-  // onMessage receives ElevenLabs' MessagePayload. Verified against
-  // @elevenlabs/react 1.6.3 / @elevenlabs/client 1.8.1: { message, role, ... }.
+  // onMessage receives ElevenLabs' MessagePayload. Verified against the installed
+  // @elevenlabs/react 1.6.3 / @elevenlabs/client: { message, role, ... }.
   const handleMessage = useCallback(
     (msg: { message: string; role: "user" | "agent" }) => {
       const text = msg.message?.trim();

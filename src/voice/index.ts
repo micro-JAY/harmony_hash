@@ -1,7 +1,8 @@
 /** Harmony Hash voice companion — public entry point. */
 
 export { VoiceAgentProvider } from "./VoiceAgentProvider";
-export type { VoiceAgentProviderProps, TranscriptEntry } from "./VoiceAgentProvider";
+export type { VoiceAgentProviderProps } from "./VoiceAgentProvider";
+export type { TranscriptEntry } from "./voiceAgentContext";
 
 export { VoiceAgentPanel } from "./VoiceAgentPanel";
 export { useProgressionAgentTools } from "./useProgressionAgentTools";

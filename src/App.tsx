@@ -185,8 +185,13 @@ function App() {
     togglePlaybackRef.current = handleTogglePlayback;
   });
 
+  // Built once and stable. Every method reads live state through the refs above
+  // and runs only when an ElevenLabs tool callback fires — outside React's render
+  // cycle — and the bridge renders nothing. The react-hooks/refs rule can't see
+  // that these reads are deferred, so it's disabled on this construction only.
   const voiceBridge = useMemo(
     () =>
+      // eslint-disable-next-line react-hooks/refs -- ref reads run on tool-callback invocation, never during render (the mandated ref-mirror pattern)
       createProgressionBridge({
         getChords: () => chordsRef.current,
         getInstrument: () => instrumentRef.current,

@@ -62,7 +62,7 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
       properties: {
         chords: {
           type: "array",
-          items: { type: "string" },
+          items: { type: "string", description: "A chord symbol, e.g. 'Am7'." },
           description: "Chord symbols to append, in order, e.g. ['Am','F','C','G'].",
         },
       },
@@ -79,7 +79,7 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
       properties: {
         chords: {
           type: "array",
-          items: { type: "string" },
+          items: { type: "string", description: "A chord symbol, e.g. 'Cmaj7'." },
           description: "The full new progression, in order.",
         },
       },

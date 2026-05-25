@@ -56,13 +56,17 @@ const body = {
           parameters: tool.parameters,
           expects_response: tool.expectsResponse,
         })),
-        built_in_tools: { end_call: {} },
+        // No built_in_tools: the panel's explicit "End conversation" button and
+        // max_duration_seconds cap the session; the agent-initiated end_call
+        // system tool needs a name/params sub-schema we don't depend on here.
       },
     },
     tts: {
       // George by default — warm, conversational. Override with HH_VOICE_ID.
       voice_id: process.env.HH_VOICE_ID ?? "JBFqnCBsd6RMkjVDRZzb",
-      model_id: "eleven_flash_v2_5", // ~75ms latency, recommended for agents
+      // English agents must use a turbo or flash *v2* model (the _v2_5 variants
+      // are multilingual and rejected for language:"en"). flash_v2 keeps ~75ms latency.
+      model_id: "eleven_flash_v2",
       stability: 0.4, // a little expressive for a friendly teacher
       speed: 1.0,
     },

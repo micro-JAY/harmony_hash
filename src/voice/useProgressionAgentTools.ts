@@ -1,5 +1,5 @@
 import { useConversationClientTool } from "@elevenlabs/react";
-import type { ChordRef, ProgressionBridge, SuggestionMode } from "./types";
+import type { ChordRef, ProgressionBridge } from "./types";
 
 /* --- input guards: client-tool params arrive untyped from the agent --- */
 
@@ -15,20 +15,6 @@ function requireStringArray(value: unknown, field: string): string[] {
     throw new Error(`'${field}' must be an array of chord symbols`);
   }
   return value as string[];
-}
-
-function requireString(value: unknown, field: string): string {
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`'${field}' is required and must be a non-empty string`);
-  }
-  return value;
-}
-
-function requireMode(value: unknown): SuggestionMode {
-  if (value !== "diatonic" && value !== "jazz") {
-    throw new Error("'mode' must be either 'diatonic' or 'jazz'");
-  }
-  return value;
 }
 
 function readChordRef(params: Record<string, unknown>): ChordRef {
@@ -70,10 +56,6 @@ export function useProgressionAgentTools(bridge: ProgressionBridge): void {
     return reply(await bridge.analyze());
   });
 
-  useConversationClientTool("get_chord_suggestions", async () => {
-    return reply({ suggestions: await bridge.getSuggestions() });
-  });
-
   useConversationClientTool("add_chords", async (params: unknown) => {
     const p = asRecord(params);
     await bridge.addChords(requireStringArray(p.chords, "chords"));
@@ -96,21 +78,10 @@ export function useProgressionAgentTools(bridge: ProgressionBridge): void {
     return reply({ ok: true, progression: await snapshot() });
   });
 
-  useConversationClientTool("set_key", async (params: unknown) => {
-    const p = asRecord(params);
-    await bridge.setKey(requireString(p.key, "key"));
-    return reply({ ok: true, progression: await snapshot() });
-  });
-
-  useConversationClientTool("set_suggestion_mode", async (params: unknown) => {
-    const p = asRecord(params);
-    await bridge.setMode(requireMode(p.mode));
-    return reply({ ok: true, progression: await snapshot() });
-  });
-
   useConversationClientTool("play_progression", async () => {
-    await bridge.play();
-    return reply({ ok: true });
+    // bridge.play() reports a constraint (e.g. needs piano view) rather than
+    // throwing or silently switching — surface it so the agent can relay it.
+    return reply(await bridge.play());
   });
 
   useConversationClientTool("randomize_progression", async () => {

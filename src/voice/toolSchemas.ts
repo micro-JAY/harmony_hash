@@ -2,12 +2,17 @@
  * Canonical client-tool schemas for the Harmony Hash voice agent.
  *
  * Single source of truth for tool names and parameter shapes. Imported by:
- *   - scripts/provision-agent.ts        — registers the tools on the ElevenLabs agent
- *   - src/voice/useProgressionAgentTools.ts — registers the browser-side handlers
+ *   - scripts/provision-voice-agent.ts        — registers the tools on the ElevenLabs agent
+ *   - src/voice/useProgressionAgentTools.ts    — registers the browser-side handlers
  *
- * Change a tool contract here and re-run provision-agent.ts so the platform
- * definition and the browser handlers never drift apart. This file has no
- * browser or React imports, so the Node provisioning script can import it too.
+ * Change a tool contract here and re-run provision-voice-agent.ts so the
+ * platform definition and the browser handlers never drift apart. This file has
+ * no browser or React imports, so the Node provisioning script can import it too.
+ *
+ * Scope note: this is the SHIPPED 9-tool surface. The package shipped 12; the
+ * three dropped tools (`get_chord_suggestions`, `set_key`, `set_suggestion_mode`)
+ * have no backing in Harmony Hash — there is no next-chord engine, no
+ * builder-level key state, and no diatonic/jazz toggle.
  */
 
 export interface ClientToolSchema {
@@ -37,21 +42,14 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
   {
     name: "get_progression",
     description:
-      "Read the chords, key and suggestion mode currently on the builder timeline. Call this before describing, analyzing or editing the current progression — never rely on memory.",
+      "Read the chord symbols currently on the builder timeline. Call this before describing, analyzing or editing the current progression — never rely on memory.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },
   {
     name: "analyze_progression",
     description:
-      "Get the builder's own theory analysis of the current progression: detected key, roman numerals, motion, tension, palette, style and compatible scales. Use this as the source of truth for any theory explanation.",
-    parameters: { type: "object", properties: {} },
-    expectsResponse: true,
-  },
-  {
-    name: "get_chord_suggestions",
-    description:
-      "Get the chord symbols the builder currently suggests as a strong next move. Use when the user asks what could come next.",
+      "Get what the app computes for the current progression: the chord symbols, each chord's tones (the note names in the chord), and the smooth piano voicing the app renders. Use this for accurate, app-grounded facts about the notes. You may add general music-theory explanation yourself, but never claim the app detected a key, roman numerals or scales — it does not compute those.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },
@@ -75,7 +73,7 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
   {
     name: "replace_progression",
     description:
-      "Replace the entire timeline with a new ordered list of chords. Use when generating a fresh progression from scratch. An empty list clears the timeline.",
+      "Replace the entire timeline with a new ordered list of chords. Use when generating a fresh progression from scratch — you choose the chord names. An empty list clears the timeline.",
     parameters: {
       type: "object",
       properties: {
@@ -103,45 +101,16 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
     expectsResponse: true,
   },
   {
-    name: "set_key",
-    description:
-      "Set the working key of the builder, e.g. 'E major' or 'C minor'. Do this before generating chords when the user names a key.",
-    parameters: {
-      type: "object",
-      properties: {
-        key: { type: "string", description: "Key name, e.g. 'F major', 'C# minor'." },
-      },
-      required: ["key"],
-    },
-    expectsResponse: true,
-  },
-  {
-    name: "set_suggestion_mode",
-    description:
-      "Switch the builder's suggestion engine between 'diatonic' (in-key) and 'jazz' (extended and borrowed) suggestions.",
-    parameters: {
-      type: "object",
-      properties: {
-        mode: {
-          type: "string",
-          enum: ["diatonic", "jazz"],
-          description: "Suggestion engine to use.",
-        },
-      },
-      required: ["mode"],
-    },
-    expectsResponse: true,
-  },
-  {
     name: "play_progression",
-    description: "Play the current progression so the user can hear it.",
+    description:
+      "Play the current progression so the user can hear it. Playback is available in the piano view only; if the guitar view is active the tool reports that, so tell the user to switch to piano.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },
   {
     name: "randomize_progression",
     description:
-      "Generate a fresh set of four chords that sound good together (the builder's 'roll' dice). Use when the user wants a surprise or says they are stuck.",
+      "Reshuffle the guitar variants or piano voicings of the chords already on the timeline. This does NOT generate new chords — it re-rolls how the existing chords are voiced or fingered. To create new chords, choose them yourself and call replace_progression or add_chords.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },

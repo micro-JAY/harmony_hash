@@ -16,7 +16,6 @@ export type {
   ProgressionBridge,
   ProgressionSnapshot,
   ProgressionAnalysis,
-  CompatibleScale,
   ChordRef,
-  SuggestionMode,
+  PlaybackResult,
 } from "./types";

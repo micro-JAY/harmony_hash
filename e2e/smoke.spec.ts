@@ -186,4 +186,15 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
       { name: "Cmaj7", midis: [52, 59] },
     ]);
   });
+
+  test("voice companion panel renders idle in the builder", async ({ page }) => {
+    await page.goto("/");
+    // The panel is always present (independent of the timeline) and starts idle.
+    // It must not request the microphone on load — only on connect.
+    await expect(page.getByText("Harmony Companion")).toBeVisible();
+    await expect(page.getByText("Offline")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Talk to the companion/i }),
+    ).toBeVisible();
+  });
 });

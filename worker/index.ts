@@ -1,9 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { lookupChordForAgent } from "../src/lib/chordLookup";
+import { fetchSignedUrl } from "../src/lib/elevenLabsAuth";
 
 interface Env {
   ANTHROPIC_API_KEY: string;
   ALLOWED_ORIGIN?: string;
+  // Voice companion. The API key is a Worker secret (.dev.vars / wrangler secret);
+  // the agent id is non-secret (wrangler.jsonc vars). Both optional so a
+  // misconfigured env fails closed with a 500 rather than a type error.
+  ELEVENLABS_API_KEY?: string;
+  HH_VOICE_AGENT_ID?: string;
   ASSETS: { fetch: (request: Request) => Promise<Response> };
 }
 
@@ -78,6 +84,16 @@ export default {
       return jsonResponse({ error: "Method not allowed" }, 405, request, env);
     }
 
+    if (url.pathname === "/api/voice/signed-url") {
+      if (request.method === "OPTIONS") {
+        return corsPreflight(request, env);
+      }
+      if (request.method === "POST") {
+        return handleVoiceSignedUrl(request, env);
+      }
+      return jsonResponse({ error: "Method not allowed" }, 405, request, env);
+    }
+
     return env.ASSETS.fetch(request);
   },
 };
@@ -90,6 +106,35 @@ function handleHealth(request: Request, env: Env): Response {
     request,
     env,
   );
+}
+
+// Mint a short-lived ElevenLabs signed URL so the browser can open an
+// authenticated voice session without ever seeing the API key. Mirrors the
+// /api/progression handler's origin gate and error contract.
+async function handleVoiceSignedUrl(request: Request, env: Env): Promise<Response> {
+  const requestOrigin = request.headers.get("Origin");
+  if (requestOrigin && !isOriginPermitted(requestOrigin, request, env)) {
+    return jsonResponse({ error: "Origin not allowed" }, 403, request, env);
+  }
+
+  if (!env.ELEVENLABS_API_KEY || !env.HH_VOICE_AGENT_ID) {
+    return jsonResponse(
+      { error: "Server misconfigured: voice companion is unavailable" },
+      500,
+      request,
+      env,
+    );
+  }
+
+  const outcome = await fetchSignedUrl(env.ELEVENLABS_API_KEY, env.HH_VOICE_AGENT_ID);
+  if (!outcome.ok) {
+    // Log the upstream detail server-side; never leak ElevenLabs internals or
+    // the key to the client. A failed mint is a 5xx, not a success shape.
+    console.error("[harmony-voice] signed-url:", outcome.error);
+    return jsonResponse({ error: "Could not start a voice session" }, 502, request, env);
+  }
+
+  return jsonResponse({ signedUrl: outcome.signedUrl }, 200, request, env);
 }
 
 async function handleProgression(request: Request, env: Env): Promise<Response> {

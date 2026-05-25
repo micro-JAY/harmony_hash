@@ -2,6 +2,11 @@
   "name": "harmony",
   "main": "worker/index.ts",
   "compatibility_date": "2026-04-02",
+  "vars": {
+    // Non-secret: the provisioned voice-companion agent id. The ElevenLabs API
+    // key is a secret set via `wrangler secret put ELEVENLABS_API_KEY` — never here.
+    "HH_VOICE_AGENT_ID": "agent_2501ksecrah0epa92phh1fh5ymxp"
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

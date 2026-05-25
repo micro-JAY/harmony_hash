@@ -8,6 +8,7 @@ import { useT } from "./i18n/I18nContext";
 import { computeVoiceLedProgression, isStyleApplicable } from "./lib/harmonyBrain";
 import { parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
+import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
 
 // Explicit (non-Auto) styles randomize cycles through. Auto is omitted
 // because it would defeat the "shake it up" intent of the button.
@@ -167,6 +168,39 @@ function App() {
     });
   }
 
+  // ── Voice companion bridge ──────────────────────────────────────────────
+  // Tool callbacks fire OUTSIDE React's render cycle, so the bridge reads live
+  // state through refs (never closing over the chords array) and calls the
+  // latest randomize/playback closures via refs. Built once; deps are stable.
+  const chordsRef = useRef(chords);
+  const instrumentRef = useRef(instrument);
+  const activeIndexRef = useRef(activeChordIndex);
+  const randomizeAllRef = useRef(randomizeAll);
+  const togglePlaybackRef = useRef(handleTogglePlayback);
+  useEffect(() => {
+    chordsRef.current = chords;
+    instrumentRef.current = instrument;
+    activeIndexRef.current = activeChordIndex;
+    randomizeAllRef.current = randomizeAll;
+    togglePlaybackRef.current = handleTogglePlayback;
+  });
+
+  const voiceBridge = useMemo(
+    () =>
+      createProgressionBridge({
+        getChords: () => chordsRef.current,
+        getInstrument: () => instrumentRef.current,
+        setProgression: (next) => handleResult(next, []),
+        appendChords: (next) => setChords((prev) => [...prev, ...next]),
+        startPlayback: () => {
+          if (activeIndexRef.current === null) togglePlaybackRef.current();
+        },
+        randomizeVoicings: () => randomizeAllRef.current(),
+        setHighlight: (index) => setActiveChordIndex(index),
+      }),
+    [handleResult],
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header instrument={instrument} onInstrumentChange={setInstrument} />
@@ -226,6 +260,18 @@ function App() {
             </button>
           </div>
         )}
+
+        {/* Voice companion (provider wraps only the panel; the bridge reads
+            app state via refs, independent of this provider) */}
+        <VoiceAgentProvider
+          bridge={voiceBridge}
+          agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
+          signedUrlEndpoint="/api/voice/signed-url"
+        >
+          <div className="flex justify-center px-4">
+            <VoiceAgentPanel />
+          </div>
+        </VoiceAgentProvider>
 
         {/* Chord Cards */}
         {chords.length > 0 && (

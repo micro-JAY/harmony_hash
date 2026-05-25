@@ -6,8 +6,8 @@ export type { VoiceAgentProviderProps, TranscriptEntry } from "./VoiceAgentProvi
 export { VoiceAgentPanel } from "./VoiceAgentPanel";
 export { useProgressionAgentTools } from "./useProgressionAgentTools";
 
-// `createProgressionBridge` is exported once the real adapter lands in
-// progressionBridge.ts (Stage 3). The package's exampleAdapter.ts is not copied.
+export { createProgressionBridge } from "./progressionBridge";
+export type { BridgeChord, ProgressionBridgeDeps } from "./progressionBridge";
 
 export { TOOL_SCHEMAS, TOOL_NAMES } from "./toolSchemas";
 export type { ClientToolSchema } from "./toolSchemas";

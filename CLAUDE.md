@@ -10,6 +10,8 @@ Harmony Hash is mid–long-horizon run on the **Piano Voicing Roadmap (v1 → v5
 
 The contract for this run is in `docs/long_horizon_prompt.md`. Re-read it whenever you resume. **The canonical v1–v5 spec lives in `docs/inspiration/README.md`** under the "Piano Voicing — Roadmap" heading at the bottom. The README is tracked in the repo; the screenshots alongside it are gitignored (local-only reference). v1 (Drop 2 voicing) is already shipped in `src/lib/harmonyBrain.ts` and `src/components/PianoKeyboard.tsx`.
 
+A user-directed **voice companion** (a real-time ElevenLabs voice agent under `src/voice/`) also shipped as a side-track *outside* this roadmap — see the 2026-05-25 `docs/long_horizon_log.md` entry, the `voice-companion` capability spec, and the "Voice companion" architecture section below.
+
 Live state of the run lives in:
 
 - `docs/long_horizon_plan.md` — milestones, branches, PR links, status (Done / In Progress / Blocked / Cancelled).
@@ -67,13 +69,19 @@ npm run test:watch   # vitest in watch mode
 npx vitest run src/lib/harmonyBrain.test.ts   # single test file
 npx wrangler dev     # Worker + static assets at http://localhost:8787 (run `npm run build` first)
 npm run deploy       # build, then deploy Worker `harmony` with assets binding
+
+# Voice companion: create/update the ElevenLabs agent from agent/system-prompt.md
+# + the trimmed tool set. Needs ELEVENLABS_API_KEY; prints the agent id. Re-run
+# after editing the prompt or src/voice/toolSchemas.ts.
+ELEVENLABS_API_KEY=sk_... HH_ALLOWED_HOSTS=harmony.tonari.ai,localhost \
+  npx tsx scripts/provision-voice-agent.ts
 ```
 
 CI (`.github/workflows/ci.yml`) runs `npm run build` then `npm run test` on every push.
 
 ## Architecture
 
-Harmony Hash is a single deployable unit: a Vite/React SPA served as static assets by a Cloudflare Worker that also exposes one API route. The Worker config lives at the repo root (`wrangler.jsonc`); there is no separate Worker package.
+Harmony Hash is a single deployable unit: a Vite/React SPA served as static assets by a Cloudflare Worker that also exposes a few API routes. The Worker config lives at the repo root (`wrangler.jsonc`); there is no separate Worker package.
 
 ### The two halves share code
 
@@ -87,7 +95,7 @@ This means the chord dictionary, root normalization, and lookup logic are the **
 
 ### Request routing
 
-`wrangler.jsonc` uses `run_worker_first: ["/api/*"]` with `not_found_handling: "single-page-application"`. The Worker handles `/api/progression` itself and falls through to `env.ASSETS.fetch(request)` for everything else. SPA client-side routes resolve via the assets binding's SPA fallback.
+`wrangler.jsonc` uses `run_worker_first: ["/api/*"]` with `not_found_handling: "single-page-application"`. The Worker handles `/api/progression`, `/api/health`, and `/api/voice/signed-url` itself and falls through to `env.ASSETS.fetch(request)` for everything else. SPA client-side routes resolve via the assets binding's SPA fallback.
 
 ### Progression agent flow
 
@@ -105,12 +113,23 @@ Error contract: 400 (bad input), 403 (CORS origin), 500 (config / validation), 5
 
 `src/lib/harmonyBrain.ts` is the music-theory engine. Manual input flows: `parseChordInput()` (in `harmonyBrain.ts`) → `lookupChord()` (in `chordData.ts`) → `IndexedChord` objects → `ChordCard` → `GuitarChordDiagram` (SVG variants from `public/music_src/`) or `PianoKeyboard` (Drop 2 voicing computed in `harmonyBrain.ts`). Internal note encoding uses `s`/`f` for sharp/flat (e.g. `Cs`, `Ef`) — display formatting happens at the edge via `formatNoteForDisplay()` and `prefersFlatNotation()`.
 
+### Voice companion (`src/voice/`)
+
+A real-time ElevenLabs voice agent — a voice-native sibling of the text progression agent. A musician talks through what they want (the companion builds/edits the timeline) and asks for the theory behind it. The agent runs on the ElevenLabs Agents platform and drives the builder through **client tools**. Canonical spec: `openspec/specs/voice-companion/spec.md`.
+
+- **Bridge over a ref-mirror, not a store.** `src/voice/progressionBridge.ts` (`createProgressionBridge(deps)`) implements the `ProgressionBridge` contract (`src/voice/types.ts`). `App.tsx` builds it **once** (`useMemo`) over refs that mirror `chords` / `instrument` / `activeChordIndex` plus the `randomizeAll` / playback closures (updated in a no-deps effect), so ElevenLabs tool callbacks — which fire *outside* React's render cycle — always read fresh state. Don't lift the progression into Zustand for this; the ref-mirror is the deliberate, low-blast-radius choice. (It carries the repo's only `eslint-disable` — a reasoned `react-hooks/refs` suppression, since the rule can't see that the ref reads are deferred to callback time.)
+- **Tool surface = 9 client tools**, defined once in `src/voice/toolSchemas.ts` (shared by the browser hook `src/voice/useProgressionAgentTools.ts` *and* the provisioning script). `toolSchemas.ts`, the hook, and `agent/system-prompt.md` must always agree on the same names. The agent only gets what the app genuinely backs — there are **no** key-setting, suggestion-mode, or next-chord tools, because `harmonyBrain.ts` does not detect keys, derive numerals, rank scales, or suggest next chords. `analyze_progression` returns chord symbols + tones (`parseNotes`) + the voice-led voicing (`computeVoiceLedProgression`) only; the system prompt forbids the agent claiming the app computed a key/numerals/scales. `randomize_progression` reshuffles existing voicings/variants — it does not generate chords.
+- **Signed-URL auth.** The provisioned agent has auth enabled, so the browser never connects with a bare agent id. `POST /api/voice/signed-url` (in `worker/index.ts`, backed by `src/lib/elevenLabsAuth.ts`) mints a short-lived signed URL with the server-held key, mirroring `/api/progression`'s CORS/allowlist/error contract (403 bad origin, 500 missing config, 502 + server-log on an upstream failure, 200 `{ signedUrl }`). The agent highlight (`highlightedChordIndex` in `App.tsx`) is kept **separate** from the `activeChordIndex` playback cursor — don't merge them.
+- **Provider/panel.** `src/voice/VoiceAgentProvider.tsx` wraps the ElevenLabs `ConversationProvider`; `src/voice/voiceAgentContext.ts` holds the context + `useVoiceAgent` hook (split out so the provider file is component-only, per react-refresh, mirroring `I18nContext.ts`/`I18nProvider.tsx`). The panel (`VoiceAgentPanel.tsx`) is styled with inline CSS-variable tokens — no per-component stylesheet. The package's `voice-agent.css` / `exampleAdapter.ts` / `signedUrlRoute.ts` and the `@elevenlabs/elevenlabs-js` SDK were intentionally **not** adopted (raw `fetch` instead).
+
 ## Worker configuration
 
 Both `.dev.vars` and `wrangler.jsonc` live at the **repo root** (not in `worker/`).
 
 - `ANTHROPIC_API_KEY` — required. Local: `.dev.vars` (gitignored). Prod: `npx wrangler secret put ANTHROPIC_API_KEY`.
 - `ALLOWED_ORIGIN` — comma-separated origin allowlist; supports `*`. **The Worker fails closed**: when unset, only `localhost`/`127.0.0.1` origins receive CORS headers. Production deployments must set this (`https://harmony.tonari.ai`) or browsers will be blocked.
+- `ELEVENLABS_API_KEY` — required for the voice companion's signed-URL route. Local: `.dev.vars` (gitignored). Prod: `npx wrangler secret put ELEVENLABS_API_KEY`. **Worker/CLI only — never a `VITE_`-prefixed var, never a committed file.**
+- `HH_VOICE_AGENT_ID` — the provisioned voice agent id (non-secret). `.dev.vars` locally; a plain `vars` entry in `wrangler.jsonc` for prod. The browser reads the *same* id via `import.meta.env.VITE_HH_VOICE_AGENT_ID` (`.env` / committed `.env.example`).
 
 See `worker/README.md` for full deploy/secrets details and curl examples.
 

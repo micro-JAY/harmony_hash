@@ -8,6 +8,7 @@ import { useT } from "./i18n/I18nContext";
 import { computeVoiceLedProgression, isStyleApplicable } from "./lib/harmonyBrain";
 import { parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
+import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
 
 // Explicit (non-Auto) styles randomize cycles through. Auto is omitted
 // because it would defeat the "shake it up" intent of the button.
@@ -55,6 +56,10 @@ function App() {
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
   const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
   const [activeChordIndex, setActiveChordIndex] = useState<number | null>(null);
+  // Voice-companion highlight, kept SEPARATE from activeChordIndex: the latter is
+  // the playback cursor (isPlaying derives from it), so the agent highlighting a
+  // chord must not look like playback or block the Play button / play tool.
+  const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackHandleRef = useRef<PlaybackHandle | null>(null);
 
@@ -63,6 +68,7 @@ function App() {
     setCardVariants({});
     setLockedCards(new Set());
     setPianoStyles({});
+    setHighlightedChordIndex(null);
     playbackHandleRef.current?.stop();
   }, []);
 
@@ -167,6 +173,44 @@ function App() {
     });
   }
 
+  // ── Voice companion bridge ──────────────────────────────────────────────
+  // Tool callbacks fire OUTSIDE React's render cycle, so the bridge reads live
+  // state through refs (never closing over the chords array) and calls the
+  // latest randomize/playback closures via refs. Built once; deps are stable.
+  const chordsRef = useRef(chords);
+  const instrumentRef = useRef(instrument);
+  const activeIndexRef = useRef(activeChordIndex);
+  const randomizeAllRef = useRef(randomizeAll);
+  const togglePlaybackRef = useRef(handleTogglePlayback);
+  useEffect(() => {
+    chordsRef.current = chords;
+    instrumentRef.current = instrument;
+    activeIndexRef.current = activeChordIndex;
+    randomizeAllRef.current = randomizeAll;
+    togglePlaybackRef.current = handleTogglePlayback;
+  });
+
+  // Built once and stable. Every method reads live state through the refs above
+  // and runs only when an ElevenLabs tool callback fires — outside React's render
+  // cycle — and the bridge renders nothing. The react-hooks/refs rule can't see
+  // that these reads are deferred, so it's disabled on this construction only.
+  const voiceBridge = useMemo(
+    () =>
+      // eslint-disable-next-line react-hooks/refs -- ref reads run on tool-callback invocation, never during render (the mandated ref-mirror pattern)
+      createProgressionBridge({
+        getChords: () => chordsRef.current,
+        getInstrument: () => instrumentRef.current,
+        setProgression: (next) => handleResult(next, []),
+        appendChords: (next) => setChords((prev) => [...prev, ...next]),
+        startPlayback: () => {
+          if (activeIndexRef.current === null) togglePlaybackRef.current();
+        },
+        randomizeVoicings: () => randomizeAllRef.current(),
+        setHighlight: (index) => setHighlightedChordIndex(index),
+      }),
+    [handleResult],
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header instrument={instrument} onInstrumentChange={setInstrument} />
@@ -227,6 +271,18 @@ function App() {
           </div>
         )}
 
+        {/* Voice companion (provider wraps only the panel; the bridge reads
+            app state via refs, independent of this provider) */}
+        <VoiceAgentProvider
+          bridge={voiceBridge}
+          agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
+          signedUrlEndpoint="/api/voice/signed-url"
+        >
+          <div className="flex justify-center px-4">
+            <VoiceAgentPanel />
+          </div>
+        </VoiceAgentProvider>
+
         {/* Chord Cards */}
         {chords.length > 0 && (
           <section className="w-full max-w-7xl mx-auto px-4">
@@ -248,7 +304,7 @@ function App() {
                     voicing={pianoVoicings[index]}
                     pianoStyle={getPianoStyle(index)}
                     onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
-                    isPlaying={activeChordIndex === index}
+                    isPlaying={activeChordIndex === index || highlightedChordIndex === index}
                   />
                 );
               })}

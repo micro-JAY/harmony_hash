@@ -62,6 +62,14 @@ Begins only after v5 merges. Each item is one openspec change → one branch →
 
 ---
 
+## Side tracks (user-directed, outside the v1–v5 / Phase-2 roadmap)
+
+| # | Milestone | Branch | Change-id | Capabilities touched | Status |
+|---|-----------|--------|-----------|----------------------|--------|
+| S.1 | **Voice Companion** — ElevenLabs real-time voice agent that reads/edits the progression timeline and explains theory. 9-tool client surface, signed-URL Worker route, ref-mirror bridge, Tonari-styled panel. See the 2026-05-25 log entry. | `feat/voice-companion` | `add-voice-companion` (active — archive on PR merge) | new `voice-companion`; touches `app-shell` (panel mount) | **In Review** (PR open, CI green; openspec change archived + canonical spec applied on merge) |
+
+---
+
 ## Decisions log
 
 Day-by-day decisions, rationales, blockers, and open questions (prefix `Q:` for greppable user questions) live in `docs/long_horizon_log.md`. Reconcile this plan with that log on every milestone boundary.

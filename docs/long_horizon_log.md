@@ -346,3 +346,33 @@ Bigger lift than 2.4 because it touches both overlay + library. But shares the t
 4. From there: openspec change → engine first → tests → UI → e2e → PR → self-merge — same rhythm Phase 1 used.
 
 **Session-end note.** The work has been continuous and the commits incremental, so cache warmth has stayed high and each PR has gone through CI quickly. The bundled-archive pattern has been worth it — saved roughly a 3-minute CI cycle per milestone. Keep doing that.
+
+---
+
+## 2026-05-25 — Voice Companion (side-track, not a Phase-2 roadmap item)
+
+A user-directed side-quest, separate from the v1–v5 / Phase-2 roadmap: a **voice companion** built on the ElevenLabs Agents platform. A musician can talk through a progression (the companion builds/edits it on the timeline) and ask for the theory behind it (in depth or ELI5). It is a voice-native sibling of the text `ProgressionAgent`. Branch `feat/voice-companion`, openspec change `add-voice-companion`.
+
+**What shipped (7 staged commits + 1 review-fix commit):**
+- `src/voice/` module adapted from a supplied integration package: `ProgressionBridge` contract (`types.ts`), client-tool schemas (`toolSchemas.ts`), browser tool-handler hook, ElevenLabs provider + split `voiceAgentContext.ts`, restyled panel, and the real `progressionBridge.ts` adapter.
+- New Worker route `POST /api/voice/signed-url` (in the existing `worker/index.ts`) backed by `src/lib/elevenLabsAuth.ts`, mirroring `/api/progression`'s CORS/allowlist/error contract. Provisioned a live ElevenLabs agent (`agent_2501ksecrah0epa92phh1fh5ymxp`).
+- Mounted the provider + panel in `App.tsx` over a **ref-mirror** (no new store) so tool callbacks read live state outside React's render cycle.
+
+**Key decisions / reconciliations:**
+- **Tool surface trimmed 12 → 9.** Dropped `get_chord_suggestions`, `set_key`, `set_suggestion_mode`: reading `harmonyBrain.ts` + `theory/` confirmed there is **no key detection, roman-numeral analysis, compatible-scale ranking, or next-chord engine**. `analyze_progression` reshaped to only what the engine computes (chords, tones, voice-led voicing); the system prompt forbids the agent claiming the app computed key/numerals/scales.
+- **`randomize_progression` redefined** to "reshuffle existing voicings/variants" (the shipped `randomizeAll` does not generate chords).
+- **Ref-mirror over Zustand** (deliberate, low blast radius — core state untouched).
+- **Critical bug caught in review + fixed:** `highlight_chord` and `play_progression` had collided on `activeChordIndex` (the playback cursor); split into a dedicated `highlightedChordIndex`. Also surfaced live-connection errors in the panel (`startSession` is sync in `@elevenlabs/react` 1.6.3, so failures bypass the `handleStart` catch).
+
+**Security:** `ELEVENLABS_API_KEY` is Worker-only (`.dev.vars` locally; `wrangler secret put` in prod — the run operator's step). Only the non-secret `VITE_HH_VOICE_AGENT_ID` reaches the browser. Verified no key in any committed file.
+
+**Verification:** `npm run lint` (0), `npm run build` (0), `npm run test` (120), `npm run test:e2e` (5 — added an idle-panel render test, regenerated the ii-V-I baseline since the panel grew the page). Signed-URL route verified live against `wrangler dev` (200 happy path; 502 + server log on a bad key). All 5 Playwright screenshot gates passed (desktop, idle gold/warm tokens, 375px reflow, connect-state + fetch, builder regression).
+
+**Open Qs / follow-ups for a later session** (also written to `claude-code_sessions/prompts/prompt-harmony-hash-audit.md`):
+- `Q:` Lazy-load the voice panel (React.lazy)? The `@elevenlabs` SDK adds ~135KB gzip to the main bundle (135 → 269KB gzip). Status: noted, not done (the panel is always-visible; lazy-loading mainly defers initial transfer).
+- `Q:` Distinct visual for agent highlight vs the playback glow (currently shares the "playing" emphasis). Status: deferred.
+- Worker returns 502 on an upstream ElevenLabs failure (more correct than 500 for a gateway); intentional.
+- `play_progression` returns ok when already playing — could distinguish "started" vs "already playing" for the agent's spoken feedback.
+- A `provision:voice` npm script would make the provisioning incantation discoverable.
+
+**Bundled-archive note:** unlike the Phase-2 milestones, this side-track's openspec change is left **active** (`openspec/changes/add-voice-companion/`) pending PR merge — archive + canonical `openspec/specs/voice-companion/spec.md` application is the merge-time step (tasks.md 8.2).

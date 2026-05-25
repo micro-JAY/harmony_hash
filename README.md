@@ -4,6 +4,8 @@
 
 Harmony Hash is a Tonari Labs web tool for building, visualizing, and exploring chord progressions. Whether you're working out a jazz standard, a neo-soul loop, or just trying to hear how a borrowed chord sits — Harmony Hash gives you the charts, the variants, and the theory context to move fast.
 
+Or skip the typing entirely and **talk to it**: the built-in voice companion builds progressions from a spoken idea and explains the theory by ear.
+
 ---
 
 ## What It Does
@@ -57,6 +59,24 @@ Shows a two-octave keyboard with the active notes highlighted. The app splits th
 ### Switching Instruments
 
 Use the **Guitar / Piano** toggle at the top to switch the view across all cards at once.
+
+---
+
+## Talk to It — the Voice Companion
+
+Harmony Hash has a built-in **voice companion** you can actually talk to. Click **Talk to the companion** in the builder, allow your microphone, and just say what you're after:
+
+> *"Give me something dreamy in F."*
+> *"Make the ending more tense."*
+> *"Why does this progression resolve so nicely?"*
+> *"Explain that like I'm five."*
+
+It works two ways:
+
+- **Co-writing** — describe a mood, genre, or goal and it builds the progression on your timeline, chord by chord. Ask it to extend it, swap a chord, clear it, re-voice it, or play it back.
+- **Understanding** — ask why a progression works or what a chord is doing. It highlights the chord on screen while it explains, and you can dial the depth up or down — full voice-leading-and-cadences detail, or plain language with no jargon.
+
+The companion always works from the chords actually on your timeline, so what it tells you matches what you see and hear. (Playback happens in the piano view — switch to **Piano** if it asks.)
 
 ---
 

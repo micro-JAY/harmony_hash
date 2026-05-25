@@ -8,3 +8,11 @@ ANTHROPIC_API_KEY=
 # Do NOT set this as a Cloudflare secret with an empty value — it's harmless
 # either way now, but leaving the binding unset keeps the surface minimal.
 ALLOWED_ORIGIN=
+
+# Voice companion (ElevenLabs). The API key is Worker/CLI only — never ship it
+# to the browser, a VITE_ var, or wrangler.jsonc. Needs the ElevenAgents → Write
+# permission to provision the agent. Production: `wrangler secret put ELEVENLABS_API_KEY`.
+ELEVENLABS_API_KEY=
+# The provisioned agent id (printed by scripts/provision-voice-agent.ts). NOT
+# secret — also set as a non-secret var in wrangler.jsonc for production.
+HH_VOICE_AGENT_ID=

@@ -30,7 +30,12 @@ export function VoiceAgentPanel() {
   const [connecting, setConnecting] = useState(false);
 
   const live = status === "connected";
-  const state: "live" | "wait" | "idle" = live ? "live" : connecting ? "wait" : "idle";
+  // Treat the SDK's own "connecting" status as busy too: startSession resolves
+  // before the handshake finishes, so local `connecting` flips false mid-connect
+  // and the button would otherwise re-enable and flash "Offline". (The SDK's
+  // lockRef already blocks a duplicate startSession; this fixes the misleading UI.)
+  const busy = connecting || status === "connecting";
+  const state: "live" | "wait" | "idle" = live ? "live" : busy ? "wait" : "idle";
 
   // startSession resolves before the WebSocket/mic handshake finishes, so a
   // failed connection (denied mic, dropped session) surfaces via status — not
@@ -116,7 +121,7 @@ export function VoiceAgentPanel() {
             border: `1px solid color-mix(in srgb, ${statusColor} 40%, transparent)`,
           }}
         >
-          {live ? "Listening" : connecting ? "Connecting" : "Offline"}
+          {live ? "Listening" : busy ? "Connecting" : "Offline"}
         </span>
       </header>
 
@@ -253,29 +258,29 @@ export function VoiceAgentPanel() {
           type="button"
           className="hhv-btn rounded-lg"
           onClick={handleStart}
-          disabled={connecting}
-          aria-busy={connecting}
+          disabled={busy}
+          aria-busy={busy}
           style={{
             padding: "0.7rem 0.875rem",
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-sm)",
             fontWeight: "var(--weight-semibold)",
             letterSpacing: "var(--tracking-wide)",
-            cursor: connecting ? "progress" : "pointer",
-            opacity: connecting ? 0.6 : 1,
+            cursor: busy ? "progress" : "pointer",
+            opacity: busy ? 0.6 : 1,
             color: "var(--interactive-accent-text)",
             background: "var(--interactive-accent-bg)",
             border: "1px solid var(--interactive-accent-border)",
             transition: "background var(--duration-fast) var(--ease-out)",
           }}
           onMouseEnter={(e) => {
-            if (!connecting) e.currentTarget.style.background = "var(--interactive-accent-bg-hover)";
+            if (!busy) e.currentTarget.style.background = "var(--interactive-accent-bg-hover)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = "var(--interactive-accent-bg)";
           }}
         >
-          {connecting ? "Connecting…" : "Talk to the companion"}
+          {busy ? "Connecting…" : "Talk to the companion"}
         </button>
       )}
 

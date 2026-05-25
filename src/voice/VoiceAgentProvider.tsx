@@ -1,5 +1,5 @@
 import { ConversationProvider } from "@elevenlabs/react";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ProgressionBridge } from "./types";
 import {
   VoiceAgentContext,
@@ -35,16 +35,20 @@ export function VoiceAgentProvider({
 }: VoiceAgentProviderProps) {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
 
+  // Monotonic transcript ids. `slice(-19)` caps the array at 20, so `prev.length`
+  // would stick at 20 and hand React duplicate keys (stale/misordered rows in long
+  // sessions). Increment a ref OUTSIDE the setState updater — the updater can run
+  // twice under StrictMode, but an event handler runs once.
+  const nextIdRef = useRef(0);
+
   // onMessage receives ElevenLabs' MessagePayload. Verified against the installed
   // @elevenlabs/react 1.6.3 / @elevenlabs/client: { message, role, ... }.
   const handleMessage = useCallback(
     (msg: { message: string; role: "user" | "agent" }) => {
       const text = msg.message?.trim();
       if (!text) return;
-      setTranscript((prev) => [
-        ...prev.slice(-19),
-        { id: prev.length, role: msg.role, text },
-      ]);
+      const id = nextIdRef.current++;
+      setTranscript((prev) => [...prev.slice(-19), { id, role: msg.role, text }]);
     },
     [],
   );

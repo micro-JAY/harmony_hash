@@ -5,8 +5,7 @@
  * Run it once to create the agent, then re-run it any time you edit
  * agent/system-prompt.md or src/voice/toolSchemas.ts:
  *
- *   ELEVENLABS_API_KEY=sk_...                       \
- *   HH_ALLOWED_HOSTS=harmony.tonari.ai,localhost    \
+ *   ELEVENLABS_API_KEY=sk_...                        \
  *   [HH_VOICE_AGENT_ID=agent_...]  [HH_VOICE_ID=...] \
  *   npx tsx scripts/provision-voice-agent.ts
  *
@@ -29,12 +28,6 @@ const apiKey = process.env.ELEVENLABS_API_KEY;
 if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set");
 
 const systemPrompt = readFileSync(resolve(here, "../agent/system-prompt.md"), "utf8");
-
-const allowlist = (process.env.HH_ALLOWED_HOSTS ?? "localhost")
-  .split(",")
-  .map((host) => host.trim())
-  .filter(Boolean)
-  .map((hostname) => ({ hostname }));
 
 const body = {
   name: "Harmony Hash — Progression Companion",
@@ -78,9 +71,14 @@ const body = {
   },
   platform_settings: {
     summary_language: "en",
-    // Auth on: the browser must connect via a signed URL, minted by the Worker's
-    // POST /api/voice/signed-url route (backed by src/lib/elevenLabsAuth.ts).
-    auth: { enable_auth: true, allowlist },
+    // Signed-URL auth ONLY. Per ElevenLabs guidance, enable_auth (signed URLs) and
+    // a hostname allowlist are ALTERNATIVE auth modes — do not configure both. We
+    // use signed URLs (the recommended client-side default): the browser connects
+    // via the Worker's POST /api/voice/signed-url route (src/lib/elevenLabsAuth.ts).
+    // No allowlist key → a fresh create is pure signed-URL auth. (PATCH merges and
+    // the API rejects allowlist:null, so an agent created earlier WITH an allowlist
+    // keeps it until recreated — harmless when every served origin is allowlisted.)
+    auth: { enable_auth: true },
   },
 };
 

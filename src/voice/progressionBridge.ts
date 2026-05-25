@@ -12,14 +12,13 @@
  * `lookupChord`, analysis is computed from `parseNotes` + the voice-leading
  * engine, and playback honors the app's piano-only constraint.
  */
-import type { IndexedChord, Instrument } from "../lib/types";
+import type { IndexedChord, Instrument, VoicedChord } from "../lib/types";
 import {
   formatNoteForDisplay,
   lookupChord,
   parseNotes,
   prefersFlatNotation,
 } from "../lib/chordData";
-import { computeVoiceLedProgression } from "../lib/harmonyBrain";
 import type {
   ChordRef,
   PlaybackResult,
@@ -44,10 +43,14 @@ export interface ProgressionBridgeDeps {
   getChords(): BridgeChord[];
   /** The current instrument/view ("guitar" | "piano"). */
   getInstrument(): Instrument;
+  /** The on-screen piano voicings (per-card styles applied), parallel to getChords(). */
+  getVoicings(): VoicedChord[];
   /** Replace the whole timeline (resets per-card variant/lock/style state). */
   setProgression(chords: BridgeChord[]): void;
   /** Append to the timeline, preserving existing per-card state. */
   appendChords(chords: BridgeChord[]): void;
+  /** Remove one chord by index, reindexing per-card state so survivors keep their choices. */
+  removeChordAt(index: number): void;
   /** Start playback if it is not already running (no-op when playing). */
   startPlayback(): void;
   /** Reshuffle the variants/voicings of the existing chords. */
@@ -108,14 +111,18 @@ export function createProgressionBridge(deps: ProgressionBridgeDeps): Progressio
 
   const analyze = (): ProgressionAnalysis => {
     const chords = deps.getChords();
-    const noteSets = chords.map((c) => parseNotes(c.chord.entry));
-    const voiced = computeVoiceLedProgression(noteSets);
+    // Use the SAME voicings the UI renders (per-card styles applied), not a fresh
+    // all-auto recompute — otherwise after a style change / randomize the tool would
+    // report notes that differ from what's on screen. Parallel to `chords`.
+    const voiced = deps.getVoicings();
     return {
       chords: symbolsOf(chords),
       chordCount: chords.length,
       chordTones: chords.map((c) => chordToneNames(c.chord)),
-      voicing: voiced.map((v, i) => {
-        const preferFlats = prefersFlatNotation(chords[i].chord.root);
+      voicing: chords.map((c, i) => {
+        const v = voiced[i];
+        if (!v) return [];
+        const preferFlats = prefersFlatNotation(c.chord.root);
         return v.notes.map((n) => `${formatNoteForDisplay(n.name, preferFlats)}${n.octave}`);
       }),
     };
@@ -137,9 +144,8 @@ export function createProgressionBridge(deps: ProgressionBridgeDeps): Progressio
     },
     clear: () => deps.setProgression([]),
     removeChord: (ref) => {
-      const chords = deps.getChords();
-      const i = resolveIndex(chords, ref);
-      deps.setProgression(chords.filter((_, idx) => idx !== i));
+      const i = resolveIndex(deps.getChords(), ref);
+      deps.removeChordAt(i);
     },
 
     play: (): PlaybackResult => {

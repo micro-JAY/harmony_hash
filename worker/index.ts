@@ -1,9 +1,14 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
+import type {
+  FunctionTool,
+  ResponseFunctionToolCall,
+  ResponseInputItem,
+} from "openai/resources/responses/responses";
 import { lookupChordForAgent } from "../src/lib/chordLookup";
 import { fetchSignedUrl } from "../src/lib/elevenLabsAuth";
 
 interface Env {
-  ANTHROPIC_API_KEY: string;
+  OPENAI_API_KEY: string;
   ALLOWED_ORIGIN?: string;
   // Voice companion. The API key is a Worker secret (.dev.vars / wrangler secret);
   // the agent id is non-secret (wrangler.jsonc vars). Both optional so a
@@ -19,10 +24,10 @@ interface ProgressionResult {
   rationale: string;
 }
 
-const MODEL = "claude-opus-4-7";
+const MODEL = "gpt-5.4";
 const MAX_ITERATIONS = 8;
 const MAX_PROMPT_LENGTH = 500;
-const MAX_TOKENS = 1024;
+const MAX_OUTPUT_TOKENS = 1024;
 const MIN_CHORDS = 3;
 const MAX_CHORDS = 8;
 
@@ -44,11 +49,12 @@ Rules:
 - Output must be valid parseable JSON.
 - Before including any chord in your final progression, call the lookup_chord tool to verify it exists in the dictionary. If a chord is not found, substitute the closest valid alternative suggested by the tool.`;
 
-const LOOKUP_CHORD_TOOL: Anthropic.Tool = {
+const LOOKUP_CHORD_TOOL: FunctionTool = {
+  type: "function",
   name: "lookup_chord",
   description:
     "Verifies that a chord name exists in the harmony_hash chord dictionary. Call this before including any chord in your final progression. Returns whether the chord is valid and, if not, suggests the closest valid alternative.",
-  input_schema: {
+  parameters: {
     type: "object",
     properties: {
       chord_name: {
@@ -57,7 +63,9 @@ const LOOKUP_CHORD_TOOL: Anthropic.Tool = {
       },
     },
     required: ["chord_name"],
+    additionalProperties: false,
   },
+  strict: true,
 };
 
 export default {
@@ -99,9 +107,9 @@ export default {
 };
 
 function handleHealth(request: Request, env: Env): Response {
-  const anthropicApiKey = Boolean(env.ANTHROPIC_API_KEY);
+  const openaiApiKey = Boolean(env.OPENAI_API_KEY);
   return jsonResponse(
-    { ok: anthropicApiKey, bindings: { anthropicApiKey } },
+    { ok: openaiApiKey, bindings: { openaiApiKey } },
     200,
     request,
     env,
@@ -155,7 +163,7 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
     return jsonResponse({ error: prompt.error }, 400, request, env);
   }
 
-  if (!env.ANTHROPIC_API_KEY) {
+  if (!env.OPENAI_API_KEY) {
     return jsonResponse(
       { error: "Server misconfigured: missing API key" },
       500,
@@ -164,10 +172,10 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
     );
   }
 
-  const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
   try {
-    const result = await runAgent(prompt.value, anthropic);
+    const result = await runAgent(prompt.value, openai);
     return jsonResponse(result, 200, request, env);
   } catch (err) {
     if (err instanceof AgentNonConvergenceError) {
@@ -215,62 +223,58 @@ class AgentValidationError extends Error {
   }
 }
 
-async function runAgent(userPrompt: string, anthropic: Anthropic): Promise<ProgressionResult> {
-  const messages: Anthropic.MessageParam[] = [
+async function runAgent(userPrompt: string, openai: OpenAI): Promise<ProgressionResult> {
+  let input: ResponseInputItem[] = [
     { role: "user", content: userPrompt },
   ];
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
-    const response = await anthropic.messages.create({
+    const response = await openai.responses.create({
       model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
+      max_output_tokens: MAX_OUTPUT_TOKENS,
+      instructions: SYSTEM_PROMPT,
       tools: [LOOKUP_CHORD_TOOL],
-      messages,
+      input,
     });
 
-    if (response.stop_reason === "end_turn") {
-      const textBlock = response.content.find(
-        (block): block is Anthropic.TextBlock => block.type === "text",
-      );
-      if (!textBlock) {
-        throw new AgentValidationError("Final response contained no text block");
+    const functionCalls = response.output.filter(
+      (item): item is ResponseFunctionToolCall => item.type === "function_call",
+    );
+
+    if (functionCalls.length === 0) {
+      if (!response.output_text) {
+        throw new AgentValidationError("Final response contained no text output");
       }
-      return parseAndValidateProgression(textBlock.text);
+      return parseAndValidateProgression(response.output_text);
     }
 
-    if (response.stop_reason === "tool_use") {
-      messages.push({ role: "assistant", content: response.content });
+    const toolResults: ResponseInputItem[] = functionCalls.map((call) => {
+      const input = parseToolArguments(call.arguments);
+      const chordName = typeof input.chord_name === "string" ? input.chord_name : "";
+      const lookup = lookupChordForAgent(chordName);
+      return {
+        type: "function_call_output",
+        call_id: call.call_id,
+        output: JSON.stringify(lookup),
+      };
+    });
 
-      const toolResults: Anthropic.ToolResultBlockParam[] = response.content
-        .filter(
-          (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
-        )
-        .map((block) => {
-          const input = block.input as { chord_name?: unknown };
-          const chordName = typeof input?.chord_name === "string" ? input.chord_name : "";
-          const lookup = lookupChordForAgent(chordName);
-          return {
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: JSON.stringify(lookup),
-          };
-        });
-
-      if (toolResults.length === 0) {
-        throw new AgentValidationError(
-          "Stop reason was tool_use but no tool_use blocks found in response",
-        );
-      }
-
-      messages.push({ role: "user", content: toolResults });
-      continue;
-    }
-
-    throw new AgentValidationError(`Unexpected stop_reason: ${response.stop_reason}`);
+    input = [...(response.output as ResponseInputItem[]), ...toolResults];
   }
 
   throw new AgentNonConvergenceError();
+}
+
+function parseToolArguments(raw: string): { chord_name?: unknown } {
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as { chord_name?: unknown };
+    }
+  } catch {
+    // Fall through to an empty argument bag so validation fails through the tool result.
+  }
+  return {};
 }
 
 function parseAndValidateProgression(raw: string): ProgressionResult {
@@ -311,7 +315,7 @@ function parseAndValidateProgression(raw: string): ProgressionResult {
     throw new AgentValidationError("'rationale' must be a non-empty string");
   }
 
-  // Defense-in-depth: even though the system prompt instructs Claude to verify
+  // Defense-in-depth: even though the system prompt instructs the model to verify
   // every chord via the lookup_chord tool, re-verify each final chord against
   // the dictionary so an unverified answer never reaches the client.
   const unverified = chords.filter((chord) => !lookupChordForAgent(chord).valid);
@@ -364,7 +368,7 @@ function isOriginPermitted(origin: string, request: Request, env: Env): boolean 
   // Only honor the localhost CORS fallback when the Worker itself is running
   // locally (under `wrangler dev`). Otherwise a deployed Worker would accept
   // browser requests from any localhost page, and CORS is the only gate on
-  // this Anthropic-backed endpoint.
+  // this OpenAI-backed endpoint.
   return workerIsLocal(request) && DEV_ORIGIN_PATTERN.test(origin);
 }
 

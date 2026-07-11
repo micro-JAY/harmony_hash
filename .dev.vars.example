@@ -1,6 +1,6 @@
-# Copy this file to `worker/.dev.vars` for local development.
+# Copy this file to `.dev.vars` at the repo root for local development.
 # `.dev.vars*` is gitignored — never commit real keys.
-ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
 
 # Optional. The production origin (https://harmony.tonari.ai) and localhost
 # origins are always permitted by the Worker. Set this only to additively

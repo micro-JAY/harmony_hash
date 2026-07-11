@@ -1,12 +1,12 @@
 # harmony_hash Worker
 
-Backend for the Progression Builder agent. Handles `POST /api/progression`, runs an Anthropic tool loop against the harmony_hash chord dictionary, and returns a validated 4-chord progression. All other paths fall through to static assets served from `./dist`.
+Backend for the Progression Builder agent. Handles `POST /api/progression`, runs an OpenAI Responses API tool loop against the harmony_hash chord dictionary, and returns a validated progression. All other paths fall through to static assets served from `./dist`.
 
 ## Endpoints
 
 | Method | Path                 | Description                                                             |
 | ------ | -------------------- | ----------------------------------------------------------------------- |
-| POST   | `/api/progression`   | Body: `{ "prompt": string }`. Returns `{ chords: string[4], key, rationale }`. |
+| POST   | `/api/progression`   | Body: `{ "prompt": string }`. Returns `{ chords: string[], key, rationale }`. |
 | OPTIONS | `/api/progression`  | CORS preflight — returns 204.                                           |
 
 Validation:
@@ -20,7 +20,7 @@ Validation:
 
 ## Secrets
 
-The Worker requires `ANTHROPIC_API_KEY`. Never commit it.
+The Worker requires `OPENAI_API_KEY`. Never commit it.
 
 ### Local development
 
@@ -29,7 +29,7 @@ Both files live at the **repo root** (alongside `wrangler.jsonc`), not inside `w
 1. Copy `.dev.vars.example` → `.dev.vars` (at the repo root).
 2. Paste your key into `.dev.vars`:
    ```
-   ANTHROPIC_API_KEY=sk-ant-...
+   OPENAI_API_KEY=sk-...
    ```
 3. Run `npx wrangler dev` from the repo root. Wrangler picks up `.dev.vars` automatically.
 
@@ -38,10 +38,10 @@ Both files live at the **repo root** (alongside `wrangler.jsonc`), not inside `w
 ### Production
 
 ```sh
-npx wrangler secret put ANTHROPIC_API_KEY
+npx wrangler secret put OPENAI_API_KEY
 ```
 
-Wrangler prompts for the value; Cloudflare stores it as an encrypted secret available to the Worker via `env.ANTHROPIC_API_KEY`.
+Wrangler prompts for the value; Cloudflare stores it as an encrypted secret available to the Worker via `env.OPENAI_API_KEY`.
 
 ## CORS
 

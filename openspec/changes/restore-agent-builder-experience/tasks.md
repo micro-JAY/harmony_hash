@@ -18,7 +18,7 @@
 - [x] 3.2 Add progression-client tests for health schema, 3–8 responses, malformed/error bodies, aborts, and deadlines
 - [x] 3.3 Add Playwright interception coverage for ready health, successful generation, validation, failure preservation, and retry
 - [x] 3.4 Run focused build, lint, Vitest, Playwright, and local Worker health/generation smoke with representative extended/slash-chord prompts
-- [ ] 3.5 Commit the progression recovery milestone, upload a preview Worker version, smoke that exact version, then deploy and verify production
+- [x] 3.5 Commit the progression recovery milestone, upload a preview Worker version, smoke that exact version, then deploy and verify production
 
 ## 4. Harmony Companion Repair
 

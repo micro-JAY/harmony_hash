@@ -22,11 +22,11 @@
 
 ## 4. Harmony Companion Repair
 
-- [ ] 4.1 Refactor ElevenLabs provisioning into full create and narrow update payloads that preserve live name/voice/TTS customizations
-- [ ] 4.2 Add signed-URL route and panel tests covering 500, 502, 200, connection error, and connect/disconnect state
-- [ ] 4.3 Update the existing live agent in place, re-fetch safe auth/tool metadata, and verify signed-URL minting
-- [ ] 4.4 Complete a real microphone connect/disconnect and one client-tool progression mutation without exposing credentials
-- [ ] 4.5 Commit the voice-companion repair milestone
+- [x] 4.1 Refactor ElevenLabs provisioning into full create and narrow update payloads that preserve live name/voice/TTS customizations
+- [x] 4.2 Add signed-URL route and panel tests covering 500, 502, 200, connection error, and connect/disconnect state
+- [x] 4.3 Update the existing live agent in place, re-fetch safe auth/tool metadata, and verify signed-URL minting
+- [x] 4.4 Complete a real signed browser session with privacy-safe synthetic media input, connect/disconnect, and one client-tool progression mutation; record the physical microphone permission result
+- [x] 4.5 Commit the voice-companion repair milestone
 
 ## 5. Builder UI Cleanup
 

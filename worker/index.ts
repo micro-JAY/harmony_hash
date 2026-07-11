@@ -92,7 +92,7 @@ async function handleVoiceSignedUrl(request: Request, env: Env): Promise<Respons
   if (!outcome.ok) {
     // Log the upstream detail server-side; never leak ElevenLabs internals or
     // the key to the client. A failed mint is a 5xx, not a success shape.
-    console.error("[harmony-voice] signed-url:", outcome.error);
+    console.error("[harmony-voice] signed-url:", sanitizeError(outcome.error));
     return jsonResponse({ error: "Could not start a voice session" }, 502, request, env);
   }
 

@@ -79,6 +79,23 @@ npx wrangler dev
 
 The Worker listens on `http://localhost:8787` by default.
 
+## Voice agent maintenance
+
+The updater reads the prompt and canonical nine-tool schema, patches only those fields plus signed auth, then re-reads the agent and proves the live name, voice, and TTS model were preserved:
+
+```sh
+node --env-file=.dev.vars --import tsx scripts/provision-voice-agent.ts
+node --env-file=.dev.vars --import tsx scripts/provision-voice-agent.ts --verify
+```
+
+With the full Worker running, the live smoke uses Chromium's silent synthetic media device, establishes a real signed ElevenLabs session, asks the real agent to call `replace_progression`, verifies the visible timeline mutation, and disconnects:
+
+```sh
+npx tsx scripts/smoke-voice-agent.ts
+```
+
+The synthetic device prevents an automated run from capturing ambient microphone audio. A user can still verify their physical microphone through the normal **Talk to the companion** action.
+
 ## Quick curl tests
 
 ```sh

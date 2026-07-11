@@ -19,7 +19,15 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { TOOL_SCHEMAS } from "../src/voice/toolSchemas";
+import {
+  DEFAULT_VOICE_ID,
+  assertLiveAgentConfiguration,
+  assertPreservedAgentUpdate,
+  buildCreatePayload,
+  buildUpdatePayload,
+  readAgentConfiguration,
+  type AgentConfigurationSnapshot,
+} from "./voice-agent-config";
 
 const API = "https://api.elevenlabs.io/v1/convai/agents";
 const here = dirname(fileURLToPath(import.meta.url));
@@ -29,82 +37,71 @@ if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set");
 
 const systemPrompt = readFileSync(resolve(here, "../agent/system-prompt.md"), "utf8");
 
-const body = {
-  name: "Harmony Hash — Progression Companion",
-  conversation_config: {
-    agent: {
-      first_message:
-        "Hey, I'm your harmony companion. Want to build a progression together, or should I break down what's already on your timeline?",
-      language: "en",
-      prompt: {
-        prompt: systemPrompt,
-        // gemini-2.5-flash keeps voice latency low. For richer theory
-        // explanations at a small latency cost, switch to claude-sonnet-4-6.
-        llm: "gemini-2.5-flash",
-        temperature: 0.4,
-        tools: TOOL_SCHEMAS.map((tool) => ({
-          type: "client",
-          name: tool.name,
-          description: tool.description,
-          parameters: tool.parameters,
-          expects_response: tool.expectsResponse,
-        })),
-        // No built_in_tools: the panel's explicit "End conversation" button and
-        // max_duration_seconds cap the session; the agent-initiated end_call
-        // system tool needs a name/params sub-schema we don't depend on here.
-      },
-    },
-    tts: {
-      // George by default — warm, conversational. Override with HH_VOICE_ID.
-      voice_id: process.env.HH_VOICE_ID ?? "JBFqnCBsd6RMkjVDRZzb",
-      // English agents must use a turbo or flash *v2* model (the _v2_5 variants
-      // are multilingual and rejected for language:"en"). flash_v2 keeps ~75ms latency.
-      model_id: "eleven_flash_v2",
-      stability: 0.4, // a little expressive for a friendly teacher
-      speed: 1.0,
-    },
-    turn: { turn_eagerness: "normal", turn_timeout: 8 },
-    conversation: {
-      max_duration_seconds: 900,
-      client_events: ["agent_response_complete"],
-    },
-  },
-  platform_settings: {
-    summary_language: "en",
-    // Signed-URL auth ONLY (the recommended client-side mode): the browser connects
-    // via the Worker's POST /api/voice/signed-url route (src/lib/elevenLabsAuth.ts).
-    // An EMPTY allowlist is the single-mode state — it's the ElevenLabs default for a
-    // fresh agent (no host restriction, NOT "block all"). Setting it explicitly (vs
-    // omitting the key) also CLEARS any prior allowlist when PATCHing in place; the
-    // API rejects allowlist:null, and a bare PATCH merges and would keep stale hosts.
-    auth: { enable_auth: true, allowlist: [] },
-  },
-};
-
-async function call(url: string, method: "POST" | "PATCH"): Promise<Record<string, unknown>> {
+async function call(
+  url: string,
+  method: "GET" | "POST" | "PATCH",
+  body?: unknown,
+): Promise<Record<string, unknown>> {
   const res = await fetch(url, {
     method,
-    headers: { "xi-api-key": apiKey as string, "content-type": "application/json" },
-    body: JSON.stringify(body),
+    headers: { "xi-api-key": apiKey, "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   const text = await res.text();
   if (!res.ok) throw new Error(`${method} ${url} -> ${res.status}: ${text}`);
   return text ? (JSON.parse(text) as Record<string, unknown>) : {};
 }
 
+function printSafeVerification(
+  label: string,
+  snapshot: AgentConfigurationSnapshot,
+): void {
+  console.log(label);
+  console.log(JSON.stringify({
+    agentId: snapshot.agentId,
+    name: snapshot.name,
+    voiceId: snapshot.voiceId,
+    ttsModelId: snapshot.ttsModelId,
+    signedAuth: snapshot.authEnabled,
+    allowlistEntries: snapshot.allowlist.length,
+    clientTools: snapshot.clientToolNames,
+  }, null, 2));
+}
+
 async function main(): Promise<void> {
   const existingId = process.env.HH_VOICE_AGENT_ID;
+  const verifyOnly = process.argv.includes("--verify");
 
   if (existingId) {
-    await call(`${API}/${existingId}`, "PATCH");
-    console.log(`Updated agent ${existingId}`);
+    const before = readAgentConfiguration(await call(`${API}/${existingId}`, "GET"));
+    if (verifyOnly) {
+      assertLiveAgentConfiguration(before, existingId);
+      printSafeVerification("Verified existing agent", before);
+      return;
+    }
+
+    await call(`${API}/${existingId}`, "PATCH", buildUpdatePayload(systemPrompt));
+    const after = readAgentConfiguration(await call(`${API}/${existingId}`, "GET"));
+    assertPreservedAgentUpdate(before, after, existingId);
+    printSafeVerification("Updated and verified existing agent", after);
     return;
   }
 
-  const created = await call(`${API}/create?enable_versioning=true`, "POST");
-  const id = created.agent_id ?? "(see response below)";
-  console.log(`Created agent. Set HH_VOICE_AGENT_ID=${id}`);
-  console.log(JSON.stringify(created, null, 2));
+  if (verifyOnly) {
+    throw new Error("HH_VOICE_AGENT_ID is required with --verify");
+  }
+
+  const created = await call(
+    `${API}/create?enable_versioning=true`,
+    "POST",
+    buildCreatePayload(systemPrompt, process.env.HH_VOICE_ID ?? DEFAULT_VOICE_ID),
+  );
+  if (typeof created.agent_id !== "string" || created.agent_id.length === 0) {
+    throw new Error("ElevenLabs create response did not include an agent_id");
+  }
+  const snapshot = readAgentConfiguration(await call(`${API}/${created.agent_id}`, "GET"));
+  assertLiveAgentConfiguration(snapshot, created.agent_id);
+  printSafeVerification(`Created agent. Set HH_VOICE_AGENT_ID=${created.agent_id}`, snapshot);
 }
 
 main().catch((err: unknown) => {

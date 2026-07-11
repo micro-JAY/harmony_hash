@@ -78,6 +78,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("Worker health and routing", () => {
@@ -264,6 +265,92 @@ describe("POST /api/progression", () => {
     expect(log).toHaveBeenCalledWith(
       "[harmony-progression] validation:",
       "Final assistant text was not valid JSON",
+    );
+  });
+});
+
+function voiceRequest(origin = "https://harmony.tonari.ai"): Request {
+  return new Request("https://harmony.tonari.ai/api/voice/signed-url", {
+    method: "POST",
+    headers: { Origin: origin },
+  });
+}
+
+describe("POST /api/voice/signed-url", () => {
+  it("fails closed when either server binding is missing", async () => {
+    const missingKey = await worker.fetch(
+      voiceRequest(),
+      env({ HH_VOICE_AGENT_ID: "agent_test" }),
+    );
+    expect(missingKey.status).toBe(500);
+    expect(await missingKey.text()).toContain("voice companion is unavailable");
+
+    const missingAgent = await worker.fetch(
+      voiceRequest(),
+      env({ ELEVENLABS_API_KEY: "xi-test-key" }),
+    );
+    expect(missingAgent.status).toBe(500);
+  });
+
+  it("rejects a disallowed browser origin before calling ElevenLabs", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await worker.fetch(
+      voiceRequest("https://attacker.example"),
+      env({
+        ELEVENLABS_API_KEY: "xi-test-key",
+        HH_VOICE_AGENT_ID: "agent_test",
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("mints a signed URL and returns only the browser-safe field", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      Response.json({ signed_url: "wss://api.elevenlabs.io/session/signed" }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await worker.fetch(
+      voiceRequest(),
+      env({
+        ELEVENLABS_API_KEY: "xi-test-key",
+        HH_VOICE_AGENT_ID: "agent_test",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      signedUrl: "wss://api.elevenlabs.io/session/signed",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns a generic 502 and sanitizes upstream detail in logs", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      new Response("rejected sk-eleven-secret", { status: 401 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const response = await worker.fetch(
+      voiceRequest(),
+      env({
+        ELEVENLABS_API_KEY: "xi-test-key",
+        HH_VOICE_AGENT_ID: "agent_test",
+      }),
+    );
+    const body = await response.text();
+
+    expect(response.status).toBe(502);
+    expect(body).toContain("Could not start a voice session");
+    expect(body).not.toContain("sk-eleven-secret");
+    expect(log).toHaveBeenCalledWith(
+      "[harmony-voice] signed-url:",
+      "ElevenLabs get-signed-url returned 401: rejected [redacted]",
     );
   });
 });

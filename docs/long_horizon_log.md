@@ -390,3 +390,11 @@ User-directed recovery on branch `fix/agent-builder-companion-ui`, OpenSpec chan
 **Current state:** progression implementation is ready for a milestone commit. Next: upload an immutable preview Worker version, smoke and deploy that exact version, then repair the existing ElevenLabs agent with a narrow PATCH that preserves its customized name/voice/TTS before compacting and re-testing the builder UI.
 
 **Deployment update:** commit `9f15b0f` was uploaded as immutable Worker version `fe568a25-1c3c-4d62-bc48-8c92e9e2483a`. The exact version preview passed OpenAI health and a four-chord extended/slash-chord generation, then Wrangler deployed it to 100% production traffic. The active `workers.dev` hostname passed health and a separate three-chord gospel/slash-chord generation. Raw requests to `harmony.tonari.ai` remain behind the pre-existing Cloudflare browser challenge (403); deployment state and direct Worker production checks confirm the new version itself is healthy.
+
+---
+
+## 2026-07-12 02:54 JST — Harmony Companion Live Repair
+
+The first guarded updater run stopped before PATCH because ElevenLabs returns existing allowlist entries as `{ hostname }` objects even though the update schema accepts host strings/empty arrays. The verifier was extended and tested for both shapes, then the same narrow update succeeded. Live signed authentication is now enabled, the incompatible hostname allowlist is explicitly empty, and all nine client tools exactly match source. The updater's before/after assertion proved the customized `Hanz Hasher` name, voice id, and `eleven_v3_conversational` TTS model were unchanged; a separate `--verify` read confirmed the post-update state.
+
+Production `/api/voice/signed-url` now returns a valid `wss:` URL shape without printing the token. The in-app browser reached the session path but macOS denied that browser's microphone entitlement; no ambient audio was transmitted. A rerunnable Playwright smoke therefore supplied a silent synthetic media device, established a real signed ElevenLabs browser session, injected a deterministic text turn, observed the real `replace_progression` client tool change the visible timeline to `Fmaj7 Gm7 C7 Fmaj7`, and disconnected cleanly. Full Vitest is 160/160, build/lint pass, and the panel's retryable signed-URL error state has browser coverage.

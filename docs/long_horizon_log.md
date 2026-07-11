@@ -376,3 +376,15 @@ A user-directed side-quest, separate from the v1–v5 / Phase-2 roadmap: a **voi
 - A `provision:voice` npm script would make the provisioning incantation discoverable.
 
 **Bundled-archive note:** unlike the Phase-2 milestones, this side-track's openspec change is left **active** (`openspec/changes/add-voice-companion/`) pending PR merge — archive + canonical `openspec/specs/voice-companion/spec.md` application is the merge-time step (tasks.md 8.2).
+
+---
+
+## 2026-07-12 02:33 JST — Agent Builder Recovery, OpenAI Milestone
+
+User-directed recovery on branch `fix/agent-builder-companion-ui`, OpenSpec change `restore-agent-builder-experience`. Production already carried an `OPENAI_API_KEY` secret on the active Worker version, but the checked-in and deployed code still used Anthropic. The live ElevenLabs agent was also diagnosed safely: its nine client tools matched source, but signed authentication was disabled while the browser exclusively requested a signed URL.
+
+**Progression milestone current state:** replaced the Anthropic SDK with OpenAI `6.46.0`; moved the agent loop into `worker/progressionAgent.ts`; pinned `gpt-5.4-mini-2026-03-17`; added a strict parallel `lookup_chord` tool, stateless response-item preservation, strict 3–8 structured output, dictionary revalidation, 30-second Worker/browser deadlines, explicit failed/incomplete Responses handling, sanitized logs, and OpenAI-aware health. The public routes and shared chord-rendering path are unchanged.
+
+**Verification:** build and lint pass; full Vitest is 146/146; focused Playwright is 3/3 for success, malformed output, failure preservation, and retry. A real local Wrangler smoke returned healthy OpenAI readiness and generated five valid F-minor chords including extensions, an altered dominant, and a slash chord in about eight seconds. No credential values were printed or returned.
+
+**Current state:** progression implementation is ready for a milestone commit. Next: upload an immutable preview Worker version, smoke and deploy that exact version, then repair the existing ElevenLabs agent with a narrow PATCH that preserves its customized name/voice/TTS before compacting and re-testing the builder UI.

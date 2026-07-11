@@ -18,28 +18,61 @@ const PROD_HEALTH_ENDPOINT = "/api/health";
 
 export interface HealthResponse {
   ok: boolean;
-  bindings: { anthropicApiKey: boolean };
+  provider: "openai";
+  bindings: { openaiApiKey: boolean };
 }
+
+export const PROGRESSION_REQUEST_TIMEOUT_MS = 30_000;
 
 export async function checkHealth(signal?: AbortSignal): Promise<HealthResponse> {
   const endpoint = import.meta.env.DEV ? DEV_HEALTH_ENDPOINT : PROD_HEALTH_ENDPOINT;
   const res = await fetch(endpoint, { method: "GET", signal });
   if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
   const payload = (await res.json()) as Partial<HealthResponse>;
-  if (typeof payload?.ok !== "boolean" || typeof payload.bindings?.anthropicApiKey !== "boolean") {
+  if (
+    typeof payload?.ok !== "boolean" ||
+    payload.provider !== "openai" ||
+    typeof payload.bindings?.openaiApiKey !== "boolean"
+  ) {
     throw new Error("Health response malformed");
   }
-  return { ok: payload.ok, bindings: { anthropicApiKey: payload.bindings.anthropicApiKey } };
+  return {
+    ok: payload.ok,
+    provider: payload.provider,
+    bindings: { openaiApiKey: payload.bindings.openaiApiKey },
+  };
 }
 
-export async function generateProgression(prompt: string): Promise<ProgressionResponse> {
+export async function generateProgression(
+  prompt: string,
+  signal?: AbortSignal,
+): Promise<ProgressionResponse> {
   const endpoint = import.meta.env.DEV ? DEV_ENDPOINT : PROD_ENDPOINT;
+  const timeoutSignal = AbortSignal.timeout(PROGRESSION_REQUEST_TIMEOUT_MS);
+  const requestSignal = signal
+    ? AbortSignal.any([signal, timeoutSignal])
+    : timeoutSignal;
 
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt }),
+      signal: requestSignal,
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === "TimeoutError" ||
+        (error.name === "AbortError" && !signal?.aborted))
+    ) {
+      throw new ProgressionResponseError(
+        "Progression request timed out. Please try again.",
+      );
+    }
+    throw error;
+  }
 
   if (!res.ok) {
     throw new Error(await formatError(res));
@@ -74,7 +107,7 @@ function assertProgressionResponse(payload: unknown): ProgressionResponse {
     if (typeof entry !== "string" || entry.trim().length === 0) {
       throw new ProgressionResponseError("Every chord must be a non-empty string");
     }
-    chords.push(entry);
+    chords.push(entry.trim());
   }
 
   if (typeof obj.key !== "string" || obj.key.trim().length === 0) {
@@ -84,7 +117,11 @@ function assertProgressionResponse(payload: unknown): ProgressionResponse {
     throw new ProgressionResponseError("Response 'rationale' must be a non-empty string");
   }
 
-  return { chords, key: obj.key, rationale: obj.rationale };
+  return {
+    chords,
+    key: obj.key.trim(),
+    rationale: obj.rationale.trim(),
+  };
 }
 
 async function formatError(res: Response): Promise<string> {

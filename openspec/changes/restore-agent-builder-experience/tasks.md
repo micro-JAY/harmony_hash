@@ -2,22 +2,22 @@
 
 - [x] 1.1 Verify Git history, current Worker deployment, provider secret bindings, canonical specs, and the unavailable prior migration task
 - [x] 1.2 Diagnose the live ElevenLabs agent and record the signed-URL auth mismatch without exposing credentials
-- [ ] 1.3 Capture reproducible desktop and 375px browser baselines for Free Input, Progressions, companion spacing, overflow, and console state
+- [x] 1.3 Capture reproducible desktop and 375px browser baselines for Free Input, Progressions, companion spacing, overflow, and console state
 
 ## 2. OpenAI Progression Builder
 
-- [ ] 2.1 Replace `@anthropic-ai/sdk` with the official OpenAI SDK and lockfile changes
-- [ ] 2.2 Implement the pinned Responses API loop with strict chord lookup calls, preserved response items, structured output, 3–8 validation, and bounded failures
-- [ ] 2.3 Update Worker health/environment types and browser health/request parsing to use OpenAI readiness and a 30-second deadline
-- [ ] 2.4 Preserve prior chord cards on failure and expose clear loading, error, retry, key, and rationale states
-- [ ] 2.5 Update `.dev.vars.example`, Worker/operator docs, architecture docs, and dated long-horizon log without rewriting historical decisions
+- [x] 2.1 Replace `@anthropic-ai/sdk` with the official OpenAI SDK and lockfile changes
+- [x] 2.2 Implement the pinned Responses API loop with strict chord lookup calls, preserved response items, structured output, 3–8 validation, and bounded failures
+- [x] 2.3 Update Worker health/environment types and browser health/request parsing to use OpenAI readiness and a 30-second deadline
+- [x] 2.4 Preserve prior chord cards on failure and expose clear loading, error, retry, key, and rationale states
+- [x] 2.5 Update `.dev.vars.example`, Worker/operator docs, architecture docs, and dated long-horizon log without rewriting historical decisions
 
 ## 3. Progression Verification And Milestone
 
-- [ ] 3.1 Add deterministic Worker/provider tests for validation, strict tool calls, parallel calls, malformed calls/output, convergence, timeouts, upstream failures, CORS, and secret redaction
-- [ ] 3.2 Add progression-client tests for health schema, 3–8 responses, malformed/error bodies, aborts, and deadlines
-- [ ] 3.3 Add Playwright interception coverage for ready health, successful generation, validation, failure preservation, and retry
-- [ ] 3.4 Run focused build, lint, Vitest, Playwright, and local Worker health/generation smoke with representative extended/slash-chord prompts
+- [x] 3.1 Add deterministic Worker/provider tests for validation, strict tool calls, parallel calls, malformed calls/output, convergence, timeouts, upstream failures, CORS, and secret redaction
+- [x] 3.2 Add progression-client tests for health schema, 3–8 responses, malformed/error bodies, aborts, and deadlines
+- [x] 3.3 Add Playwright interception coverage for ready health, successful generation, validation, failure preservation, and retry
+- [x] 3.4 Run focused build, lint, Vitest, Playwright, and local Worker health/generation smoke with representative extended/slash-chord prompts
 - [ ] 3.5 Commit the progression recovery milestone, upload a preview Worker version, smoke that exact version, then deploy and verify production
 
 ## 4. Harmony Companion Repair

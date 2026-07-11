@@ -13,13 +13,13 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
-    "deploy": "npm run build && npx wrangler deploy --assets dist --name harmony --compatibility-date 2025-09-27"
+    "deploy": "npm run build && npx wrangler deploy"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.90.0",
     "@elevenlabs/react": "^1.6.3",
     "framer-motion": "^12.35.0",
     "lucide-react": "^0.577.0",
+    "openai": "^6.46.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

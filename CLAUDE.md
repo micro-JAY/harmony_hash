@@ -99,15 +99,15 @@ This means the chord dictionary, root normalization, and lookup logic are the **
 
 ### Progression agent flow
 
-`POST /api/progression` runs an Anthropic Messages API tool loop (`runAgent` in `worker/index.ts`):
+`POST /api/progression` runs an OpenAI Responses API tool loop (`runProgressionAgent` in `worker/progressionAgent.ts`):
 
 1. Client calls `generateProgression()` in `src/lib/progressionClient.ts` (dev: `http://localhost:8787/api/progression`, prod: relative `/api/progression`).
-2. Worker validates the prompt (non-empty, ≤ 500 chars), then loops up to `MAX_ITERATIONS = 8` against `claude-opus-4-7` with the `lookup_chord` tool.
-3. The system prompt **requires** Claude to call `lookup_chord` for every chord before finalizing. Tool calls are answered by `lookupChordForAgent()`, which returns `{ valid, chord_name, suggestion? }` from the same dictionary the SPA uses.
-4. On `end_turn`, the Worker parses the assistant's final text as JSON and runs `parseAndValidateProgression()`. This is **defense-in-depth**: even if Claude skips the tool, every final chord is re-checked against the dictionary, and an unverified chord causes a 500. The client (`progressionClient.ts`) then validates the response shape *again* before handing it to the UI.
+2. Worker validates the prompt (non-empty, ≤ 500 chars), then loops up to `MAX_ITERATIONS = 8` against the pinned `gpt-5.4-mini-2026-03-17` snapshot with a strict `lookup_chord` function.
+3. Every Responses continuation preserves returned message, reasoning, and function-call items before appending call-id-matched outputs from `lookupChordForAgent()`. That shared lookup returns `{ valid, chord_name, suggestion? }`.
+4. The model returns a strict 3–8 chord JSON schema. The Worker rejects failed/incomplete provider turns, parses the final text, and runs `parseAndValidateProgression()`. Every final chord is re-checked against the dictionary, and an unverified chord causes a 500. The client validates the response shape again before handing it to the UI.
 5. The client (`ProgressionAgent.tsx`) feeds the returned chord names through `lookupChord()` to produce the same `IndexedChord` objects the manual input path produces, so downstream rendering is identical for both entry paths.
 
-Error contract: 400 (bad input), 403 (CORS origin), 500 (config / validation), 504 (agent didn't converge).
+Error contract: 400 (bad input), 403 (CORS origin), 500 (config / validation), 502 (provider failure), 504 (deadline / non-convergence).
 
 ### Chord rendering pipeline
 
@@ -126,8 +126,8 @@ A real-time ElevenLabs voice agent — a voice-native sibling of the text progre
 
 Both `.dev.vars` and `wrangler.jsonc` live at the **repo root** (not in `worker/`).
 
-- `ANTHROPIC_API_KEY` — required. Local: `.dev.vars` (gitignored). Prod: `npx wrangler secret put ANTHROPIC_API_KEY`.
-- `ALLOWED_ORIGIN` — comma-separated origin allowlist; supports `*`. **The Worker fails closed**: when unset, only `localhost`/`127.0.0.1` origins receive CORS headers. Production deployments must set this (`https://harmony.tonari.ai`) or browsers will be blocked.
+- `OPENAI_API_KEY` — required for the progression builder. Local: repo-root `.dev.vars` (gitignored). Prod: `npx wrangler versions secret put OPENAI_API_KEY`.
+- `ALLOWED_ORIGIN` — optional comma-separated additive origin allowlist; supports `*`. The canonical production origin is built in, and localhost origins are accepted only when the Worker itself is local.
 - `ELEVENLABS_API_KEY` — required for the voice companion's signed-URL route. Local: `.dev.vars` (gitignored). Prod: `npx wrangler secret put ELEVENLABS_API_KEY`. **Worker/CLI only — never a `VITE_`-prefixed var, never a committed file.**
 - `HH_VOICE_AGENT_ID` — the provisioned voice agent id (non-secret). `.dev.vars` locally; a plain `vars` entry in `wrangler.jsonc` for prod. The browser reads the *same* id via `import.meta.env.VITE_HH_VOICE_AGENT_ID` (`.env` / committed `.env.example`).
 

@@ -13,6 +13,7 @@ test.describe("Harmony Companion session failures", () => {
     });
 
     await page.goto("/");
+    await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
     await page.getByRole("button", { name: /Talk to the companion/i }).click();
 
     await expect(page.getByRole("alert")).toHaveText(
@@ -21,6 +22,6 @@ test.describe("Harmony Companion session failures", () => {
     await expect(
       page.getByRole("button", { name: /Talk to the companion/i }),
     ).toBeEnabled();
-    await expect(page.getByText("Offline", { exact: true })).toBeVisible();
+    await expect(page.getByText("Needs attention", { exact: true })).toBeVisible();
   });
 });

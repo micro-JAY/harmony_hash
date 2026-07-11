@@ -243,7 +243,8 @@ export default function GuitarChordDiagram({
       svgEl.setAttribute("viewBox", `0 0 ${origW} ${origH}`);
     }
     svgEl.setAttribute("width", "100%");
-    svgEl.setAttribute("height", "auto");
+    svgEl.removeAttribute("height");
+    svgEl.style.height = "auto";
 
     const serializer = new XMLSerializer();
     const html = serializer.serializeToString(svgEl);

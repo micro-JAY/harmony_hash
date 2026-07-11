@@ -126,7 +126,7 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
 
       {/* Free Text Input */}
       {activeTab === "free" && (
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <input
             ref={inputRef}
             type="text"
@@ -134,7 +134,7 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
             onChange={(e) => setFreeText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFreeTextSubmit()}
             placeholder={t("freeInputHint")}
-            className="flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all"
+            className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all"
             style={{
               backgroundColor: "var(--surface-overlay)",
               color: "var(--text-primary)",
@@ -145,7 +145,7 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
           />
           <button
             onClick={handleFreeTextSubmit}
-            className="px-6 py-3 rounded-lg font-semibold transition-all"
+            className="w-full px-6 py-3 rounded-lg font-semibold transition-all sm:w-auto"
             style={{
               backgroundColor: "var(--interactive-accent-bg)",
               color: "var(--interactive-accent-text)",

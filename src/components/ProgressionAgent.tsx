@@ -81,7 +81,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-3 items-stretch">
+      <div className="flex flex-col gap-3 items-stretch sm:flex-row">
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
@@ -89,7 +89,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
           rows={3}
           placeholder={placeholder ?? "Describe the mood, style, or feel — e.g. “melancholic with a jazz feel in minor”"}
           disabled={loading}
-          className="flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
+          className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
           style={{
             backgroundColor: "var(--surface-overlay)",
             color: "var(--text-primary)",
@@ -105,7 +105,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2"
+          className="w-full px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2 sm:w-auto sm:min-w-[11rem]"
           style={{
             backgroundColor: canSubmit
               ? "var(--interactive-accent-bg)"
@@ -117,7 +117,6 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
             fontWeight: "var(--weight-semibold)",
             transitionDuration: "var(--duration-normal)",
             cursor: canSubmit ? "pointer" : "not-allowed",
-            minWidth: "11rem",
             justifyContent: "center",
           }}
           onMouseEnter={(e) => {
@@ -154,7 +153,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         </button>
       </div>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <span
           className="text-xs"
           style={{
@@ -166,10 +165,10 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
             ? `${Math.abs(remaining)} over the ${MAX_PROMPT}-character limit`
             : `${remaining} characters left`}
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <HealthPill status={health} />
           <span
-            className="text-xs"
+            className="hidden text-xs sm:inline"
             style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
           >
             ⌘↵ to build

@@ -187,12 +187,20 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     ]);
   });
 
-  test("voice companion panel renders idle in the builder", async ({ page }) => {
+  test("voice companion stays mounted in a compact idle control", async ({ page }) => {
     await page.goto("/");
-    // The panel is always present (independent of the timeline) and starts idle.
-    // It must not request the microphone on load — only on connect.
+    // The runtime and tools stay mounted, but the microphone action is hidden
+    // until the user explicitly expands the compact control.
     await expect(page.getByText("Harmony Companion")).toBeVisible();
     await expect(page.getByText("Offline")).toBeVisible();
+    const expand = page.getByRole("button", { name: "Expand Harmony Companion" });
+    await expect(expand).toHaveAttribute("aria-expanded", "false");
+    await expect(
+      page.getByRole("button", { name: /Talk to the companion/i }),
+    ).toHaveCount(0);
+
+    await expand.click();
+    await expect(expand).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: /Talk to the companion/i }),
     ).toBeVisible();

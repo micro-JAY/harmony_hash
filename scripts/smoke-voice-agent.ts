@@ -49,8 +49,13 @@ async function main(): Promise<void> {
     await freeInput.press("Enter");
     await page.getByRole("heading", { name: "Cmaj7" }).waitFor();
 
+    await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
     await page.getByRole("button", { name: /Talk to the companion/i }).click();
     await page.getByText("Listening", { exact: true }).waitFor({ timeout: 20_000 });
+    await page.getByRole("button", { name: "Collapse Harmony Companion" }).click();
+    await page
+      .getByRole("button", { name: "Expand Harmony Companion" })
+      .waitFor();
 
     await page.evaluate((chords) => {
       const sockets = Reflect.get(window, "__hhSmokeSockets");
@@ -74,6 +79,7 @@ async function main(): Promise<void> {
       throw new Error(`Client tool rendered ${rendered.join(", ")} instead of ${replacement.join(", ")}`);
     }
 
+    await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
     await page.getByRole("button", { name: "End conversation" }).click();
     await page.getByText("Offline", { exact: true }).waitFor({ timeout: 10_000 });
 

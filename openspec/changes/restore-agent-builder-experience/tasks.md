@@ -30,12 +30,12 @@
 
 ## 5. Builder UI Cleanup
 
-- [ ] 5.1 Consolidate Randomize, piano Play/Stop, and a permanently mounted compact Harmony Companion into one responsive action toolbar
-- [ ] 5.2 Make full companion content explicitly expandable while preserving an active session and registered client tools when collapsed or switching tabs
-- [ ] 5.3 Stack Free Input and Progression Agent control rows on mobile, wrap header controls, and remove horizontal overflow
-- [ ] 5.4 Remove the invalid guitar SVG `height="auto"` attribute and verify clean browser console output
-- [ ] 5.5 Add desktop/mobile Playwright assertions and screenshots for both tabs, compact/expanded companion states, card adjacency, and width invariants
-- [ ] 5.6 Commit the UI cleanup milestone
+- [x] 5.1 Consolidate Randomize, piano Play/Stop, and a permanently mounted compact Harmony Companion into one responsive action toolbar
+- [x] 5.2 Make full companion content explicitly expandable while preserving an active session and registered client tools when collapsed or switching tabs
+- [x] 5.3 Stack Free Input and Progression Agent control rows on mobile, wrap header controls, and remove horizontal overflow
+- [x] 5.4 Remove the invalid guitar SVG `height="auto"` attribute and verify clean browser console output
+- [x] 5.5 Add desktop/mobile Playwright assertions and screenshots for both tabs, compact/expanded companion states, card adjacency, and width invariants
+- [x] 5.6 Commit the UI cleanup milestone
 
 ## 6. Final Review And Delivery
 

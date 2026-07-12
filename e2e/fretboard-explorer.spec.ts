@@ -65,6 +65,7 @@ test.describe("Fretboard Explorer", () => {
     );
     await expect(page.getByRole("combobox", { name: "Fretboard root" })).toHaveValue("C");
     await expect(page.getByRole("combobox", { name: "Fretboard mode" })).toHaveValue("major");
+    await expect(page.getByRole("combobox", { name: "Fretboard mode" }).locator("option")).toHaveCount(11);
     await expect(page.getByRole("button", { name: "Intervals", exact: true })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -93,6 +94,10 @@ test.describe("Fretboard Explorer", () => {
     await expect(page.getByRole("region", { name: "Eb Dorian scale summary" })).toContainText(
       "Eb Dorian · Bass",
     );
+    const legend = page.getByRole("complementary", { name: "Interval color legend" });
+    await expect(legend).toContainText("b3 · Minor third");
+    await expect(legend).toContainText("6 · Raised sixth");
+    await expect(legend).toContainText("b7 · Flat seventh");
     await expect(
       page.getByRole("button", {
         name: "Right-handed Bass string 1 (G), Standard tuning, fret 8, Eb, interval 1, All positions pattern tone",
@@ -102,6 +107,33 @@ test.describe("Fretboard Explorer", () => {
 
     await settleVisual(page);
     await expect(page).toHaveScreenshot("fretboard-desktop.png", { fullPage: true });
+  });
+
+  test("maps major and minor pentatonic and blues formulas with distinct interval cues", async ({ page }) => {
+    const browserIssues = collectBrowserIssues(page);
+    await openFretboard(page);
+    const mode = page.getByRole("combobox", { name: "Fretboard mode" });
+    const legend = page.getByRole("complementary", { name: "Interval color legend" });
+
+    await mode.selectOption("major_pentatonic");
+    await expect(page.getByRole("region", { name: "C Major Pentatonic scale summary" })).toBeVisible();
+    await expect(page.getByLabel("Scale notes and intervals").getByRole("listitem")).toHaveCount(5);
+
+    await mode.selectOption("minor_pentatonic");
+    await expect(legend).toContainText("b3 · Minor third");
+    await expect(legend).toContainText("b7 · Flat seventh");
+
+    await mode.selectOption("major_blues");
+    await expect(page.getByLabel("Scale notes and intervals").getByRole("listitem")).toHaveCount(6);
+    await expect(legend).toContainText("b3 · Minor third (blue note)");
+    const rootColor = await legend.getByText("1 · Root").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    const minorThirdColor = await legend.getByText(/b3 · Minor third/).locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    const majorThirdColor = await legend.getByText("3 · Major third").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    expect(new Set([rootColor, minorThirdColor, majorThirdColor]).size).toBe(3);
+
+    await mode.selectOption("minor_blues");
+    await expect(legend).toContainText("b5 · Flat fifth (blue note)");
+    expect(browserIssues).toEqual([]);
   });
 
   test("supports spatial focus and preserves the progression builder", async ({ page }) => {

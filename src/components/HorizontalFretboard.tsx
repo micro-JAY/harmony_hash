@@ -9,6 +9,7 @@ import type {
   FretboardTuning,
   DecoratedFretboardPosition,
 } from "../lib/theory";
+import { fretboardIntervalColor } from "./fretboardVisuals";
 
 export type FretboardLabelMode = "intervals" | "notes";
 export type FretboardHandedness = "right" | "left";
@@ -48,42 +49,19 @@ function roleStyle(position: FretboardPosition): {
   color: string;
   boxShadow: string;
 } {
+  const intervalColor = fretboardIntervalColor(position.interval ?? -1);
   if (position.isRoot) {
     return {
-      backgroundColor: "var(--interactive-accent-text)",
-      borderColor: "var(--interactive-accent-text)",
+      backgroundColor: intervalColor,
+      borderColor: intervalColor,
       color: "var(--text-inverse)",
       boxShadow: "var(--glow-accent)",
     };
   }
-  if (position.interval === 3 || position.interval === 4) {
-    return {
-      backgroundColor: "var(--interactive-warm-bg)",
-      borderColor: "var(--interactive-warm-border)",
-      color: "var(--interactive-warm-text)",
-      boxShadow: "none",
-    };
-  }
-  if (position.interval === 7) {
-    return {
-      backgroundColor: "var(--interactive-academy-bg)",
-      borderColor: "var(--interactive-academy-border)",
-      color: "var(--interactive-academy-text)",
-      boxShadow: "none",
-    };
-  }
-  if (position.interval === 10 || position.interval === 11) {
-    return {
-      backgroundColor: "var(--interactive-soft-bg)",
-      borderColor: "var(--interactive-soft-border)",
-      color: "var(--interactive-soft-text)",
-      boxShadow: "none",
-    };
-  }
   return {
-    backgroundColor: "var(--surface-overlay)",
-    borderColor: "var(--border-strong)",
-    color: "var(--text-primary)",
+    backgroundColor: `color-mix(in srgb, ${intervalColor} 14%, var(--surface-overlay))`,
+    borderColor: `color-mix(in srgb, ${intervalColor} 46%, var(--surface-overlay))`,
+    color: intervalColor,
     boxShadow: "none",
   };
 }

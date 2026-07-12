@@ -1,4 +1,4 @@
-import type { ScaleType } from "../types";
+import type { ScaleFormulaType } from "./scaleBasics";
 import type { ChordTone } from "./chordTones";
 import type {
   FretboardInstrument,
@@ -277,7 +277,7 @@ function buildThreeNpsCandidate(
 function buildThreeNpsResult(
   rows: ReadonlyArray<FretboardStringRow>,
   keyName: string,
-  scaleType: ScaleType,
+  scaleType: ScaleFormulaType,
   startDegree: ThreeNpsStartDegree,
 ): FretboardPatternResult {
   const rootPitchClass = pitchClassOf(keyName);
@@ -325,7 +325,7 @@ export function buildFretboardPattern(
   instrument: FretboardInstrument,
   tuningId: FretboardTuningId,
   keyName: string,
-  scaleType: ScaleType,
+  scaleType: ScaleFormulaType,
   selection: FretboardPatternSelection,
 ): FretboardPatternResult {
   if (selection.family === "all") return allResult(rows, "all");
@@ -334,6 +334,9 @@ export function buildFretboardPattern(
   }
   if (selection.family === "caged") {
     return buildCagedResult(rows, keyName, selection.cagedForm);
+  }
+  if (scaleIntervalsFor(scaleType).length !== 7) {
+    return allResult(rows, "three-nps", "3NPS is available for seven-note scales");
   }
   return buildThreeNpsResult(rows, keyName, scaleType, selection.threeNpsStartDegree);
 }

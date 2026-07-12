@@ -29,4 +29,4 @@
 - [x] 5.1 Attempt the in-app Browser first, then inspect desktop/tablet/mobile screenshots, DOM, focus, scroll, and console evidence with the documented Playwright fallback only if Browser runtime is unavailable.
 - [x] 5.2 Complete an independent code/spec/accessibility review and close every Critical, High, and Medium finding.
 - [x] 5.3 Update the long-horizon plan/log with the shipped slice, explicit alternate-tuning/lefty/CAGED/3NPS/chord-overlay follow-ups, test evidence, stacked base, and unchanged voice 502 blocker.
-- [ ] 5.4 Commit logical milestones, push `feat/guitar-fretboard`, open a stacked draft PR against `feat/free-input-harmonic-suggestions`, and do not merge to main.
+- [x] 5.4 Commit logical milestones, push `feat/guitar-fretboard`, open a stacked draft PR against `feat/free-input-harmonic-suggestions`, and do not merge to main.

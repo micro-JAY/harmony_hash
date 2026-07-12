@@ -469,4 +469,4 @@ Started Phase 2.8 v1 on stacked branch `feat/guitar-fretboard` with OpenSpec cha
 
 **Explicit follow-ups:** alternate tunings and left-handed reversal move to `fretboard-tunings-handedness`; All/CAGED/3NPS pattern filtering and chord overlays move to `fretboard-patterns-chord-overlay`. This v1 ships no inert affordances. The production voice endpoint remains status-only 502, so PR #29 and the full stacked chain remain unmerged.
 
-**Current state:** implementation, UI QA, tests, and review are complete locally. Next: final OpenSpec verification, logical commits, push, and a draft PR stacked on `feat/free-input-harmonic-suggestions`; do not merge to main.
+**Current state:** OpenSpec commit `2287578` and implementation commit `c49f737` are pushed to `origin/feat/guitar-fretboard`; stacked draft PR [#31](https://github.com/micro-JAY/harmony_hash/pull/31) targets `feat/free-input-harmonic-suggestions`. Keep it unmerged until the provider gate clears and the stack is rebased/retargeted through normal review.

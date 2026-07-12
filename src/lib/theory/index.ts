@@ -8,7 +8,10 @@ export {
 
 export {
   buildFretboardRows,
+  defaultFretboardTuningId,
+  fretboardTuningDefinitionFor,
   fretboardTuningFor,
+  fretboardTuningsFor,
   intervalLabelFor,
   noteLabelForPitchClass,
 } from "./fretboard";
@@ -17,6 +20,8 @@ export type {
   FretboardPosition,
   FretboardString,
   FretboardStringRow,
+  FretboardTuning,
+  FretboardTuningId,
 } from "./fretboard";
 
 export {

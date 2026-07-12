@@ -3,6 +3,22 @@ import type { ScaleType } from "../types";
 import { pitchClassOf, scaleIntervalsFor } from "./scaleBasics";
 
 export type FretboardInstrument = "guitar" | "bass";
+export type FretboardTuningId =
+  | "guitar-standard"
+  | "guitar-drop-d"
+  | "guitar-dadgad"
+  | "guitar-open-g"
+  | "bass-standard"
+  | "bass-drop-d"
+  | "bass-bead";
+
+export interface FretboardTuning {
+  readonly id: FretboardTuningId;
+  readonly instrument: FretboardInstrument;
+  readonly label: string;
+  readonly pitchSequence: string;
+  readonly strings: ReadonlyArray<FretboardString>;
+}
 
 export interface FretboardString {
   readonly number: number;
@@ -29,21 +45,77 @@ export interface FretboardStringRow {
   readonly positions: ReadonlyArray<FretboardPosition>;
 }
 
-const GUITAR_STANDARD: ReadonlyArray<FretboardString> = Object.freeze([
-  Object.freeze({ number: 1, openNote: "E", openPitchClass: 4, registerLabel: "high E" }),
-  Object.freeze({ number: 2, openNote: "B", openPitchClass: 11, registerLabel: "B" }),
-  Object.freeze({ number: 3, openNote: "G", openPitchClass: 7, registerLabel: "G" }),
-  Object.freeze({ number: 4, openNote: "D", openPitchClass: 2, registerLabel: "D" }),
-  Object.freeze({ number: 5, openNote: "A", openPitchClass: 9, registerLabel: "A" }),
-  Object.freeze({ number: 6, openNote: "E", openPitchClass: 4, registerLabel: "low E" }),
+function freezeString(
+  number: number,
+  openNote: string,
+  openPitchClass: number,
+  registerLabel: string,
+): FretboardString {
+  return Object.freeze({ number, openNote, openPitchClass, registerLabel });
+}
+
+function freezeTuning(
+  id: FretboardTuningId,
+  instrument: FretboardInstrument,
+  label: string,
+  pitchSequence: string,
+  strings: ReadonlyArray<FretboardString>,
+): FretboardTuning {
+  return Object.freeze({
+    id,
+    instrument,
+    label,
+    pitchSequence,
+    strings: Object.freeze([...strings]),
+  });
+}
+
+const FRETBOARD_TUNINGS: ReadonlyArray<FretboardTuning> = Object.freeze([
+  freezeTuning("guitar-standard", "guitar", "Standard", "E A D G B E", [
+    freezeString(1, "E", 4, "high E"), freezeString(2, "B", 11, "B"),
+    freezeString(3, "G", 7, "G"), freezeString(4, "D", 2, "D"),
+    freezeString(5, "A", 9, "A"), freezeString(6, "E", 4, "low E"),
+  ]),
+  freezeTuning("guitar-drop-d", "guitar", "Drop D", "D A D G B E", [
+    freezeString(1, "E", 4, "high E"), freezeString(2, "B", 11, "B"),
+    freezeString(3, "G", 7, "G"), freezeString(4, "D", 2, "D"),
+    freezeString(5, "A", 9, "A"), freezeString(6, "D", 2, "low D"),
+  ]),
+  freezeTuning("guitar-dadgad", "guitar", "DADGAD", "D A D G A D", [
+    freezeString(1, "D", 2, "high D"), freezeString(2, "A", 9, "high A"),
+    freezeString(3, "G", 7, "G"), freezeString(4, "D", 2, "mid D"),
+    freezeString(5, "A", 9, "low A"), freezeString(6, "D", 2, "low D"),
+  ]),
+  freezeTuning("guitar-open-g", "guitar", "Open G", "D G D G B D", [
+    freezeString(1, "D", 2, "high D"), freezeString(2, "B", 11, "B"),
+    freezeString(3, "G", 7, "high G"), freezeString(4, "D", 2, "mid D"),
+    freezeString(5, "G", 7, "low G"), freezeString(6, "D", 2, "low D"),
+  ]),
+  freezeTuning("bass-standard", "bass", "Standard", "E A D G", [
+    freezeString(1, "G", 7, "G"), freezeString(2, "D", 2, "D"),
+    freezeString(3, "A", 9, "A"), freezeString(4, "E", 4, "E"),
+  ]),
+  freezeTuning("bass-drop-d", "bass", "Drop D", "D A D G", [
+    freezeString(1, "G", 7, "G"), freezeString(2, "D", 2, "high D"),
+    freezeString(3, "A", 9, "A"), freezeString(4, "D", 2, "low D"),
+  ]),
+  freezeTuning("bass-bead", "bass", "BEAD", "B E A D", [
+    freezeString(1, "D", 2, "D"), freezeString(2, "A", 9, "A"),
+    freezeString(3, "E", 4, "E"), freezeString(4, "B", 11, "B"),
+  ]),
 ]);
 
-const BASS_STANDARD: ReadonlyArray<FretboardString> = Object.freeze([
-  Object.freeze({ number: 1, openNote: "G", openPitchClass: 7, registerLabel: "G" }),
-  Object.freeze({ number: 2, openNote: "D", openPitchClass: 2, registerLabel: "D" }),
-  Object.freeze({ number: 3, openNote: "A", openPitchClass: 9, registerLabel: "A" }),
-  Object.freeze({ number: 4, openNote: "E", openPitchClass: 4, registerLabel: "E" }),
-]);
+const DEFAULT_TUNING_IDS: Readonly<Record<FretboardInstrument, FretboardTuningId>> = Object.freeze({
+  guitar: "guitar-standard",
+  bass: "bass-standard",
+});
+
+const TUNING_BY_ID = new Map(FRETBOARD_TUNINGS.map((tuning) => [tuning.id, tuning]));
+const TUNINGS_BY_INSTRUMENT: Readonly<Record<FretboardInstrument, ReadonlyArray<FretboardTuning>>> =
+  Object.freeze({
+    guitar: Object.freeze(FRETBOARD_TUNINGS.filter((tuning) => tuning.instrument === "guitar")),
+    bass: Object.freeze(FRETBOARD_TUNINGS.filter((tuning) => tuning.instrument === "bass")),
+  });
 
 const SHARP_NOTE_LABELS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
 const FLAT_NOTE_LABELS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"] as const;
@@ -51,8 +123,35 @@ const INTERVAL_LABELS = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "
 
 export function fretboardTuningFor(
   instrument: FretboardInstrument,
+  tuningId: FretboardTuningId = DEFAULT_TUNING_IDS[instrument],
 ): ReadonlyArray<FretboardString> {
-  return instrument === "guitar" ? GUITAR_STANDARD : BASS_STANDARD;
+  return fretboardTuningDefinitionFor(instrument, tuningId).strings;
+}
+
+export function defaultFretboardTuningId(
+  instrument: FretboardInstrument,
+): FretboardTuningId {
+  return DEFAULT_TUNING_IDS[instrument];
+}
+
+export function fretboardTuningsFor(
+  instrument: FretboardInstrument,
+): ReadonlyArray<FretboardTuning> {
+  return TUNINGS_BY_INSTRUMENT[instrument];
+}
+
+export function fretboardTuningDefinitionFor(
+  instrument: FretboardInstrument,
+  tuningId: FretboardTuningId = DEFAULT_TUNING_IDS[instrument],
+): FretboardTuning {
+  const tuning = TUNING_BY_ID.get(tuningId);
+  if (!tuning) {
+    throw new Error(`Unknown fretboard tuning: "${tuningId}"`);
+  }
+  if (tuning.instrument !== instrument) {
+    throw new Error(`Tuning "${tuningId}" is not compatible with ${instrument}`);
+  }
+  return tuning;
 }
 
 export function noteLabelForPitchClass(pitchClass: number, preferFlats: boolean): string {
@@ -74,6 +173,7 @@ export function buildFretboardRows(
   keyName: string,
   scaleType: ScaleType,
   maxFret = 15,
+  tuningId: FretboardTuningId = DEFAULT_TUNING_IDS[instrument],
 ): ReadonlyArray<FretboardStringRow> {
   if (!Number.isInteger(maxFret) || maxFret < 0 || maxFret > 24) {
     throw new RangeError(`Maximum fret must be an integer from 0 to 24; received ${maxFret}`);
@@ -89,7 +189,7 @@ export function buildFretboardRows(
   const preferFlats = prefersFlatNotation(keyName);
 
   return Object.freeze(
-    fretboardTuningFor(instrument).map((string) => {
+    fretboardTuningFor(instrument, tuningId).map((string) => {
       const positions = Array.from({ length: maxFret + 1 }, (_, fret) => {
         const pitchClass = (string.openPitchClass + fret) % 12;
         const interval = (pitchClass - rootPitchClass + 12) % 12;

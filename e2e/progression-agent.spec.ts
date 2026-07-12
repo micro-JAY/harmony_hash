@@ -317,4 +317,35 @@ test.describe("OpenAI progression builder", () => {
     await expect(prompt).toHaveValue("delayed agent response");
     await expect(page.getByText("API ready", { exact: true })).toBeVisible();
   });
+
+  test("does not let a superseded agent response overwrite a chord modifier", async ({
+    page,
+  }) => {
+    await mockHealthyProgressionService(page);
+    const delayed = await mockDelayedProgression(page);
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
+    await freeInput.fill("C G7 Am F");
+    await freeInput.press("Enter");
+    await page.getByRole("button", { name: "Progressions" }).click();
+    await expect(page.getByText("API ready", { exact: true })).toBeVisible();
+
+    await page
+      .getByRole("textbox", { name: "Describe the progression you want" })
+      .fill("delayed agent response");
+    await page.getByRole("button", { name: "Build progression" }).click();
+    await delayed.requestStarted;
+
+    const secondCard = page.getByTestId("chord-card").nth(1);
+    await secondCard.getByRole("button", { name: "Modify G7" }).click();
+    await secondCard.getByRole("button", { name: "Change G7 to G7#9" }).click();
+    await expect(secondCard.getByRole("heading", { name: "G7#9" })).toBeVisible();
+
+    delayed.releaseResponse();
+    await delayed.responseHandled;
+    await settlePaint(page);
+    await expect(secondCard.getByRole("heading", { name: "G7#9" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);
+  });
 });

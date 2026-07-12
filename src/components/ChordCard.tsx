@@ -10,8 +10,10 @@ import type {
 } from "../lib/types";
 import { formatNoteForDisplay, parseNotes, prefersFlatNotation } from "../lib/chordData";
 import { isStyleApplicable } from "../lib/harmonyBrain";
+import type { ChordModifierOption } from "../lib/chordModifiers";
 import GuitarChordDiagram from "./GuitarChordDiagram";
 import PianoKeyboard from "./PianoKeyboard";
+import ChordModifier from "./ChordModifier";
 
 interface ChordCardProps {
   chord: IndexedChord;
@@ -24,6 +26,7 @@ interface ChordCardProps {
   voicing: VoicedChord;
   pianoStyle: VoicingStyle;
   onPianoStyleChange: (style: VoicingStyle) => void;
+  onChordChange: (option: ChordModifierOption) => void;
   /** True when this card is the currently-sounding chord during playback. */
   isPlaying?: boolean;
 }
@@ -63,6 +66,7 @@ export default function ChordCard({
   voicing,
   pianoStyle,
   onPianoStyleChange,
+  onChordChange,
   isPlaying = false,
 }: ChordCardProps) {
   const maxVariants = chord.variationCount;
@@ -145,6 +149,11 @@ export default function ChordCard({
 
       {/* Visualization */}
       <div className="flex w-full min-w-0 flex-col items-center gap-2 p-4">
+        <ChordModifier
+          chord={chord}
+          displayName={displayName}
+          onSelect={onChordChange}
+        />
         {instrument === "guitar" ? (
           <>
             {/* Guitar display mode toggle */}
@@ -161,6 +170,7 @@ export default function ChordCard({
                   <button
                     key={mode}
                     type="button"
+                    aria-pressed={active}
                     onClick={() => setGuitarDisplay(mode)}
                     className="px-2.5 py-1 text-xs rounded-full transition-all"
                     style={{
@@ -205,6 +215,8 @@ export default function ChordCard({
             {maxVariants > 1 && (
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
+                  aria-label="Previous guitar variant"
                   onClick={prevVariant}
                   className="w-7 h-7 flex items-center justify-center rounded-full transition-all"
                   style={{
@@ -234,6 +246,8 @@ export default function ChordCard({
                   {boundedVariant} / {maxVariants}
                 </span>
                 <button
+                  type="button"
+                  aria-label="Next guitar variant"
                   onClick={nextVariant}
                   className="w-7 h-7 flex items-center justify-center rounded-full transition-all"
                   style={{
@@ -271,6 +285,7 @@ export default function ChordCard({
                   <button
                     key={opt.value}
                     type="button"
+                    aria-pressed={active}
                     disabled={!applicable}
                     onClick={() => onPianoStyleChange(opt.value)}
                     className="px-2.5 py-1 text-xs rounded-full transition-all"
@@ -322,6 +337,7 @@ export default function ChordCard({
                     <button
                       key={mode}
                       type="button"
+                      aria-pressed={active}
                       onClick={() => setPianoDisplay(mode)}
                       className="px-2 py-0.5 text-xs rounded-full transition-all"
                       style={{

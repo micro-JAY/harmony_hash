@@ -45,6 +45,8 @@ An inline panel fits the existing card language, works without a portal dependen
 
 `ChordCard` will emit the chosen input label and validated `IndexedChord`; `App` will replace only that index, increment the shared timeline mutation version, stop playback, preserve the lock, clamp the guitar variant to the replacement's available range, and retain the piano style only when it remains applicable (otherwise reset that index to `auto`). Other cards and their state remain unchanged.
 
+`App` will also allocate stable render keys for each card. Full progression replacements receive fresh keys, appends receive new keys, removals drop only the removed key, and local chord modification preserves the selected key. This keeps compatible component-local guitar/piano display modes attached to the surviving card instead of remounting it or transferring state by array index.
+
 This follows the existing ref-mirror and timeline ownership instead of introducing component-local progression state or a store. Reusing the full-progression `handleResult` was rejected because it intentionally resets all per-card state.
 
 ### 5. Keep the component boundary narrow
@@ -56,6 +58,7 @@ Catalog/ranking logic will live in `src/lib/chordModifiers.ts`; the focused disc
 - [A ranked option feels musically prescriptive] → Label the row `Quick changes`, base it only on chord family, and keep the full catalog search visible.
 - [A replacement has fewer guitar variants] → Clamp only that card's variant to the replacement's valid range.
 - [A selected piano style cannot voice the replacement] → Preserve applicable styles and reset only the affected card to `Auto` otherwise.
+- [A replacement or removal resets/transfers component-local display state] → Track stable card render keys alongside the positional timeline and preserve them for surviving cards.
 - [Flat-root labels drift back to sharps] → Derive labels from the current display root and verify every spelling with `lookupChord`.
 - [The inline panel makes narrow cards taller] → Keep the default collapsed, cap the result region, and validate 375px, tablet, and desktop layouts for overflow.
 - [An in-flight text-agent response overwrites the edit] → Increment the existing synchronous timeline mutation version before replacing the chord.

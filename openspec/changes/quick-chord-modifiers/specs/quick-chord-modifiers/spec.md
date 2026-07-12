@@ -61,6 +61,10 @@ Applying a modifier SHALL replace only the selected chord through the applicatio
 - **WHEN** a piano card is modified
 - **THEN** its selected voicing style SHALL remain when applicable to the replacement and SHALL reset only that card to `Auto` when inapplicable
 
+#### Scenario: Compatible display mode preserved
+- **WHEN** a chord is modified while its guitar display is `Intervals` or `Notes`, or its piano display is `Fingering`
+- **THEN** that component-local display mode SHALL remain selected on the replacement card
+
 #### Scenario: Playback safety
 - **WHEN** a modifier is applied during progression playback
 - **THEN** playback SHALL stop and no stale active-playback indicator SHALL remain
@@ -68,6 +72,10 @@ Applying a modifier SHALL replace only the selected chord through the applicatio
 #### Scenario: Stale text-agent result invalidated
 - **WHEN** a modifier is applied while a text progression request is in flight
 - **THEN** the later provider response SHALL NOT overwrite the locally modified timeline
+
+#### Scenario: Keyboard focus survives replacement
+- **WHEN** a keyboard user applies a modifier option
+- **THEN** focus SHALL move to the surviving replacement card's modifier trigger
 
 ### Requirement: Instrument-independent result
 The modifier control SHALL update the shared chord model rather than an instrument-specific visualization so the chosen chord renders consistently in guitar and piano modes.

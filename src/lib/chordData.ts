@@ -74,6 +74,12 @@ export function normalizeRoot(raw: string): string | undefined {
  * e.g. "Cmaj7" → ["C", "maj7"], "Ebm7" → ["Eb", "m7"], "F#dim" → ["F#", "dim"]
  */
 export function splitRootAndQuality(input: string): [string, string] {
+  // Internal sharp notation also uses `s` (Cs = C#), but user-facing suspended
+  // chords begin with a natural root plus `sus`. Prefer the musical quality in
+  // that unambiguous shape; sharp suspended chords use C#sus / Dbsus.
+  if (/^[A-Ga-g]sus/.test(input)) {
+    return [input.slice(0, 1), input.slice(1)];
+  }
   // Try 2-char root first (e.g. "Eb", "F#", "Bb", "C#")
   if (input.length >= 2) {
     const two = input.slice(0, 2);
@@ -221,22 +227,45 @@ const ALL_ROOTS = new Set<string>();
 function extractRootFromChordName(chordName: string): string {
   // "C (C Major)" → "C", "Cm (C Minor)" → "C", "C#m7 (...)" → "C#"
   const short = chordName.split("(")[0].trim();
-  const match = short.match(/^([A-G][#bs]?)/);
+  const match = short.match(/^([A-G][#b]?)/);
   if (!match) return "";
   const raw = match[1];
   // Normalize the internal 's'/'f' notation
   return raw.replace("#", "s").replace("b", "f");
 }
 
+function splitSymbols(symbols: string): string[] {
+  const result: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < symbols.length; i += 1) {
+    const char = symbols[i];
+    if (char === "(") depth += 1;
+    else if (char === ")") depth = Math.max(0, depth - 1);
+    else if (char === "," && depth === 0) {
+      const symbol = symbols.slice(start, i).trim();
+      if (symbol) result.push(symbol);
+      start = i + 1;
+    }
+  }
+  const finalSymbol = symbols.slice(start).trim();
+  if (finalSymbol) result.push(finalSymbol);
+  return result;
+}
+
 function getFirstSymbol(entry: ChordEntry): string {
-  // The Symbols field is comma-separated. First symbol is the primary one.
-  const syms = entry.Symbols.split(",").map((s) => s.trim());
-  return syms[0] || "";
+  return splitSymbols(entry.Symbols)[0] || "";
 }
 
 function getAllSymbols(entry: ChordEntry): string[] {
-  return entry.Symbols.split(",").map((s) => s.trim()).filter(Boolean);
+  return splitSymbols(entry.Symbols);
 }
+
+function normalizeLookupQuality(quality: string): string {
+  return quality.replace(/[()]/g, "");
+}
+
+const indexedChordsByRoot = new Map<string, IndexedChord[]>();
 
 // Build the index
 for (const entry of chordEntries) {
@@ -267,11 +296,18 @@ for (const entry of chordEntries) {
     variationCount: entry["Variation Count"],
   };
 
+  const rootChords = indexedChordsByRoot.get(root);
+  if (rootChords) {
+    rootChords.push(indexed);
+  } else {
+    indexedChordsByRoot.set(root, [indexed]);
+  }
+
   // Register all symbol aliases for this entry
   for (const sym of getAllSymbols(entry)) {
     // Key format: root (lowercased) + symbol (case-preserved).
     // Case matters for quality: "M7" (major 7th) ≠ "m7" (minor 7th)
-    const lookupKey = root.toLowerCase() + sym;
+    const lookupKey = root.toLowerCase() + normalizeLookupQuality(sym);
     // Don't overwrite — first entry wins (avoids collisions from duplicate chord names)
     if (!chordIndex.has(lookupKey)) {
       chordIndex.set(lookupKey, indexed);
@@ -339,6 +375,12 @@ export function getSvgPath(chord: IndexedChord, variant: number): string {
 /** Get all chord entries (for debugging/exploration) */
 export function getAllChordEntries(): ChordEntry[] {
   return chordEntries;
+}
+
+/** Get each unique catalog chord for one canonical or display root. */
+export function getIndexedChordsForRoot(root: string): ReadonlyArray<IndexedChord> {
+  const canonicalRoot = normalizeRoot(root) ?? root;
+  return indexedChordsByRoot.get(canonicalRoot) ?? [];
 }
 
 /** Get the note names array from a chord entry */

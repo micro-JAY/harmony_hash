@@ -5,6 +5,7 @@ import {
   pitchClassOf,
   scaleIntervalsFor,
   scalePitchClasses,
+  spellScaleNotes,
   type ScaleFormulaType,
 } from "./scaleBasics";
 
@@ -40,6 +41,10 @@ export interface ScaleFitScore {
   readonly missing: number;
   readonly accidentals: number;
   readonly match: number;
+}
+
+export interface ScaleRankingOptions {
+  readonly preferFlats?: boolean;
 }
 
 const CANDIDATE_ROOTS = Object.freeze([
@@ -86,30 +91,6 @@ const STYLE_TIE_BREAK: Readonly<Record<ScaleStyle, number>> = Object.freeze({
   tonal: 0,
   blues: 1,
   modal: 2,
-});
-
-const NATURAL_LETTER_PITCH_CLASSES: Readonly<Record<string, number>> = Object.freeze({
-  C: 0,
-  D: 2,
-  E: 4,
-  F: 5,
-  G: 7,
-  A: 9,
-  B: 11,
-});
-
-const SCALE_DEGREE_LETTER_OFFSETS: Readonly<Record<ScaleFormulaType, ReadonlyArray<number>>> = Object.freeze({
-  major: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
-  natural_minor: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
-  harmonic_minor: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
-  dorian: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
-  mixolydian: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
-  lydian: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
-  phrygian: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
-  major_pentatonic: Object.freeze([0, 1, 2, 4, 5]),
-  minor_pentatonic: Object.freeze([0, 2, 3, 4, 6]),
-  major_blues: Object.freeze([0, 1, 2, 2, 4, 5]),
-  minor_blues: Object.freeze([0, 2, 3, 4, 4, 6]),
 });
 
 function clampPercent(value: number): number {
@@ -171,35 +152,20 @@ export function scaleStyle(scaleType: ScaleFormulaType): ScaleStyle {
   return "tonal";
 }
 
-function spellScaleNotes(key: string, scaleType: ScaleFormulaType): ReadonlyArray<string> {
-  const rootPitchClass = pitchClassOf(key);
-  const rootLetterIndex = "CDEFGAB".indexOf(key[0]);
-  const intervals = scaleIntervalsFor(scaleType);
-  const letterOffsets = SCALE_DEGREE_LETTER_OFFSETS[scaleType];
-  return Object.freeze(intervals.map((interval, index) => {
-    const letter = "CDEFGAB"[(rootLetterIndex + letterOffsets[index]) % 7];
-    const naturalPitchClass = NATURAL_LETTER_PITCH_CLASSES[letter];
-    const targetPitchClass = (rootPitchClass + interval) % 12;
-    const unsignedDifference = (targetPitchClass - naturalPitchClass + 12) % 12;
-    const signedDifference = unsignedDifference > 6 ? unsignedDifference - 12 : unsignedDifference;
-    const accidental = signedDifference > 0
-      ? "#".repeat(signedDifference)
-      : "b".repeat(-signedDifference);
-    return `${letter}${accidental}`;
-  }));
-}
-
 function suggestionFor(
   progressionTones: ReadonlySet<number>,
   key: string,
   scaleType: ScaleFormulaType,
+  preferFlats: boolean,
 ): ScaleSuggestion {
   const fit = scoreScale(scaleType, key, progressionTones);
   const rootPitchClass = pitchClassOf(key);
-  const displayRoot = noteLabelForPitchClass(rootPitchClass, false);
+  const sharpRoot = noteLabelForPitchClass(rootPitchClass, false);
   const scaleLabel = SCALE_TYPE_LABELS[scaleType];
-  const aliasRoot = ENHARMONIC_ROOT_ALIASES[key];
-  const notes = spellScaleNotes(key, scaleType);
+  const flatRoot = ENHARMONIC_ROOT_ALIASES[key];
+  const displayRoot = preferFlats && flatRoot ? flatRoot : sharpRoot;
+  const alternativeRoot = preferFlats && flatRoot ? sharpRoot : flatRoot;
+  const notes = spellScaleNotes(displayRoot, scaleType);
   const metadata = Object.freeze({
     motion: scaleMotion(scaleType),
     tension: scaleTension(scaleType),
@@ -211,7 +177,7 @@ function suggestionFor(
     key,
     scaleType,
     label: `${displayRoot} ${scaleLabel}`,
-    alsoKnownAs: aliasRoot ? `${aliasRoot} ${scaleLabel}` : undefined,
+    alsoKnownAs: alternativeRoot ? `${alternativeRoot} ${scaleLabel}` : undefined,
     match: fit.match,
     matchedTones: fit.overlap,
     totalTones: progressionTones.size,
@@ -230,6 +196,7 @@ function suggestionFor(
 export function rankCompatibleScales(
   chords: ReadonlyArray<IndexedChord>,
   limit = 8,
+  options: ScaleRankingOptions = {},
 ): ReadonlyArray<ScaleSuggestion> {
   const maximum = CANDIDATE_ROOTS.length * SCALE_TYPES.length;
   if (!Number.isInteger(limit) || limit < 1 || limit > maximum) {
@@ -240,7 +207,7 @@ export function rankCompatibleScales(
   const tones = progressionToneSet(chords);
   const anchorPitchClass = pitchClassOf(chords[0].root);
   const suggestions = CANDIDATE_ROOTS.flatMap((key) =>
-    SCALE_TYPES.map((scaleType) => suggestionFor(tones, key, scaleType)),
+    SCALE_TYPES.map((scaleType) => suggestionFor(tones, key, scaleType, options.preferFlats ?? false)),
   );
   suggestions.sort((left, right) => {
     if (right.match !== left.match) return right.match - left.match;

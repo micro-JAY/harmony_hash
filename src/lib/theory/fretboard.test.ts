@@ -117,6 +117,21 @@ describe("fretboard theory", () => {
     expect(noteLabelForPitchClass(10, false)).toBe("A#");
   });
 
+  it("spells scale tones from their degree instead of pitch-class aliases", () => {
+    const cSharpMajor = buildFretboardRows("guitar", "C#", "major");
+    const majorLabels = cSharpMajor.flatMap((row) => row.positions)
+      .filter((position) => position.isScaleTone);
+    expect(majorLabels.filter((position) => position.interval === 4)
+      .every((position) => position.noteLabel === "E#")).toBe(true);
+    expect(majorLabels.filter((position) => position.interval === 11)
+      .every((position) => position.noteLabel === "B#")).toBe(true);
+
+    const cSharpPentatonic = buildFretboardRows("guitar", "C#", "major_pentatonic");
+    expect(cSharpPentatonic.flatMap((row) => row.positions)
+      .filter((position) => position.interval === 4)
+      .every((position) => position.noteLabel === "E#")).toBe(true);
+  });
+
   it("keeps fret 12 enharmonically identical to each open string", () => {
     for (const instrument of ["guitar", "bass"] as const) {
       for (const row of buildFretboardRows(instrument, "A", "natural_minor")) {

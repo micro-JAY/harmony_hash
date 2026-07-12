@@ -1,7 +1,7 @@
 # guitar-fretboard Specification
 
 ## Purpose
-TBD - created by archiving change guitar-fretboard-view. Update Purpose after archive.
+Define the fretboard explorer's scale mapping, tunings, handedness, learning patterns, chord overlays, accessibility, and responsive behavior.
 ## Requirements
 ### Requirement: Pure fretted-instrument mapping
 The system SHALL expose deterministic, side-effect-free helpers that map a root and supported scale type across a selected immutable guitar or bass tuning from open string through fret 15.
@@ -285,4 +285,3 @@ The fretboard SHALL render scale membership, pattern membership, chord membershi
 #### Scenario: Overlay legend
 - **WHEN** a chord overlay is active
 - **THEN** visible legend text SHALL explain that a ring means chord tone and a dashed marker means outside the selected scale
-

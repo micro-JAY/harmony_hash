@@ -1,7 +1,7 @@
 # harmonic-suggestions Specification
 
 ## Purpose
-TBD - created by archiving change free-input-harmonic-suggestions. Update Purpose after archive.
+Define deterministic, explainable key-fit and next-chord scoring for the Free Input harmony workflow.
 ## Requirements
 ### Requirement: Deterministic key-fit scoring
 The system SHALL assign every dictionary-valid candidate chord an integer key-fit score from 0 through 100 equal to the percentage of its unique chord tones contained in the selected key and mode.
@@ -46,4 +46,3 @@ The scoring module SHALL have no React, DOM, network, provider, random, clock, o
 #### Scenario: Repeat calculation
 - **WHEN** the same chords and harmony context are scored repeatedly
 - **THEN** every returned score, tier, component, and reason SHALL be identical
-

@@ -1,7 +1,7 @@
 # quick-chord-modifiers Specification
 
 ## Purpose
-TBD - created by archiving change quick-chord-modifiers. Update Purpose after archive.
+Define fast, accessible, dictionary-backed per-chord replacement behavior across guitar and piano rendering.
 ## Requirements
 ### Requirement: Dictionary-backed chord alternatives
 The system SHALL derive modifier options from existing chord-catalog entries with the same canonical root as the selected chord, and every offered option SHALL resolve through the shared chord lookup.
@@ -94,4 +94,3 @@ The modifier control SHALL update the shared chord model rather than an instrume
 #### Scenario: Instrument switch after replacement
 - **WHEN** a user applies a modifier and then switches instruments
 - **THEN** the replacement chord name and harmonic identity SHALL remain unchanged
-

@@ -168,7 +168,7 @@ test.describe("OpenAI progression builder", () => {
     ).toBeVisible();
 
     await page.getByText("Or pick a preset", { exact: true }).click();
-    await page.getByRole("combobox").nth(1).selectOption("minor");
+    await page.getByRole("combobox", { name: "Progression tonality" }).selectOption("minor");
     await expect(
       page.getByText("The slash chord and altered dominant pull smoothly into A minor."),
     ).toBeVisible();

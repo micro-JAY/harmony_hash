@@ -1,7 +1,16 @@
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { IndexedChord } from "../lib/types";
-import { rankCompatibleScales, type ScaleSuggestion } from "../lib/theory/improvInsight";
+import {
+  filterScaleSuggestionsByMood,
+  moodDefinitionFor,
+  type MoodId,
+} from "../lib/theory";
+import {
+  rankCompatibleScales,
+  SCALE_SUGGESTION_CANDIDATE_COUNT,
+  type ScaleSuggestion,
+} from "../lib/theory/improvInsight";
 
 interface ImprovInsightChord {
   readonly input: string;
@@ -10,6 +19,7 @@ interface ImprovInsightChord {
 
 interface ImprovInsightProps {
   chords: ReadonlyArray<ImprovInsightChord>;
+  moodId: MoodId | null;
 }
 
 type InsightMode = "progression" | "chord";
@@ -44,6 +54,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
         border: "1px solid var(--border-subtle)",
       }}
       data-scale-result={suggestion.label}
+      data-scale-type={suggestion.scaleType}
       data-match={suggestion.match}
     >
       <div className="min-w-0">
@@ -129,7 +140,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
   );
 }
 
-export default function ImprovInsight({ chords }: ImprovInsightProps) {
+export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
   const [mode, setMode] = useState<InsightMode>("progression");
   const [requestedChordIndex, setRequestedChordIndex] = useState(0);
   const reduceMotion = useReducedMotion();
@@ -138,8 +149,13 @@ export default function ImprovInsight({ chords }: ImprovInsightProps) {
     const analysisChords = mode === "progression"
       ? chords.map((item) => item.chord)
       : chords[selectedChordIndex] ? [chords[selectedChordIndex].chord] : [];
-    return rankCompatibleScales(analysisChords, 6);
-  }, [chords, mode, selectedChordIndex]);
+    const candidates = rankCompatibleScales(
+      analysisChords,
+      moodId ? SCALE_SUGGESTION_CANDIDATE_COUNT : 6,
+    );
+    return moodId ? filterScaleSuggestionsByMood(candidates, moodId, 6) : candidates;
+  }, [chords, mode, moodId, selectedChordIndex]);
+  const moodDefinition = moodId ? moodDefinitionFor(moodId) : null;
 
   function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, currentMode: InsightMode) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
@@ -160,6 +176,7 @@ export default function ImprovInsight({ chords }: ImprovInsightProps) {
       data-testid="improv-insight"
       data-insight-mode={mode}
       data-reduced-motion={reduceMotion ? "true" : "false"}
+      data-mood-id={moodId ?? "none"}
     >
       <div
         className="overflow-hidden rounded-2xl"
@@ -178,6 +195,15 @@ export default function ImprovInsight({ chords }: ImprovInsightProps) {
             <p className="mt-2 max-w-2xl" style={{ color: "var(--text-secondary)" }}>
               Ranked scale paths from the chord tones already on your timeline—not a guessed key.
             </p>
+            {moodDefinition ? (
+              <p
+                className="mt-2 text-sm"
+                data-testid="improv-mood-summary"
+                style={{ color: "var(--text-academy)" }}
+              >
+                {moodDefinition.label} lens · showing {moodDefinition.scales.length} preferred scale families
+              </p>
+            ) : null}
           </div>
           <div
             role="tablist"

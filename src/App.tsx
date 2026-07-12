@@ -9,6 +9,7 @@ import { computeVoiceLedProgression, isStyleApplicable } from "./lib/harmonyBrai
 import { parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
 import type { ChordModifierOption } from "./lib/chordModifiers";
+import type { MoodId } from "./lib/theory";
 import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
 
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
@@ -89,6 +90,7 @@ function App() {
   // chord must not look like playback or block the Play button / play tool.
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const [showImprovInsight, setShowImprovInsight] = useState(false);
+  const [moodId, setMoodId] = useState<MoodId | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackHandleRef = useRef<PlaybackHandle | null>(null);
   const nextCardKeyRef = useRef(1);
@@ -323,6 +325,8 @@ function App() {
               onResult={handleResult}
               timelineVersion={timelineVersion}
               timelineVersionRef={timelineVersionRef}
+              moodId={moodId}
+              onMoodChange={setMoodId}
             />
           ) : (
             <Suspense
@@ -464,7 +468,7 @@ function App() {
                 </section>
               )}
             >
-              <ImprovInsight chords={chords} />
+              <ImprovInsight chords={chords} moodId={moodId} />
             </Suspense>
           )}
 

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "bright",
+    "label": "Bright",
+    "kind": "mood",
+    "description": "Open, clear harmony with lifted scale color.",
+    "scales": ["major", "lydian", "major_pentatonic", "major_blues"],
+    "qualityWeights": { "major": 100, "minor": 45, "dominant": 78, "other": 58, "sustained": 82 }
+  },
+  {
+    "id": "dark",
+    "label": "Dark",
+    "kind": "mood",
+    "description": "Minor gravity, close tension, and shadowed color.",
+    "scales": ["natural_minor", "harmonic_minor", "phrygian", "minor_pentatonic", "minor_blues"],
+    "qualityWeights": { "major": 32, "minor": 100, "dominant": 78, "other": 88, "sustained": 62 }
+  },
+  {
+    "id": "jazzy",
+    "label": "Jazzy",
+    "kind": "genre",
+    "description": "Extended harmony, dominant motion, and modal color.",
+    "scales": ["dorian", "mixolydian", "lydian", "harmonic_minor", "major_blues", "minor_blues"],
+    "qualityWeights": { "major": 82, "minor": 90, "dominant": 100, "other": 88, "sustained": 72 }
+  },
+  {
+    "id": "bluesy",
+    "label": "Bluesy",
+    "kind": "genre",
+    "description": "Blue-note friction with strong dominant character.",
+    "scales": ["major_blues", "minor_blues", "mixolydian", "minor_pentatonic"],
+    "qualityWeights": { "major": 76, "minor": 94, "dominant": 100, "other": 72, "sustained": 64 }
+  },
+  {
+    "id": "latin",
+    "label": "Latin",
+    "kind": "genre",
+    "description": "Rhythmic minor color with firm dominant pull.",
+    "scales": ["harmonic_minor", "dorian", "phrygian", "mixolydian"],
+    "qualityWeights": { "major": 72, "minor": 88, "dominant": 98, "other": 76, "sustained": 60 }
+  },
+  {
+    "id": "film_noir",
+    "label": "Film Noir",
+    "kind": "genre",
+    "description": "Ambiguous minor harmony with chromatic suspense.",
+    "scales": ["harmonic_minor", "phrygian", "minor_blues", "natural_minor"],
+    "qualityWeights": { "major": 38, "minor": 96, "dominant": 100, "other": 94, "sustained": 70 }
+  },
+  {
+    "id": "ethereal",
+    "label": "Ethereal",
+    "kind": "mood",
+    "description": "Suspended, spacious harmony with a weightless upper edge.",
+    "scales": ["lydian", "major_pentatonic", "dorian"],
+    "qualityWeights": { "major": 88, "minor": 70, "dominant": 42, "other": 82, "sustained": 100 }
+  },
+  {
+    "id": "happy",
+    "label": "Happy",
+    "kind": "mood",
+    "description": "Direct major warmth with familiar consonant movement.",
+    "scales": ["major", "major_pentatonic", "mixolydian"],
+    "qualityWeights": { "major": 100, "minor": 52, "dominant": 82, "other": 48, "sustained": 74 }
+  },
+  {
+    "id": "melancholy",
+    "label": "Melancholy",
+    "kind": "mood",
+    "description": "Reflective minor color without maximum darkness.",
+    "scales": ["natural_minor", "dorian", "minor_pentatonic"],
+    "qualityWeights": { "major": 42, "minor": 100, "dominant": 66, "other": 72, "sustained": 82 }
+  },
+  {
+    "id": "heroic",
+    "label": "Heroic",
+    "kind": "mood",
+    "description": "Broad major harmony with decisive dominant motion.",
+    "scales": ["major", "mixolydian", "harmonic_minor"],
+    "qualityWeights": { "major": 100, "minor": 58, "dominant": 96, "other": 78, "sustained": 68 }
+  },
+  {
+    "id": "ancient",
+    "label": "Ancient",
+    "kind": "mood",
+    "description": "Modal, open-ended harmony with an old-world contour.",
+    "scales": ["dorian", "phrygian", "harmonic_minor", "minor_pentatonic"],
+    "qualityWeights": { "major": 54, "minor": 92, "dominant": 70, "other": 86, "sustained": 94 }
+  },
+  {
+    "id": "lively",
+    "label": "Lively",
+    "kind": "mood",
+    "description": "Forward motion with bright dominant and modal energy.",
+    "scales": ["mixolydian", "major", "major_blues", "dorian"],
+    "qualityWeights": { "major": 92, "minor": 68, "dominant": 98, "other": 58, "sustained": 80 }
+  }
+]

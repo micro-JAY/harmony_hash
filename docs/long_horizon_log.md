@@ -314,10 +314,10 @@ Engine work in `src/data/moods.json` + `src/lib/theory/`:
 - `filterByMood(chord-candidates, mood): scored-candidates` — runs each candidate against the mood's quality weights + scale memberships.
 
 UI:
-- Pill row of moods above the chord grid or as a sidebar.
-- Active mood biases the suggestion overlay (extending 2.2's overlay to "mood-weighted" mode) AND filters the progression library (extending 2.4 with mood-tagged filtering).
+- Compact optional selector above the input surfaces, keeping the full vocabulary available without a dense beginner-facing pill wall.
+- Active mood biases the suggestion overlay (extending 2.2's overlay to "mood-weighted" mode) and filters compatible-scale results (Improv Insight in 2.3, then the Scale Synthesia picker in 2.7). This follows the canonical prompt's two required consumers; progression-library tagging is not part of the Phase 2.5 contract.
 
-Bigger lift than 2.4 because it touches both overlay + library. But shares the theory module v2.2 set up.
+Bigger lift than 2.4 because it touches both the overlay and compatible-scale surfaces, but it shares the theory module v2.2 set up.
 
 **Design + integration notes for the resuming session:**
 

@@ -82,7 +82,7 @@ test.describe("Free Input harmonic suggestions", () => {
 
     await page.getByRole("button", { name: "Progressions" }).click();
     await page.getByText("Or pick a preset", { exact: true }).click();
-    const presetKey = page.locator("details").getByRole("combobox").first();
+    const presetKey = page.getByRole("combobox", { name: "Progression key" });
     await presetKey.selectOption("E");
 
     await page.getByRole("button", { name: "Free Input" }).click();

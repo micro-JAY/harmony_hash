@@ -60,6 +60,8 @@ const SCALE_TYPES = Object.freeze([
   "minor_blues",
 ] as const satisfies ReadonlyArray<ScaleFormulaType>);
 
+export const SCALE_SUGGESTION_CANDIDATE_COUNT = CANDIDATE_ROOTS.length * SCALE_TYPES.length;
+
 const SCALE_TYPE_LABELS: Readonly<Record<ScaleFormulaType, string>> = Object.freeze({
   major: "Major",
   natural_minor: "Natural Minor",
@@ -231,7 +233,7 @@ export function rankCompatibleScales(
   chords: ReadonlyArray<IndexedChord>,
   limit = 8,
 ): ReadonlyArray<ScaleSuggestion> {
-  const maximum = CANDIDATE_ROOTS.length * SCALE_TYPES.length;
+  const maximum = SCALE_SUGGESTION_CANDIDATE_COUNT;
   if (!Number.isInteger(limit) || limit < 1 || limit > maximum) {
     throw new RangeError(`Scale suggestion limit must be an integer from 1 to ${maximum}; received ${limit}`);
   }

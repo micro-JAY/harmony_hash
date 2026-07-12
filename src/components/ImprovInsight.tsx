@@ -1,5 +1,6 @@
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
+import { prefersFlatNotation, splitRootAndQuality } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
 import {
   filterScaleSuggestionsByMood,
@@ -152,12 +153,18 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
   const reduceMotion = useReducedMotion();
   const selectedChordIndex = Math.min(requestedChordIndex, Math.max(0, chords.length - 1));
   const suggestions = useMemo(() => {
-    const analysisChords = mode === "progression"
-      ? chords.map((item) => item.chord)
-      : chords[selectedChordIndex] ? [chords[selectedChordIndex].chord] : [];
+    const analysisItems = mode === "progression"
+      ? chords
+      : chords[selectedChordIndex] ? [chords[selectedChordIndex]] : [];
     const candidates = rankCompatibleScales(
-      analysisChords,
+      analysisItems.map((item) => item.chord),
       moodId ? SCALE_SUGGESTION_CANDIDATE_COUNT : 6,
+      {
+        preferFlats: analysisItems.some((item) => {
+          const [root] = splitRootAndQuality(item.input.trim());
+          return prefersFlatNotation(root);
+        }),
+      },
     );
     return moodId ? filterScaleSuggestionsByMood(candidates, moodId, 6) : candidates;
   }, [chords, mode, moodId, selectedChordIndex]);

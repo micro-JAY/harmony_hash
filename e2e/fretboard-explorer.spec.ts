@@ -161,6 +161,15 @@ test.describe("Fretboard Explorer", () => {
 
     await mode.selectOption("harmonic_minor");
     await expect(legend).toContainText("7 · Raised seventh");
+
+    await page.getByRole("combobox", { name: "Fretboard root" }).selectOption("C#");
+    await mode.selectOption("major_pentatonic");
+    await page.getByRole("button", { name: "Notes", exact: true }).click();
+    await expect(page.getByRole("region", { name: "C# Major Pentatonic scale summary" }))
+      .toContainText("E# 3");
+    await expect(page.getByRole("button", {
+      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 1, E#, interval 3, All positions pattern tone",
+    })).toHaveText("E#");
     expect(browserIssues).toEqual([]);
   });
 

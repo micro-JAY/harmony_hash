@@ -1,5 +1,5 @@
 import { prefersFlatNotation } from "../chordData";
-import { pitchClassOf, scaleIntervalsFor } from "./scaleBasics";
+import { pitchClassOf, scaleIntervalsFor, spellScaleNotes } from "./scaleBasics";
 import type { ScaleFormulaType } from "./scaleBasics";
 
 export type FretboardInstrument = "guitar" | "bass";
@@ -175,16 +175,6 @@ function intervalLabelForScale(interval: number, scaleType: ScaleFormulaType): s
   return intervalLabelFor(interval);
 }
 
-function prefersFlatScaleTone(
-  keyName: string,
-  scaleType: ScaleFormulaType,
-  interval: number,
-): boolean {
-  if ([1, 3, 8, 10].includes(interval)) return true;
-  if (interval === 6) return scaleType === "minor_blues";
-  return prefersFlatNotation(keyName);
-}
-
 export function buildFretboardRows(
   instrument: FretboardInstrument,
   keyName: string,
@@ -202,6 +192,7 @@ export function buildFretboardRows(
   }
 
   const intervals = scaleIntervalsFor(scaleType);
+  const scaleNoteLabels = spellScaleNotes(keyName, scaleType);
   const intervalIndex = new Map(intervals.map((interval, index) => [interval, index]));
   return Object.freeze(
     fretboardTuningFor(instrument, tuningId).map((string) => {
@@ -210,15 +201,14 @@ export function buildFretboardRows(
         const interval = (pitchClass - rootPitchClass + 12) % 12;
         const degreeIndex = intervalIndex.get(interval);
         const isScaleTone = degreeIndex !== undefined;
+        const scaleNoteLabel = degreeIndex === undefined ? undefined : scaleNoteLabels[degreeIndex];
 
         return Object.freeze({
           stringNumber: string.number,
           stringLabel: string.registerLabel,
           fret,
           pitchClass,
-          noteLabel: noteLabelForPitchClass(pitchClass, isScaleTone
-            ? prefersFlatScaleTone(keyName, scaleType, interval)
-            : prefersFlatNotation(keyName)),
+          noteLabel: scaleNoteLabel ?? noteLabelForPitchClass(pitchClass, prefersFlatNotation(keyName)),
           isScaleTone,
           isRoot: isScaleTone && interval === 0,
           degree: isScaleTone ? degreeIndex + 1 : null,

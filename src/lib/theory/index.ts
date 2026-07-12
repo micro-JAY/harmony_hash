@@ -4,6 +4,7 @@ export {
   scaleDegreeOf,
   scaleIntervalsFor,
   scalePitchClasses,
+  spellScaleNotes,
 } from "./scaleBasics";
 
 export {

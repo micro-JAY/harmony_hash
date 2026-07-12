@@ -5,6 +5,7 @@ import {
   scaleIntervalsFor,
   scalePitchClasses,
   isRootDiatonic,
+  spellScaleNotes,
 } from "./index";
 
 describe("pitchClassOf", () => {
@@ -52,6 +53,13 @@ describe("scalePitchClasses", () => {
     expect(scaleIntervalsFor("minor_pentatonic")).toEqual([0, 3, 5, 7, 10]);
     expect(scaleIntervalsFor("major_blues")).toEqual([0, 2, 3, 4, 7, 9]);
     expect(scaleIntervalsFor("minor_blues")).toEqual([0, 3, 5, 6, 7, 10]);
+  });
+
+  it("exports immutable degree-correct scale spelling", () => {
+    const cSharpMajor = spellScaleNotes("C#", "major");
+    expect(cSharpMajor).toEqual(["C#", "D#", "E#", "F#", "G#", "A#", "B#"]);
+    expect(spellScaleNotes("Bb", "major")).toEqual(["Bb", "C", "D", "Eb", "F", "G", "A"]);
+    expect(Object.isFrozen(cSharpMajor)).toBe(true);
   });
 
   it("returns empty set for unknown key", () => {

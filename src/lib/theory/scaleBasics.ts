@@ -36,6 +36,30 @@ const SCALE_INTERVALS: Readonly<Record<ScaleFormulaType, ReadonlyArray<number>>>
   minor_blues: Object.freeze([0, 3, 5, 6, 7, 10]),
 });
 
+const NATURAL_LETTER_PITCH_CLASSES: Readonly<Record<string, number>> = Object.freeze({
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11,
+});
+
+const SCALE_DEGREE_LETTER_OFFSETS: Readonly<Record<ScaleFormulaType, ReadonlyArray<number>>> = Object.freeze({
+  major: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
+  natural_minor: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
+  harmonic_minor: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
+  dorian: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
+  mixolydian: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
+  lydian: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
+  phrygian: Object.freeze([0, 1, 2, 3, 4, 5, 6]),
+  major_pentatonic: Object.freeze([0, 1, 2, 4, 5]),
+  minor_pentatonic: Object.freeze([0, 2, 3, 4, 6]),
+  major_blues: Object.freeze([0, 1, 2, 2, 4, 5]),
+  minor_blues: Object.freeze([0, 2, 3, 4, 4, 6]),
+});
+
 export function scaleIntervalsFor(scaleType: ScaleFormulaType): ReadonlyArray<number> {
   return SCALE_INTERVALS[scaleType];
 }
@@ -53,6 +77,31 @@ export function scalePitchClasses(keyName: string, scaleType: ScaleFormulaType):
   return new Set(
     scaleIntervalsFor(scaleType).map((interval) => (keyPitchClass + interval) % 12),
   );
+}
+
+export function spellScaleNotes(
+  keyName: string,
+  scaleType: ScaleFormulaType,
+): ReadonlyArray<string> {
+  const rootPitchClass = pitchClassOf(keyName);
+  const rootLetterIndex = "CDEFGAB".indexOf(keyName[0]);
+  if (rootPitchClass < 0 || rootLetterIndex < 0) {
+    throw new Error(`Unrecognized scale root: "${keyName}"`);
+  }
+
+  const intervals = scaleIntervalsFor(scaleType);
+  const letterOffsets = SCALE_DEGREE_LETTER_OFFSETS[scaleType];
+  return Object.freeze(intervals.map((interval, index) => {
+    const letter = "CDEFGAB"[(rootLetterIndex + letterOffsets[index]) % 7];
+    const naturalPitchClass = NATURAL_LETTER_PITCH_CLASSES[letter];
+    const targetPitchClass = (rootPitchClass + interval) % 12;
+    const unsignedDifference = (targetPitchClass - naturalPitchClass + 12) % 12;
+    const signedDifference = unsignedDifference > 6 ? unsignedDifference - 12 : unsignedDifference;
+    const accidental = signedDifference > 0
+      ? "#".repeat(signedDifference)
+      : "b".repeat(-signedDifference);
+    return `${letter}${accidental}`;
+  }));
 }
 
 export function isRootDiatonic(

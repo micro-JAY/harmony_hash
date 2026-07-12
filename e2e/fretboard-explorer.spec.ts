@@ -70,6 +70,11 @@ test.describe("Fretboard Explorer", () => {
       "aria-pressed",
       "true",
     );
+    const instrumentBox = await page.getByRole("group", { name: "Instrument" }).boundingBox();
+    const labelsBox = await page.getByRole("group", { name: "Labels" }).boundingBox();
+    expect(instrumentBox).not.toBeNull();
+    expect(labelsBox).not.toBeNull();
+    expect(Math.abs(labelsBox!.y - instrumentBox!.y)).toBeLessThan(16);
 
     const guitarGrid = page.getByRole("grid", {
       name: "Right-handed Guitar scale positions in Standard tuning",

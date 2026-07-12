@@ -129,7 +129,7 @@ function SelectControl<T extends string>({
   children: ReactNode;
 }) {
   return (
-    <label htmlFor={id} className="block min-w-40">
+    <label htmlFor={id} className="block w-40 min-w-0">
       <span
         className="mb-2 block"
         style={{
@@ -247,7 +247,7 @@ export default function FretboardExplorer() {
 
         <section
           aria-label="Fretboard controls"
-          className="mb-6 flex flex-wrap items-end gap-x-3 gap-y-4 rounded-xl p-4 md:p-5"
+          className="mb-6 flex flex-wrap items-end gap-x-2 gap-y-4 rounded-xl p-4 md:p-5"
           style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)" }}
         >
           <SegmentedControl

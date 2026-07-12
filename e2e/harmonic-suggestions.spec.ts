@@ -64,6 +64,12 @@ test.describe("Free Input harmonic suggestions", () => {
       "data-fit-score",
       "75",
     );
+    const fitColors = await Promise.all([
+      dMinorSeven,
+      page.getByRole("button", { name: /C7, 75% fit, good/ }),
+      page.locator('button[data-chord-name="F#"]'),
+    ].map((locator) => locator.getByText(/%$/).evaluate((element) => getComputedStyle(element).color)));
+    expect(new Set(fitColors).size).toBe(3);
     await dMinorSeven.click();
     const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
     await expect(freeInput).toHaveValue("Dm7");

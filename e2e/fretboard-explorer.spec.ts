@@ -25,6 +25,17 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
 }
 
 async function settleVisual(page: Page): Promise<void> {
+  const fonts = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const loadedFamilies = [...document.fonts]
+      .filter((font) => font.status === "loaded")
+      .map((font) => font.family);
+    return {
+      zalando: loadedFamilies.some((family) => family.includes("Zalando Sans")),
+      jetBrains: loadedFamilies.some((family) => family.includes("JetBrains Mono")),
+    };
+  });
+  expect(fonts).toEqual({ zalando: true, jetBrains: true });
   await expect(page.locator("body")).toHaveCSS("font-family", /Zalando Sans/);
   await page.evaluate(
     () => new Promise<void>((resolve) => {
@@ -50,6 +61,8 @@ test.describe("Fretboard Explorer", () => {
     const requestedUrls: string[] = [];
     page.on("request", (request) => requestedUrls.push(request.url()));
     await page.goto("/", { waitUntil: "domcontentloaded" });
+    expect(requestedUrls.some((url) => url.endsWith("/tokens.css"))).toBe(true);
+    expect(requestedUrls.some((url) => url.includes("cdn.jsdelivr.net"))).toBe(false);
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(false);
     await page.getByRole("button", { name: "Fretboard", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
@@ -65,10 +78,20 @@ test.describe("Fretboard Explorer", () => {
     );
     await expect(page.getByRole("combobox", { name: "Fretboard root" })).toHaveValue("C");
     await expect(page.getByRole("combobox", { name: "Fretboard mode" })).toHaveValue("major");
+    await expect(page.getByRole("combobox", { name: "Fretboard mode" }).locator("option")).toHaveCount(11);
+    await expect(page.getByText("Current map", { exact: true })).toHaveCSS(
+      "color",
+      "rgb(168, 169, 184)",
+    );
     await expect(page.getByRole("button", { name: "Intervals", exact: true })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
+    const instrumentBox = await page.getByRole("group", { name: "Instrument" }).boundingBox();
+    const labelsBox = await page.getByRole("group", { name: "Labels" }).boundingBox();
+    expect(instrumentBox).not.toBeNull();
+    expect(labelsBox).not.toBeNull();
+    expect(Math.abs(labelsBox!.y - instrumentBox!.y)).toBeLessThan(16);
 
     const guitarGrid = page.getByRole("grid", {
       name: "Right-handed Guitar scale positions in Standard tuning",
@@ -93,6 +116,10 @@ test.describe("Fretboard Explorer", () => {
     await expect(page.getByRole("region", { name: "Eb Dorian scale summary" })).toContainText(
       "Eb Dorian · Bass",
     );
+    const legend = page.getByRole("complementary", { name: "Interval color legend" });
+    await expect(legend).toContainText("b3 · Minor third");
+    await expect(legend).toContainText("6 · Raised sixth");
+    await expect(legend).toContainText("b7 · Flat seventh");
     await expect(
       page.getByRole("button", {
         name: "Right-handed Bass string 1 (G), Standard tuning, fret 8, Eb, interval 1, All positions pattern tone",
@@ -102,6 +129,39 @@ test.describe("Fretboard Explorer", () => {
 
     await settleVisual(page);
     await expect(page).toHaveScreenshot("fretboard-desktop.png", { fullPage: true });
+  });
+
+  test("maps major and minor pentatonic and blues formulas with distinct interval cues", async ({ page }) => {
+    const browserIssues = collectBrowserIssues(page);
+    await openFretboard(page);
+    const mode = page.getByRole("combobox", { name: "Fretboard mode" });
+    const legend = page.getByRole("complementary", { name: "Interval color legend" });
+
+    await mode.selectOption("major_pentatonic");
+    await expect(page.getByRole("region", { name: "C Major Pentatonic scale summary" })).toBeVisible();
+    await expect(page.getByLabel("Scale notes and intervals").getByRole("listitem")).toHaveCount(5);
+
+    await mode.selectOption("minor_pentatonic");
+    await expect(legend).toContainText("b3 · Minor third");
+    await expect(legend).toContainText("b7 · Flat seventh");
+
+    await mode.selectOption("major_blues");
+    await expect(page.getByLabel("Scale notes and intervals").getByRole("listitem")).toHaveCount(6);
+    await expect(legend).toContainText("b3 · Minor third (blue note)");
+    const rootColor = await legend.getByText("1 · Root").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    const minorThirdColor = await legend.getByText(/b3 · Minor third/).locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    const majorThirdColor = await legend.getByText("3 · Major third").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    expect(new Set([rootColor, minorThirdColor, majorThirdColor]).size).toBe(3);
+
+    await mode.selectOption("minor_blues");
+    await expect(legend).toContainText("b5 · Flat fifth (blue note)");
+
+    await mode.selectOption("natural_minor");
+    await expect(legend).toContainText("b6 · Flat sixth");
+
+    await mode.selectOption("harmonic_minor");
+    await expect(legend).toContainText("7 · Raised seventh");
+    expect(browserIssues).toEqual([]);
   });
 
   test("supports spatial focus and preserves the progression builder", async ({ page }) => {

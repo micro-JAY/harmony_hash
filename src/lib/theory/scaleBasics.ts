@@ -1,6 +1,12 @@
 import { normalizeRoot } from "../chordData";
 import type { ScaleType } from "../types";
 
+export type ScaleFormulaType = ScaleType
+  | "major_pentatonic"
+  | "minor_pentatonic"
+  | "major_blues"
+  | "minor_blues";
+
 const NOTE_PCS: Readonly<Record<string, number>> = {
   C: 0,
   Cs: 1,
@@ -16,7 +22,7 @@ const NOTE_PCS: Readonly<Record<string, number>> = {
   B: 11,
 };
 
-const SCALE_INTERVALS: Readonly<Record<ScaleType, ReadonlyArray<number>>> = Object.freeze({
+const SCALE_INTERVALS: Readonly<Record<ScaleFormulaType, ReadonlyArray<number>>> = Object.freeze({
   major: Object.freeze([0, 2, 4, 5, 7, 9, 11]),
   natural_minor: Object.freeze([0, 2, 3, 5, 7, 8, 10]),
   harmonic_minor: Object.freeze([0, 2, 3, 5, 7, 8, 11]),
@@ -24,9 +30,13 @@ const SCALE_INTERVALS: Readonly<Record<ScaleType, ReadonlyArray<number>>> = Obje
   mixolydian: Object.freeze([0, 2, 4, 5, 7, 9, 10]),
   lydian: Object.freeze([0, 2, 4, 6, 7, 9, 11]),
   phrygian: Object.freeze([0, 1, 3, 5, 7, 8, 10]),
+  major_pentatonic: Object.freeze([0, 2, 4, 7, 9]),
+  minor_pentatonic: Object.freeze([0, 3, 5, 7, 10]),
+  major_blues: Object.freeze([0, 2, 3, 4, 7, 9]),
+  minor_blues: Object.freeze([0, 3, 5, 6, 7, 10]),
 });
 
-export function scaleIntervalsFor(scaleType: ScaleType): ReadonlyArray<number> {
+export function scaleIntervalsFor(scaleType: ScaleFormulaType): ReadonlyArray<number> {
   return SCALE_INTERVALS[scaleType];
 }
 
@@ -37,7 +47,7 @@ export function pitchClassOf(rootName: string): number {
   return pitchClass !== undefined ? pitchClass : -1;
 }
 
-export function scalePitchClasses(keyName: string, scaleType: ScaleType): Set<number> {
+export function scalePitchClasses(keyName: string, scaleType: ScaleFormulaType): Set<number> {
   const keyPitchClass = pitchClassOf(keyName);
   if (keyPitchClass < 0) return new Set();
   return new Set(

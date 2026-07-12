@@ -8,10 +8,27 @@
    ============================================================ */
 
 /* ----------------------------------------------------------
-   GOOGLE FONTS IMPORT
+   SELF-HOSTED TONARI FONTS
    ---------------------------------------------------------- */
 
-@import url('https://fonts.googleapis.com/css2?family=Zalando+Sans:wdth,wght@75..125,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+/* Harmony Hash keeps the shared family names and axes while serving the
+   official OFL files locally so the interface never falls back offline. */
+@font-face {
+  font-family: 'Zalando Sans';
+  src: url('/fonts/zalando-sans/ZalandoSans-Variable.woff2') format('woff2-variations');
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 75% 125%;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono/JetBrainsMono-Variable.woff2') format('woff2-variations');
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+}
 
 
 :root {

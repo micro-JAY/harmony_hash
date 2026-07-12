@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { pitchClassOf, scalePitchClasses, isRootDiatonic, scaleDegreeOf } from "./index";
+import {
+  pitchClassOf,
+  scaleDegreeOf,
+  scaleIntervalsFor,
+  scalePitchClasses,
+  isRootDiatonic,
+} from "./index";
 
 describe("pitchClassOf", () => {
   it("maps canonical naturals", () => {
@@ -39,6 +45,13 @@ describe("scalePitchClasses", () => {
 
   it("returns D dorian scale pitches", () => {
     expect(scalePitchClasses("D", "dorian")).toEqual(new Set([2, 4, 5, 7, 9, 11, 0]));
+  });
+
+  it("publishes major and minor pentatonic and blues formulas", () => {
+    expect(scaleIntervalsFor("major_pentatonic")).toEqual([0, 2, 4, 7, 9]);
+    expect(scaleIntervalsFor("minor_pentatonic")).toEqual([0, 3, 5, 7, 10]);
+    expect(scaleIntervalsFor("major_blues")).toEqual([0, 2, 3, 4, 7, 9]);
+    expect(scaleIntervalsFor("minor_blues")).toEqual([0, 3, 5, 6, 7, 10]);
   });
 
   it("returns empty set for unknown key", () => {

@@ -1,15 +1,25 @@
 ## ADDED Requirements
 
 ### Requirement: Live agent configuration matches the signed-URL client
-The provisioned ElevenLabs agent SHALL have signed-URL authentication enabled and SHALL expose exactly the nine client tools defined by the app. Updating the source-owned prompt, tools, or auth SHALL preserve live identity and voice customizations.
+The provisioned ElevenLabs agent SHALL have signed-URL authentication enabled and SHALL expose exactly the nine client-tool contracts defined by the app through the modern toolbox and `tool_ids` API. Updating the source-owned prompt, tools, or auth SHALL preserve live identity and the complete TTS configuration.
 
 #### Scenario: Auth configuration verified
 - **WHEN** the agent is provisioned or updated
 - **THEN** a follow-up read SHALL report `enable_auth: true`, an explicit empty allowlist, and the expected agent id
 
-#### Scenario: Tool set verified
+#### Scenario: Effective tool set verified
 - **WHEN** the live agent configuration is read
-- **THEN** its client-tool names SHALL exactly match `toolSchemas.ts`
+- **THEN** every linked tool id SHALL resolve to exactly one client contract matching `toolSchemas.ts` by name, description, parameters, response behavior, execution mode, and source-owned tool behavior settings
+- **AND** assignments, dynamic-variable placeholders, response mocks, task-execution authority, duplicate or unresolved ids, built-in tools, MCP attachments, nested tool overrides, workflow nodes, edges, or opaque fields, non-client legacy tools, and unknown capability fields SHALL be absent
+
+#### Scenario: Modern toolbox provisioning
+- **WHEN** an expected linked client contract is missing or has drifted
+- **THEN** provisioning SHALL create a source-owned toolbox record, re-read and verify the persisted record, and replace the agent's `tool_ids` with exactly the nine verified ids
+- **AND** SHALL NOT mutate or delete an existing toolbox record that may be shared with another agent
+
+#### Scenario: Ambiguous provider authority blocks an update
+- **WHEN** the current agent has a built-in tool, MCP attachment, workflow, legacy non-client tool, or unknown capability field whose removal semantics are not source-owned
+- **THEN** provisioning SHALL fail before updating the agent and SHALL require explicit operator removal
 
 #### Scenario: Existing identity preserved
 - **WHEN** an existing agent is updated in place
@@ -39,7 +49,7 @@ The app SHALL keep the voice companion runtime and client tools mounted within t
 - **THEN** the provider, session, and nine client tools SHALL remain mounted and operational
 
 ### Requirement: Server-minted signed URL
-The Worker SHALL expose `POST /api/voice/signed-url` that mints a short-lived ElevenLabs signed URL using a server-held API key and configured agent id, and SHALL never expose either secret to the client. The route SHALL reuse the existing origin allowlist and distinguish local configuration failure from upstream rejection.
+The Worker SHALL expose `POST /api/voice/signed-url` that mints a short-lived ElevenLabs signed URL using a server-held API key and configured non-secret agent id. The Worker SHALL never expose the API key to the client. The route SHALL reuse the existing origin allowlist and distinguish local configuration failure from upstream rejection.
 
 #### Scenario: Success
 - **WHEN** a permitted origin POSTs to `/api/voice/signed-url` and the API key, agent id, and live agent auth mode are valid

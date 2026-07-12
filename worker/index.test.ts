@@ -331,7 +331,12 @@ describe("POST /api/voice/signed-url", () => {
 
   it("returns a generic 502 and sanitizes upstream detail in logs", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
-      new Response("rejected sk-eleven-secret", { status: 401 }),
+      new Response(
+        "rejected sk_eleven_secret_123456 Bearer opaque.voice.token " +
+          "wss://voice.example/session?conversation_signature=signed-secret " +
+          "xi-api-key: opaque-header",
+        { status: 401 },
+      ),
     );
     vi.stubGlobal("fetch", fetchMock);
     const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -347,10 +352,12 @@ describe("POST /api/voice/signed-url", () => {
 
     expect(response.status).toBe(502);
     expect(body).toContain("Could not start a voice session");
-    expect(body).not.toContain("sk-eleven-secret");
+    expect(body).not.toContain("sk_eleven_secret_123456");
     expect(log).toHaveBeenCalledWith(
       "[harmony-voice] signed-url:",
-      "ElevenLabs get-signed-url returned 401: rejected [redacted]",
+      "ElevenLabs get-signed-url returned 401: rejected [redacted] " +
+        "Bearer [redacted] " +
+        "[signed-url redacted] xi-api-key: [redacted]",
     );
   });
 });

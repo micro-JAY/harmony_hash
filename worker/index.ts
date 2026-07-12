@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { fetchSignedUrl } from "../src/lib/elevenLabsAuth";
+import { sanitizeProviderDetail } from "../src/lib/sanitizeProviderDetail";
 import {
   AgentNonConvergenceError,
   AgentProviderResponseError,
@@ -92,7 +93,7 @@ async function handleVoiceSignedUrl(request: Request, env: Env): Promise<Respons
   if (!outcome.ok) {
     // Log the upstream detail server-side; never leak ElevenLabs internals or
     // the key to the client. A failed mint is a 5xx, not a success shape.
-    console.error("[harmony-voice] signed-url:", sanitizeError(outcome.error));
+    console.error("[harmony-voice] signed-url:", sanitizeProviderDetail(outcome.error));
     return jsonResponse({ error: "Could not start a voice session" }, 502, request, env);
   }
 
@@ -147,14 +148,14 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
       return jsonResponse({ error: "Agent did not converge" }, 504, request, env);
     }
     if (err instanceof AgentValidationError) {
-      const message = sanitizeError(err.message);
+      const message = sanitizeProviderDetail(err.message);
       console.error("[harmony-progression] validation:", message);
       return jsonResponse({ error: message }, 500, request, env);
     }
     if (err instanceof AgentProviderResponseError) {
       console.error(
         "[harmony-progression] OpenAI response:",
-        sanitizeError(err.message),
+        sanitizeProviderDetail(err.message),
       );
       return jsonResponse(
         { error: "Progression service is temporarily unavailable" },
@@ -167,7 +168,7 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
       return jsonResponse({ error: "Progression request timed out" }, 504, request, env);
     }
     const message = err instanceof Error ? err.message : "Unknown agent error";
-    console.error("[harmony-progression] OpenAI:", sanitizeError(message));
+    console.error("[harmony-progression] OpenAI:", sanitizeProviderDetail(message));
     return jsonResponse(
       { error: "Progression service is temporarily unavailable" },
       502,
@@ -195,10 +196,6 @@ function extractPrompt(body: unknown): PromptResult {
     return { ok: false, error: `Prompt must be ${MAX_PROMPT_LENGTH} characters or fewer` };
   }
   return { ok: true, value: trimmed };
-}
-
-function sanitizeError(message: string): string {
-  return message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]");
 }
 
 function isTimeoutError(error: unknown): boolean {

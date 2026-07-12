@@ -1,6 +1,7 @@
 import { ConversationProvider } from "@elevenlabs/react";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ProgressionBridge } from "./types";
+import { sanitizeProviderDetail } from "../lib/sanitizeProviderDetail";
 import {
   VoiceAgentContext,
   type TranscriptEntry,
@@ -62,7 +63,10 @@ export function VoiceAgentProvider({
     <VoiceAgentContext.Provider value={value}>
       <ConversationProvider
         onMessage={handleMessage}
-        onError={(err: unknown) => console.error("[harmony-hash-voice]", err)}
+        onError={(err: unknown) => {
+          const detail = err instanceof Error ? err.message : String(err);
+          console.error("[harmony-hash-voice]", sanitizeProviderDetail(detail));
+        }}
       >
         {children}
       </ConversationProvider>

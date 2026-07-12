@@ -81,7 +81,7 @@ The Worker listens on `http://localhost:8787` by default.
 
 ## Voice agent maintenance
 
-The updater reads the prompt and canonical nine-tool schema, patches only those fields plus signed auth, then re-reads the agent and proves the live name, voice, and TTS model were preserved:
+The updater reads the prompt and canonical nine-tool schema, resolves the modern toolbox records behind `prompt.tool_ids`, and reuses only exact contracts. A missing or drifted contract gets a new toolbox record that is re-read before attachment; shared records are never patched or deleted. Before any agent write, the updater fails closed on built-ins, MCP attachments, workflows, nested tool overrides, legacy non-client tools, task-execution authority, and unknown provider capability fields. It then patches only the source-owned prompt/tool ids plus signed auth and proves the live name and complete TTS configuration were preserved. `--verify` performs read-only checks.
 
 ```sh
 node --env-file=.dev.vars --import tsx scripts/provision-voice-agent.ts

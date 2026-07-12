@@ -107,6 +107,19 @@ The Fretboard workspace SHALL provide independent controls for instrument, tunin
 - **WHEN** the Fretboard workspace opens for the first time
 - **THEN** Guitar, Standard tuning, Right-handed, C, Major, Intervals, All pattern, and no chord overlay SHALL be selected
 
+#### Scenario: Guitar and bass selection
+- **WHEN** the user selects Bass
+- **THEN** the board SHALL render four strings in the selected bass tuning instead of six guitar strings
+- **AND** the builder's guitar/piano instrument selection SHALL remain unchanged
+
+#### Scenario: Supported modes
+- **WHEN** the mode control is opened
+- **THEN** Major, Natural Minor, Harmonic Minor, Dorian, Mixolydian, Lydian, and Phrygian SHALL be available
+
+#### Scenario: Label mode selection
+- **WHEN** the user changes from Intervals to Notes
+- **THEN** every highlighted position SHALL show its note name while retaining the same interval-role color
+
 #### Scenario: Per-instrument tuning memory
 - **WHEN** the user selects DADGAD for guitar, selects Bass and BEAD, then returns to Guitar
 - **THEN** DADGAD SHALL still be selected for guitar
@@ -140,6 +153,16 @@ The Fretboard workspace SHALL provide independent controls for instrument, tunin
 ### Requirement: Horizontal fretboard rendering
 The explorer SHALL render open strings and frets 1 through 15 horizontally, with conventional high-to-low visual string order, selected tuning labels, fret numbers, position markers, a pattern-filtered scale map, and the selected chord-tone union.
 
+#### Scenario: Guitar anatomy
+- **WHEN** Guitar is active
+- **THEN** six string rows, sixteen fret lanes including open strings, and markers at frets 3, 5, 7, 9, 12, and 15 SHALL be visible
+- **AND** fret 12 SHALL use a double marker
+
+#### Scenario: Root and interval roles
+- **WHEN** any scale is displayed
+- **THEN** every root position SHALL use the Tonari accent treatment and label `1` in Intervals mode
+- **AND** non-root scale positions SHALL remain distinguishable without relying on color alone
+
 #### Scenario: Right-handed fret axis
 - **WHEN** Right-handed is active
 - **THEN** the visible fret columns SHALL run from open strings at the left edge to fret 15 at the right edge
@@ -158,8 +181,17 @@ The explorer SHALL render open strings and frets 1 through 15 horizontally, with
 - **WHEN** a highlighted note receives focus
 - **THEN** its accessible name SHALL include handedness, instrument string, selected tuning, fret, note name, scale interval when present, pattern membership, chord degree when present, and scale-fit status
 
+#### Scenario: Exact orientation semantics
+- **WHEN** a highlighted note receives focus
+- **THEN** its accessible name SHALL include handedness, instrument string, selected tuning, fret, note name, and interval label
+
 ### Requirement: Keyboard and reduced-motion behavior
 The explorer SHALL support visual-direction keyboard navigation across the visible pattern/chord union and SHALL not require animation to understand tuning, handedness, pattern, or overlay changes.
+
+#### Scenario: Spatial keyboard navigation
+- **WHEN** a highlighted position has focus and the user presses an arrow key
+- **THEN** focus SHALL move to the nearest highlighted position in that visual direction when one exists
+- **AND** the focused position SHALL scroll into view inside the board region
 
 #### Scenario: Right-handed horizontal navigation
 - **WHEN** Right-handed is active and a visible position receives ArrowRight
@@ -192,6 +224,15 @@ The explorer SHALL support visual-direction keyboard navigation across the visib
 
 ### Requirement: Responsive containment and performance
 The explorer SHALL preserve document-width containment across desktop, tablet, and 375px mobile viewports while keeping tuning, orientation, pattern, and overlay updates responsive.
+
+#### Scenario: Desktop board
+- **WHEN** the viewport is at least 1024px wide
+- **THEN** the board SHALL fit its content region or scroll only within the labeled board container
+
+#### Scenario: Mobile board
+- **WHEN** the viewport is 375px wide
+- **THEN** controls SHALL wrap without overlap and the board SHALL scroll horizontally inside its own container
+- **AND** the document SHALL not overflow horizontally
 
 #### Scenario: Desktop learning layer
 - **WHEN** the viewport is at least 1024px wide

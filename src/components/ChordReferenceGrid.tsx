@@ -3,10 +3,17 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { lookupChord } from "../lib/chordData";
 import {
   findLastResolvedChord,
+  applyMoodToHarmonicFit,
+  moodDefinitionFor,
   scoreChordKeyFit,
   scoreNextChordFit,
 } from "../lib/theory";
-import type { HarmonicFitResult, HarmonyContext } from "../lib/theory";
+import type {
+  HarmonicFitResult,
+  HarmonyContext,
+  MoodHarmonicFitResult,
+  MoodId,
+} from "../lib/theory";
 import type { ScaleType } from "../lib/types";
 
 export type SuggestionMode = "off" | "key" | "next";
@@ -138,6 +145,7 @@ interface ChordReferenceGridProps {
    * appearance and interaction behavior.
    */
   keyContext?: KeyContext;
+  moodId?: MoodId | null;
 }
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -147,6 +155,7 @@ export default function ChordReferenceGrid({
   setInputValue,
   inputRef,
   keyContext,
+  moodId,
 }: ChordReferenceGridProps) {
   const shouldReduceMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
@@ -165,7 +174,7 @@ export default function ChordReferenceGrid({
   const contextKey = keyContext?.key;
   const contextScaleType = keyContext?.scaleType;
   const scoreByChord = useMemo(() => {
-    const scores = new Map<string, HarmonicFitResult>();
+    const scores = new Map<string, HarmonicFitResult | MoodHarmonicFitResult>();
     if (suggestionMode === "off" || !contextKey || !contextScaleType) return scores;
 
     const context: HarmonyContext = { key: contextKey, scaleType: contextScaleType };
@@ -174,25 +183,28 @@ export default function ChordReferenceGrid({
         const chordName = quality.suffix === "" ? root : `${root}${quality.suffix}`;
         const chord = lookupChord(chordName);
         if (!chord) continue;
-        scores.set(
-          chordName,
-          suggestionMode === "next"
-            ? scoreNextChordFit(chord, context, previousChord)
-            : scoreChordKeyFit(chord, context),
-        );
+        const baseFit = suggestionMode === "next"
+          ? scoreNextChordFit(chord, context, previousChord)
+          : scoreChordKeyFit(chord, context);
+        scores.set(chordName, moodId
+          ? applyMoodToHarmonicFit(baseFit, chord, context, moodId)
+          : baseFit);
       }
     }
     return scores;
-  }, [contextKey, contextScaleType, previousChord, suggestionMode]);
+  }, [contextKey, contextScaleType, moodId, previousChord, suggestionMode]);
   const overlayActive = suggestionMode !== "off" && !!contextKey && !!contextScaleType;
   const contextLabel = contextKey && contextScaleType
     ? `${contextKey} ${SCALE_TYPE_LABELS[contextScaleType]}`
     : "No key context";
-  const modeSummary = suggestionMode === "next"
+  const baseModeSummary = suggestionMode === "next"
     ? previousChord
       ? `Ranking what follows ${previousChord.displayName} in ${contextLabel}`
       : `Key fit in ${contextLabel}. Add a chord to rank what follows.`
     : `Key fit in ${contextLabel}`;
+  const modeSummary = moodId
+    ? `${baseModeSummary} · ${moodDefinitionFor(moodId).label} lens`
+    : baseModeSummary;
 
   // Reset filter and history when grid collapses
   function handleToggle() {
@@ -305,6 +317,7 @@ export default function ChordReferenceGrid({
             role="region"
             aria-label="Chord suggestions"
             data-testid="chord-grid-panel"
+            data-mood-id={moodId ?? "none"}
             data-reduced-motion={shouldReduceMotion ? "true" : "false"}
             initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}

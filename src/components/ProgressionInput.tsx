@@ -9,11 +9,15 @@ import MinorBlendModal from "./MinorBlendModal";
 import ChordReferenceGrid from "./ChordReferenceGrid";
 import ProgressionAgent from "./ProgressionAgent";
 import { useT } from "../i18n/I18nContext";
+import type { MoodId } from "../lib/theory";
+import MoodFilter from "./MoodFilter";
 
 interface ProgressionInputProps {
   onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
   timelineVersion: number;
   timelineVersionRef: MutableRefObject<number>;
+  moodId: MoodId | null;
+  onMoodChange: (moodId: MoodId | null) => void;
 }
 
 interface SelectedProgression {
@@ -38,6 +42,8 @@ export default function ProgressionInput({
   onResult,
   timelineVersion,
   timelineVersionRef,
+  moodId,
+  onMoodChange,
 }: ProgressionInputProps) {
   const t = useT();
   const [freeText, setFreeText] = useState("");
@@ -158,6 +164,8 @@ export default function ProgressionInput({
         ))}
       </div>
 
+      <MoodFilter value={moodId} onChange={onMoodChange} />
+
       {/* Free Text Input */}
       {activeTab === "free" && (
         <div className="flex flex-col gap-3">
@@ -271,6 +279,7 @@ export default function ProgressionInput({
           setInputValue={setFreeText}
           inputRef={inputRef}
           keyContext={{ key: freeKey, scaleType: freeScaleType }}
+          moodId={moodId}
         />
       )}
 

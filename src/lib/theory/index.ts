@@ -59,3 +59,23 @@ export type {
   HarmonicFitTier,
   HarmonyContext,
 } from "./harmonicSuggestions";
+
+export {
+  applyMoodToHarmonicFit,
+  filterScaleSuggestionsByMood,
+  MOODS,
+  MOOD_IDS,
+  moodDefinitionFor,
+  parseMoodDefinitions,
+  scoreChordMoodFit,
+} from "./moodEngine";
+export type {
+  MoodChordFit,
+  MoodChordQuality,
+  MoodDefinition,
+  MoodHarmonicFitComponents,
+  MoodHarmonicFitResult,
+  MoodId,
+  MoodKind,
+  MoodScaleCandidate,
+} from "./moodEngine";

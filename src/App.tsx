@@ -12,6 +12,7 @@ import type { ChordModifierOption } from "./lib/chordModifiers";
 import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
 
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
+const ImprovInsight = lazy(() => import("./components/ImprovInsight"));
 
 // Explicit (non-Auto) styles randomize cycles through. Auto is omitted
 // because it would defeat the "shake it up" intent of the button.
@@ -87,6 +88,7 @@ function App() {
   // the playback cursor (isPlaying derives from it), so the agent highlighting a
   // chord must not look like playback or block the Play button / play tool.
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
+  const [showImprovInsight, setShowImprovInsight] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackHandleRef = useRef<PlaybackHandle | null>(null);
   const nextCardKeyRef = useRef(1);
@@ -388,6 +390,28 @@ function App() {
                       {isPlaying ? "Stop" : "Play progression"}
                     </button>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowImprovInsight((current) => !current)}
+                    aria-expanded={showImprovInsight}
+                    aria-controls="improv-insight-panel"
+                    className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
+                    style={{
+                      backgroundColor: showImprovInsight
+                        ? "var(--interactive-academy-bg)"
+                        : "var(--interactive-secondary-bg)",
+                      color: showImprovInsight
+                        ? "var(--interactive-academy-text)"
+                        : "var(--interactive-secondary-text)",
+                      border: `1px solid ${showImprovInsight
+                        ? "var(--interactive-academy-border)"
+                        : "var(--interactive-secondary-border)"}`,
+                      transitionDuration: "var(--duration-normal)",
+                    }}
+                  >
+                    {showImprovInsight ? "Hide compatible scales" : "Show compatible scales"}
+                  </button>
                 </div>
               )}
 
@@ -425,6 +449,23 @@ function App() {
               })}
             </div>
           </section>
+          )}
+
+          {workspace === "builder" && chords.length > 0 && showImprovInsight && (
+            <Suspense
+              fallback={(
+                <section className="w-full px-4" aria-label="Improv Insight" role="status">
+                  <div
+                    className="mx-auto max-w-7xl rounded-2xl p-6"
+                    style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)" }}
+                  >
+                    <span className="readout">Ranking compatible scales…</span>
+                  </div>
+                </section>
+              )}
+            >
+              <ImprovInsight chords={chords} />
+            </Suspense>
           )}
 
           {workspace === "builder" && chords.length === 0 && (

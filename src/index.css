@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Harmony Hash learning colors extend the shared Tonari token layer with
+     equal-strength categorical cues. Text labels remain the primary cue. */
+  --music-interval-root: #e8c05a;
+  --music-interval-flat-2: #f28c9f;
+  --music-interval-2: #7cc7e8;
+  --music-interval-minor-3: #e79bd7;
+  --music-interval-major-3: #8fa7f7;
+  --music-interval-4: #76cfa8;
+  --music-interval-tritone: #b59ae8;
+  --music-interval-5: #55c6c2;
+  --music-interval-flat-6: #f2a36f;
+  --music-interval-6: #a8cc72;
+  --music-interval-flat-7: #c693e8;
+  --music-interval-major-7: #70b8f0;
+
+  --music-match-low: #e9a0ad;
+  --music-match-mid: #e8c77a;
+  --music-match-good: #83bee5;
+  --music-match-high: #9bd3a5;
+}
+
 body {
   margin: 0;
   background-color: var(--surface-base);

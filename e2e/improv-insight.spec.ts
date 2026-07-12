@@ -5,6 +5,24 @@ interface BrowserIssue {
   text: string;
 }
 
+function contrastRatio(foreground: string, background: string): number {
+  function luminance(color: string): number {
+    const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+    if (!channels || channels.length !== 3) throw new Error(`Unsupported color: ${color}`);
+    const linear = channels.map((channel) => {
+      const value = channel / 255;
+      return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  }
+
+  const foregroundLuminance = luminance(foreground);
+  const backgroundLuminance = luminance(background);
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 function collectBrowserIssues(page: Page): BrowserIssue[] {
   const issues: BrowserIssue[] = [];
   page.on("console", (message) => {
@@ -55,6 +73,12 @@ test.describe("Improv Insight", () => {
     await expect(cMajor).toHaveAttribute("data-match", "100");
     await expect(cMajor.getByRole("meter", { name: "C Major match" })).toHaveAttribute("aria-valuenow", "100");
     const highMatchColor = await cMajor.getByText("100%").evaluate((element) => getComputedStyle(element).color);
+    await expect(cMajor.getByText("100%")).toHaveCSS("color", "rgb(155, 211, 165)");
+    const matchContrast = await cMajor.getByText("Match", { exact: true }).evaluate((element) => ({
+      background: getComputedStyle(element.closest("article")!).backgroundColor,
+      foreground: getComputedStyle(element).color,
+    }));
+    expect(contrastRatio(matchContrast.foreground, matchContrast.background)).toBeGreaterThanOrEqual(4.5);
     await expect(cMajor).toContainText("smooth");
     await expect(cMajor).toContainText("static");
     await expect(cMajor).toContainText("diatonic");

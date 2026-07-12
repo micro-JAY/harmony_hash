@@ -25,6 +25,17 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
 }
 
 async function settleVisual(page: Page): Promise<void> {
+  const fonts = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const loadedFamilies = [...document.fonts]
+      .filter((font) => font.status === "loaded")
+      .map((font) => font.family);
+    return {
+      zalando: loadedFamilies.some((family) => family.includes("Zalando Sans")),
+      jetBrains: loadedFamilies.some((family) => family.includes("JetBrains Mono")),
+    };
+  });
+  expect(fonts).toEqual({ zalando: true, jetBrains: true });
   await expect(page.locator("body")).toHaveCSS("font-family", /Zalando Sans/);
   await page.evaluate(
     () => new Promise<void>((resolve) => {
@@ -50,6 +61,8 @@ test.describe("Fretboard Explorer", () => {
     const requestedUrls: string[] = [];
     page.on("request", (request) => requestedUrls.push(request.url()));
     await page.goto("/", { waitUntil: "domcontentloaded" });
+    expect(requestedUrls.some((url) => url.endsWith("/tokens.css"))).toBe(true);
+    expect(requestedUrls.some((url) => url.includes("cdn.jsdelivr.net"))).toBe(false);
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(false);
     await page.getByRole("button", { name: "Fretboard", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
@@ -66,6 +79,10 @@ test.describe("Fretboard Explorer", () => {
     await expect(page.getByRole("combobox", { name: "Fretboard root" })).toHaveValue("C");
     await expect(page.getByRole("combobox", { name: "Fretboard mode" })).toHaveValue("major");
     await expect(page.getByRole("combobox", { name: "Fretboard mode" }).locator("option")).toHaveCount(11);
+    await expect(page.getByText("Current map", { exact: true })).toHaveCSS(
+      "color",
+      "rgb(168, 169, 184)",
+    );
     await expect(page.getByRole("button", { name: "Intervals", exact: true })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -138,6 +155,12 @@ test.describe("Fretboard Explorer", () => {
 
     await mode.selectOption("minor_blues");
     await expect(legend).toContainText("b5 · Flat fifth (blue note)");
+
+    await mode.selectOption("natural_minor");
+    await expect(legend).toContainText("b6 · Flat sixth");
+
+    await mode.selectOption("harmonic_minor");
+    await expect(legend).toContainText("7 · Raised seventh");
     expect(browserIssues).toEqual([]);
   });
 

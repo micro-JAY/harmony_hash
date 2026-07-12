@@ -1,11 +1,14 @@
-import type { Instrument } from "../lib/types";
+import type { Instrument, Workspace } from "../lib/types";
+import { useReducedMotion } from "framer-motion";
 import type { Locale } from "../i18n/translations";
-import { useLocale } from "../i18n/I18nContext";
+import { useLocale, useT } from "../i18n/I18nContext";
 import InstrumentToggle from "./InstrumentToggle";
 
 interface HeaderProps {
   instrument: Instrument;
   onInstrumentChange: (instrument: Instrument) => void;
+  workspace: Workspace;
+  onWorkspaceChange: (workspace: Workspace) => void;
 }
 
 const LOCALES: { value: Locale; label: string }[] = [
@@ -13,8 +16,15 @@ const LOCALES: { value: Locale; label: string }[] = [
   { value: "ja", label: "JP" },
 ];
 
-export default function Header({ instrument, onInstrumentChange }: HeaderProps) {
+export default function Header({
+  instrument,
+  onInstrumentChange,
+  workspace,
+  onWorkspaceChange,
+}: HeaderProps) {
   const { locale, setLocale } = useLocale();
+  const t = useT();
+  const reduceMotion = useReducedMotion();
 
   return (
     <header className="tonari-topbar flex-wrap sm:flex-nowrap">
@@ -25,7 +35,37 @@ export default function Header({ instrument, onInstrumentChange }: HeaderProps) 
         <span className="tonari-brand__org">TONARI LABS</span>
       </div>
 
-      <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:flex-nowrap sm:justify-end">
+      <nav
+        aria-label="Workspace"
+        data-reduced-motion={reduceMotion ? "true" : "false"}
+        className="order-3 flex w-full justify-center rounded-full p-1 sm:order-none sm:w-auto"
+        style={{ backgroundColor: "var(--surface-overlay)" }}
+      >
+        {(["builder", "fretboard"] as const).map((item) => {
+          const active = workspace === item;
+          return (
+            <button
+              key={item}
+              type="button"
+              onClick={() => onWorkspaceChange(item)}
+              aria-pressed={active}
+              className="min-w-24 rounded-full px-4 py-1.5 text-sm transition-all"
+              style={{
+                backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
+                color: active ? "var(--interactive-accent-text)" : "var(--text-muted)",
+                border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
+                fontFamily: "var(--font-body)",
+                fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
+                transitionDuration: reduceMotion ? "0ms" : "var(--duration-normal)",
+              }}
+            >
+              {t(item)}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="flex items-center justify-end gap-3">
         <div className="tonari-locale-switcher">
           {LOCALES.map((loc) => {
             const active = locale === loc.value;
@@ -43,10 +83,12 @@ export default function Header({ instrument, onInstrumentChange }: HeaderProps) 
           })}
         </div>
 
-        <InstrumentToggle
-          instrument={instrument}
-          onInstrumentChange={onInstrumentChange}
-        />
+        {workspace === "builder" && (
+          <InstrumentToggle
+            instrument={instrument}
+            onInstrumentChange={onInstrumentChange}
+          />
+        )}
       </div>
     </header>
   );

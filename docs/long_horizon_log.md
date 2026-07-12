@@ -559,7 +559,7 @@ Completed Phase 2.6 on `feat/circle-of-fifths` using the normal planning workflo
 
 **Verification:** production build and lint pass; Vitest is 1,023/1,023; full Playwright is 67/67. The seven Circle browser tests cover all twelve keys, pointer and spatial keyboard selection, guitar and piano rendering, desktop/tablet/mobile containment, reduced motion, the visual baseline, and stale-agent invalidation. In-app Browser QA confirmed the 375px and desktop layouts, no document overflow, and zero warnings/errors; the desktop baseline was visually compared with the generated concept. Context7 React and Playwright requests were attempted before implementation and test work but the documentation service stalled, so the slice used the installed current plugin guidance and established repository patterns.
 
-**Current state:** implementation commit `588a62e` is pushed and draft PR [#42](https://github.com/micro-JAY/harmony_hash/pull/42) targets `main`. It is intentionally draft because its branch starts from the reviewed recovery chain; merge clean PRs #38, #40, and #41 first, then refresh #42 so its diff collapses to the Circle feature alone.
+**Current state:** Circle of Fifths merged to `main` via [#42](https://github.com/micro-JAY/harmony_hash/pull/42) after the reviewed dependency chain and refreshed CI completed.
 
 ---
 

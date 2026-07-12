@@ -314,10 +314,10 @@ Engine work in `src/data/moods.json` + `src/lib/theory/`:
 - `filterByMood(chord-candidates, mood): scored-candidates` — runs each candidate against the mood's quality weights + scale memberships.
 
 UI:
-- Pill row of moods above the chord grid or as a sidebar.
-- Active mood biases the suggestion overlay (extending 2.2's overlay to "mood-weighted" mode) AND filters the progression library (extending 2.4 with mood-tagged filtering).
+- Compact optional selector above the input surfaces, keeping the full vocabulary available without a dense beginner-facing pill wall.
+- Active mood biases the suggestion overlay (extending 2.2's overlay to "mood-weighted" mode) and filters compatible-scale results (Improv Insight in 2.3, then the Scale Synthesia picker in 2.7). This follows the canonical prompt's two required consumers; progression-library tagging is not part of the Phase 2.5 contract.
 
-Bigger lift than 2.4 because it touches both overlay + library. But shares the theory module v2.2 set up.
+Bigger lift than 2.4 because it touches both the overlay and compatible-scale surfaces, but it shares the theory module v2.2 set up.
 
 **Design + integration notes for the resuming session:**
 
@@ -514,3 +514,19 @@ The same branch adds app-local music-semantic tokens on top of the mirrored Tona
 **CI stabilization:** the first Linux Playwright run exposed a platform-specific flex threshold: Linux fit the six desktop fretboard controls in one row while the macOS baseline wrapped Labels, producing 1159px versus 1243px snapshots. Select controls now use an explicit 10rem width with the narrower horizontal gap, and Playwright asserts the Instrument and Labels groups share one row. The refreshed 1280×1159 baseline passes the seven-test explorer suite locally and matches the Linux geometry.
 
 **2026-07-13 05:25 JST standards follow-up:** the user-supplied Tonari source file exactly matched the repo's `public/tokens.css`, but the app still loaded that layer through jsDelivr and the Google import omitted Zalando Sans in a clean Chromium run. The token layer and official OFL-licensed Zalando Sans/JetBrains Mono variable fonts are now served locally, with browser coverage proving the actual font faces load. Essential small labels use the higher-contrast secondary text token. Improv scoring now moves through all four semantic stops (low/mid/good/high), and the mode-aware fretboard legend adds `Flat sixth` and `Raised seventh` while retaining distinct text and color cues. Major/minor pentatonic and blues options plus the Free Input four-tier, non-color-only suggestions were re-audited and remain complete.
+
+---
+
+## 2026-07-13 04:58 JST — Mood and Genre Lens
+
+Completed Phase 2.5 on `feat/mood-genre-filter`, stacked on the reviewed Improv Insight branch because compatible-scale filtering consumes that engine. A validated `src/data/moods.json` catalog defines the complete twelve-item vocabulary—Bright, Dark, Jazzy, Bluesy, Latin, Film Noir, Ethereal, Happy, Melancholy, Heroic, Ancient, and Lively—using existing scale families plus dictionary-native Major/Minor/Dominant/Other/Sustained quality weights. The parser fails closed on malformed records, missing or duplicate ids, unsupported scales, duplicate scale entries, empty copy, out-of-range weights, and oversized vocabularies; all published definitions are deeply frozen.
+
+**Shared engine and UI:** `src/lib/theory/moodEngine.ts` scores each chord from its best mood-scale membership and quality weight, then applies that result as a 28% lens over the existing Key/Next score without hiding any dictionary chord. Improv Insight filters its full candidate pool to the selected mood's scale families while preserving the match bar as progression-tone coverage. One compact native selector in the builder owns the shared optional state; `Any harmony` is behavior-identical, active descriptions explain the choice, and changing the lens never mutates the timeline, card state, playback, instrument, text agent, or Harmony Companion.
+
+**Accessibility, visual QA, and performance:** Context7 guided controlled render-derived state and role-based Playwright coverage. Real Tab order reaches the grouped native select; live summaries name the active lens; reduced motion is honored; desktop, 800/820px tablet, and 375px mobile layouts remain contained. Inspected baselines cover the action/card rail, Improv Insight, piano cards, and an active Film Noir mobile grid. The feature-specific browser suite records render latency entirely inside the page from the native `change` event through the scored DOM mutation and next animation frame, with a 500ms ceiling and zero console warnings/errors.
+
+**Review and verification:** the first independent review found three Medium issues—duplicate JSON records could bypass the length check, the historical consumer note contradicted the canonical prompt, and the first performance assertion measured Playwright RPC overhead. All three were fixed; the final re-review found no remaining Critical, High, or Medium issue, and its Low stale wording was also corrected. Production build and lint pass; Vitest is 270/270; full Playwright is 57/57 after merging the Tonari standards follow-up into the stack. Two unrelated external-volume preview navigations stalled before DOM load in earlier full runs; the affected builder layout then passed 12/12 and the isolated fretboard path 3/3, confirming no reproducible app regression.
+
+**Current state:** implementation commit `9c0527c` is pushed to `origin/feat/mood-genre-filter`; draft PR [#39](https://github.com/micro-JAY/harmony_hash/pull/39) targets `feat/improv-insight`. Keep it stacked until PR [#37](https://github.com/micro-JAY/harmony_hash/pull/37) merges, then rebase or retarget through the normal reviewed workflow. PR [#38](https://github.com/micro-JAY/harmony_hash/pull/38) remains an independent progression-library audit branch.
+
+**CI stabilization:** the first Linux visual run exposed one-pixel native-control metric differences in three inherited full-page baselines and a larger unrelated mobile page-height difference. The mood rail now has deterministic responsive minimum heights, while the new mobile baseline is scoped to the Mood Filter itself. This preserves full-page coverage in the established builder, Improv Insight, and piano suites while making the feature-specific snapshot compare only the surface introduced here.

@@ -14,6 +14,7 @@ import {
   moodDefinitionFor,
   SCALE_FAMILIES,
   SCALE_LEARNING,
+  scaleLearningDefinitionFor,
   scaleDegreeName,
   scaleStepLabels,
   spellScaleNotes,
@@ -33,6 +34,8 @@ import ScalePianoKeyboard from "./ScalePianoKeyboard";
 interface ScaleSynthesiaProps {
   moodId: MoodId | null;
   onMoodChange: (moodId: MoodId | null) => void;
+  initialRoot?: string;
+  initialScaleId?: ScaleFormulaType;
 }
 
 type PracticeInstrument = "piano" | "guitar";
@@ -147,12 +150,18 @@ function SegmentedControl<T extends string>({
   );
 }
 
-export default function ScaleSynthesia({ moodId, onMoodChange }: ScaleSynthesiaProps) {
+export default function ScaleSynthesia({
+  moodId,
+  onMoodChange,
+  initialRoot = "F#",
+  initialScaleId = "harmonic_minor",
+}: ScaleSynthesiaProps) {
   const reduceMotion = Boolean(useReducedMotion());
+  const initialDefinition = scaleLearningDefinitionFor(initialScaleId);
   const [instrument, setInstrument] = useState<PracticeInstrument>("piano");
-  const [root, setRoot] = useState("F#");
-  const [family, setFamily] = useState<ScaleFamilyId>("harmonic_minor_modes");
-  const [scaleId, setScaleId] = useState<ScaleFormulaType>("harmonic_minor");
+  const [root, setRoot] = useState(initialRoot);
+  const [family, setFamily] = useState<ScaleFamilyId>(initialDefinition.family);
+  const [scaleId, setScaleId] = useState<ScaleFormulaType>(initialScaleId);
   const [direction, setDirection] = useState<PracticeDirection>("ascending");
   const [material, setMaterial] = useState<PracticeMaterial>("scale");
   const [arpeggioType, setArpeggioType] = useState<ArpeggioType>("triad");

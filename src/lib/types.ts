@@ -96,6 +96,6 @@ export interface TonalityGroup {
 }
 
 export type Instrument = "guitar" | "piano";
-export type Workspace = "builder" | "fretboard" | "circle" | "scales";
+export type Workspace = "builder" | "fretboard" | "circle" | "scales" | "network";
 export type PianoDisplayMode = "notes" | "fingering";
 export type GuitarDisplayMode = "fingering" | "intervals" | "notes";

@@ -115,6 +115,23 @@ export function scaleIntervalsFor(scaleType: ScaleFormulaType): ReadonlyArray<nu
   return SCALE_INTERVALS[scaleType];
 }
 
+const MAJOR_DEGREE_INTERVALS = Object.freeze([0, 2, 4, 5, 7, 9, 11]);
+
+export function scaleIntervalFormulaFor(
+  scaleType: ScaleFormulaType,
+): ReadonlyArray<string> {
+  const intervals = scaleIntervalsFor(scaleType);
+  const degreeOffsets = SCALE_DEGREE_LETTER_OFFSETS[scaleType];
+  return Object.freeze(intervals.map((interval, index) => {
+    const degree = degreeOffsets[index] + 1;
+    const alteration = interval - MAJOR_DEGREE_INTERVALS[degree - 1];
+    const accidental = alteration > 0
+      ? "#".repeat(alteration)
+      : "b".repeat(-alteration);
+    return `${accidental}${degree}`;
+  }));
+}
+
 export function pitchClassOf(rootName: string): number {
   const canonical = normalizeRoot(rootName);
   if (!canonical) return -1;

@@ -26,6 +26,7 @@ export interface ScaleLearningDefinition {
   readonly label: string;
   readonly family: ScaleFamilyId;
   readonly useItFor: string;
+  readonly useItOver: string;
   readonly hearItIn: string;
 }
 
@@ -79,6 +80,7 @@ export function parseScaleLearningDefinitions(
       label: requiredString(value.label, `${path}.label`),
       family: value.family,
       useItFor: requiredString(value.useItFor, `${path}.useItFor`),
+      useItOver: requiredString(value.useItOver, `${path}.useItOver`),
       hearItIn: requiredString(value.hearItIn, `${path}.hearItIn`),
     });
   });

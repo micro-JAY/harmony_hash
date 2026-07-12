@@ -108,7 +108,9 @@ test.describe("Mood and genre lens", () => {
       }));
       expect(widths.scroll).toBeLessThanOrEqual(widths.client);
       expect(issues).toEqual([]);
-      await expect(page).toHaveScreenshot("mood-filter-mobile-film-noir.png", { fullPage: true });
+      await expect(page.getByTestId("mood-filter")).toHaveScreenshot(
+        "mood-filter-mobile-film-noir.png",
+      );
     });
   });
 });

@@ -23,7 +23,9 @@ export default function MoodFilter({ value, onChange }: MoodFilterProps) {
       aria-labelledby="mood-filter-label"
       data-testid="mood-filter"
       data-mood-id={value ?? "none"}
-      className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg px-3 py-2"
+      className={`mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg px-3 py-2 ${
+        activeDefinition ? "min-h-[106px] sm:min-h-[79px]" : "min-h-[55px]"
+      }`}
       style={{
         backgroundColor: "var(--surface-raised)",
         border: "1px solid var(--border-subtle)",

@@ -31,27 +31,27 @@ const SCALE_TYPE_LABELS: Readonly<Record<ScaleType, string>> = {
 
 const FIT_TIER_VISUALS = {
   strong: {
-    background: "var(--interactive-accent-bg)",
-    border: "var(--interactive-accent-border)",
-    badge: "var(--interactive-accent-text)",
-    shadow: "var(--glow-accent)",
+    background: "color-mix(in srgb, var(--music-match-high) 14%, transparent)",
+    border: "color-mix(in srgb, var(--music-match-high) 42%, transparent)",
+    badge: "var(--music-match-high)",
+    shadow: "none",
   },
   good: {
-    background: "var(--interactive-academy-bg)",
-    border: "var(--interactive-academy-border)",
-    badge: "var(--interactive-academy-text)",
+    background: "color-mix(in srgb, var(--music-match-good) 14%, transparent)",
+    border: "color-mix(in srgb, var(--music-match-good) 42%, transparent)",
+    badge: "var(--music-match-good)",
     shadow: "none",
   },
   color: {
-    background: "var(--interactive-warm-bg)",
-    border: "var(--interactive-warm-border)",
-    badge: "var(--interactive-warm-text)",
+    background: "color-mix(in srgb, var(--music-match-mid) 14%, transparent)",
+    border: "color-mix(in srgb, var(--music-match-mid) 42%, transparent)",
+    badge: "var(--music-match-mid)",
     shadow: "none",
   },
   outside: {
-    background: "var(--surface-base)",
-    border: "var(--border-subtle)",
-    badge: "var(--text-secondary)",
+    background: "color-mix(in srgb, var(--music-match-low) 10%, transparent)",
+    border: "color-mix(in srgb, var(--music-match-low) 34%, transparent)",
+    badge: "var(--music-match-low)",
     shadow: "none",
   },
 } as const;
@@ -404,10 +404,10 @@ export default function ChordReferenceGrid({
                   fontSize: "var(--text-xs)",
                 }}
               >
-                <span style={{ color: "var(--interactive-accent-text)" }}>85–100 strong</span>
-                <span style={{ color: "var(--interactive-academy-text)" }}>70–84 good</span>
-                <span style={{ color: "var(--interactive-warm-text)" }}>50–69 color</span>
-                <span>0–49 outside</span>
+                <span style={{ color: "var(--music-match-high)" }}>85–100 strong</span>
+                <span style={{ color: "var(--music-match-good)" }}>70–84 good</span>
+                <span style={{ color: "var(--music-match-mid)" }}>50–69 color</span>
+                <span style={{ color: "var(--music-match-low)" }}>0–49 outside</span>
               </div>
             )}
 

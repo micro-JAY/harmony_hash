@@ -1,6 +1,6 @@
 import { prefersFlatNotation } from "../chordData";
-import type { ScaleType } from "../types";
 import { pitchClassOf, scaleIntervalsFor } from "./scaleBasics";
+import type { ScaleFormulaType } from "./scaleBasics";
 
 export type FretboardInstrument = "guitar" | "bass";
 export type FretboardTuningId =
@@ -170,10 +170,25 @@ export function intervalLabelFor(interval: number): string {
   return INTERVAL_LABELS[interval];
 }
 
+function intervalLabelForScale(interval: number, scaleType: ScaleFormulaType): string {
+  if (interval === 6 && scaleType === "minor_blues") return "b5";
+  return intervalLabelFor(interval);
+}
+
+function prefersFlatScaleTone(
+  keyName: string,
+  scaleType: ScaleFormulaType,
+  interval: number,
+): boolean {
+  if ([1, 3, 8, 10].includes(interval)) return true;
+  if (interval === 6) return scaleType === "minor_blues";
+  return prefersFlatNotation(keyName);
+}
+
 export function buildFretboardRows(
   instrument: FretboardInstrument,
   keyName: string,
-  scaleType: ScaleType,
+  scaleType: ScaleFormulaType,
   maxFret = 15,
   tuningId: FretboardTuningId = DEFAULT_TUNING_IDS[instrument],
 ): ReadonlyArray<FretboardStringRow> {
@@ -188,8 +203,6 @@ export function buildFretboardRows(
 
   const intervals = scaleIntervalsFor(scaleType);
   const intervalIndex = new Map(intervals.map((interval, index) => [interval, index]));
-  const preferFlats = prefersFlatNotation(keyName);
-
   return Object.freeze(
     fretboardTuningFor(instrument, tuningId).map((string) => {
       const positions = Array.from({ length: maxFret + 1 }, (_, fret) => {
@@ -203,12 +216,14 @@ export function buildFretboardRows(
           stringLabel: string.registerLabel,
           fret,
           pitchClass,
-          noteLabel: noteLabelForPitchClass(pitchClass, preferFlats),
+          noteLabel: noteLabelForPitchClass(pitchClass, isScaleTone
+            ? prefersFlatScaleTone(keyName, scaleType, interval)
+            : prefersFlatNotation(keyName)),
           isScaleTone,
           isRoot: isScaleTone && interval === 0,
           degree: isScaleTone ? degreeIndex + 1 : null,
           interval: isScaleTone ? interval : null,
-          intervalLabel: isScaleTone ? intervalLabelFor(interval) : null,
+          intervalLabel: isScaleTone ? intervalLabelForScale(interval, scaleType) : null,
         });
       });
 

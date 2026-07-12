@@ -126,7 +126,7 @@ describe("fretboard theory", () => {
     }
   });
 
-  it("supports every shipped scale type with seven ordered degrees", () => {
+  it("supports every shipped heptatonic mode plus pentatonic and blues formulas", () => {
     const modes: ScaleType[] = [
       "major",
       "natural_minor",
@@ -144,6 +144,26 @@ describe("fretboard theory", () => {
       );
       expect(pitchClasses.size).toBe(7);
     }
+    for (const [formula, toneCount] of [
+      ["major_pentatonic", 5],
+      ["minor_pentatonic", 5],
+      ["major_blues", 6],
+      ["minor_blues", 6],
+    ] as const) {
+      const pitchClasses = new Set(
+        buildFretboardRows("guitar", "C", formula)[0].positions
+          .filter((position) => position.isScaleTone)
+          .map((position) => position.pitchClass),
+      );
+      expect(pitchClasses.size).toBe(toneCount);
+    }
+    const cMinorBlues = buildFretboardRows("guitar", "C", "minor_blues");
+    const firstStringLabels = cMinorBlues[0].positions
+      .filter((position) => position.isScaleTone)
+      .map((position) => [position.noteLabel, position.intervalLabel]);
+    expect(firstStringLabels).toContainEqual(["Eb", "b3"]);
+    expect(firstStringLabels).toContainEqual(["Gb", "b5"]);
+    expect(firstStringLabels).toContainEqual(["Bb", "b7"]);
   });
 
   it("returns deeply frozen deterministic rows", () => {

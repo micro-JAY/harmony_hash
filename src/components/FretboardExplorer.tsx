@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { Guitar, Music2 } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
-import type { IndexedChord, ScaleType } from "../lib/types";
+import type { IndexedChord } from "../lib/types";
+import type { ScaleFormulaType } from "../lib/theory/scaleBasics";
 import {
   buildFretboardPattern,
   buildFretboardRows,
@@ -24,8 +25,9 @@ import HorizontalFretboard, {
   type FretboardHandedness,
   type FretboardLabelMode,
 } from "./HorizontalFretboard";
+import { fretboardIntervalColor, fretboardIntervalName } from "./fretboardVisuals";
 
-const MODE_OPTIONS: ReadonlyArray<{ value: ScaleType; label: string }> = [
+const MODE_OPTIONS: ReadonlyArray<{ value: ScaleFormulaType; label: string }> = [
   { value: "major", label: "Major" },
   { value: "natural_minor", label: "Natural Minor" },
   { value: "harmonic_minor", label: "Harmonic Minor" },
@@ -33,6 +35,10 @@ const MODE_OPTIONS: ReadonlyArray<{ value: ScaleType; label: string }> = [
   { value: "mixolydian", label: "Mixolydian" },
   { value: "lydian", label: "Lydian" },
   { value: "phrygian", label: "Phrygian" },
+  { value: "major_pentatonic", label: "Major Pentatonic" },
+  { value: "minor_pentatonic", label: "Minor Pentatonic" },
+  { value: "major_blues", label: "Major Blues" },
+  { value: "minor_blues", label: "Minor Blues" },
 ];
 
 const DEFAULT_TUNINGS: Readonly<Record<FretboardInstrument, FretboardTuningId>> = Object.freeze({
@@ -65,7 +71,7 @@ function SegmentedControl<T extends string>({
       <span
         className="mb-2 block"
         style={{
-          color: "var(--text-muted)",
+          color: "var(--text-secondary)",
           fontSize: "var(--text-xs)",
           fontWeight: "var(--weight-semibold)",
           letterSpacing: "var(--tracking-caps)",
@@ -91,7 +97,7 @@ function SegmentedControl<T extends string>({
               className="flex min-h-9 items-center gap-2 rounded-full px-4 text-sm"
               style={{
                 backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
-                color: active ? "var(--interactive-accent-text)" : "var(--text-muted)",
+                color: active ? "var(--interactive-accent-text)" : "var(--text-secondary)",
                 border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
                 fontFamily: "var(--font-body)",
                 fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
@@ -123,11 +129,11 @@ function SelectControl<T extends string>({
   children: ReactNode;
 }) {
   return (
-    <label htmlFor={id} className="block min-w-40">
+    <label htmlFor={id} className="block w-40 min-w-0">
       <span
         className="mb-2 block"
         style={{
-          color: "var(--text-muted)",
+          color: "var(--text-secondary)",
           fontSize: "var(--text-xs)",
           fontWeight: "var(--weight-semibold)",
           letterSpacing: "var(--tracking-caps)",
@@ -159,7 +165,7 @@ export default function FretboardExplorer() {
   const reduceMotion = useReducedMotion();
   const [instrument, setInstrument] = useState<FretboardInstrument>("guitar");
   const [keyName, setKeyName] = useState("C");
-  const [scaleType, setScaleType] = useState<ScaleType>("major");
+  const [scaleType, setScaleType] = useState<ScaleFormulaType>("major");
   const [labelMode, setLabelMode] = useState<FretboardLabelMode>("intervals");
   const [handedness, setHandedness] = useState<FretboardHandedness>("right");
   const [tuningByInstrument, setTuningByInstrument] = useState(() => ({ ...DEFAULT_TUNINGS }));
@@ -175,11 +181,15 @@ export default function FretboardExplorer() {
     [instrument, keyName, scaleType, tuningId],
   );
   const scaleNotes = useMemo(() => {
-    const byDegree = new Map<number, { note: string; interval: string }>();
+    const byDegree = new Map<number, { note: string; interval: string; semitones: number }>();
     for (const row of rows) {
       for (const position of row.positions) {
-        if (position.degree !== null && position.intervalLabel !== null && !byDegree.has(position.degree)) {
-          byDegree.set(position.degree, { note: position.noteLabel, interval: position.intervalLabel });
+        if (position.degree !== null && position.interval !== null && position.intervalLabel !== null && !byDegree.has(position.degree)) {
+          byDegree.set(position.degree, {
+            note: position.noteLabel,
+            interval: position.intervalLabel,
+            semitones: position.interval,
+          });
         }
       }
     }
@@ -237,7 +247,7 @@ export default function FretboardExplorer() {
 
         <section
           aria-label="Fretboard controls"
-          className="mb-6 flex flex-wrap items-end gap-x-3 gap-y-4 rounded-xl p-4 md:p-5"
+          className="mb-6 flex flex-wrap items-end gap-x-2 gap-y-4 rounded-xl p-4 md:p-5"
           style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)" }}
         >
           <SegmentedControl
@@ -370,11 +380,11 @@ export default function FretboardExplorer() {
           style={{ backgroundColor: "var(--surface-highlight)", border: "1px solid var(--border-subtle)" }}
         >
           <div>
-            <span className="label-caps">Current map</span>
+            <span className="label-caps" style={{ color: "var(--text-secondary)" }}>Current map</span>
             <p className="mt-1" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)" }}>
               {keyName} {modeLabel} · {instrument === "guitar" ? "Guitar" : "Bass"}
             </p>
-            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
               {pattern.available ? pattern.label : "All positions"}
               {overlay ? ` · ${overlay.displayName} overlay` : ""}
             </p>
@@ -392,7 +402,7 @@ export default function FretboardExplorer() {
                   fontSize: "var(--text-xs)",
                 }}
               >
-                {item.note} <span style={{ color: "var(--text-muted)" }}>{item.interval}</span>
+                {item.note} <span style={{ color: "var(--text-secondary)" }}>{item.interval}</span>
               </li>
             ))}
           </ol>
@@ -416,18 +426,15 @@ export default function FretboardExplorer() {
           className="mt-5 flex flex-wrap gap-x-5 gap-y-2"
           style={{ color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}
         >
-          {[
-            ["var(--interactive-accent-text)", "Root"],
-            ["var(--interactive-warm-text)", "Third"],
-            ["var(--interactive-academy-text)", "Fifth"],
-            ["var(--interactive-soft-text)", "Seventh"],
-            ["var(--text-primary)", "Other scale tone"],
-          ].map(([color, label]) => (
+          {scaleNotes.map((item) => {
+            const label = fretboardIntervalName(item.semitones, scaleType);
+            return (
             <span key={label} className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
-              {label}
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: fretboardIntervalColor(item.semitones) }} />
+              {item.interval} · {label}
             </span>
-          ))}
+            );
+          })}
           {overlay ? (
             <>
               <span className="flex items-center gap-2">

@@ -334,6 +334,7 @@ export default function ProgressionInput({
                 {t("key")}
               </label>
               <select
+                aria-label="Progression key"
                 value={selectedKey}
                 onChange={(e) => handleKeyChange(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm outline-none"
@@ -359,6 +360,7 @@ export default function ProgressionInput({
                 {t("tonality")}
               </label>
               <select
+                aria-label="Progression tonality"
                 value={activeTonality}
                 onChange={(e) => handleTonalityChange(e.target.value as TonalityId)}
                 className="px-3 py-2 rounded-lg text-sm outline-none"
@@ -429,6 +431,7 @@ export default function ProgressionInput({
                       return (
                         <button
                           key={pIdx}
+                          aria-label={`${p.name}: ${p.numerals}`}
                           onClick={() => handleProgressionSelect(sIdx, pIdx, p, scaleType)}
                           title={p.name}
                           className="px-3 py-1.5 rounded-lg text-sm transition-all"

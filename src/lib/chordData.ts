@@ -267,6 +267,12 @@ function normalizeLookupQuality(quality: string): string {
 
 const indexedChordsByRoot = new Map<string, IndexedChord[]>();
 
+export interface ChordCatalogItem {
+  readonly label: string;
+  readonly longName: string;
+  readonly aliases: ReadonlyArray<string>;
+}
+
 // Build the index
 for (const entry of chordEntries) {
   const root = extractRootFromChordName(entry["Chord Name"]);
@@ -322,6 +328,28 @@ for (const entry of chordEntries) {
     }
   }
 }
+
+const chordCatalog: ReadonlyArray<ChordCatalogItem> = Object.freeze(
+  [...indexedChordsByRoot.values()]
+    .flat()
+    .map((chord) => {
+      const displayRoot = formatNoteForDisplay(chord.root, prefersFlatNotation(chord.displayName));
+      const aliases = Object.freeze(
+        getAllSymbols(chord.entry).map((symbol) =>
+          `${displayRoot}${symbol === "M" || symbol === "maj" ? "" : symbol}`,
+        ),
+      );
+      return Object.freeze({
+        label: chord.displayName,
+        longName: chord.entry["Chord Name"],
+        aliases,
+      });
+    })
+    .sort((left, right) => left.label.localeCompare(right.label, "en", {
+      numeric: true,
+      sensitivity: "base",
+    })),
+);
 
 // ─── Public API ──────────────────────────────────────────────────────
 
@@ -381,6 +409,28 @@ export function getAllChordEntries(): ChordEntry[] {
 export function getIndexedChordsForRoot(root: string): ReadonlyArray<IndexedChord> {
   const canonicalRoot = normalizeRoot(root) ?? root;
   return indexedChordsByRoot.get(canonicalRoot) ?? [];
+}
+
+/** Unique, immutable dictionary entries for accessible catalog browsing. */
+export function getChordCatalog(): ReadonlyArray<ChordCatalogItem> {
+  return chordCatalog;
+}
+
+/** Search names and aliases while keeping the visible result set intentionally bounded. */
+export function searchChordCatalog(query: string, limit = 24): ReadonlyArray<ChordCatalogItem> {
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new RangeError(`Chord catalog limit must be a positive integer; received ${limit}`);
+  }
+  const normalizedQuery = query.trim().toLocaleLowerCase("en");
+  const boundedLimit = Math.min(limit, 24);
+  const matches = normalizedQuery.length === 0
+    ? chordCatalog
+    : chordCatalog.filter((item) =>
+      item.label.toLocaleLowerCase("en").includes(normalizedQuery)
+      || item.longName.toLocaleLowerCase("en").includes(normalizedQuery)
+      || item.aliases.some((alias) => alias.toLocaleLowerCase("en").includes(normalizedQuery)),
+    );
+  return Object.freeze(matches.slice(0, boundedLimit));
 }
 
 /** Get the note names array from a chord entry */

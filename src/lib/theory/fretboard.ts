@@ -24,6 +24,7 @@ export interface FretboardString {
   readonly number: number;
   readonly openNote: string;
   readonly openPitchClass: number;
+  readonly absoluteOpenPitch: number;
   readonly registerLabel: string;
 }
 
@@ -49,9 +50,10 @@ function freezeString(
   number: number,
   openNote: string,
   openPitchClass: number,
+  absoluteOpenPitch: number,
   registerLabel: string,
 ): FretboardString {
-  return Object.freeze({ number, openNote, openPitchClass, registerLabel });
+  return Object.freeze({ number, openNote, openPitchClass, absoluteOpenPitch, registerLabel });
 }
 
 function freezeTuning(
@@ -72,36 +74,36 @@ function freezeTuning(
 
 const FRETBOARD_TUNINGS: ReadonlyArray<FretboardTuning> = Object.freeze([
   freezeTuning("guitar-standard", "guitar", "Standard", "E A D G B E", [
-    freezeString(1, "E", 4, "high E"), freezeString(2, "B", 11, "B"),
-    freezeString(3, "G", 7, "G"), freezeString(4, "D", 2, "D"),
-    freezeString(5, "A", 9, "A"), freezeString(6, "E", 4, "low E"),
+    freezeString(1, "E", 4, 64, "high E"), freezeString(2, "B", 11, 59, "B"),
+    freezeString(3, "G", 7, 55, "G"), freezeString(4, "D", 2, 50, "D"),
+    freezeString(5, "A", 9, 45, "A"), freezeString(6, "E", 4, 40, "low E"),
   ]),
   freezeTuning("guitar-drop-d", "guitar", "Drop D", "D A D G B E", [
-    freezeString(1, "E", 4, "high E"), freezeString(2, "B", 11, "B"),
-    freezeString(3, "G", 7, "G"), freezeString(4, "D", 2, "D"),
-    freezeString(5, "A", 9, "A"), freezeString(6, "D", 2, "low D"),
+    freezeString(1, "E", 4, 64, "high E"), freezeString(2, "B", 11, 59, "B"),
+    freezeString(3, "G", 7, 55, "G"), freezeString(4, "D", 2, 50, "D"),
+    freezeString(5, "A", 9, 45, "A"), freezeString(6, "D", 2, 38, "low D"),
   ]),
   freezeTuning("guitar-dadgad", "guitar", "DADGAD", "D A D G A D", [
-    freezeString(1, "D", 2, "high D"), freezeString(2, "A", 9, "high A"),
-    freezeString(3, "G", 7, "G"), freezeString(4, "D", 2, "mid D"),
-    freezeString(5, "A", 9, "low A"), freezeString(6, "D", 2, "low D"),
+    freezeString(1, "D", 2, 62, "high D"), freezeString(2, "A", 9, 57, "high A"),
+    freezeString(3, "G", 7, 55, "G"), freezeString(4, "D", 2, 50, "mid D"),
+    freezeString(5, "A", 9, 45, "low A"), freezeString(6, "D", 2, 38, "low D"),
   ]),
   freezeTuning("guitar-open-g", "guitar", "Open G", "D G D G B D", [
-    freezeString(1, "D", 2, "high D"), freezeString(2, "B", 11, "B"),
-    freezeString(3, "G", 7, "high G"), freezeString(4, "D", 2, "mid D"),
-    freezeString(5, "G", 7, "low G"), freezeString(6, "D", 2, "low D"),
+    freezeString(1, "D", 2, 62, "high D"), freezeString(2, "B", 11, 59, "B"),
+    freezeString(3, "G", 7, 55, "high G"), freezeString(4, "D", 2, 50, "mid D"),
+    freezeString(5, "G", 7, 43, "low G"), freezeString(6, "D", 2, 38, "low D"),
   ]),
   freezeTuning("bass-standard", "bass", "Standard", "E A D G", [
-    freezeString(1, "G", 7, "G"), freezeString(2, "D", 2, "D"),
-    freezeString(3, "A", 9, "A"), freezeString(4, "E", 4, "E"),
+    freezeString(1, "G", 7, 43, "G"), freezeString(2, "D", 2, 38, "D"),
+    freezeString(3, "A", 9, 33, "A"), freezeString(4, "E", 4, 28, "E"),
   ]),
   freezeTuning("bass-drop-d", "bass", "Drop D", "D A D G", [
-    freezeString(1, "G", 7, "G"), freezeString(2, "D", 2, "high D"),
-    freezeString(3, "A", 9, "A"), freezeString(4, "D", 2, "low D"),
+    freezeString(1, "G", 7, 43, "G"), freezeString(2, "D", 2, 38, "high D"),
+    freezeString(3, "A", 9, 33, "A"), freezeString(4, "D", 2, 26, "low D"),
   ]),
   freezeTuning("bass-bead", "bass", "BEAD", "B E A D", [
-    freezeString(1, "D", 2, "D"), freezeString(2, "A", 9, "A"),
-    freezeString(3, "E", 4, "E"), freezeString(4, "B", 11, "B"),
+    freezeString(1, "D", 2, 38, "D"), freezeString(2, "A", 9, 33, "A"),
+    freezeString(3, "E", 4, 28, "E"), freezeString(4, "B", 11, 23, "B"),
   ]),
 ]);
 

@@ -78,7 +78,7 @@ test.describe("Fretboard Explorer", () => {
     await expect(guitarGrid.locator('[data-double-marker="true"]')).toHaveCount(1);
     await expect(
       page.getByRole("button", {
-        name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 8, C, interval 1",
+        name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 8, C, interval 1, All positions pattern tone",
       }),
     ).toHaveText("1");
 
@@ -95,7 +95,7 @@ test.describe("Fretboard Explorer", () => {
     );
     await expect(
       page.getByRole("button", {
-        name: "Right-handed Bass string 1 (G), Standard tuning, fret 8, Eb, interval 1",
+        name: "Right-handed Bass string 1 (G), Standard tuning, fret 8, Eb, interval 1, All positions pattern tone",
       }),
     ).toHaveText("Eb");
     expect(browserIssues).toEqual([]);
@@ -123,13 +123,13 @@ test.describe("Fretboard Explorer", () => {
     await expect(collapseCompanion).toHaveAttribute("aria-expanded", "true");
 
     const firstNote = page.getByRole("button", {
-      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3",
+      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3, All positions pattern tone",
     });
     await firstNote.focus();
     await expect(firstNote).toBeFocused();
     await firstNote.press("ArrowRight");
     const nextNote = page.getByRole("button", {
-      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 1, F, interval 4",
+      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 1, F, interval 4, All positions pattern tone",
     });
     await expect(nextNote).toBeFocused();
     const focusStyle = await nextNote.evaluate((element) => {
@@ -142,7 +142,7 @@ test.describe("Fretboard Explorer", () => {
     await nextNote.press("ArrowDown");
     await expect(
       page.getByRole("button", {
-        name: "Right-handed Guitar string 2 (B), Standard tuning, fret 1, C, interval 1",
+        name: "Right-handed Guitar string 2 (B), Standard tuning, fret 1, C, interval 1, All positions pattern tone",
       }),
     ).toBeFocused();
 
@@ -191,7 +191,7 @@ test.describe("Fretboard Explorer", () => {
         expect(workspaceTransition).toBe("0s");
 
         const firstNote = page.getByRole("button", {
-          name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3",
+          name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3, All positions pattern tone",
         });
         await firstNote.focus();
         const scaleFrets = [0, 1, 3, 5, 7, 8, 10, 12, 13, 15];

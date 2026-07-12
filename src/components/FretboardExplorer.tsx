@@ -3,14 +3,23 @@ import type { ReactNode } from "react";
 import { Guitar, Music2 } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
-import type { ScaleType } from "../lib/types";
+import type { IndexedChord, ScaleType } from "../lib/types";
 import {
+  buildFretboardPattern,
   buildFretboardRows,
+  CAGED_FORM_OPTIONS,
+  decorateFretboardPositions,
+  deriveChordTones,
   fretboardTuningDefinitionFor,
   fretboardTuningsFor,
+  THREE_NPS_OPTIONS,
+  type CagedFormId,
   type FretboardInstrument,
+  type FretboardPatternFamily,
   type FretboardTuningId,
+  type ThreeNpsStartDegree,
 } from "../lib/theory";
+import ChordOverlayPicker from "./ChordOverlayPicker";
 import HorizontalFretboard, {
   type FretboardHandedness,
   type FretboardLabelMode,
@@ -154,6 +163,10 @@ export default function FretboardExplorer() {
   const [labelMode, setLabelMode] = useState<FretboardLabelMode>("intervals");
   const [handedness, setHandedness] = useState<FretboardHandedness>("right");
   const [tuningByInstrument, setTuningByInstrument] = useState(() => ({ ...DEFAULT_TUNINGS }));
+  const [patternFamily, setPatternFamily] = useState<FretboardPatternFamily>("all");
+  const [cagedForm, setCagedForm] = useState<CagedFormId>("e");
+  const [threeNpsStartDegree, setThreeNpsStartDegree] = useState<ThreeNpsStartDegree>(1);
+  const [overlay, setOverlay] = useState<{ chord: IndexedChord; displayName: string }>();
   const tuningId = tuningByInstrument[instrument];
   const tuning = fretboardTuningDefinitionFor(instrument, tuningId);
   const tuningOptions = fretboardTuningsFor(instrument);
@@ -175,6 +188,22 @@ export default function FretboardExplorer() {
       .map(([, value]) => value);
   }, [rows]);
   const modeLabel = MODE_OPTIONS.find((option) => option.value === scaleType)?.label ?? scaleType;
+  const pattern = useMemo(() => buildFretboardPattern(
+    rows,
+    instrument,
+    tuningId,
+    keyName,
+    scaleType,
+    { family: patternFamily, cagedForm, threeNpsStartDegree },
+  ), [rows, instrument, tuningId, keyName, scaleType, patternFamily, cagedForm, threeNpsStartDegree]);
+  const chordTones = useMemo(
+    () => overlay ? deriveChordTones(overlay.chord) : [],
+    [overlay],
+  );
+  const decoratedPositions = useMemo(
+    () => decorateFretboardPositions(rows, pattern, chordTones),
+    [rows, pattern, chordTones],
+  );
 
   return (
     <section
@@ -272,6 +301,70 @@ export default function FretboardExplorer() {
         </section>
 
         <section
+          aria-label="Fretboard learning controls"
+          className="mb-6 flex min-w-0 flex-col gap-4 rounded-xl p-4 md:p-5 lg:flex-row lg:items-start"
+          data-testid="fretboard-learning-layer"
+          style={{
+            backgroundColor: "var(--status-academy-bg)",
+            border: "1px solid var(--status-academy-border)",
+          }}
+        >
+          <div className="flex min-w-0 flex-wrap items-end gap-3">
+            <SegmentedControl
+              label="Pattern"
+              value={patternFamily}
+              onChange={setPatternFamily}
+              reducedMotion={Boolean(reduceMotion)}
+              options={[
+                { value: "all", label: "All" },
+                { value: "caged", label: "CAGED" },
+                { value: "three-nps", label: "3NPS" },
+              ]}
+            />
+            {patternFamily === "caged" ? (
+              <SelectControl
+                id="fretboard-caged-form"
+                label="CAGED form"
+                value={cagedForm}
+                onChange={setCagedForm}
+              >
+                {CAGED_FORM_OPTIONS.map((option) => (
+                  <option key={option.id} value={option.id}>{option.label}</option>
+                ))}
+              </SelectControl>
+            ) : null}
+            {patternFamily === "three-nps" ? (
+              <SelectControl
+                id="fretboard-three-nps-position"
+                label="3NPS position"
+                value={String(threeNpsStartDegree)}
+                onChange={(value) => setThreeNpsStartDegree(Number(value) as ThreeNpsStartDegree)}
+              >
+                {THREE_NPS_OPTIONS.map((option) => (
+                  <option key={option.id} value={option.id}>{option.label}</option>
+                ))}
+              </SelectControl>
+            ) : null}
+            <p
+              role="status"
+              className="basis-full text-sm"
+              style={{ color: pattern.available ? "var(--status-academy-text)" : "var(--status-warning-text)" }}
+            >
+              {pattern.available
+                ? `${pattern.label} · ${pattern.positionKeys.length} scale positions`
+                : `${pattern.reason}. Showing All while your choice stays remembered.`}
+            </p>
+          </div>
+          <div className="hidden self-stretch lg:block" aria-hidden="true" style={{ width: "1px", backgroundColor: "var(--border-default)" }} />
+          <ChordOverlayPicker
+            selectedLabel={overlay?.displayName}
+            reducedMotion={Boolean(reduceMotion)}
+            onSelect={setOverlay}
+            onClear={() => setOverlay(undefined)}
+          />
+        </section>
+
+        <section
           aria-label={`${keyName} ${modeLabel} scale summary`}
           className="mb-5 flex flex-col gap-4 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between"
           style={{ backgroundColor: "var(--surface-highlight)", border: "1px solid var(--border-subtle)" }}
@@ -280,6 +373,10 @@ export default function FretboardExplorer() {
             <span className="label-caps">Current map</span>
             <p className="mt-1" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)" }}>
               {keyName} {modeLabel} · {instrument === "guitar" ? "Guitar" : "Bass"}
+            </p>
+            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+              {pattern.available ? pattern.label : "All positions"}
+              {overlay ? ` · ${overlay.displayName} overlay` : ""}
             </p>
           </div>
           <ol className="flex flex-wrap gap-2" aria-label="Scale notes and intervals">
@@ -307,6 +404,11 @@ export default function FretboardExplorer() {
           handedness={handedness}
           rows={rows}
           labelMode={labelMode}
+          pattern={pattern}
+          decoratedPositions={decoratedPositions}
+          keyName={keyName}
+          modeLabel={modeLabel}
+          overlayLabel={overlay?.displayName}
         />
 
         <aside
@@ -326,6 +428,18 @@ export default function FretboardExplorer() {
               {label}
             </span>
           ))}
+          {overlay ? (
+            <>
+              <span className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full" style={{ border: "2px solid var(--interactive-primary-bg)" }} />
+                Ring = chord tone
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full" style={{ border: "2px dashed var(--status-warning-text)" }} />
+                Dashed = outside selected scale
+              </span>
+            </>
+          ) : null}
         </aside>
       </div>
     </section>

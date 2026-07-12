@@ -55,10 +55,10 @@ test.describe("Fretboard tunings and handedness", () => {
       "Drop D · D A D G B E · frets 0–15",
     );
     await expect(page.getByRole("button", {
-      name: "Right-handed Guitar string 6 (low D), Drop D tuning, fret 0, D, interval 2",
+      name: "Right-handed Guitar string 6 (low D), Drop D tuning, fret 0, D, interval 2, All positions pattern tone",
     })).toBeVisible();
     await expect(page.getByRole("button", {
-      name: "Right-handed Guitar string 6 (low D), Drop D tuning, fret 2, E, interval 3",
+      name: "Right-handed Guitar string 6 (low D), Drop D tuning, fret 2, E, interval 3, All positions pattern tone",
     })).toBeVisible();
 
     await tuning.selectOption("guitar-dadgad");
@@ -92,12 +92,12 @@ test.describe("Fretboard tunings and handedness", () => {
       "OPEN", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
     ]);
     const rightFretZero = page.getByRole("button", {
-      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3",
+      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3, All positions pattern tone",
     });
     await rightFretZero.focus();
     await rightFretZero.press("ArrowRight");
     await expect(page.getByRole("button", {
-      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 1, F, interval 4",
+      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 1, F, interval 4, All positions pattern tone",
     })).toBeFocused();
 
     await page.getByRole("button", { name: "Left-handed", exact: true }).click();
@@ -108,15 +108,15 @@ test.describe("Fretboard tunings and handedness", () => {
       "15", "14", "13", "12", "11", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1", "OPEN",
     ]);
     const leftFretThree = page.getByRole("button", {
-      name: "Left-handed Guitar string 1 (high E), Standard tuning, fret 3, G, interval 5",
+      name: "Left-handed Guitar string 1 (high E), Standard tuning, fret 3, G, interval 5, All positions pattern tone",
     });
     await leftFretThree.focus();
     await leftFretThree.press("ArrowRight");
     await expect(page.getByRole("button", {
-      name: "Left-handed Guitar string 1 (high E), Standard tuning, fret 1, F, interval 4",
+      name: "Left-handed Guitar string 1 (high E), Standard tuning, fret 1, F, interval 4, All positions pattern tone",
     })).toBeFocused();
     const leftFretZero = page.getByRole("button", {
-      name: "Left-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3",
+      name: "Left-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3, All positions pattern tone",
     });
     await leftFretZero.focus();
     await leftFretZero.press("ArrowRight");
@@ -166,7 +166,7 @@ test.describe("Fretboard tunings and handedness", () => {
         const leftButton = page.getByRole("button", { name: "Left-handed", exact: true });
         expect(await leftButton.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
         const note = page.getByRole("button", {
-          name: "Left-handed Guitar string 1 (high D), Open G tuning, fret 0, D, interval 2",
+          name: "Left-handed Guitar string 1 (high D), Open G tuning, fret 0, D, interval 2, All positions pattern tone",
         });
         expect(await note.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
       }

@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define the music-theory transformations and voicing behavior used throughout Harmony Hash.
+
+## Requirements
 
 ### Requirement: Chord symbol parsing
 The system SHALL parse a space-separated string of chord symbols into an ordered list of resolved chord entries.

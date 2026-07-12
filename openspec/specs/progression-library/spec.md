@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define the curated progression catalogue and its normalized music-theory metadata.
+
+## Requirements
 
 ### Requirement: Structured progression data file
 The system SHALL provide a TypeScript data file at `src/data/progressions.ts` that encodes the full chord progression library from `docs/hh-library.md`.

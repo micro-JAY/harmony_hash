@@ -62,6 +62,10 @@ The Worker SHALL run an OpenAI Responses API loop with a strict `lookup_chord` f
 - **WHEN** OpenAI issues a `lookup_chord` function call for an unknown chord, such as `Caug7`
 - **THEN** the Worker SHALL submit `{ "valid": false, "chord_name": "Caug7", "suggestion": <closest valid chord> }` and allow the model to correct the candidate
 
+#### Scenario: Loop terminates on final structured output
+- **WHEN** OpenAI returns no function calls and supplies structured final text
+- **THEN** the Worker SHALL parse and validate the final progression before ending the loop
+
 #### Scenario: Multiple tool calls in one response
 - **WHEN** OpenAI returns multiple chord lookups in parallel
 - **THEN** the Worker SHALL execute and return one call-id-matched output for every valid function call before continuing
@@ -92,7 +96,7 @@ The Worker SHALL validate the OpenAI structured output and shared-dictionary mem
 - **WHEN** the parsed response is an object with 3–8 string chords, a non-empty `key` string, and a non-empty `rationale` string
 - **THEN** the Worker SHALL return HTTP 200 with the JSON body
 
-#### Scenario: Chord count outside range
+#### Scenario: Chord count wrong
 - **WHEN** the parsed response contains fewer than 3 or more than 8 chords
 - **THEN** the Worker SHALL return HTTP 500 and an error describing the validation failure
 

@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define the canonical chord dictionary and lookup behavior shared by the browser and Worker.
+
+## Requirements
 
 ### Requirement: Chord catalog loading
 The system SHALL load `chords_clean.json` at build time and expose all 600 chord entries (excluding 12 header rows) as a typed array.

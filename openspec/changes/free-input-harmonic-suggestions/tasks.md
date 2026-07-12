@@ -31,4 +31,4 @@
 - [x] 6.1 Use the in-app Browser first to inspect desktop, tablet, and mobile screenshots plus DOM, console, focus, scroll, and primary interaction evidence.
 - [x] 6.2 Complete an independent code review and close all critical, high, and medium findings.
 - [x] 6.3 Update the long-horizon plan/log with the feature state, test evidence, stacked base, and remaining voice permission blocker.
-- [ ] 6.4 Commit logical milestones, push `feat/free-input-harmonic-suggestions`, and open a stacked draft PR when GitHub authentication permits; do not merge to main.
+- [x] 6.4 Commit logical milestones, push `feat/free-input-harmonic-suggestions`, and open a stacked draft PR when GitHub authentication permits; do not merge to main.

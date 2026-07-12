@@ -7,12 +7,12 @@
  * routed through this interface, so the voice feature stays decoupled from how
  * the builder happens to store its state.
  *
- * This interface is reconciled against the SHIPPED app, which is simpler than
- * the package's idealized "Chords Explorer": Harmony Hash has no builder-level
- * key state, no diatonic/jazz suggestion mode, and no next-chord engine, and
- * `harmonyBrain.ts` does not detect keys, derive roman numerals, or rank
- * compatible scales. So `key`/`mode`/`getSuggestions`/`setKey`/`setMode` are
- * gone and `ProgressionAnalysis` carries only what the app genuinely computes.
+ * This interface is reconciled against the SHIPPED voice bridge. Free Input
+ * owns a local key/mode context and harmonic-fit scorer, but neither is timeline
+ * state and neither is exposed to this bridge. `harmonyBrain.ts` still does not
+ * detect keys or derive roman numerals. So `key`/`mode`/`getSuggestions`/
+ * `setKey`/`setMode` remain absent and `ProgressionAnalysis` carries only what
+ * the voice tools genuinely compute.
  */
 
 /** A live read of the progression builder timeline. */
@@ -23,10 +23,10 @@ export interface ProgressionSnapshot {
 
 /**
  * What the app can actually compute for a set of chords. Backed by
- * `parseNotes` + `computeVoiceLedProgression` (harmonyBrain.ts). There is no
- * key detection, roman-numeral analysis, or compatible-scale ranking in the
- * engine, so none of those appear here — the agent may add general theory it
- * knows, but the tool result reflects only what Harmony Hash computed.
+ * `parseNotes` + `computeVoiceLedProgression` (harmonyBrain.ts). This voice tool
+ * receives no Free Input context, key detection, roman-numeral analysis, or
+ * harmonic-fit ranking, so none appear here — the agent may add general theory
+ * it knows, but the tool result reflects only what this bridge computed.
  */
 export interface ProgressionAnalysis {
   /** Chord symbols on the timeline, in order. */

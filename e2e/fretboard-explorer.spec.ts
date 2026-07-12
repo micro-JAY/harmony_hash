@@ -70,18 +70,22 @@ test.describe("Fretboard Explorer", () => {
       "true",
     );
 
-    const guitarGrid = page.getByRole("grid", { name: "Guitar scale positions" });
+    const guitarGrid = page.getByRole("grid", {
+      name: "Right-handed Guitar scale positions in Standard tuning",
+    });
     await expect(guitarGrid.getByRole("row")).toHaveCount(7);
     await expect(guitarGrid.locator("[data-fret-marker]")).toHaveCount(6);
     await expect(guitarGrid.locator('[data-double-marker="true"]')).toHaveCount(1);
     await expect(
       page.getByRole("button", {
-        name: "Guitar string 1 (high E), fret 8, C, interval 1",
+        name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 8, C, interval 1",
       }),
     ).toHaveText("1");
 
     await page.getByRole("button", { name: "Bass", exact: true }).click();
-    const bassGrid = page.getByRole("grid", { name: "Bass scale positions" });
+    const bassGrid = page.getByRole("grid", {
+      name: "Right-handed Bass scale positions in Standard tuning",
+    });
     await expect(bassGrid.getByRole("row")).toHaveCount(5);
     await page.getByRole("combobox", { name: "Fretboard root" }).selectOption("Eb");
     await page.getByRole("combobox", { name: "Fretboard mode" }).selectOption("dorian");
@@ -90,7 +94,9 @@ test.describe("Fretboard Explorer", () => {
       "Eb Dorian · Bass",
     );
     await expect(
-      page.getByRole("button", { name: "Bass string 1 (G), fret 8, Eb, interval 1" }),
+      page.getByRole("button", {
+        name: "Right-handed Bass string 1 (G), Standard tuning, fret 8, Eb, interval 1",
+      }),
     ).toHaveText("Eb");
     expect(browserIssues).toEqual([]);
 
@@ -117,13 +123,13 @@ test.describe("Fretboard Explorer", () => {
     await expect(collapseCompanion).toHaveAttribute("aria-expanded", "true");
 
     const firstNote = page.getByRole("button", {
-      name: "Guitar string 1 (high E), fret 0, E, interval 3",
+      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3",
     });
     await firstNote.focus();
     await expect(firstNote).toBeFocused();
     await firstNote.press("ArrowRight");
     const nextNote = page.getByRole("button", {
-      name: "Guitar string 1 (high E), fret 1, F, interval 4",
+      name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 1, F, interval 4",
     });
     await expect(nextNote).toBeFocused();
     const focusStyle = await nextNote.evaluate((element) => {
@@ -135,7 +141,9 @@ test.describe("Fretboard Explorer", () => {
     expect(focusStyle.color).not.toBe("rgba(0, 0, 0, 0)");
     await nextNote.press("ArrowDown");
     await expect(
-      page.getByRole("button", { name: "Guitar string 2 (B), fret 1, C, interval 1" }),
+      page.getByRole("button", {
+        name: "Right-handed Guitar string 2 (B), Standard tuning, fret 1, C, interval 1",
+      }),
     ).toBeFocused();
 
     await page.getByRole("button", { name: "Builder", exact: true }).click();
@@ -183,7 +191,7 @@ test.describe("Fretboard Explorer", () => {
         expect(workspaceTransition).toBe("0s");
 
         const firstNote = page.getByRole("button", {
-          name: "Guitar string 1 (high E), fret 0, E, interval 3",
+          name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3",
         });
         await firstNote.focus();
         const scaleFrets = [0, 1, 3, 5, 7, 8, 10, 12, 13, 15];

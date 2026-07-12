@@ -4,8 +4,17 @@ import { Guitar, Music2 } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
 import type { ScaleType } from "../lib/types";
-import { buildFretboardRows, type FretboardInstrument } from "../lib/theory";
-import HorizontalFretboard, { type FretboardLabelMode } from "./HorizontalFretboard";
+import {
+  buildFretboardRows,
+  fretboardTuningDefinitionFor,
+  fretboardTuningsFor,
+  type FretboardInstrument,
+  type FretboardTuningId,
+} from "../lib/theory";
+import HorizontalFretboard, {
+  type FretboardHandedness,
+  type FretboardLabelMode,
+} from "./HorizontalFretboard";
 
 const MODE_OPTIONS: ReadonlyArray<{ value: ScaleType; label: string }> = [
   { value: "major", label: "Major" },
@@ -16,6 +25,11 @@ const MODE_OPTIONS: ReadonlyArray<{ value: ScaleType; label: string }> = [
   { value: "lydian", label: "Lydian" },
   { value: "phrygian", label: "Phrygian" },
 ];
+
+const DEFAULT_TUNINGS: Readonly<Record<FretboardInstrument, FretboardTuningId>> = Object.freeze({
+  guitar: "guitar-standard",
+  bass: "bass-standard",
+});
 
 interface SegmentOption<T extends string> {
   value: T;
@@ -86,7 +100,7 @@ function SegmentedControl<T extends string>({
   );
 }
 
-function SelectControl({
+function SelectControl<T extends string>({
   id,
   label,
   value,
@@ -95,8 +109,8 @@ function SelectControl({
 }: {
   id: string;
   label: string;
-  value: string;
-  onChange: (value: string) => void;
+  value: T;
+  onChange: (value: T) => void;
   children: ReactNode;
 }) {
   return (
@@ -117,7 +131,7 @@ function SelectControl({
         id={id}
         aria-label={`Fretboard ${label.toLowerCase()}`}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => onChange(event.currentTarget.value as T)}
         className="w-full rounded-lg px-3 py-2 text-sm"
         style={{
           backgroundColor: "var(--surface-overlay)",
@@ -138,9 +152,14 @@ export default function FretboardExplorer() {
   const [keyName, setKeyName] = useState("C");
   const [scaleType, setScaleType] = useState<ScaleType>("major");
   const [labelMode, setLabelMode] = useState<FretboardLabelMode>("intervals");
+  const [handedness, setHandedness] = useState<FretboardHandedness>("right");
+  const [tuningByInstrument, setTuningByInstrument] = useState(() => ({ ...DEFAULT_TUNINGS }));
+  const tuningId = tuningByInstrument[instrument];
+  const tuning = fretboardTuningDefinitionFor(instrument, tuningId);
+  const tuningOptions = fretboardTuningsFor(instrument);
   const rows = useMemo(
-    () => buildFretboardRows(instrument, keyName, scaleType),
-    [instrument, keyName, scaleType],
+    () => buildFretboardRows(instrument, keyName, scaleType, 15, tuningId),
+    [instrument, keyName, scaleType, tuningId],
   );
   const scaleNotes = useMemo(() => {
     const byDegree = new Map<number, { note: string; interval: string }>();
@@ -181,13 +200,15 @@ export default function FretboardExplorer() {
             className="readout self-start rounded-full px-3 py-1.5 md:self-auto"
             style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-subtle)" }}
           >
-            Standard tuning · frets 0–15
+            <span data-testid="fretboard-tuning-readout">
+              {tuning.label} · {tuning.pitchSequence} · frets 0–15
+            </span>
           </div>
         </div>
 
         <section
           aria-label="Fretboard controls"
-          className="mb-6 flex flex-wrap items-end gap-4 rounded-xl p-4 md:p-5"
+          className="mb-6 flex flex-wrap items-end gap-x-3 gap-y-4 rounded-xl p-4 md:p-5"
           style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)" }}
         >
           <SegmentedControl
@@ -200,6 +221,33 @@ export default function FretboardExplorer() {
               { value: "bass", label: "Bass" },
             ]}
           />
+          <SelectControl
+            id="fretboard-tuning"
+            label="Tuning"
+            value={tuningId}
+            onChange={(nextTuningId) => {
+              setTuningByInstrument((current) => ({
+                ...current,
+                [instrument]: nextTuningId,
+              }));
+            }}
+          >
+            {tuningOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label} · {option.pitchSequence}
+              </option>
+            ))}
+          </SelectControl>
+          <SegmentedControl
+            label="Handedness"
+            value={handedness}
+            onChange={setHandedness}
+            reducedMotion={Boolean(reduceMotion)}
+            options={[
+              { value: "right", label: "Right-handed" },
+              { value: "left", label: "Left-handed" },
+            ]}
+          />
           <SelectControl id="fretboard-root" label="Root" value={keyName} onChange={setKeyName}>
             {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
           </SelectControl>
@@ -207,7 +255,7 @@ export default function FretboardExplorer() {
             id="fretboard-mode"
             label="Mode"
             value={scaleType}
-            onChange={(value) => setScaleType(value as ScaleType)}
+            onChange={setScaleType}
           >
             {MODE_OPTIONS.map((mode) => <option key={mode.value} value={mode.value}>{mode.label}</option>)}
           </SelectControl>
@@ -253,7 +301,13 @@ export default function FretboardExplorer() {
           </ol>
         </section>
 
-        <HorizontalFretboard instrument={instrument} rows={rows} labelMode={labelMode} />
+        <HorizontalFretboard
+          instrument={instrument}
+          tuning={tuning}
+          handedness={handedness}
+          rows={rows}
+          labelMode={labelMode}
+        />
 
         <aside
           aria-label="Interval color legend"

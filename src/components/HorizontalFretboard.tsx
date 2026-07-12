@@ -1,16 +1,20 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
 import type {
   FretboardInstrument,
   FretboardPosition,
   FretboardStringRow,
+  FretboardTuning,
 } from "../lib/theory";
 
 export type FretboardLabelMode = "intervals" | "notes";
+export type FretboardHandedness = "right" | "left";
 
 interface HorizontalFretboardProps {
   instrument: FretboardInstrument;
+  tuning: FretboardTuning;
+  handedness: FretboardHandedness;
   rows: ReadonlyArray<FretboardStringRow>;
   labelMode: FretboardLabelMode;
 }
@@ -23,6 +27,8 @@ interface ActivePosition {
 
 const MARKER_FRETS = new Set([3, 5, 7, 9, 12, 15]);
 const BOARD_COLUMNS = "64px repeat(16, 64px)";
+const RIGHT_HANDED_FRETS = Object.freeze(Array.from({ length: 16 }, (_, fret) => fret));
+const LEFT_HANDED_FRETS = Object.freeze([...RIGHT_HANDED_FRETS].reverse());
 
 function positionKey(rowIndex: number, fret: number): string {
   return `${rowIndex}:${fret}`;
@@ -76,26 +82,39 @@ function roleStyle(position: FretboardPosition): {
 
 export default function HorizontalFretboard({
   instrument,
+  tuning,
+  handedness,
   rows,
   labelMode,
 }: HorizontalFretboardProps) {
   const reduceMotion = useReducedMotion();
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const noteRefs = useRef(new Map<string, HTMLButtonElement>());
+  const visualFrets = handedness === "right" ? RIGHT_HANDED_FRETS : LEFT_HANDED_FRETS;
   const activePositions = useMemo<ReadonlyArray<ActivePosition>>(
     () =>
       rows.flatMap((row, rowIndex) =>
-        row.positions.flatMap((position) =>
-          position.isScaleTone
+        visualFrets.flatMap((fret) => {
+          const position = row.positions[fret];
+          return position.isScaleTone
             ? [{ key: positionKey(rowIndex, position.fret), rowIndex, position }]
-            : [],
-        ),
+            : [];
+        }),
       ),
-    [rows],
+    [rows, visualFrets],
   );
   const [activeFocusKey, setActiveFocusKey] = useState(() => activePositions[0]?.key ?? "");
   const resolvedFocusKey = activePositions.some((item) => item.key === activeFocusKey)
     ? activeFocusKey
     : activePositions[0]?.key ?? "";
+
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    scroller.scrollLeft = handedness === "left"
+      ? scroller.scrollWidth - scroller.clientWidth
+      : 0;
+  }, [handedness]);
 
   const moveFocus = useCallback((target: ActivePosition | undefined) => {
     if (!target) return;
@@ -115,9 +134,9 @@ export default function HorizontalFretboard({
       let target: ActivePosition | undefined;
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         const sameRow = activePositions.filter((item) => item.rowIndex === current.rowIndex);
-        target = event.key === "ArrowLeft"
-          ? sameRow.filter((item) => item.position.fret < current.position.fret).at(-1)
-          : sameRow.find((item) => item.position.fret > current.position.fret);
+        const currentIndex = sameRow.findIndex((item) => item.key === current.key);
+        const targetIndex = currentIndex + (event.key === "ArrowLeft" ? -1 : 1);
+        target = sameRow[targetIndex];
       } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
         const rowDelta = event.key === "ArrowUp" ? -1 : 1;
         const targetRow = current.rowIndex + rowDelta;
@@ -130,8 +149,10 @@ export default function HorizontalFretboard({
           })[0];
       }
 
-      if (target) {
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
         event.preventDefault();
+      }
+      if (target) {
         moveFocus(target);
       }
     },
@@ -139,6 +160,7 @@ export default function HorizontalFretboard({
   );
 
   const instrumentName = instrument === "guitar" ? "Guitar" : "Bass";
+  const handednessLabel = handedness === "right" ? "Right-handed" : "Left-handed";
 
   return (
     <div>
@@ -147,15 +169,18 @@ export default function HorizontalFretboard({
         style={{ color: "var(--text-muted)" }}
         id="fretboard-scroll-hint"
       >
-        Scroll sideways to travel from open strings through fret 15. Use arrow keys between highlighted notes.
+        {handednessLabel} view runs {handedness === "right" ? "from open strings through fret 15" : "from fret 15 to open strings"}. Use arrow keys between highlighted notes.
       </p>
       <div
+        ref={scrollerRef}
         role="region"
-        aria-label={`Horizontal ${instrumentName.toLowerCase()} fretboard`}
+        aria-label={`${handednessLabel} ${instrumentName.toLowerCase()} fretboard in ${tuning.label} tuning`}
         aria-describedby="fretboard-scroll-hint"
         className="w-full overflow-x-auto rounded-xl"
         data-testid="fretboard-scroller"
         data-reduced-motion={reduceMotion ? "true" : "false"}
+        data-handedness={handedness}
+        data-tuning={tuning.id}
         style={{
           border: "1px solid var(--border-default)",
           backgroundColor: "var(--surface-sunken)",
@@ -164,7 +189,7 @@ export default function HorizontalFretboard({
       >
         <div
           role="grid"
-          aria-label={`${instrumentName} scale positions`}
+          aria-label={`${handednessLabel} ${instrumentName} scale positions in ${tuning.label} tuning`}
           className="p-3"
           style={{ minWidth: "1088px" }}
         >
@@ -174,7 +199,7 @@ export default function HorizontalFretboard({
             style={{ gridTemplateColumns: BOARD_COLUMNS }}
           >
             <span role="columnheader" />
-            {Array.from({ length: 16 }, (_, fret) => (
+            {visualFrets.map((fret) => (
               <span
                 key={fret}
                 role="columnheader"
@@ -211,7 +236,8 @@ export default function HorizontalFretboard({
                   {row.string.number}
                 </span>
               </span>
-              {row.positions.map((position) => {
+              {visualFrets.map((fret) => {
+                const position = row.positions[fret];
                 const key = positionKey(rowIndex, position.fret);
                 const active = activePositions.find((item) => item.key === key);
                 const visual = roleStyle(position);
@@ -221,9 +247,12 @@ export default function HorizontalFretboard({
                     role="gridcell"
                     className="relative flex h-14 items-center justify-center"
                     style={{
-                      borderLeft: position.fret === 0
+                      borderLeft: handedness === "right" && position.fret === 0
                         ? "1px solid var(--border-accent)"
                         : "1px solid var(--border-default)",
+                      borderRight: handedness === "left" && position.fret === 0
+                        ? "1px solid var(--border-accent)"
+                        : undefined,
                       backgroundColor: position.fret % 2 === 0
                         ? "var(--surface-highlight)"
                         : "transparent",
@@ -248,7 +277,7 @@ export default function HorizontalFretboard({
                         tabIndex={resolvedFocusKey === key ? 0 : -1}
                         onFocus={() => setActiveFocusKey(key)}
                         onKeyDown={(event) => handleKeyDown(event, active)}
-                        aria-label={`${instrumentName} string ${position.stringNumber} (${position.stringLabel}), fret ${position.fret}, ${position.noteLabel}, interval ${position.intervalLabel}`}
+                        aria-label={`${handednessLabel} ${instrumentName} string ${position.stringNumber} (${position.stringLabel}), ${tuning.label} tuning, fret ${position.fret}, ${position.noteLabel}, interval ${position.intervalLabel}`}
                         data-string={position.stringNumber}
                         data-fret={position.fret}
                         data-note={position.noteLabel}
@@ -281,7 +310,7 @@ export default function HorizontalFretboard({
             style={{ gridTemplateColumns: BOARD_COLUMNS }}
           >
             <span />
-            {Array.from({ length: 16 }, (_, fret) => (
+            {visualFrets.map((fret) => (
               <span
                 key={fret}
                 className="flex h-6 items-center justify-center gap-1"

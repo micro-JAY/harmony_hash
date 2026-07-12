@@ -6,6 +6,27 @@ export {
   scalePitchClasses,
   spellScaleNotes,
 } from "./scaleBasics";
+export type { ScaleFormulaType } from "./scaleBasics";
+
+export {
+  buildScalePlaybackSchedule,
+  buildScalePracticeSequence,
+  parseScaleLearningDefinitions,
+  SCALE_FAMILIES,
+  SCALE_LEARNING,
+  scaleDegreeName,
+  scaleLearningDefinitionFor,
+  scaleLearningForFamily,
+  scaleStepLabels,
+} from "./scaleCatalog";
+export type {
+  ArpeggioType,
+  PracticeDirection,
+  PracticeMaterial,
+  ScaleFamilyId,
+  ScaleLearningDefinition,
+  ScalePracticeNote,
+} from "./scaleCatalog";
 
 export {
   buildFretboardRows,

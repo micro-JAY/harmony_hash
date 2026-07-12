@@ -1,4 +1,4 @@
-import moodRecords from "../../data/moods.json";
+import moodDataset from "../../data/moods.json";
 import type { IndexedChord } from "../types";
 import { chordPitchClasses } from "./chordTones";
 import {
@@ -165,7 +165,7 @@ export function parseMoodDefinitions(records: ReadonlyArray<unknown>): ReadonlyA
   return Object.freeze(parsed);
 }
 
-export const MOODS = parseMoodDefinitions(moodRecords);
+export const MOODS = parseMoodDefinitions(moodDataset.moods);
 
 export function moodDefinitionFor(moodId: MoodId): MoodDefinition {
   const definition = MOODS.find((candidate) => candidate.id === moodId);

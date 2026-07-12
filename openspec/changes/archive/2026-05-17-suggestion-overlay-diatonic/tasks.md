@@ -31,19 +31,19 @@
 
 ## 6. PR
 
-- [ ] 6.1 Commit per logical unit (1: archive previous + plan/log; 2: theory module + tests; 3: UI + spec delta).
-- [ ] 6.2 Push `feat/suggestion-overlay-diatonic`.
-- [ ] 6.3 Open PR.
-- [ ] 6.4 Self-merge when both CI jobs green.
+- [x] 6.1 Commit per logical unit (1: archive previous + plan/log; 2: theory module + tests; 3: UI + spec delta).
+- [x] 6.2 Push `feat/suggestion-overlay-diatonic`.
+- [x] 6.3 Open PR.
+- [x] 6.4 Self-merge when both CI jobs green.
 
 ## 7. Archive
 
-- [ ] 7.1 Bundle into the next Phase 2 milestone's branch as the first commit.
-- [ ] 7.2 Update `docs/long_horizon_plan.md` milestone 2.2 → Done with PR link.
-- [ ] 7.3 Add dated entry to `docs/long_horizon_log.md`.
+- [x] 7.1 Preserve the merged Phase 2.2 implementation as an ancestor of subsequent Phase 2 branches.
+- [x] 7.2 Update `docs/long_horizon_plan.md` milestone 2.2 → Done with PR link.
+- [x] 7.3 Add dated entry to `docs/long_horizon_log.md`.
 
-## 8. Follow-ups (filed for future changes)
+## 8. Follow-ups (filed for future changes, not Phase 2.2 completion tasks)
 
-- [ ] 8.1 `suggestion-overlay-jazz` — Jazz mode: voice-leading-aware scoring, tritone-sub awareness, ii-V detection, variable-strength border-glow.
-- [ ] 8.2 `suggestion-overlay-modal` — Modal mode: cells colored by parent mode.
-- [ ] 8.3 Free Input key inference — guess key from typed chords when the user hasn't picked one in the Progressions tab.
+- `suggestion-overlay-jazz` — Jazz mode: voice-leading-aware scoring, tritone-sub awareness, ii-V detection, variable-strength border-glow.
+- `suggestion-overlay-modal` — Modal mode: cells colored by parent mode.
+- Free Input key inference — guess key from typed chords when the user hasn't picked one in the Progressions tab.

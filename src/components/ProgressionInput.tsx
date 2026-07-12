@@ -12,7 +12,6 @@ import { useT } from "../i18n/I18nContext";
 
 interface ProgressionInputProps {
   onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
-  chordsEmpty: boolean;
   timelineVersion: number;
   timelineVersionRef: MutableRefObject<number>;
 }
@@ -25,14 +24,25 @@ interface SelectedProgression {
   scaleType: ScaleType;
 }
 
+const FREE_MODE_OPTIONS: ReadonlyArray<{ value: ScaleType; label: string }> = [
+  { value: "major", label: "Major" },
+  { value: "natural_minor", label: "Natural Minor" },
+  { value: "harmonic_minor", label: "Harmonic Minor" },
+  { value: "dorian", label: "Dorian" },
+  { value: "mixolydian", label: "Mixolydian" },
+  { value: "lydian", label: "Lydian" },
+  { value: "phrygian", label: "Phrygian" },
+];
+
 export default function ProgressionInput({
   onResult,
-  chordsEmpty,
   timelineVersion,
   timelineVersionRef,
 }: ProgressionInputProps) {
   const t = useT();
   const [freeText, setFreeText] = useState("");
+  const [freeKey, setFreeKey] = useState("C");
+  const [freeScaleType, setFreeScaleType] = useState<ScaleType>("major");
   const inputRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<SelectedProgression | null>(null);
   const [selectedKey, setSelectedKey] = useState("C");
@@ -150,52 +160,117 @@ export default function ProgressionInput({
 
       {/* Free Text Input */}
       {activeTab === "free" && (
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input
-            ref={inputRef}
-            type="text"
-            value={freeText}
-            onChange={(e) => setFreeText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleFreeTextSubmit()}
-            placeholder={t("freeInputHint")}
-            className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all"
-            style={{
-              backgroundColor: "var(--surface-overlay)",
-              color: "var(--text-primary)",
-              border: "1px solid var(--border-subtle)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-base)",
-            }}
-          />
-          <button
-            onClick={handleFreeTextSubmit}
-            className="w-full px-6 py-3 rounded-lg font-semibold transition-all sm:w-auto"
-            style={{
-              backgroundColor: "var(--interactive-accent-bg)",
-              color: "var(--interactive-accent-text)",
-              border: "1px solid var(--interactive-accent-border)",
-              fontWeight: "var(--weight-semibold)",
-              transitionDuration: "var(--duration-normal)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg-hover)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg)";
-            }}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              ref={inputRef}
+              type="text"
+              value={freeText}
+              onChange={(e) => setFreeText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleFreeTextSubmit()}
+              placeholder={t("freeInputHint")}
+              className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all"
+              style={{
+                backgroundColor: "var(--surface-overlay)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-subtle)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-base)",
+              }}
+            />
+            <button
+              onClick={handleFreeTextSubmit}
+              className="w-full px-6 py-3 rounded-lg font-semibold transition-all sm:w-auto"
+              style={{
+                backgroundColor: "var(--interactive-accent-bg)",
+                color: "var(--interactive-accent-text)",
+                border: "1px solid var(--interactive-accent-border)",
+                fontWeight: "var(--weight-semibold)",
+                transitionDuration: "var(--duration-normal)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg-hover)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg)";
+              }}
+            >
+              Run
+            </button>
+          </div>
+
+          <div
+            className="flex flex-wrap items-center gap-x-4 gap-y-2"
+            role="group"
+            aria-label="Free Input harmony context"
           >
-            Run
-          </button>
+            <label
+              htmlFor="free-input-key"
+              className="flex items-center gap-2 text-sm"
+              style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
+            >
+              Key
+              <select
+                id="free-input-key"
+                aria-label="Free Input key"
+                value={freeKey}
+                onChange={(event) => setFreeKey(event.target.value)}
+                className="px-3 py-2 rounded-lg text-sm"
+                style={{
+                  backgroundColor: "var(--surface-overlay)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-subtle)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {ALL_KEYS.map((key) => (
+                  <option key={key.value} value={key.value}>
+                    {key.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label
+              htmlFor="free-input-mode"
+              className="flex items-center gap-2 text-sm"
+              style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
+            >
+              Mode
+              <select
+                id="free-input-mode"
+                aria-label="Free Input mode"
+                value={freeScaleType}
+                onChange={(event) => setFreeScaleType(event.target.value as ScaleType)}
+                className="px-3 py-2 rounded-lg text-sm"
+                style={{
+                  backgroundColor: "var(--surface-overlay)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                {FREE_MODE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <span style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)" }}>
+              Suggestions update as you type.
+            </span>
+          </div>
         </div>
       )}
 
-      {/* Chord Reference Grid — Free Input empty state only */}
-      {activeTab === "free" && chordsEmpty && (
+      {/* Chord Reference Grid — stays available while extending a result. */}
+      {activeTab === "free" && (
         <ChordReferenceGrid
           inputValue={freeText}
           setInputValue={setFreeText}
           inputRef={inputRef}
-          keyContext={{ key: selectedKey, scaleType: activeGroup.scaleType }}
+          keyContext={{ key: freeKey, scaleType: freeScaleType }}
         />
       )}
 

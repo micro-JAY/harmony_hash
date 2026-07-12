@@ -301,7 +301,6 @@ function App() {
         {/* Input Section */}
         <ProgressionInput
           onResult={handleResult}
-          chordsEmpty={chords.length === 0}
           timelineVersion={timelineVersion}
           timelineVersionRef={timelineVersionRef}
         />

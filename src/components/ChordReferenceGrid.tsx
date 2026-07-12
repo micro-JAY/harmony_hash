@@ -1,20 +1,62 @@
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { lookupChord } from "../lib/chordData";
-import { isRootDiatonic } from "../lib/theory";
+import {
+  findLastResolvedChord,
+  scoreChordKeyFit,
+  scoreNextChordFit,
+} from "../lib/theory";
+import type { HarmonicFitResult, HarmonyContext } from "../lib/theory";
 import type { ScaleType } from "../lib/types";
 
-export type SuggestionMode = "off" | "diatonic";
+export type SuggestionMode = "off" | "key" | "next";
 
-export interface KeyContext {
-  key: string;
-  scaleType: ScaleType;
-}
+export type KeyContext = HarmonyContext;
 
 const MODE_OPTIONS: ReadonlyArray<{ value: SuggestionMode; label: string }> = [
   { value: "off", label: "Off" },
-  { value: "diatonic", label: "Diatonic" },
+  { value: "key", label: "Key" },
+  { value: "next", label: "Next" },
 ];
+
+const SCALE_TYPE_LABELS: Readonly<Record<ScaleType, string>> = {
+  major: "major",
+  natural_minor: "natural minor",
+  harmonic_minor: "harmonic minor",
+  dorian: "Dorian",
+  mixolydian: "Mixolydian",
+  lydian: "Lydian",
+  phrygian: "Phrygian",
+};
+
+const FIT_TIER_VISUALS = {
+  strong: {
+    background: "var(--interactive-accent-bg)",
+    border: "var(--interactive-accent-border)",
+    badge: "var(--interactive-accent-text)",
+    shadow: "var(--glow-accent)",
+  },
+  good: {
+    background: "var(--interactive-academy-bg)",
+    border: "var(--interactive-academy-border)",
+    badge: "var(--interactive-academy-text)",
+    shadow: "none",
+  },
+  color: {
+    background: "var(--interactive-warm-bg)",
+    border: "var(--interactive-warm-border)",
+    badge: "var(--interactive-warm-text)",
+    shadow: "none",
+  },
+  outside: {
+    background: "var(--surface-base)",
+    border: "var(--border-subtle)",
+    badge: "var(--text-secondary)",
+    shadow: "none",
+  },
+} as const;
+
+const GRID_PANEL_ID = "chord-reference-grid-panel";
 
 // ─── Quality Group Type ─────────────────────────────────────────────
 
@@ -91,9 +133,9 @@ interface ChordReferenceGridProps {
   setInputValue: (value: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   /**
-   * Optional key + scale context used by the suggestion overlay's
-   * Diatonic mode. When absent or when mode is "off", the grid
-   * renders every cell at full opacity (current default behavior).
+   * Optional key + scale context used by Key and Next suggestions.
+   * When absent or when mode is "off", the grid keeps its baseline
+   * appearance and interaction behavior.
    */
   keyContext?: KeyContext;
 }
@@ -106,6 +148,7 @@ export default function ChordReferenceGrid({
   inputRef,
   keyContext,
 }: ChordReferenceGridProps) {
+  const shouldReduceMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
   const [flashCell, setFlashCell] = useState<string | null>(null);
   const [activeGroup, setActiveGroup] = useState<QualityGroup | "all">(() => {
@@ -118,16 +161,38 @@ export default function ChordReferenceGrid({
   });
   const [insertHistory, setInsertHistory] = useState<string[]>([]);
   const [suggestionMode, setSuggestionMode] = useState<SuggestionMode>("off");
+  const previousChord = useMemo(() => findLastResolvedChord(inputValue), [inputValue]);
+  const contextKey = keyContext?.key;
+  const contextScaleType = keyContext?.scaleType;
+  const scoreByChord = useMemo(() => {
+    const scores = new Map<string, HarmonicFitResult>();
+    if (suggestionMode === "off" || !contextKey || !contextScaleType) return scores;
 
-  // Pre-compute diatonic status per root once per render; cell renders
-  // pull from this rather than re-evaluating in each cell loop.
-  const diatonicByRoot = new Map<string, boolean>();
-  if (suggestionMode === "diatonic" && keyContext) {
+    const context: HarmonyContext = { key: contextKey, scaleType: contextScaleType };
     for (const root of ROOTS) {
-      diatonicByRoot.set(root, isRootDiatonic(root, keyContext.key, keyContext.scaleType));
+      for (const quality of QUALITIES) {
+        const chordName = quality.suffix === "" ? root : `${root}${quality.suffix}`;
+        const chord = lookupChord(chordName);
+        if (!chord) continue;
+        scores.set(
+          chordName,
+          suggestionMode === "next"
+            ? scoreNextChordFit(chord, context, previousChord)
+            : scoreChordKeyFit(chord, context),
+        );
+      }
     }
-  }
-  const overlayActive = suggestionMode === "diatonic" && !!keyContext;
+    return scores;
+  }, [contextKey, contextScaleType, previousChord, suggestionMode]);
+  const overlayActive = suggestionMode !== "off" && !!contextKey && !!contextScaleType;
+  const contextLabel = contextKey && contextScaleType
+    ? `${contextKey} ${SCALE_TYPE_LABELS[contextScaleType]}`
+    : "No key context";
+  const modeSummary = suggestionMode === "next"
+    ? previousChord
+      ? `Ranking what follows ${previousChord.displayName} in ${contextLabel}`
+      : `Key fit in ${contextLabel}. Add a chord to rank what follows.`
+    : `Key fit in ${contextLabel}`;
 
   // Reset filter and history when grid collapses
   function handleToggle() {
@@ -182,7 +247,10 @@ export default function ChordReferenceGrid({
       {/* Toggle + Undo Row */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <button
+          type="button"
           onClick={handleToggle}
+          aria-expanded={isOpen}
+          aria-controls={GRID_PANEL_ID}
           style={{
             color: "var(--text-muted)",
             border: "1px solid var(--border-subtle)",
@@ -201,10 +269,11 @@ export default function ChordReferenceGrid({
         <AnimatePresence>
           {canUndo && (
             <motion.button
-              initial={{ opacity: 0, x: -4 }}
+              type="button"
+              initial={shouldReduceMotion ? false : { opacity: 0, x: -4 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -4 }}
-              transition={{ duration: 0.15 }}
+              exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -4 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.15 }}
               onClick={handleUndo}
               style={{
                 background: "none",
@@ -232,18 +301,25 @@ export default function ChordReferenceGrid({
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
+            id={GRID_PANEL_ID}
+            role="region"
+            aria-label="Chord suggestions"
+            data-testid="chord-grid-panel"
+            data-reduced-motion={shouldReduceMotion ? "true" : "false"}
+            initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            transition={shouldReduceMotion
+              ? { duration: 0 }
+              : { duration: 0.2, ease: "easeInOut" }}
             style={{ overflow: "hidden" }}
           >
-            {/* Suggestion-mode toggle (Off / Diatonic). Disabled when
-                no keyContext is available (Free Input with no key inferred). */}
+            {/* Suggestion mode + context summary. */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
+                flexWrap: "wrap",
                 gap: "6px",
                 padding: "10px 0 2px",
               }}
@@ -270,13 +346,15 @@ export default function ChordReferenceGrid({
               >
                 {MODE_OPTIONS.map((opt) => {
                   const active = suggestionMode === opt.value;
-                  const disabled = opt.value === "diatonic" && !keyContext;
+                  const disabled = opt.value !== "off" && !keyContext;
                   return (
                     <button
                       key={opt.value}
                       type="button"
                       disabled={disabled}
                       onClick={() => setSuggestionMode(opt.value)}
+                      aria-pressed={active}
+                      aria-label={`${opt.label} chord suggestions`}
                       style={{
                         padding: "3px 10px",
                         borderRadius: "999px",
@@ -298,18 +376,40 @@ export default function ChordReferenceGrid({
                   );
                 })}
               </div>
-              {overlayActive && keyContext && (
+              {overlayActive && (
                 <span
+                  aria-live="polite"
+                  data-testid="suggestion-summary"
                   style={{
                     fontSize: "var(--text-xs)",
                     color: "var(--text-muted)",
                     fontFamily: "var(--font-mono)",
                   }}
                 >
-                  in {keyContext.key} {keyContext.scaleType.replace("_", " ")}
+                  {modeSummary}
                 </span>
               )}
             </div>
+
+            {overlayActive && (
+              <div
+                role="group"
+                aria-label="Fit score legend"
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "6px 12px",
+                  padding: "6px 0 2px",
+                  color: "var(--text-muted)",
+                  fontSize: "var(--text-xs)",
+                }}
+              >
+                <span style={{ color: "var(--interactive-accent-text)" }}>85–100 strong</span>
+                <span style={{ color: "var(--interactive-academy-text)" }}>70–84 good</span>
+                <span style={{ color: "var(--interactive-warm-text)" }}>50–69 color</span>
+                <span>0–49 outside</span>
+              </div>
+            )}
 
             {/* Group Filter Chips */}
             <div
@@ -325,7 +425,9 @@ export default function ChordReferenceGrid({
                 return (
                   <button
                     key={g.id}
+                    type="button"
                     onClick={() => handleGroupSelect(g.id)}
+                    aria-pressed={active}
                     style={{
                       fontSize: "var(--text-xs)",
                       padding: "3px 8px",
@@ -348,7 +450,10 @@ export default function ChordReferenceGrid({
             </div>
 
             {/* Grid */}
-            <div style={{ overflowX: "auto" }}>
+            <div
+              data-testid="chord-grid-scroll"
+              style={{ overflowX: "auto", paddingBottom: "4px" }}
+            >
               <div
                 style={{
                   display: "grid",
@@ -381,12 +486,8 @@ export default function ChordReferenceGrid({
                 {/* Data Rows */}
                 {ROOTS.map((root) => {
                   const rootColor = ROOT_COLORS[root] ?? "var(--text-secondary)";
-                  // When the suggestion overlay is on, dim non-diatonic rows
-                  // so the diatonic ones (1/IV/V/vi/etc.) stand out.
-                  const isDiatonic = overlayActive ? diatonicByRoot.get(root) ?? false : true;
-                  const rowOpacity = overlayActive && !isDiatonic ? 0.35 : 1;
                   return (
-                    <div key={root} style={{ display: "contents", opacity: rowOpacity }}>
+                    <div key={root} style={{ display: "contents" }}>
                       {/* Root label */}
                       <span
                         style={{
@@ -397,7 +498,6 @@ export default function ChordReferenceGrid({
                           color: rootColor,
                           alignSelf: "center",
                           userSelect: "none",
-                          opacity: rowOpacity,
                         }}
                       >
                         {root}
@@ -410,11 +510,21 @@ export default function ChordReferenceGrid({
                         const resolved = lookupChord(chordName);
                         if (!resolved) return <div key={q.label} />;
 
+                        const fitResult = scoreByChord.get(chordName);
+                        const fitVisual = fitResult
+                          ? FIT_TIER_VISUALS[fitResult.tier]
+                          : undefined;
+                        const baseBackground = fitVisual?.background ?? "var(--surface-base)";
+                        const baseBorder = fitVisual?.border ?? "var(--border-subtle)";
+                        const baseShadow = fitVisual?.shadow ?? "none";
+                        const accessibleLabel = fitResult
+                          ? `${chordName}, ${fitResult.score}% fit, ${fitResult.tier}. ${fitResult.reasons.join(". ")}`
+                          : chordName;
                         const isFlashing = flashCell === chordName;
                         const flashStyle: React.CSSProperties = isFlashing
                           ? {
                               background: rootColor,
-                              color: "#fff",
+                              color: "var(--text-primary)",
                               boxShadow: `${rootColor}80 0px 0px 8px`,
                               borderColor: rootColor,
                             }
@@ -423,28 +533,38 @@ export default function ChordReferenceGrid({
                         return (
                           <button
                             key={q.label}
+                            type="button"
                             onClick={() => handleChordInsert(chordName)}
+                            aria-label={accessibleLabel}
+                            title={fitResult ? accessibleLabel : undefined}
+                            data-chord-name={chordName}
+                            data-fit-score={fitResult?.score}
+                            data-fit-tier={fitResult?.tier}
                             style={{
                               display: "inline-flex",
+                              flexDirection: "column",
                               alignItems: "center",
                               justifyContent: "center",
-                              padding: "4px 7px",
+                              gap: fitResult ? "1px" : 0,
+                              padding: fitResult ? "3px 7px" : "4px 7px",
                               minWidth: "42px",
-                              minHeight: "30px",
+                              minHeight: fitResult ? "38px" : "30px",
                               borderRadius: "6px",
                               fontSize: "12px",
-                              fontFamily: "monospace",
+                              fontFamily: "var(--font-mono)",
                               fontWeight: 700,
                               letterSpacing: "0.03em",
+                              lineHeight: 1.05,
                               cursor: "pointer",
                               userSelect: "none",
                               touchAction: "manipulation",
-                              background: "var(--surface-base)",
+                              background: baseBackground,
                               color: "var(--text-secondary)",
-                              border: "1px solid var(--border-subtle)",
-                              boxShadow: "none",
-                              transition:
-                                "background 0.15s, border 0.15s, color 0.15s, box-shadow 0.15s",
+                              border: `1px solid ${baseBorder}`,
+                              boxShadow: baseShadow,
+                              transition: shouldReduceMotion
+                                ? "none"
+                                : "background var(--duration-fast), border var(--duration-fast), color var(--duration-fast), box-shadow var(--duration-fast)",
                               ...flashStyle,
                             }}
                             onMouseEnter={(e) => {
@@ -452,19 +572,32 @@ export default function ChordReferenceGrid({
                                 e.currentTarget.style.background =
                                   "var(--surface-raised)";
                                 e.currentTarget.style.borderColor =
-                                  "var(--border-default)";
+                                  "var(--border-strong)";
                               }
                             }}
                             onMouseLeave={(e) => {
                               if (flashCell !== chordName) {
                                 e.currentTarget.style.background =
-                                  "var(--surface-base)";
+                                  baseBackground;
                                 e.currentTarget.style.borderColor =
-                                  "var(--border-subtle)";
+                                  baseBorder;
                               }
                             }}
                           >
-                            {chordName}
+                            <span>{chordName}</span>
+                            {fitResult && (
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  color: fitVisual?.badge,
+                                  fontSize: "10px",
+                                  fontWeight: "var(--weight-semibold)",
+                                  letterSpacing: "0.02em",
+                                }}
+                              >
+                                {fitResult.score}%
+                              </span>
+                            )}
                           </button>
                         );
                       })}

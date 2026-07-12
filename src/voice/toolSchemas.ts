@@ -11,8 +11,8 @@
  *
  * Scope note: this is the SHIPPED 9-tool surface. The package shipped 12; the
  * three dropped tools (`get_chord_suggestions`, `set_key`, `set_suggestion_mode`)
- * have no backing in Harmony Hash — there is no next-chord engine, no
- * builder-level key state, and no diatonic/jazz toggle.
+ * have no backing in the voice bridge. Free Input's local key/mode and fit
+ * scorer are deliberately not timeline authority and are not provider tools.
  */
 
 export interface ClientToolSchema {
@@ -49,7 +49,7 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
   {
     name: "analyze_progression",
     description:
-      "Get what the app computes for the current progression: the chord symbols, each chord's tones (the note names in the chord), and the smooth piano voicing the app renders. Use this for accurate, app-grounded facts about the notes. You may add general music-theory explanation yourself, but never claim the app detected a key, roman numerals or scales — it does not compute those.",
+      "Get what the voice bridge computes for the current progression: the chord symbols, each chord's tones (the note names in the chord), and the smooth piano voicing the app renders. Use this for accurate, app-grounded facts about the notes. You may add general music-theory explanation yourself, but never claim this tool detected a key, roman numerals or scales — it does not receive the Free Input harmony context.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },

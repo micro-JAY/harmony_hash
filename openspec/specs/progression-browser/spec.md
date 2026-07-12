@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define browsing and selecting curated chord progressions within the builder.
+
+## Requirements
 
 ### Requirement: Key selector unchanged
 The existing Key selector dropdown SHALL remain unchanged in position, behavior, and styling.

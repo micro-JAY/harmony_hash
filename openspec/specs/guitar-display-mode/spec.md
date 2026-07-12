@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define guitar-oriented chord rendering and display-mode behavior.
+
+## Requirements
 
 ### Requirement: Three-way guitar display mode toggle
 The guitar chord card SHALL display a 3-way pill toggle with modes: "Fingering" (default), "Intervals", and "Notes". The toggle SHALL use the same visual pattern as the existing piano Notes/Fingering toggle.

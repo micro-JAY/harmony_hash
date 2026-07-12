@@ -1,5 +1,6 @@
-## ADDED Requirements
-
+## Purpose
+Define manual progression entry, parsing feedback, and mode-specific input controls.
+## Requirements
 ### Requirement: Free-text chord input
 The system SHALL provide a text input field where users type space-separated chord symbols and submit them via a Run/Generate button.
 
@@ -54,7 +55,7 @@ The system SHALL provide a dropdown to select a key (all 12 chromatic keys) for 
 - **THEN** the chord cards SHALL update to reflect the new key
 
 ### Requirement: Input mode switching
-The system SHALL allow users to switch between free-text input and the Progressions tab without losing the other mode's state. The Progressions tab SHALL host the natural-language Progression Agent as its primary surface and SHALL preserve the preset browser as a secondary "Or pick a preset" section.
+The system SHALL allow users to switch between free-text input and the Progressions tab without losing the other mode's state. The Progressions tab SHALL host the natural-language Progression Agent as its primary surface and preserve the preset browser as a secondary disclosure. Optional voice controls SHALL remain compact and SHALL NOT insert an expanded idle panel between active controls and chord output.
 
 #### Scenario: Mode toggle
 - **WHEN** the user switches from free-text to the Progressions tab
@@ -62,19 +63,32 @@ The system SHALL allow users to switch between free-text input and the Progressi
 
 #### Scenario: Progression Agent is the primary surface
 - **WHEN** the user opens the Progressions tab
-- **THEN** the agent's prompt textarea and "Build progression" button SHALL be visible by default at the top of the tab
+- **THEN** the agent's prompt textarea and `Build progression` button SHALL be visible by default at the top of the tab
 
 #### Scenario: Preset browser preserved as fallback
 - **WHEN** the user opens the Progressions tab
-- **THEN** the existing preset browser (key selector, tonality selector, subgroups, minor blend help) SHALL remain available under an "Or pick a preset" disclosure below the agent controls
+- **THEN** the existing preset browser (key selector, tonality selector, subgroups, minor blend help) SHALL remain available under an `Or pick a preset` disclosure below the agent controls
 
 #### Scenario: Agent result overrides display
 - **WHEN** the user submits an agent prompt and the Worker returns a valid progression
-- **THEN** the chord cards SHALL display the agent's chords, replacing any previous result (free-text or preset)
+- **THEN** the chord cards SHALL display the agent's chords, replacing any previous result from free-text or presets
 
 #### Scenario: Preset selection overrides display
 - **WHEN** the user selects a preset progression from the fallback section
-- **THEN** the chord cards SHALL display the preset's chords, replacing any previous result (free-text or agent)
+- **THEN** the chord cards SHALL display the preset's chords, replacing any previous result from free-text or the agent
+
+#### Scenario: Superseded agent response is ignored
+- **WHEN** an agent request remains in flight and the user switches to Free Input, selects a newer manual or preset result, or the Harmony Companion changes the timeline
+- **THEN** the pending request SHALL be aborted where possible
+- **AND** any late agent response SHALL NOT replace the newer chord cards
+
+#### Scenario: Mode-only changes preserve agent feedback
+- **WHEN** the user switches input modes or changes preset tonality without applying a newer progression
+- **THEN** any completed agent rationale or retryable error SHALL remain available when the Progressions tab is shown again
+
+#### Scenario: Companion does not break reading order
+- **WHEN** the companion is idle or unavailable in either input mode
+- **THEN** only its compact control SHALL appear between input controls and chord output
 
 ### Requirement: Minor blend contextual help
 The system SHALL provide contextual minor-harmony guidance directly in the progression input controls.
@@ -94,3 +108,19 @@ The system SHALL provide contextual minor-harmony guidance directly in the progr
 #### Scenario: Modal dismissal interactions
 - **WHEN** the modal is open and the user clicks the close button, presses `Escape`, or clicks outside the modal panel
 - **THEN** the modal SHALL close
+
+### Requirement: Responsive input controls
+The Free Input and Progression Agent control rows SHALL reflow without horizontal document overflow at mobile widths.
+
+#### Scenario: Free Input on mobile
+- **WHEN** the viewport is narrower than 640px
+- **THEN** the chord input and Run button SHALL stack or size fluidly within the viewport
+
+#### Scenario: Progression Agent on mobile
+- **WHEN** the viewport is narrower than 640px
+- **THEN** the prompt textarea and Build progression button SHALL stack with full-width usable controls
+
+#### Scenario: No horizontal overflow
+- **WHEN** either input mode is viewed at 375px width
+- **THEN** `document.scrollWidth` SHALL NOT exceed `window.innerWidth`
+

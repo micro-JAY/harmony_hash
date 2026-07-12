@@ -42,5 +42,5 @@
 - [x] 6.1 Run the full install, build, lint, Vitest, Playwright, Worker smoke, production build, and bundle-size gates
 - [x] 6.2 Run independent code, security, and spec-coherence reviews; fix all actionable findings and rerun affected gates
 - [x] 6.3 Reconcile `docs/long_horizon_plan.md` and `docs/long_horizon_log.md` with the final branch/deployment state
-- [ ] 6.4 Push the feature branch, open a PR with screenshots and test evidence, wait for green CI/reviews, and merge into `main`
-- [ ] 6.5 Archive the OpenSpec change, apply its deltas to canonical specs, and verify the final production end state
+- [x] 6.4 Push the feature branch, open a PR with screenshots and test evidence, wait for green CI/reviews, and merge into `main`
+- [x] 6.5 Archive the OpenSpec change, apply its deltas to canonical specs, and verify the final production end state

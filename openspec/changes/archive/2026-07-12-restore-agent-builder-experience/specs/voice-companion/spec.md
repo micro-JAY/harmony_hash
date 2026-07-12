@@ -30,7 +30,7 @@ The provisioned ElevenLabs agent SHALL have signed-URL authentication enabled an
 ### Requirement: Voice companion panel
 The app SHALL keep the voice companion runtime and client tools mounted within the progression builder, while presenting a compact collapsed control by default. The full orb, transcript, errors, and session controls SHALL expand only on explicit user action, and microphone access SHALL never be requested before the user starts a session.
 
-#### Scenario: Idle compact panel
+#### Scenario: Idle panel
 - **WHEN** the builder loads
 - **THEN** the companion SHALL show a compact offline status and expand control without reserving a large card-sized gap
 - **AND** no microphone permission SHALL be requested
@@ -55,7 +55,7 @@ The Worker SHALL expose `POST /api/voice/signed-url` that mints a short-lived El
 - **WHEN** a permitted origin POSTs to `/api/voice/signed-url` and the API key, agent id, and live agent auth mode are valid
 - **THEN** the Worker SHALL return HTTP 200 with `{ "signedUrl": "wss://…" }`
 
-#### Scenario: Missing Worker configuration
+#### Scenario: Misconfiguration
 - **WHEN** the API key or agent id is missing
 - **THEN** the Worker SHALL return HTTP 500 with an `{ "error": … }` body
 - **AND** SHALL NOT return a success-shaped response

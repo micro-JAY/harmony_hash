@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define how indexed chords are presented and interacted with in progression output cards.
+
+## Requirements
 
 ### Requirement: Guitar chord card rendering
 The system SHALL display guitar chord cards by rendering the corresponding SVG image from the asset library, with variant controls that remain interactive after randomization and a lock toggle per card.

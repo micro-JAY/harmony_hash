@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define piano playback controls, scheduling, and visual highlighting for chord progressions.
+
+## Requirements
 
 ### Requirement: Playback schedule builder
 The system SHALL build a deterministic playback schedule from an ordered list of voiced chords. Each chord becomes a `PlaybackEvent` carrying its absolute start time, duration, the MIDI numbers of its active notes, and its position in the source progression.

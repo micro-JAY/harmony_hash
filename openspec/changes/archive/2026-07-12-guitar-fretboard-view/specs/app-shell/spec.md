@@ -16,7 +16,23 @@ The application SHALL display a branded header with the app name "Harmony Hash",
 - **THEN** it SHALL expose visible focus and activate with standard button keyboard behavior
 
 ### Requirement: Page structure
-The application SHALL present either the progression Builder or the Fretboard explorer below the shared header according to the active workspace.
+The application SHALL present either the progression Builder or the Fretboard explorer below the shared header according to the active workspace. The Builder SHALL retain its Input Area → Compact Action Toolbar → Chord Cards ordering, with optional expanded companion content shown only after explicit user action.
+
+#### Scenario: Input area placement
+- **WHEN** the Builder workspace loads
+- **THEN** the active progression input controls SHALL appear below the header and above the action toolbar
+
+#### Scenario: Compact action toolbar
+- **WHEN** the Builder is idle or has rendered chords
+- **THEN** applicable Randomize, Play/Stop, and Harmony Companion controls SHALL occupy one responsive toolbar without a card-sized idle gap
+
+#### Scenario: Output area
+- **WHEN** a progression is submitted
+- **THEN** chord cards SHALL render in a dedicated output area immediately after the compact action toolbar
+
+#### Scenario: Companion expansion
+- **WHEN** the user explicitly expands Harmony Companion
+- **THEN** its full session content MAY occupy additional space while preserving the surrounding progression state
 
 #### Scenario: Builder structure
 - **WHEN** Builder is active

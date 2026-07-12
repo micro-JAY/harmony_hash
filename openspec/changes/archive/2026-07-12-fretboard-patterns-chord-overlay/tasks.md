@@ -34,4 +34,4 @@
 - [x] 5.1 Run an independent code review and close every critical, high, and medium finding before delivery.
 - [x] 5.2 Reconcile the long-horizon plan and log with validation evidence, stack state, the voice-provider blocker, and the user's post-change planning preference.
 - [x] 5.3 Commit logical milestones, push the stacked feature branch, and open a draft pull request targeting `feat/fretboard-tunings-handedness` without merging to main.
-- [ ] 5.4 After the stacked change becomes eligible and merges, apply the delta to the canonical specification, archive this change, and use normal planning without new OpenSpec changes for subsequent work.
+- [x] 5.4 After the stacked change becomes eligible and merges, apply the delta to the canonical specification, archive this change, and use normal planning without new OpenSpec changes for subsequent work.

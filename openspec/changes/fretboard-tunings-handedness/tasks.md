@@ -27,5 +27,5 @@
 
 - [x] 5.1 Use the in-app Browser first for desktop/mobile interaction and screenshot evidence, with documented Playwright fallback only if unavailable.
 - [x] 5.2 Complete independent code/spec/accessibility review and close every Critical, High, and Medium finding.
-- [ ] 5.3 Update the long-horizon plan/log with tuning coverage, handedness semantics, validation evidence, stacked base, and remaining pattern/overlay plus voice blockers.
-- [ ] 5.4 Commit logical milestones, push the feature branch, open a draft PR stacked on `feat/guitar-fretboard`, and do not merge to main.
+- [x] 5.3 Update the long-horizon plan/log with tuning coverage, handedness semantics, validation evidence, stacked base, and remaining pattern/overlay plus voice blockers.
+- [x] 5.4 Commit logical milestones, push the feature branch, open a draft PR stacked on `feat/guitar-fretboard`, and do not merge to main.

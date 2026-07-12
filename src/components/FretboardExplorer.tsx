@@ -71,7 +71,7 @@ function SegmentedControl<T extends string>({
       <span
         className="mb-2 block"
         style={{
-          color: "var(--text-muted)",
+          color: "var(--text-secondary)",
           fontSize: "var(--text-xs)",
           fontWeight: "var(--weight-semibold)",
           letterSpacing: "var(--tracking-caps)",
@@ -97,7 +97,7 @@ function SegmentedControl<T extends string>({
               className="flex min-h-9 items-center gap-2 rounded-full px-4 text-sm"
               style={{
                 backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
-                color: active ? "var(--interactive-accent-text)" : "var(--text-muted)",
+                color: active ? "var(--interactive-accent-text)" : "var(--text-secondary)",
                 border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
                 fontFamily: "var(--font-body)",
                 fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
@@ -133,7 +133,7 @@ function SelectControl<T extends string>({
       <span
         className="mb-2 block"
         style={{
-          color: "var(--text-muted)",
+          color: "var(--text-secondary)",
           fontSize: "var(--text-xs)",
           fontWeight: "var(--weight-semibold)",
           letterSpacing: "var(--tracking-caps)",
@@ -380,11 +380,11 @@ export default function FretboardExplorer() {
           style={{ backgroundColor: "var(--surface-highlight)", border: "1px solid var(--border-subtle)" }}
         >
           <div>
-            <span className="label-caps">Current map</span>
+            <span className="label-caps" style={{ color: "var(--text-secondary)" }}>Current map</span>
             <p className="mt-1" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)" }}>
               {keyName} {modeLabel} · {instrument === "guitar" ? "Guitar" : "Bass"}
             </p>
-            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
               {pattern.available ? pattern.label : "All positions"}
               {overlay ? ` · ${overlay.displayName} overlay` : ""}
             </p>
@@ -402,7 +402,7 @@ export default function FretboardExplorer() {
                   fontSize: "var(--text-xs)",
                 }}
               >
-                {item.note} <span style={{ color: "var(--text-muted)" }}>{item.interval}</span>
+                {item.note} <span style={{ color: "var(--text-secondary)" }}>{item.interval}</span>
               </li>
             ))}
           </ol>

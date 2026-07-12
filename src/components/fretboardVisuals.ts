@@ -39,5 +39,9 @@ export function fretboardIntervalName(interval: number, scaleType: ScaleFormulaT
   if (interval === 6 && scaleType === "minor_blues") return "Flat fifth (blue note)";
   if (interval === 9 && scaleType === "dorian") return "Raised sixth";
   if (interval === 3 && scaleType === "major_blues") return "Minor third (blue note)";
+  if (interval === 8 && ["natural_minor", "harmonic_minor", "phrygian"].includes(scaleType)) {
+    return "Flat sixth";
+  }
+  if (interval === 11 && scaleType === "harmonic_minor") return "Raised seventh";
   return INTERVAL_NAMES[interval] ?? `Interval ${interval}`;
 }

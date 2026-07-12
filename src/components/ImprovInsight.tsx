@@ -2,6 +2,7 @@ import { useMemo, useState, type KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { IndexedChord } from "../lib/types";
 import { rankCompatibleScales, type ScaleSuggestion } from "../lib/theory/improvInsight";
+import { matchColorForPercent } from "./musicVisuals";
 
 interface ImprovInsightChord {
   readonly input: string;
@@ -35,7 +36,7 @@ function insightPanelId(mode: InsightMode): string {
 }
 
 function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: number }) {
-  const matchColor = `color-mix(in srgb, var(--music-match-low) ${100 - suggestion.match}%, var(--music-match-high) ${suggestion.match}%)`;
+  const matchColor = matchColorForPercent(suggestion.match);
   return (
     <article
       className="grid gap-4 rounded-xl p-4 lg:grid-cols-[minmax(12rem,0.9fr)_minmax(15rem,1.2fr)_minmax(18rem,1.6fr)] lg:items-center"
@@ -57,7 +58,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
           </h3>
         </div>
         {suggestion.alsoKnownAs ? (
-          <p className="mt-1 pl-8 text-sm" style={{ color: "var(--text-muted)" }}>
+          <p className="mt-1 pl-8 text-sm" style={{ color: "var(--text-secondary)" }}>
             Also known as {suggestion.alsoKnownAs}
           </p>
         ) : null}
@@ -68,7 +69,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
 
       <div>
         <div className="mb-2 flex items-end justify-between gap-3">
-          <span className="label-caps">Match</span>
+          <span className="label-caps" style={{ color: "var(--text-secondary)" }}>Match</span>
           <strong
             style={{
               color: matchColor,
@@ -96,7 +97,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
             }}
           />
         </div>
-        <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-2 text-xs" style={{ color: "var(--text-secondary)" }}>
           {suggestion.reasons[0]}
         </p>
       </div>
@@ -111,7 +112,12 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
               border: "1px solid var(--border-subtle)",
             }}
           >
-            <dt className="label-caps" style={{ fontSize: "var(--text-xs)" }}>{label}</dt>
+            <dt
+              className="label-caps"
+              style={{ color: "var(--text-secondary)", fontSize: "var(--text-xs)" }}
+            >
+              {label}
+            </dt>
             <dd
               className="mt-1 capitalize"
               style={{
@@ -202,7 +208,7 @@ export default function ImprovInsight({ chords }: ImprovInsightProps) {
                   style={{
                     backgroundColor: active ? "var(--interactive-academy-bg)" : "transparent",
                     border: active ? "1px solid var(--interactive-academy-border)" : "1px solid transparent",
-                    color: active ? "var(--interactive-academy-text)" : "var(--text-muted)",
+                    color: active ? "var(--interactive-academy-text)" : "var(--text-secondary)",
                     fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
                     transition: reduceMotion ? "none" : "all var(--duration-normal) var(--ease-out)",
                   }}

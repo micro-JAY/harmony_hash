@@ -195,7 +195,7 @@ If a gate fails: **diagnose root cause**, fix the cause, re-run from gate 2. Do 
 - **Stuck after 3 attempts on the same problem**: append a BLOCKER note to `docs/long_horizon_log.md` (one-paragraph summary + a targeted question), then skip to the next independent milestone. Come back later with fresh context.
 - **Merge conflict**: rebase, resolve carefully, re-run all gates from §5. Never `--strategy=ours` on shared files. Never force-push `main`.
 - **Unexpected dirty worktree** (changes you didn't make): STOP. Write what you observed to `docs/long_horizon_log.md` and leave the changes alone — do not revert. The user may have made local edits between sessions.
-- **Worker auth/CORS errors in local dev**: check `.dev.vars` (gitignored) for `ANTHROPIC_API_KEY`; check `ALLOWED_ORIGIN` is set or you're hitting from `localhost`/`127.0.0.1`. Do not commit `.dev.vars`.
+- **Worker auth/CORS errors in local dev**: check the repo-root `.dev.vars` (gitignored) for `OPENAI_API_KEY`; check `ALLOWED_ORIGIN` is set or you're hitting from `localhost`/`127.0.0.1`. Do not commit `.dev.vars`.
 - **Wrangler/Worker deploy failures**: do not attempt production deploys (`npm run deploy`) without an explicit BLOCKER-cleared go-ahead. Local `wrangler dev` is fine.
 
 ---
@@ -271,7 +271,7 @@ You have, and should use:
 - **wrangler** for Worker dev/deploy. Local only by default.
 - **`tool_search`** — proactively scan for skills/MCPs that would help (music-theory libs, fretboard renderers, scale databases, MIDI utilities, design-token tooling, screenshot diffing). Connect anything obviously useful; document why in `docs/long_horizon_log.md`.
 - **Parallel subagents** for: independent feature branches, large refactors split by directory, broad test sweeps, multi-file research reads. Spawn via the Task tool.
-- **context7** if available — pull current library docs (React, Vite, Playwright, Cloudflare Workers, Anthropic SDK, Tonal.js) instead of guessing from training data.
+- **context7** if available — pull current library docs (React, Vite, Playwright, Cloudflare Workers, OpenAI SDK, Tonal.js) instead of guessing from training data.
 
 ---
 

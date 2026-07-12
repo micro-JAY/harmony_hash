@@ -65,7 +65,7 @@ function decodePianoMidis(): Array<{ name: string; midis: number[] | null }> {
 
 test.describe("Piano voice leading — visual + DOM regression", () => {
   test("ii-V-I in C major renders the v2 voice-led MIDI set (auto style)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveTitle(/HARMONY HASH/);
 
     // Type the canonical voice-leading test case from the v2 PR.
@@ -98,7 +98,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
   });
 
   test("piano style selector applies Spread to every card and the keyboard widens", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
     const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
     await input.fill("Dm7 G7 Cmaj7");
@@ -129,7 +129,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
   });
 
   test("Play progression highlights the active chord card during playback", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
     const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
     await input.fill("Dm7 G7 Cmaj7");
@@ -154,7 +154,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
   });
 
   test("piano style selector applies Shell to a chord and re-voices the keyboard", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
     const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
     await input.fill("Dm7 G7 Cmaj7");
@@ -187,12 +187,20 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     ]);
   });
 
-  test("voice companion panel renders idle in the builder", async ({ page }) => {
-    await page.goto("/");
-    // The panel is always present (independent of the timeline) and starts idle.
-    // It must not request the microphone on load — only on connect.
+  test("voice companion stays mounted in a compact idle control", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    // The runtime and tools stay mounted, but the microphone action is hidden
+    // until the user explicitly expands the compact control.
     await expect(page.getByText("Harmony Companion")).toBeVisible();
     await expect(page.getByText("Offline")).toBeVisible();
+    const expand = page.getByRole("button", { name: "Expand Harmony Companion" });
+    await expect(expand).toHaveAttribute("aria-expanded", "false");
+    await expect(
+      page.getByRole("button", { name: /Talk to the companion/i }),
+    ).toHaveCount(0);
+
+    await expand.click();
+    await expect(expand).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: /Talk to the companion/i }),
     ).toBeVisible();

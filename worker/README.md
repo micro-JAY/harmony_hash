@@ -1,13 +1,15 @@
 # harmony_hash Worker
 
-Backend for the Progression Builder agent. Handles `POST /api/progression`, runs an Anthropic tool loop against the harmony_hash chord dictionary, and returns a validated 4-chord progression. All other paths fall through to static assets served from `./dist`.
+Backend for the Progression Builder and Harmony Companion. It runs a bounded OpenAI Responses API tool loop against the shared Harmony Hash chord dictionary, mints ElevenLabs signed URLs, reports service readiness, and serves the built SPA through the assets binding.
 
 ## Endpoints
 
-| Method | Path                 | Description                                                             |
-| ------ | -------------------- | ----------------------------------------------------------------------- |
-| POST   | `/api/progression`   | Body: `{ "prompt": string }`. Returns `{ chords: string[4], key, rationale }`. |
-| OPTIONS | `/api/progression`  | CORS preflight — returns 204.                                           |
+| Method | Path | Description |
+| --- | --- | --- |
+| GET | `/api/health` | Returns OpenAI binding readiness without exposing the key. |
+| POST | `/api/progression` | Body: `{ "prompt": string }`. Returns `{ chords: string[3..8], key, rationale }`. |
+| POST | `/api/voice/signed-url` | Returns a short-lived ElevenLabs `{ signedUrl }`. |
+| OPTIONS | `/api/*` | CORS preflight for the API routes. |
 
 Validation:
 
@@ -16,11 +18,13 @@ Validation:
 - Malformed JSON body → 400
 - Non-JSON final assistant text → 500
 - Progression shape invalid → 500
+- OpenAI upstream/failed/incomplete response → 502
+- OpenAI or Worker deadline expires → 504
 - Tool loop exceeds 8 iterations → 504
 
 ## Secrets
 
-The Worker requires `ANTHROPIC_API_KEY`. Never commit it.
+The progression route requires `OPENAI_API_KEY`. The voice signed-URL route requires `ELEVENLABS_API_KEY` and `HH_VOICE_AGENT_ID`. Never commit either API key and never expose them through `VITE_` variables.
 
 ### Local development
 
@@ -29,7 +33,7 @@ Both files live at the **repo root** (alongside `wrangler.jsonc`), not inside `w
 1. Copy `.dev.vars.example` → `.dev.vars` (at the repo root).
 2. Paste your key into `.dev.vars`:
    ```
-   ANTHROPIC_API_KEY=sk-ant-...
+   OPENAI_API_KEY=sk-...
    ```
 3. Run `npx wrangler dev` from the repo root. Wrangler picks up `.dev.vars` automatically.
 
@@ -38,27 +42,28 @@ Both files live at the **repo root** (alongside `wrangler.jsonc`), not inside `w
 ### Production
 
 ```sh
-npx wrangler secret put ANTHROPIC_API_KEY
+npx wrangler versions secret put OPENAI_API_KEY
+npx wrangler versions secret put ELEVENLABS_API_KEY
 ```
 
-Wrangler prompts for the value; Cloudflare stores it as an encrypted secret available to the Worker via `env.ANTHROPIC_API_KEY`.
+Wrangler prompts for each value and creates a new Worker version carrying the encrypted secret. Deploy that exact version after verification. `HH_VOICE_AGENT_ID` is non-secret and belongs in `wrangler.jsonc`.
 
 ## CORS
 
-The Worker **fails closed** for cross-origin browser requests and reads `env.ALLOWED_ORIGIN` to decide what to allow.
+The Worker **fails closed** for cross-origin browser requests. `https://harmony.tonari.ai` is always allowed; `env.ALLOWED_ORIGIN` can add staging or other explicit origins.
 
-- **`ALLOWED_ORIGIN` unset (dev fallback):** the Worker permits `http://localhost:*` and `http://127.0.0.1:*` only. Every other cross-origin request gets no `Access-Control-Allow-Origin` header back, so browsers reject the response. Preflight requests from disallowed origins receive `403`. Same-origin requests and non-browser callers (curl, etc.) are unaffected since they don't send `Origin`.
-- **`ALLOWED_ORIGIN` set (production):** value is a comma-separated allowlist. Only origins in the list receive CORS headers back. `*` is supported as an explicit opt-in for public endpoints.
+- **Local Worker:** localhost and `127.0.0.1` browser origins are accepted only when the Worker URL is itself local.
+- **Deployed Worker:** the canonical production origin plus entries in the comma-separated allowlist are accepted. `*` is supported as an explicit opt-in.
+- **No `Origin` header:** same-origin requests and non-browser callers are accepted; CORS is not request authentication.
 
-Set the production allowlist before deploying:
+Add an extra origin only when needed:
 
 ```sh
-npx wrangler secret put ALLOWED_ORIGIN
-# enter: https://harmony.tonari.ai
-# or a comma-separated list: https://harmony.tonari.ai,https://staging.harmony.tonari.ai
+npx wrangler versions secret put ALLOWED_ORIGIN
+# example: https://staging.harmony.tonari.ai
 ```
 
-Leaving `ALLOWED_ORIGIN` unset on a deployed Worker means only localhost browsers can talk to it — which is almost certainly not what you want in production.
+Leaving `ALLOWED_ORIGIN` unset keeps the surface to the built-in production origin.
 
 ## Running locally
 
@@ -74,6 +79,23 @@ npx wrangler dev
 
 The Worker listens on `http://localhost:8787` by default.
 
+## Voice agent maintenance
+
+The updater reads the prompt and canonical nine-tool schema, resolves the modern toolbox records behind `prompt.tool_ids`, and reuses only exact contracts. A missing or drifted contract gets a new toolbox record that is re-read before attachment; shared records are never patched or deleted. Before any agent write, the updater fails closed on built-ins, MCP attachments, workflows, nested tool overrides, legacy non-client tools, task-execution authority, and unknown provider capability fields. It then patches only the source-owned prompt/tool ids plus signed auth and proves the live name and complete TTS configuration were preserved. `--verify` performs read-only checks.
+
+```sh
+node --env-file=.dev.vars --import tsx scripts/provision-voice-agent.ts
+node --env-file=.dev.vars --import tsx scripts/provision-voice-agent.ts --verify
+```
+
+With the full Worker running, the live smoke uses Chromium's silent synthetic media device, establishes a real signed ElevenLabs session, asks the real agent to call `replace_progression`, verifies the visible timeline mutation, and disconnects:
+
+```sh
+npx tsx scripts/smoke-voice-agent.ts
+```
+
+The synthetic device prevents an automated run from capturing ambient microphone audio. A user can still verify their physical microphone through the normal **Talk to the companion** action.
+
 ## Quick curl tests
 
 ```sh
@@ -82,10 +104,13 @@ curl -X POST http://localhost:8787/api/progression \
   -H "Content-Type: application/json" \
   -d '{"prompt":"something melancholic in minor with jazz feel"}'
 
+# Health (prints booleans only; never a secret value)
+curl http://localhost:8787/api/health
+
 # Harder prompt (more tool-loop iterations)
 curl -X POST http://localhost:8787/api/progression \
   -H "Content-Type: application/json" \
-  -d '{"prompt":"altered dominants and quartal voicings in F minor"}'
+  -d '{"prompt":"five chords in F minor with altered dominants, extensions, and one slash chord"}'
 
 # 400 — empty prompt
 curl -X POST http://localhost:8787/api/progression \
@@ -104,4 +129,4 @@ curl -X POST http://localhost:8787/api/progression \
 npm run deploy
 ```
 
-See `package.json` for the exact wrangler command.
+The script uses the name, assets binding, routes, and compatibility date from `wrangler.jsonc` so deploy configuration cannot drift between two command lines.

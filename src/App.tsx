@@ -84,15 +84,24 @@ function App() {
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackHandleRef = useRef<PlaybackHandle | null>(null);
+  const timelineVersionRef = useRef(0);
+  const [timelineVersion, setTimelineVersion] = useState(0);
+
+  const markTimelineMutation = useCallback(() => {
+    const nextVersion = timelineVersionRef.current + 1;
+    timelineVersionRef.current = nextVersion;
+    setTimelineVersion(nextVersion);
+  }, []);
 
   const handleResult = useCallback((resolved: DisplayChord[], _errors: ParseError[]) => {
+    markTimelineMutation();
     setChords(resolved);
     setCardVariants({});
     setLockedCards(new Set());
     setPianoStyles({});
     setHighlightedChordIndex(null);
     playbackHandleRef.current?.stop();
-  }, []);
+  }, [markTimelineMutation]);
 
   const getPianoStyle = useCallback(
     (index: number): VoicingStyle => pianoStyles[index] ?? "auto",
@@ -200,6 +209,7 @@ function App() {
   // voice companion's remove_chord tool uses this — an intentionally LOCAL edit,
   // unlike handleResult which resets the whole timeline.
   const removeChordAt = useCallback((index: number) => {
+    markTimelineMutation();
     setChords((prev) => prev.filter((_, i) => i !== index));
     setCardVariants((prev) => shiftIndexedRecord(prev, index));
     setPianoStyles((prev) => shiftIndexedRecord(prev, index));
@@ -208,7 +218,7 @@ function App() {
       h === null || h === index ? null : h > index ? h - 1 : h,
     );
     playbackHandleRef.current?.stop();
-  }, []);
+  }, [markTimelineMutation]);
 
   // ── Voice companion bridge ──────────────────────────────────────────────
   // Tool callbacks fire OUTSIDE React's render cycle, so the bridge reads live
@@ -241,7 +251,10 @@ function App() {
         getInstrument: () => instrumentRef.current,
         getVoicings: () => pianoVoicingsRef.current,
         setProgression: (next) => handleResult(next, []),
-        appendChords: (next) => setChords((prev) => [...prev, ...next]),
+        appendChords: (next) => {
+          markTimelineMutation();
+          setChords((prev) => [...prev, ...next]);
+        },
         removeChordAt: (index) => removeChordAt(index),
         startPlayback: () => {
           if (activeIndexRef.current === null) togglePlaybackRef.current();
@@ -249,85 +262,96 @@ function App() {
         randomizeVoicings: () => randomizeAllRef.current(),
         setHighlight: (index) => setHighlightedChordIndex(index),
       }),
-    [handleResult, removeChordAt],
+    [handleResult, markTimelineMutation, removeChordAt],
   );
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header instrument={instrument} onInstrumentChange={setInstrument} />
 
-      <main className="flex-1 flex flex-col gap-8 py-8">
+      <main className="flex-1 flex flex-col gap-5 py-5 md:gap-8 md:py-8">
         {/* Input Section */}
-        <ProgressionInput onResult={handleResult} chordsEmpty={chords.length === 0} />
+        <ProgressionInput
+          onResult={handleResult}
+          chordsEmpty={chords.length === 0}
+          timelineVersion={timelineVersion}
+          timelineVersionRef={timelineVersionRef}
+        />
 
-        {/* Action Bar */}
-        {chords.length > 0 && (
-          <div className="flex justify-center">
-            <button
-              onClick={randomizeAll}
-              className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{
-                backgroundColor: "var(--interactive-warm-bg)",
-                color: "var(--interactive-warm-text)",
-                border: "1px solid var(--interactive-warm-border)",
-                fontWeight: "var(--weight-medium)",
-                transitionDuration: "var(--duration-normal)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg-hover)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg)";
-              }}
-            >
-              {instrument === "guitar" ? "Randomize All Variants" : "Randomize All Voicings"}
-            </button>
-          </div>
-        )}
-
-        {/* Playback bar (piano only) */}
-        {chords.length > 0 && instrument === "piano" && (
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={handleTogglePlayback}
-              aria-label={isPlaying ? "Stop playback" : "Play progression"}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{
-                backgroundColor: isPlaying
-                  ? "var(--interactive-accent-bg)"
-                  : "var(--interactive-warm-bg)",
-                color: isPlaying
-                  ? "var(--interactive-accent-text)"
-                  : "var(--interactive-warm-text)",
-                border: `1px solid ${isPlaying ? "var(--interactive-accent-border)" : "var(--interactive-warm-border)"}`,
-                fontWeight: "var(--weight-medium)",
-                transitionDuration: "var(--duration-normal)",
-                fontFamily: "var(--font-body)",
-              }}
-            >
-              {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-              {isPlaying ? "Stop" : "Play progression"}
-            </button>
-          </div>
-        )}
-
-        {/* Voice companion (provider wraps only the panel; the bridge reads
-            app state via refs, independent of this provider) */}
-        <VoiceAgentProvider
-          bridge={voiceBridge}
-          agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
-          signedUrlEndpoint="/api/voice/signed-url"
+        {/* One stable toolbar keeps the companion runtime mounted while chord
+            actions appear/disappear around it. */}
+        <section
+          className="w-full px-4"
+          aria-label="Progression actions"
         >
-          <div className="flex justify-center px-4">
-            <VoiceAgentPanel />
-          </div>
-        </VoiceAgentProvider>
+          <VoiceAgentProvider
+            bridge={voiceBridge}
+            agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
+            signedUrlEndpoint="/api/voice/signed-url"
+          >
+            <div className="w-full flex flex-col items-stretch justify-center gap-3 md:flex-row md:flex-wrap md:items-start">
+              <div
+                className={`flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center ${chords.length > 0 ? "" : "hidden"}`}
+              >
+                <button
+                  onClick={randomizeAll}
+                  className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
+                  style={{
+                    backgroundColor: "var(--interactive-warm-bg)",
+                    color: "var(--interactive-warm-text)",
+                    border: "1px solid var(--interactive-warm-border)",
+                    fontWeight: "var(--weight-medium)",
+                    transitionDuration: "var(--duration-normal)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg-hover)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg)";
+                  }}
+                >
+                  {instrument === "guitar" ? "Randomize All Variants" : "Randomize All Voicings"}
+                </button>
+
+                {instrument === "piano" && (
+                  <button
+                    type="button"
+                    onClick={handleTogglePlayback}
+                    aria-label={isPlaying ? "Stop playback" : "Play progression"}
+                    className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all"
+                    style={{
+                      backgroundColor: isPlaying
+                        ? "var(--interactive-accent-bg)"
+                        : "var(--interactive-warm-bg)",
+                      color: isPlaying
+                        ? "var(--interactive-accent-text)"
+                        : "var(--interactive-warm-text)",
+                      border: `1px solid ${isPlaying ? "var(--interactive-accent-border)" : "var(--interactive-warm-border)"}`,
+                      fontWeight: "var(--weight-medium)",
+                      transitionDuration: "var(--duration-normal)",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+                    {isPlaying ? "Stop" : "Play progression"}
+                  </button>
+                )}
+              </div>
+
+              {/* The panel remains at this fixed tree position so collapsing,
+                  switching input tabs, or adding chords cannot reset a session. */}
+              <VoiceAgentPanel />
+            </div>
+          </VoiceAgentProvider>
+        </section>
 
         {/* Chord Cards */}
         {chords.length > 0 && (
-          <section className="w-full max-w-7xl mx-auto px-4">
-            <div className="flex flex-wrap justify-center gap-4">
+          <section
+            className="w-full max-w-7xl mx-auto px-4"
+            aria-label="Chord cards output"
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:flex lg:flex-wrap lg:justify-center">
               {chords.map((chordResult, index) => {
                 const maxVariants = chordResult.chord.variationCount;
                 return (

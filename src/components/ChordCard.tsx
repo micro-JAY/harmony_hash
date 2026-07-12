@@ -88,12 +88,16 @@ export default function ChordCard({
 
   return (
     <div
-      className="relative flex flex-col items-center rounded-xl overflow-hidden"
+      data-testid="chord-card"
+      className={`relative flex max-w-full flex-col items-center overflow-hidden rounded-xl ${
+        instrument === "piano"
+          ? "w-full min-w-0 lg:w-auto lg:min-w-[440px]"
+          : "w-full min-w-0 lg:w-auto lg:min-w-[200px]"
+      }`}
       data-playing={isPlaying ? "true" : undefined}
       style={{
         backgroundColor: "var(--surface-raised)",
         border: `1px solid ${isPlaying ? "var(--border-accent)" : "var(--border-subtle)"}`,
-        minWidth: instrument === "piano" ? "440px" : "200px",
         transition: `all var(--duration-normal) var(--ease-out)`,
         boxShadow: isPlaying ? "var(--glow-accent)" : "none",
       }}
@@ -140,7 +144,7 @@ export default function ChordCard({
       </div>
 
       {/* Visualization */}
-      <div className="p-4 flex flex-col items-center gap-2">
+      <div className="flex w-full min-w-0 flex-col items-center gap-2 p-4">
         {instrument === "guitar" ? (
           <>
             {/* Guitar display mode toggle */}
@@ -295,13 +299,15 @@ export default function ChordCard({
               })}
             </div>
 
-            <PianoKeyboard
-              voicedNotes={voicing.notes}
-              displayMode={pianoDisplay}
-              preferFlats={preferFlats}
-              rootNote={noteNames[0] ?? ""}
-            />
-            <div className="flex gap-2 mt-1 items-center">
+            <div className="w-full max-w-full overflow-x-auto lg:w-auto lg:max-w-none lg:overflow-x-visible">
+              <PianoKeyboard
+                voicedNotes={voicing.notes}
+                displayMode={pianoDisplay}
+                preferFlats={preferFlats}
+                rootNote={noteNames[0] ?? ""}
+              />
+            </div>
+            <div className="flex max-w-full flex-wrap items-center justify-center gap-2 mt-1">
               {/* Notes / Fingering display toggle (per-card). */}
               <div
                 className="flex rounded-full p-0.5"
@@ -350,7 +356,7 @@ export default function ChordCard({
                 </span>
               )}
               <span
-                className="text-xs px-2 py-0.5 rounded-full"
+                className="max-w-full break-words text-xs px-2 py-0.5 rounded-full"
                 style={{
                   backgroundColor: "var(--surface-highlight)",
                   color: "var(--text-secondary)",

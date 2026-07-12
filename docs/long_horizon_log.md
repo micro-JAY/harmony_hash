@@ -376,3 +376,49 @@ A user-directed side-quest, separate from the v1–v5 / Phase-2 roadmap: a **voi
 - A `provision:voice` npm script would make the provisioning incantation discoverable.
 
 **Bundled-archive note:** unlike the Phase-2 milestones, this side-track's openspec change is left **active** (`openspec/changes/add-voice-companion/`) pending PR merge — archive + canonical `openspec/specs/voice-companion/spec.md` application is the merge-time step (tasks.md 8.2).
+
+---
+
+## 2026-07-12 02:33 JST — Agent Builder Recovery, OpenAI Milestone
+
+User-directed recovery on branch `fix/agent-builder-companion-ui`, OpenSpec change `restore-agent-builder-experience`. Production already carried an `OPENAI_API_KEY` secret on the active Worker version, but the checked-in and deployed code still used Anthropic. The live ElevenLabs agent was also diagnosed safely: its nine client tools matched source, but signed authentication was disabled while the browser exclusively requested a signed URL.
+
+**Progression milestone current state:** replaced the Anthropic SDK with OpenAI `6.46.0`; moved the agent loop into `worker/progressionAgent.ts`; pinned `gpt-5.4-mini-2026-03-17`; added a strict parallel `lookup_chord` tool, stateless response-item preservation, strict 3–8 structured output, dictionary revalidation, 30-second Worker/browser deadlines, explicit failed/incomplete Responses handling, sanitized logs, and OpenAI-aware health. The public routes and shared chord-rendering path are unchanged.
+
+**Verification:** build and lint pass; full Vitest is 146/146; focused Playwright is 3/3 for success, malformed output, failure preservation, and retry. A real local Wrangler smoke returned healthy OpenAI readiness and generated five valid F-minor chords including extensions, an altered dominant, and a slash chord in about eight seconds. No credential values were printed or returned.
+
+**Current state:** progression implementation is ready for a milestone commit. Next: upload an immutable preview Worker version, smoke and deploy that exact version, then repair the existing ElevenLabs agent with a narrow PATCH that preserves its customized name/voice/TTS before compacting and re-testing the builder UI.
+
+**Deployment update:** commit `9f15b0f` was uploaded as immutable Worker version `fe568a25-1c3c-4d62-bc48-8c92e9e2483a`. The exact version preview passed OpenAI health and a four-chord extended/slash-chord generation, then Wrangler deployed it to 100% production traffic. The active `workers.dev` hostname passed health and a separate three-chord gospel/slash-chord generation. Raw requests to `harmony.tonari.ai` remain behind the pre-existing Cloudflare browser challenge (403); deployment state and direct Worker production checks confirm the new version itself is healthy.
+
+---
+
+## 2026-07-12 02:54 JST — Harmony Companion Live Repair
+
+The first guarded updater run stopped before PATCH because ElevenLabs returns existing allowlist entries as `{ hostname }` objects even though the update schema accepts host strings/empty arrays. The verifier was extended and tested for both shapes, then the same narrow update succeeded. Live signed authentication is now enabled, the incompatible hostname allowlist is explicitly empty, and all nine client tools exactly match source. The updater's before/after assertion proved the customized `Hanz Hasher` name, voice id, and `eleven_v3_conversational` TTS model were unchanged; a separate `--verify` read confirmed the post-update state.
+
+Production `/api/voice/signed-url` now returns a valid `wss:` URL shape without printing the token. The in-app browser reached the session path but macOS denied that browser's microphone entitlement; no ambient audio was transmitted. A rerunnable Playwright smoke therefore supplied a silent synthetic media device, established a real signed ElevenLabs browser session, injected a deterministic text turn, observed the real `replace_progression` client tool change the visible timeline to `Fmaj7 Gm7 C7 Fmaj7`, and disconnected cleanly. Full Vitest is 160/160, build/lint pass, and the panel's retryable signed-URL error state has browser coverage.
+
+---
+
+## 2026-07-12 03:13 JST — Builder UI Cleanup
+
+Randomize, piano playback, and the permanently mounted Harmony Companion now share one responsive action toolbar. The companion is collapsed by default at roughly 50px high instead of reserving the prior 281px card, expands explicitly, keeps status visible when collapsed, and preserves expansion, the SDK session, transcript, and all nine registered client tools across input-tab changes. With chords rendered, the toolbar-to-card distance is the normal 32px desktop layout gap.
+
+Free Input and OpenAI prompt controls stack to full width at 375px, the header wraps into two deliberate rows, and the progress metadata drops the keyboard shortcut on small screens. Guitar and piano card pages now keep document `scrollWidth <= clientWidth`; the fixed 630px keyboard is contained by a card-local horizontal scroller. The invalid guitar SVG `height="auto"` attribute is gone, and browser QA reports no warnings/errors after diagram rendering.
+
+**Verification:** lint and production build pass (the external-volume `dist/music_src` cleanup race required one harmless retry); Vitest is 160/160; full serial Playwright is 12/12 with new Free Input, Progressions, desktop expanded-companion, and updated piano baselines. The live signed ElevenLabs smoke also passed with the panel collapsed during the real client-tool mutation, then reopened and disconnected cleanly. Current state: ready for independent code/security/spec reviews and final production/PR workflow.
+
+---
+
+## 2026-07-12 14:29 JST — Security Audit Remediation
+
+Completed and sealed Codex Security diff scan `e20b726d-e691-439c-a392-b0857a302a42` for immutable revisions `1e3c47b6947113aa95cf662201558e9940bffd60..3aa2f2847a8d85cde04c210a3aea3cd37147ca67`. All 24 review worklist rows and candidate receipts closed. The scan reported one Medium finding: the ElevenLabs verifier proved only a lossy legacy client-name list and could miss provider-side tool authority.
+
+**Security remediation:** migrated provisioning fully to modern toolbox records plus exact `prompt.tool_ids`; re-read every created record before attachment; compare the complete nine source contracts and response/execution behavior; preserve the complete TTS object; and fail closed on built-ins, MCP/native MCP, workflows, nested language-preset tool overrides, legacy non-client tools, response mocks, task execution, duplicate/unresolved ids, and unknown capability fields. Ambiguous provider detach surfaces block before any agent write. Provider error redaction now covers OpenAI/ElevenLabs key forms, bearer headers, signed WebSocket capabilities, sensitive query parameters, and labeled secret fields. A lockfile-only non-breaking audit refresh moved vulnerable Vite/Vitest/PostCSS and transitive tooling to patched versions; `npm audit` now reports zero vulnerabilities.
+
+**Review fixes:** shared the timeline-mutation epoch at `App` so manual, preset, text-agent, and Harmony Companion edits cannot overwrite one another out of order; kept mode-only cancellation separate so prompt, health, rationale, and retry state survive tab/tonality navigation; gated generation on validated health; implemented the specified tablet two-column card layout; and made Playwright build a fresh preview, run serially, and wait for `domcontentloaded` instead of the external stylesheet's full load event.
+
+**Verification:** reproducible `npm ci`; production build; full lint; 185/185 Vitest assertions; 17/17 Playwright; the formerly flaky layout file passed 12/12 across three consecutive runs; dependency graph valid; `npm audit` 0; local Worker health ready and one live OpenAI request returned a validated `Em Cmaj7 G/B D` progression. Independent security, code, and spec-coherence re-reviews found no remaining Critical, High, or Medium issue. A recurring external-volume `.DS_Store` race in Vite's output cleanup was replaced with a verified retrying `prebuild` cleanup; two consecutive populated-tree builds passed. Final client bundle: 1,029.85 kB raw / 271.79 kB gzip; the existing large-chunk warning remains known and unchanged in kind.
+
+**Credential incident / blocker:** during scan validation, the configured ElevenLabs key was accidentally echoed in transient agent-tool output. It was not written to Git or scan artifacts, and no subsequent live ElevenLabs call used it. Rotate that key in ElevenLabs and Cloudflare before any further live voice verification or production deployment. Current branch state is locally complete and ready for intentional commits/push; final live voice verification, PR merge, production deploy, and OpenSpec archive remain pending rotation and the normal PR workflow.

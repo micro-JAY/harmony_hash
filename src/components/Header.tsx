@@ -17,7 +17,7 @@ export default function Header({ instrument, onInstrumentChange }: HeaderProps) 
   const { locale, setLocale } = useLocale();
 
   return (
-    <header className="tonari-topbar">
+    <header className="tonari-topbar flex-wrap sm:flex-nowrap">
       <div className="tonari-brand">
         <span className="tonari-brand__name">
           HARMONY <span className="tonari-brand__name--accent">HASH</span>
@@ -25,7 +25,7 @@ export default function Header({ instrument, onInstrumentChange }: HeaderProps) 
         <span className="tonari-brand__org">TONARI LABS</span>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:flex-nowrap sm:justify-end">
         <div className="tonari-locale-switcher">
           {LOCALES.map((loc) => {
             const active = locale === loc.value;

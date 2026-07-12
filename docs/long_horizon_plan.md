@@ -66,7 +66,8 @@ Begins only after v5 merges. Each item is one openspec change → one branch →
 
 | # | Milestone | Branch | Change-id | Capabilities touched | Status |
 |---|-----------|--------|-----------|----------------------|--------|
-| S.1 | **Voice Companion** — ElevenLabs real-time voice agent that reads/edits the progression timeline and explains theory. 9-tool client surface, signed-URL Worker route, ref-mirror bridge, Tonari-styled panel. See the 2026-05-25 log entry. | `feat/voice-companion` | `add-voice-companion` (active — archive on PR merge) | new `voice-companion`; touches `app-shell` (panel mount) | **In Review** (PR open, CI green; openspec change archived + canonical spec applied on merge) |
+| S.1 | **Voice Companion** — ElevenLabs real-time voice agent that reads/edits the progression timeline and explains theory. 9-tool client surface, signed-URL Worker route, ref-mirror bridge, Tonari-styled panel. See the 2026-05-25 log entry. | `feat/voice-companion` | `add-voice-companion` | new `voice-companion`; touches `app-shell` (panel mount) | **Done** (shipped; current live-auth repair tracked in S.2) |
+| S.2 | **Agent Builder Recovery** — migrate progression generation to OpenAI Responses, restore signed-only ElevenLabs auth, and compact/responsive builder actions. | `fix/agent-builder-companion-ui` | `restore-agent-builder-experience` | `progression-agent`, `voice-companion`, `progression-input`, `app-shell` | **In Progress** (security review/remediation and final local gates complete; credential rotation, PR/CI/merge, production verification, and archive remain) |
 
 ---
 

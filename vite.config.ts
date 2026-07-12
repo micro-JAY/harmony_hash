@@ -4,6 +4,11 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // prebuild performs a verified, retrying cleanup that is resilient to
+    // macOS metadata files being recreated on external volumes.
+    emptyOutDir: false,
+  },
   test: {
     globals: true,
     environment: 'node',

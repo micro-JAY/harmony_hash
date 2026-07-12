@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { IndexedChord, ParseError } from "../lib/types";
 import { lookupChord } from "../lib/chordData";
 import { checkHealth, generateProgression } from "../lib/progressionClient";
@@ -12,18 +12,46 @@ interface DisplayChord {
 
 interface ProgressionAgentProps {
   onResult: (chords: DisplayChord[], errors: ParseError[]) => void;
+  timelineVersion: number;
+  timelineVersionRef: MutableRefObject<number>;
+  cancellationVersion: number;
+  cancellationVersionRef: MutableRefObject<number>;
   placeholder?: string;
 }
 
 const MAX_PROMPT = 500;
 
-export default function ProgressionAgent({ onResult, placeholder }: ProgressionAgentProps) {
+export default function ProgressionAgent({
+  onResult,
+  timelineVersion,
+  timelineVersionRef,
+  cancellationVersion,
+  cancellationVersionRef,
+  placeholder,
+}: ProgressionAgentProps) {
   const [prompt, setPrompt] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [rationale, setRationale] = useState<string | null>(null);
-  const [resolvedKey, setResolvedKey] = useState<string | null>(null);
+  const [loadingRequest, setLoadingRequest] = useState<{
+    id: number;
+    timelineVersion: number;
+    cancellationVersion: number;
+  } | null>(null);
+  const [error, setError] = useState<{
+    message: string;
+    timelineVersion: number;
+  } | null>(null);
+  const [success, setSuccess] = useState<{
+    rationale: string;
+    resolvedKey: string;
+    timelineVersion: number;
+  } | null>(null);
   const [health, setHealth] = useState<HealthStatus>("checking");
+  const activeRequestRef = useRef<{
+    id: number;
+    timelineVersion: number;
+    cancellationVersion: number;
+    controller: AbortController;
+  } | null>(null);
+  const nextRequestIdRef = useRef(0);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -36,19 +64,61 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
     return () => ctrl.abort();
   }, []);
 
+  useEffect(() => () => {
+    activeRequestRef.current?.controller.abort();
+    activeRequestRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    const request = activeRequestRef.current;
+    if (
+      request &&
+      (request.timelineVersion !== timelineVersion ||
+        request.cancellationVersion !== cancellationVersion)
+    ) {
+      request.controller.abort();
+    }
+  }, [cancellationVersion, timelineVersion]);
+
   const trimmed = prompt.trim();
   const overLength = prompt.length > MAX_PROMPT;
-  const canSubmit = trimmed.length > 0 && !overLength && !loading;
+  const loading =
+    loadingRequest?.timelineVersion === timelineVersion &&
+    loadingRequest.cancellationVersion === cancellationVersion;
+  const errorMessage =
+    error?.timelineVersion === timelineVersion ? error.message : null;
+  const currentSuccess =
+    success?.timelineVersion === timelineVersion ? success : null;
+  const canSubmit =
+    health === "ready" && trimmed.length > 0 && !overLength && !loading;
 
   async function handleSubmit() {
     if (!canSubmit) return;
-    setLoading(true);
+    activeRequestRef.current?.controller.abort();
+    const request = {
+      id: nextRequestIdRef.current++,
+      timelineVersion: timelineVersionRef.current,
+      cancellationVersion: cancellationVersionRef.current,
+      controller: new AbortController(),
+    };
+    activeRequestRef.current = request;
+    setLoadingRequest({
+      id: request.id,
+      timelineVersion: request.timelineVersion,
+      cancellationVersion: request.cancellationVersion,
+    });
     setError(null);
-    setRationale(null);
-    setResolvedKey(null);
+    setSuccess(null);
 
     try {
-      const result = await generateProgression(trimmed);
+      const result = await generateProgression(trimmed, request.controller.signal);
+      if (
+        activeRequestRef.current?.id !== request.id ||
+        timelineVersionRef.current !== request.timelineVersion ||
+        cancellationVersionRef.current !== request.cancellationVersion
+      ) {
+        return;
+      }
       const resolved: DisplayChord[] = [];
       const errors: ParseError[] = [];
       result.chords.forEach((name, i) => {
@@ -59,14 +129,30 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
           errors.push({ index: i, input: name, message: `Could not resolve: "${name}"` });
         }
       });
-      setRationale(result.rationale);
-      setResolvedKey(result.key);
       onResult(resolved, errors);
+      setSuccess({
+        rationale: result.rationale,
+        resolvedKey: result.key,
+        timelineVersion: timelineVersionRef.current,
+      });
     } catch (err) {
+      if (
+        request.controller.signal.aborted ||
+        activeRequestRef.current?.id !== request.id ||
+        timelineVersionRef.current !== request.timelineVersion ||
+        cancellationVersionRef.current !== request.cancellationVersion
+      ) {
+        return;
+      }
       const message = err instanceof Error ? err.message : "Unknown error";
-      setError(message);
+      setError({ message, timelineVersion: request.timelineVersion });
     } finally {
-      setLoading(false);
+      if (activeRequestRef.current?.id === request.id) {
+        activeRequestRef.current = null;
+        setLoadingRequest((current) =>
+          current?.id === request.id ? null : current,
+        );
+      }
     }
   }
 
@@ -81,7 +167,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-3 items-stretch">
+      <div className="flex flex-col gap-3 items-stretch sm:flex-row">
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
@@ -89,7 +175,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
           rows={3}
           placeholder={placeholder ?? "Describe the mood, style, or feel — e.g. “melancholic with a jazz feel in minor”"}
           disabled={loading}
-          className="flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
+          className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
           style={{
             backgroundColor: "var(--surface-overlay)",
             color: "var(--text-primary)",
@@ -105,7 +191,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2"
+          className="w-full px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2 sm:w-auto sm:min-w-[11rem]"
           style={{
             backgroundColor: canSubmit
               ? "var(--interactive-accent-bg)"
@@ -117,7 +203,6 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
             fontWeight: "var(--weight-semibold)",
             transitionDuration: "var(--duration-normal)",
             cursor: canSubmit ? "pointer" : "not-allowed",
-            minWidth: "11rem",
             justifyContent: "center",
           }}
           onMouseEnter={(e) => {
@@ -154,7 +239,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         </button>
       </div>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <span
           className="text-xs"
           style={{
@@ -166,10 +251,10 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
             ? `${Math.abs(remaining)} over the ${MAX_PROMPT}-character limit`
             : `${remaining} characters left`}
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <HealthPill status={health} />
           <span
-            className="text-xs"
+            className="hidden text-xs sm:inline"
             style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
           >
             ⌘↵ to build
@@ -177,7 +262,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         </div>
       </div>
 
-      {error && (
+      {errorMessage && (
         <div
           className="px-4 py-3 rounded-lg flex items-center justify-between gap-3"
           style={{
@@ -188,11 +273,11 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
           role="alert"
         >
           <span className="text-sm" style={{ flex: 1 }}>
-            {error}
+            {errorMessage}
           </span>
           <button
             onClick={handleSubmit}
-            disabled={!canSubmit && !error}
+            disabled={!canSubmit}
             className="px-3 py-1 rounded-md text-xs transition-all"
             style={{
               backgroundColor: "var(--surface-overlay)",
@@ -207,7 +292,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         </div>
       )}
 
-      {rationale && !error && (
+      {currentSuccess && !errorMessage && (
         <div
           className="px-4 py-3 rounded-lg"
           style={{
@@ -215,7 +300,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
             border: "1px solid var(--border-subtle)",
           }}
         >
-          {resolvedKey && (
+          {currentSuccess.resolvedKey && (
             <span
               className="text-xs uppercase mr-2"
               style={{
@@ -225,7 +310,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
                 fontFamily: "var(--font-mono)",
               }}
             >
-              {resolvedKey}
+              {currentSuccess.resolvedKey}
             </span>
           )}
           <span
@@ -236,7 +321,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
               lineHeight: "var(--leading-normal)",
             }}
           >
-            {rationale}
+            {currentSuccess.rationale}
           </span>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useConversationControls, useConversationStatus } from "@elevenlabs/react";
+import { ChevronDown } from "lucide-react";
 import { useVoiceAgent } from "./voiceAgentContext";
 import { useProgressionAgentTools } from "./useProgressionAgentTools";
 
@@ -28,6 +29,7 @@ export function VoiceAgentPanel() {
 
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const live = status === "connected";
   // Treat the SDK's own "connecting" status as busy too: startSession resolves
@@ -78,25 +80,48 @@ export function VoiceAgentPanel() {
   }, [endSession]);
 
   const statusColor =
-    state === "live"
+    displayError
+      ? "var(--status-error-text)"
+      : state === "live"
       ? "var(--status-success-text)"
       : state === "wait"
         ? "var(--text-warm)"
         : "var(--text-muted)";
+  const statusLabel = displayError
+    ? "Needs attention"
+    : live
+      ? "Listening"
+      : busy
+        ? "Connecting"
+        : "Offline";
 
   return (
     <section
-      className="hhv flex flex-col gap-4 w-full max-w-md rounded-xl"
+      className={`hhv rounded-xl ${expanded ? "flex flex-col gap-4 w-full max-w-md" : "w-full md:w-auto"}`}
       aria-label="Harmony companion voice agent"
       style={{
-        padding: "var(--space-5, 1.25rem)",
+        padding: expanded ? "var(--space-5, 1.25rem)" : "0.4rem 0.5rem",
         background: "var(--surface-overlay)",
         border: `1px solid ${live ? "var(--border-accent)" : "var(--border-subtle)"}`,
         boxShadow: live ? "var(--glow-accent)" : "none",
-        transition: "border-color var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out)",
+        transition: "padding var(--duration-normal) var(--ease-out), border-color var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out)",
       }}
     >
-      <header className="flex items-center justify-between">
+      <button
+        type="button"
+        className="hhv-toggle w-full flex items-center justify-between gap-3 rounded-lg"
+        onClick={() => setExpanded((current) => !current)}
+        aria-expanded={expanded}
+        aria-controls="harmony-companion-details"
+        aria-label={expanded ? "Collapse Harmony Companion" : "Expand Harmony Companion"}
+        style={{
+          padding: expanded ? 0 : "0.35rem 0.5rem",
+          color: "var(--text-primary)",
+          background: "transparent",
+          border: 0,
+          cursor: "pointer",
+        }}
+      >
         <span
           style={{
             fontFamily: "var(--font-mono)",
@@ -109,67 +134,80 @@ export function VoiceAgentPanel() {
         >
           Harmony Companion
         </span>
-        <span
-          className="rounded-full"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-xs)",
-            letterSpacing: "var(--tracking-wide)",
-            textTransform: "uppercase",
-            padding: "0.18rem 0.55rem",
-            color: statusColor,
-            border: `1px solid color-mix(in srgb, ${statusColor} 40%, transparent)`,
-          }}
-        >
-          {live ? "Listening" : busy ? "Connecting" : "Offline"}
+        <span className="flex items-center gap-2">
+          <span
+            className="rounded-full"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-xs)",
+              letterSpacing: "var(--tracking-wide)",
+              textTransform: "uppercase",
+              padding: "0.18rem 0.55rem",
+              color: statusColor,
+              border: `1px solid color-mix(in srgb, ${statusColor} 40%, transparent)`,
+            }}
+          >
+            {statusLabel}
+          </span>
+          <ChevronDown
+            size={15}
+            aria-hidden="true"
+            style={{
+              color: "var(--text-muted)",
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform var(--duration-fast) var(--ease-out)",
+            }}
+          />
         </span>
-      </header>
+      </button>
 
-      <div
-        className="hhv-orb self-center"
-        data-state={state}
-        aria-hidden="true"
-        style={{ position: "relative", width: 84, height: 84, display: "grid", placeItems: "center" }}
-      >
-        <span
-          className="hhv-orb-core"
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: "var(--radius-full)",
-            background: "radial-gradient(circle at 35% 30%, var(--text-warm), var(--text-accent))",
-            boxShadow: state === "idle" ? "none" : "var(--glow-accent)",
-            filter: state === "idle" ? "saturate(0.3) brightness(0.65)" : "none",
-            transition: "filter var(--duration-normal) var(--ease-out)",
-          }}
-        />
-        <span
-          className="hhv-orb-ring"
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "var(--radius-full)",
-            border: "1.5px solid color-mix(in srgb, var(--text-accent) 55%, transparent)",
-            opacity: 0,
-          }}
-        />
-      </div>
+      {expanded && (
+        <div id="harmony-companion-details" className="flex flex-col gap-4">
+          <div
+            className="hhv-orb self-center"
+            data-state={state}
+            aria-hidden="true"
+            style={{ position: "relative", width: 84, height: 84, display: "grid", placeItems: "center" }}
+          >
+            <span
+              className="hhv-orb-core"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "var(--radius-full)",
+                background: "radial-gradient(circle at 35% 30%, var(--text-warm), var(--text-accent))",
+                boxShadow: state === "idle" ? "none" : "var(--glow-accent)",
+                filter: state === "idle" ? "saturate(0.3) brightness(0.65)" : "none",
+                transition: "filter var(--duration-normal) var(--ease-out)",
+              }}
+            />
+            <span
+              className="hhv-orb-ring"
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "var(--radius-full)",
+                border: "1.5px solid color-mix(in srgb, var(--text-accent) 55%, transparent)",
+                opacity: 0,
+              }}
+            />
+          </div>
 
-      <p
-        className="text-center"
-        style={{
-          margin: 0,
-          fontSize: "var(--text-sm)",
-          lineHeight: "var(--leading-normal)",
-          color: "var(--text-muted)",
-        }}
-      >
-        {live
-          ? "Ask for a progression, or have me explain the theory — keep it simple or go deep."
-          : "Talk through a chord progression, or get the theory behind the one on your timeline."}
-      </p>
+          <p
+            className="text-center"
+            style={{
+              margin: 0,
+              fontSize: "var(--text-sm)",
+              lineHeight: "var(--leading-normal)",
+              color: "var(--text-muted)",
+            }}
+          >
+            {live
+              ? "Ask for a progression, or have me explain the theory — keep it simple or go deep."
+              : "Talk through a chord progression, or get the theory behind the one on your timeline."}
+          </p>
 
-      {transcript.length > 0 && (
+          {transcript.length > 0 && (
         <ul
           className="flex flex-col gap-2 rounded-lg"
           style={{
@@ -208,9 +246,9 @@ export function VoiceAgentPanel() {
             </li>
           ))}
         </ul>
-      )}
+          )}
 
-      {displayError && (
+          {displayError && (
         <p
           role="alert"
           className="rounded-lg"
@@ -226,9 +264,9 @@ export function VoiceAgentPanel() {
         >
           {displayError}
         </p>
-      )}
+          )}
 
-      {live ? (
+          {live ? (
         <button
           type="button"
           className="hhv-btn rounded-lg"
@@ -253,7 +291,7 @@ export function VoiceAgentPanel() {
         >
           End conversation
         </button>
-      ) : (
+          ) : (
         <button
           type="button"
           className="hhv-btn rounded-lg"
@@ -282,6 +320,8 @@ export function VoiceAgentPanel() {
         >
           {busy ? "Connecting…" : "Talk to the companion"}
         </button>
+          )}
+        </div>
       )}
 
       <style>{`
@@ -290,7 +330,7 @@ export function VoiceAgentPanel() {
         .hhv-orb[data-state="wait"] .hhv-orb-core { animation: hhv-breathe 1.4s var(--ease-out, ease-in-out) infinite; }
         .hhv-orb[data-state="live"] .hhv-orb-core { animation: hhv-breathe 2.4s var(--ease-out, ease-in-out) infinite; }
         .hhv-orb[data-state="live"] .hhv-orb-ring { animation: hhv-ring 2.4s var(--ease-out, ease-out) infinite; }
-        .hhv-btn:focus-visible { outline: 2px solid var(--interactive-focus-ring); outline-offset: 2px; }
+        .hhv-btn:focus-visible, .hhv-toggle:focus-visible { outline: 2px solid var(--interactive-focus-ring); outline-offset: 2px; }
         @media (prefers-reduced-motion: reduce) {
           .hhv-orb-core, .hhv-orb-ring { animation: none !important; }
         }

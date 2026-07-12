@@ -20,7 +20,7 @@ The application SHALL be a single-page app with a responsive layout that works o
 - **THEN** the document SHALL have no unintended horizontal scrolling
 
 ### Requirement: Page structure
-The application SHALL follow a top-to-bottom layout of Header → Input Area → Compact Action Toolbar → Chord Cards Output → Reference Content. Optional expanded companion content SHALL appear only after explicit user action.
+The application SHALL follow a top-to-bottom layout of Header → Input Area (including its mode-specific reference or preset fallback) → Compact Action Toolbar → Chord Cards Output. Optional expanded companion content SHALL appear only after explicit user action.
 
 #### Scenario: Input area placement
 - **WHEN** the page loads

@@ -40,6 +40,15 @@ The system SHALL allow users to switch between free-text input and the Progressi
 - **WHEN** the user selects a preset progression from the fallback section
 - **THEN** the chord cards SHALL display the preset's chords, replacing any previous result from free-text or the agent
 
+#### Scenario: Superseded agent response is ignored
+- **WHEN** an agent request remains in flight and the user switches to Free Input, selects a newer manual or preset result, or the Harmony Companion changes the timeline
+- **THEN** the pending request SHALL be aborted where possible
+- **AND** any late agent response SHALL NOT replace the newer chord cards
+
+#### Scenario: Mode-only changes preserve agent feedback
+- **WHEN** the user switches input modes or changes preset tonality without applying a newer progression
+- **THEN** any completed agent rationale or retryable error SHALL remain available when the Progressions tab is shown again
+
 #### Scenario: Companion does not break reading order
 - **WHEN** the companion is idle or unavailable in either input mode
 - **THEN** only its compact control SHALL appear between input controls and chord output

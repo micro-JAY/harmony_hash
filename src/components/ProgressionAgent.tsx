@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { IndexedChord, ParseError } from "../lib/types";
 import { lookupChord } from "../lib/chordData";
 import { checkHealth, generateProgression } from "../lib/progressionClient";
@@ -12,18 +12,46 @@ interface DisplayChord {
 
 interface ProgressionAgentProps {
   onResult: (chords: DisplayChord[], errors: ParseError[]) => void;
+  timelineVersion: number;
+  timelineVersionRef: MutableRefObject<number>;
+  cancellationVersion: number;
+  cancellationVersionRef: MutableRefObject<number>;
   placeholder?: string;
 }
 
 const MAX_PROMPT = 500;
 
-export default function ProgressionAgent({ onResult, placeholder }: ProgressionAgentProps) {
+export default function ProgressionAgent({
+  onResult,
+  timelineVersion,
+  timelineVersionRef,
+  cancellationVersion,
+  cancellationVersionRef,
+  placeholder,
+}: ProgressionAgentProps) {
   const [prompt, setPrompt] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [rationale, setRationale] = useState<string | null>(null);
-  const [resolvedKey, setResolvedKey] = useState<string | null>(null);
+  const [loadingRequest, setLoadingRequest] = useState<{
+    id: number;
+    timelineVersion: number;
+    cancellationVersion: number;
+  } | null>(null);
+  const [error, setError] = useState<{
+    message: string;
+    timelineVersion: number;
+  } | null>(null);
+  const [success, setSuccess] = useState<{
+    rationale: string;
+    resolvedKey: string;
+    timelineVersion: number;
+  } | null>(null);
   const [health, setHealth] = useState<HealthStatus>("checking");
+  const activeRequestRef = useRef<{
+    id: number;
+    timelineVersion: number;
+    cancellationVersion: number;
+    controller: AbortController;
+  } | null>(null);
+  const nextRequestIdRef = useRef(0);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -36,19 +64,61 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
     return () => ctrl.abort();
   }, []);
 
+  useEffect(() => () => {
+    activeRequestRef.current?.controller.abort();
+    activeRequestRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    const request = activeRequestRef.current;
+    if (
+      request &&
+      (request.timelineVersion !== timelineVersion ||
+        request.cancellationVersion !== cancellationVersion)
+    ) {
+      request.controller.abort();
+    }
+  }, [cancellationVersion, timelineVersion]);
+
   const trimmed = prompt.trim();
   const overLength = prompt.length > MAX_PROMPT;
-  const canSubmit = trimmed.length > 0 && !overLength && !loading;
+  const loading =
+    loadingRequest?.timelineVersion === timelineVersion &&
+    loadingRequest.cancellationVersion === cancellationVersion;
+  const errorMessage =
+    error?.timelineVersion === timelineVersion ? error.message : null;
+  const currentSuccess =
+    success?.timelineVersion === timelineVersion ? success : null;
+  const canSubmit =
+    health === "ready" && trimmed.length > 0 && !overLength && !loading;
 
   async function handleSubmit() {
     if (!canSubmit) return;
-    setLoading(true);
+    activeRequestRef.current?.controller.abort();
+    const request = {
+      id: nextRequestIdRef.current++,
+      timelineVersion: timelineVersionRef.current,
+      cancellationVersion: cancellationVersionRef.current,
+      controller: new AbortController(),
+    };
+    activeRequestRef.current = request;
+    setLoadingRequest({
+      id: request.id,
+      timelineVersion: request.timelineVersion,
+      cancellationVersion: request.cancellationVersion,
+    });
     setError(null);
-    setRationale(null);
-    setResolvedKey(null);
+    setSuccess(null);
 
     try {
-      const result = await generateProgression(trimmed);
+      const result = await generateProgression(trimmed, request.controller.signal);
+      if (
+        activeRequestRef.current?.id !== request.id ||
+        timelineVersionRef.current !== request.timelineVersion ||
+        cancellationVersionRef.current !== request.cancellationVersion
+      ) {
+        return;
+      }
       const resolved: DisplayChord[] = [];
       const errors: ParseError[] = [];
       result.chords.forEach((name, i) => {
@@ -59,14 +129,30 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
           errors.push({ index: i, input: name, message: `Could not resolve: "${name}"` });
         }
       });
-      setRationale(result.rationale);
-      setResolvedKey(result.key);
       onResult(resolved, errors);
+      setSuccess({
+        rationale: result.rationale,
+        resolvedKey: result.key,
+        timelineVersion: timelineVersionRef.current,
+      });
     } catch (err) {
+      if (
+        request.controller.signal.aborted ||
+        activeRequestRef.current?.id !== request.id ||
+        timelineVersionRef.current !== request.timelineVersion ||
+        cancellationVersionRef.current !== request.cancellationVersion
+      ) {
+        return;
+      }
       const message = err instanceof Error ? err.message : "Unknown error";
-      setError(message);
+      setError({ message, timelineVersion: request.timelineVersion });
     } finally {
-      setLoading(false);
+      if (activeRequestRef.current?.id === request.id) {
+        activeRequestRef.current = null;
+        setLoadingRequest((current) =>
+          current?.id === request.id ? null : current,
+        );
+      }
     }
   }
 
@@ -176,7 +262,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         </div>
       </div>
 
-      {error && (
+      {errorMessage && (
         <div
           className="px-4 py-3 rounded-lg flex items-center justify-between gap-3"
           style={{
@@ -187,11 +273,11 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
           role="alert"
         >
           <span className="text-sm" style={{ flex: 1 }}>
-            {error}
+            {errorMessage}
           </span>
           <button
             onClick={handleSubmit}
-            disabled={!canSubmit && !error}
+            disabled={!canSubmit}
             className="px-3 py-1 rounded-md text-xs transition-all"
             style={{
               backgroundColor: "var(--surface-overlay)",
@@ -206,7 +292,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
         </div>
       )}
 
-      {rationale && !error && (
+      {currentSuccess && !errorMessage && (
         <div
           className="px-4 py-3 rounded-lg"
           style={{
@@ -214,7 +300,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
             border: "1px solid var(--border-subtle)",
           }}
         >
-          {resolvedKey && (
+          {currentSuccess.resolvedKey && (
             <span
               className="text-xs uppercase mr-2"
               style={{
@@ -224,7 +310,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
                 fontFamily: "var(--font-mono)",
               }}
             >
-              {resolvedKey}
+              {currentSuccess.resolvedKey}
             </span>
           )}
           <span
@@ -235,7 +321,7 @@ export default function ProgressionAgent({ onResult, placeholder }: ProgressionA
               lineHeight: "var(--leading-normal)",
             }}
           >
-            {rationale}
+            {currentSuccess.rationale}
           </span>
         </div>
       )}

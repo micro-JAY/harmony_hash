@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, type MutableRefObject } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { ParseResult, TonalityId, Progression, ScaleType } from "../lib/types";
 import { parseChordInput, transposeNumeralString, ALL_KEYS } from "../lib/harmonyBrain";
@@ -13,6 +13,8 @@ import { useT } from "../i18n/I18nContext";
 interface ProgressionInputProps {
   onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
   chordsEmpty: boolean;
+  timelineVersion: number;
+  timelineVersionRef: MutableRefObject<number>;
 }
 
 interface SelectedProgression {
@@ -23,7 +25,12 @@ interface SelectedProgression {
   scaleType: ScaleType;
 }
 
-export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionInputProps) {
+export default function ProgressionInput({
+  onResult,
+  chordsEmpty,
+  timelineVersion,
+  timelineVersionRef,
+}: ProgressionInputProps) {
   const t = useT();
   const [freeText, setFreeText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,8 +40,17 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
   const [activeTab, setActiveTab] = useState<"free" | "preset">("free");
   const [activeTonality, setActiveTonality] = useState<TonalityId>("major");
   const [minorHelpOpen, setMinorHelpOpen] = useState(false);
+  const cancellationVersionRef = useRef(0);
+  const [agentCancellationVersion, setAgentCancellationVersion] = useState(0);
+  const [hasOpenedProgressions, setHasOpenedProgressions] = useState(false);
 
   const activeGroup = PROGRESSION_LIBRARY.find((g) => g.id === activeTonality)!;
+
+  function cancelAgentRequest() {
+    const nextVersion = cancellationVersionRef.current + 1;
+    cancellationVersionRef.current = nextVersion;
+    setAgentCancellationVersion(nextVersion);
+  }
 
   function handleFreeTextSubmit() {
     if (!freeText.trim()) return;
@@ -109,7 +125,15 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
         {(["free", "preset"] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              if (tab === "preset") {
+                setHasOpenedProgressions(true);
+              }
+              if (tab === "free" && activeTab === "preset") {
+                cancelAgentRequest();
+              }
+              setActiveTab(tab);
+            }}
             className="px-4 py-2 rounded-lg text-sm transition-all"
             style={{
               fontWeight: activeTab === tab ? "var(--weight-semibold)" : "var(--weight-regular)",
@@ -176,10 +200,16 @@ export default function ProgressionInput({ onResult, chordsEmpty }: ProgressionI
       )}
 
       {/* Agent + Progression Browser */}
-      {activeTab === "preset" && (
-        <div className="flex flex-col gap-4">
+      {hasOpenedProgressions && (
+        <div
+          className={activeTab === "preset" ? "flex flex-col gap-4" : "hidden"}
+        >
           <ProgressionAgent
             onResult={onResult}
+            timelineVersion={timelineVersion}
+            timelineVersionRef={timelineVersionRef}
+            cancellationVersion={agentCancellationVersion}
+            cancellationVersionRef={cancellationVersionRef}
             placeholder={t("agentPromptPlaceholder")}
           />
 

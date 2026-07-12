@@ -17,6 +17,22 @@ async function expectStacked(first: Locator, second: Locator): Promise<void> {
   expect(Math.abs(secondBox!.width - firstBox!.width)).toBeLessThanOrEqual(1);
 }
 
+async function expectTwoCardColumns(cards: Locator): Promise<void> {
+  await expect(cards).toHaveCount(4);
+  const boxes = await cards.evaluateAll((elements) =>
+    elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { x: box.x, y: box.y, width: box.width };
+    }),
+  );
+  expect(Math.abs(boxes[0].y - boxes[1].y)).toBeLessThanOrEqual(1);
+  expect(boxes[1].x).toBeGreaterThan(boxes[0].x + boxes[0].width - 1);
+  expect(Math.abs(boxes[2].x - boxes[0].x)).toBeLessThanOrEqual(1);
+  expect(boxes[2].y).toBeGreaterThan(boxes[0].y);
+  expect(Math.abs(boxes[2].y - boxes[3].y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(boxes[3].x - boxes[1].x)).toBeLessThanOrEqual(1);
+}
+
 async function mockReadyHealth(page: Page): Promise<void> {
   await page.route("**/api/health", async (route) => {
     await route.fulfill({
@@ -42,7 +58,7 @@ async function settlePaint(page: Page): Promise<void> {
 test("compact action toolbar keeps cards adjacent and companion state mounted", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
   await input.fill("Cmaj7 Am7 Dm7 G7");
   await input.press("Enter");
@@ -80,6 +96,29 @@ test("compact action toolbar keeps cards adjacent and companion state mounted", 
   });
 });
 
+test.describe("800px tablet layout", () => {
+  test.use({ viewport: { width: 800, height: 900 } });
+
+  test("renders guitar and piano cards in two columns without overflow", async ({
+    page,
+  }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
+    await input.fill("Cmaj7 Am7 Dm7 G7");
+    await input.press("Enter");
+
+    const cards = page
+      .getByRole("region", { name: "Chord cards output" })
+      .getByTestId("chord-card");
+    await expectTwoCardColumns(cards);
+    await expectNoDocumentOverflow(page);
+
+    await page.getByRole("button", { name: "Piano" }).click();
+    await expectTwoCardColumns(cards);
+    await expectNoDocumentOverflow(page);
+  });
+});
+
 test.describe("375px builder layout", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
@@ -87,7 +126,7 @@ test.describe("375px builder layout", () => {
     page,
   }) => {
     await mockReadyHealth(page);
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
     const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
     const run = page.getByRole("button", { name: "Run" });
@@ -128,7 +167,7 @@ test.describe("375px builder layout", () => {
     });
     page.on("pageerror", (error) => browserErrors.push(error.message));
 
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
     await input.fill("Cmaj7 Am7 Dm7 G7");
     await input.press("Enter");

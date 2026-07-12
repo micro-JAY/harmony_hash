@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "tsx scripts/clean-dist.ts",
     "build": "tsc -b && vite build",
     "postbuild": "printf '.DS_Store\\n._*\\n' > dist/.assetsignore",
     "lint": "eslint .",

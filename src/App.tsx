@@ -84,15 +84,24 @@ function App() {
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackHandleRef = useRef<PlaybackHandle | null>(null);
+  const timelineVersionRef = useRef(0);
+  const [timelineVersion, setTimelineVersion] = useState(0);
+
+  const markTimelineMutation = useCallback(() => {
+    const nextVersion = timelineVersionRef.current + 1;
+    timelineVersionRef.current = nextVersion;
+    setTimelineVersion(nextVersion);
+  }, []);
 
   const handleResult = useCallback((resolved: DisplayChord[], _errors: ParseError[]) => {
+    markTimelineMutation();
     setChords(resolved);
     setCardVariants({});
     setLockedCards(new Set());
     setPianoStyles({});
     setHighlightedChordIndex(null);
     playbackHandleRef.current?.stop();
-  }, []);
+  }, [markTimelineMutation]);
 
   const getPianoStyle = useCallback(
     (index: number): VoicingStyle => pianoStyles[index] ?? "auto",
@@ -200,6 +209,7 @@ function App() {
   // voice companion's remove_chord tool uses this — an intentionally LOCAL edit,
   // unlike handleResult which resets the whole timeline.
   const removeChordAt = useCallback((index: number) => {
+    markTimelineMutation();
     setChords((prev) => prev.filter((_, i) => i !== index));
     setCardVariants((prev) => shiftIndexedRecord(prev, index));
     setPianoStyles((prev) => shiftIndexedRecord(prev, index));
@@ -208,7 +218,7 @@ function App() {
       h === null || h === index ? null : h > index ? h - 1 : h,
     );
     playbackHandleRef.current?.stop();
-  }, []);
+  }, [markTimelineMutation]);
 
   // ── Voice companion bridge ──────────────────────────────────────────────
   // Tool callbacks fire OUTSIDE React's render cycle, so the bridge reads live
@@ -241,7 +251,10 @@ function App() {
         getInstrument: () => instrumentRef.current,
         getVoicings: () => pianoVoicingsRef.current,
         setProgression: (next) => handleResult(next, []),
-        appendChords: (next) => setChords((prev) => [...prev, ...next]),
+        appendChords: (next) => {
+          markTimelineMutation();
+          setChords((prev) => [...prev, ...next]);
+        },
         removeChordAt: (index) => removeChordAt(index),
         startPlayback: () => {
           if (activeIndexRef.current === null) togglePlaybackRef.current();
@@ -249,7 +262,7 @@ function App() {
         randomizeVoicings: () => randomizeAllRef.current(),
         setHighlight: (index) => setHighlightedChordIndex(index),
       }),
-    [handleResult, removeChordAt],
+    [handleResult, markTimelineMutation, removeChordAt],
   );
 
   return (
@@ -258,7 +271,12 @@ function App() {
 
       <main className="flex-1 flex flex-col gap-5 py-5 md:gap-8 md:py-8">
         {/* Input Section */}
-        <ProgressionInput onResult={handleResult} chordsEmpty={chords.length === 0} />
+        <ProgressionInput
+          onResult={handleResult}
+          chordsEmpty={chords.length === 0}
+          timelineVersion={timelineVersion}
+          timelineVersionRef={timelineVersionRef}
+        />
 
         {/* One stable toolbar keeps the companion runtime mounted while chord
             actions appear/disappear around it. */}
@@ -333,7 +351,7 @@ function App() {
             className="w-full max-w-7xl mx-auto px-4"
             aria-label="Chord cards output"
           >
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:flex lg:flex-wrap lg:justify-center">
               {chords.map((chordResult, index) => {
                 const maxVariants = chordResult.chord.variationCount;
                 return (

@@ -10,7 +10,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // The preview server and browser processes contend heavily when this repo is
+  // run from an external macOS volume; serial execution is both faster and
+  // avoids navigation-only timeouts. CI was already intentionally serial.
+  workers: 1,
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: "http://localhost:4173",
@@ -25,9 +28,9 @@ export default defineConfig({
     toHaveScreenshot: { maxDiffPixelRatio: 0.1, threshold: 0.3 },
   },
   webServer: {
-    command: "npm run preview",
+    command: "npm run build && npm run preview",
     url: "http://localhost:4173",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 60_000,
   },
   projects: [

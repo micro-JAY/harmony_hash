@@ -12,7 +12,7 @@ test.describe("Harmony Companion session failures", () => {
       });
     });
 
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
     await page.getByRole("button", { name: /Talk to the companion/i }).click();
 

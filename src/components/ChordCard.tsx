@@ -88,10 +88,11 @@ export default function ChordCard({
 
   return (
     <div
+      data-testid="chord-card"
       className={`relative flex max-w-full flex-col items-center overflow-hidden rounded-xl ${
         instrument === "piano"
-          ? "w-full min-w-0 sm:w-auto sm:min-w-[440px]"
-          : "min-w-[200px]"
+          ? "w-full min-w-0 lg:w-auto lg:min-w-[440px]"
+          : "w-full min-w-0 lg:w-auto lg:min-w-[200px]"
       }`}
       data-playing={isPlaying ? "true" : undefined}
       style={{

@@ -62,7 +62,7 @@ The Worker SHALL run an OpenAI Responses API loop with a strict `lookup_chord` f
 - **WHEN** OpenAI issues a `lookup_chord` function call for an unknown chord, such as `Caug7`
 - **THEN** the Worker SHALL submit `{ "valid": false, "chord_name": "Caug7", "suggestion": <closest valid chord> }` and allow the model to correct the candidate
 
-#### Scenario: Loop terminates on end_turn
+#### Scenario: Loop terminates on final structured output
 - **WHEN** OpenAI returns no function calls and supplies structured final text
 - **THEN** the Worker SHALL parse and validate the final progression before ending the loop
 

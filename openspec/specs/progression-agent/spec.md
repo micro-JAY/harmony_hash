@@ -46,7 +46,7 @@ The Worker SHALL run an OpenAI Responses API loop with a strict `lookup_chord` f
 - **WHEN** OpenAI issues a `lookup_chord` function call for an unknown chord, such as `Caug7`
 - **THEN** the Worker SHALL submit `{ "valid": false, "chord_name": "Caug7", "suggestion": <closest valid chord> }` and allow the model to correct the candidate
 
-#### Scenario: Loop terminates on end_turn
+#### Scenario: Loop terminates on final structured output
 - **WHEN** OpenAI returns no function calls and supplies structured final text
 - **THEN** the Worker SHALL parse and validate the final progression before ending the loop
 
@@ -123,7 +123,7 @@ The UI SHALL render the agent's `rationale` string as a subtitle above the chord
 
 #### Scenario: Rationale rendered with successful response
 - **WHEN** the agent returns a 200 response containing a `rationale`
-- **THEN** the UI SHALL display the rationale as a subtitle (e.g. "Claude chose these because: <rationale>") above the chord cards
+- **THEN** the UI SHALL display the provider-neutral rationale as a subtitle above the chord cards
 
 #### Scenario: Rationale cleared between prompts
 - **WHEN** the user submits a new prompt after a previous result
@@ -188,4 +188,3 @@ The progression request SHALL have a 30-second deadline in both the browser and 
 #### Scenario: Upstream provider rejects a request
 - **WHEN** OpenAI returns a non-success response
 - **THEN** the Worker SHALL log sanitized provider detail and return HTTP 502 with a client-safe error
-

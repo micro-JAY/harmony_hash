@@ -48,9 +48,11 @@ Keep the eight-turn convergence cap and add a 30-second deadline to both Worker/
 
 `/api/health` remains a 200 response but reports OpenAI readiness consistently with the client schema. The progression UI preserves prior chord cards when a new generation fails and exposes retry without leaving an indefinite loading state.
 
+`App` owns a synchronous timeline-mutation epoch shared by free input, presets, the text agent, and Harmony Companion edits. Text requests capture that epoch and a separate request-cancellation token, so any newer timeline mutation wins while mode-only navigation can abort pending work without erasing completed rationale or retry state.
+
 ### D4 — Signed URL remains the sole production voice auth mode
 
-Keep the server-minted signed URL architecture. Update the live agent to `enable_auth: true` with an explicit empty allowlist, matching the source contract. Refactor provisioning into a full create payload and a narrow update payload: updates refresh the source-owned prompt, tools, and auth while preserving the existing live name, voice, TTS model, and other user customizations.
+Keep the server-minted signed URL architecture. Update the live agent to `enable_auth: true` with an explicit empty allowlist, matching the source contract. Provision client tools through the modern toolbox API and attach exactly nine verified `tool_ids`; never send the removed inline `prompt.tools` field. A newly created toolbox record is re-read before attachment, and the verifier fingerprints the complete source-owned client contract plus safe execution behavior while rejecting task authority, nested language-preset overrides, opaque workflow fields, and future capability surfaces. The narrow agent update refreshes the source-owned prompt, exact tool-id set, empty built-in set, and auth while preserving the existing live name and complete TTS configuration. Provider-side MCP, workflow, legacy non-client, or unknown capability state blocks the update before mutation because its detach semantics are not owned here.
 
 Alternatives considered:
 
@@ -71,7 +73,7 @@ Stack Free Input and Progression Agent input/button rows below the existing mobi
 
 - **OpenAI model access differs by project tier** → exercise one live request before deployment; a model-access error remains a 502 and the model constant can be deliberately changed if needed.
 - **Structured output and tool calls can still fail to converge** → retain the eight-turn cap, strict schemas, final dictionary validation, deterministic mocked tests, and retry UI.
-- **Partial ElevenLabs PATCH semantics could retain stale nested fields** → explicitly send `auth.allowlist: []`, re-fetch the agent after provisioning, and assert auth/tool names before live mic testing.
+- **Partial ElevenLabs PATCH semantics could retain stale nested fields** → explicitly send `auth.allowlist: []`, exact `tool_ids`, and empty `built_in_tools`; resolve every toolbox record and fail closed on MCP/workflow/legacy/unknown authority before and after the update.
 - **Collapsing the panel can hide a live transcript** → keep status visible in the compact row and keep the session/runtime mounted.
 - **A production deploy updates code and assets together** → build/test locally, upload a version, smoke its preview, then deploy that exact version; retain the prior deployment for rollback.
 

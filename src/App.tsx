@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Play, Square } from "lucide-react";
-import type { Instrument, IndexedChord, ParseError, VoicingStyle } from "./lib/types";
+import type { Instrument, IndexedChord, ParseError, VoicingStyle, Workspace } from "./lib/types";
 import Header from "./components/Header";
 import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
@@ -10,6 +10,8 @@ import { parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
 import type { ChordModifierOption } from "./lib/chordModifiers";
 import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
+
+const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 
 // Explicit (non-Auto) styles randomize cycles through. Auto is omitted
 // because it would defeat the "shake it up" intent of the button.
@@ -74,6 +76,7 @@ function shiftIndexedSet(set: ReadonlySet<number>, removed: number): Set<number>
 function App() {
   const t = useT();
   const [instrument, setInstrument] = useState<Instrument>("guitar");
+  const [workspace, setWorkspace] = useState<Workspace>("builder");
   const [chords, setChords] = useState<DisplayChord[]>([]);
   const [cardKeys, setCardKeys] = useState<number[]>([]);
   const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
@@ -295,85 +298,104 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header instrument={instrument} onInstrumentChange={setInstrument} />
+      <Header
+        instrument={instrument}
+        onInstrumentChange={setInstrument}
+        workspace={workspace}
+        onWorkspaceChange={setWorkspace}
+      />
 
-      <main className="flex-1 flex flex-col gap-5 py-5 md:gap-8 md:py-8">
-        {/* Input Section */}
-        <ProgressionInput
-          onResult={handleResult}
-          timelineVersion={timelineVersion}
-          timelineVersionRef={timelineVersionRef}
-        />
-
-        {/* One stable toolbar keeps the companion runtime mounted while chord
-            actions appear/disappear around it. */}
-        <section
-          className="w-full px-4"
-          aria-label="Progression actions"
+      <VoiceAgentProvider
+        bridge={voiceBridge}
+        agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
+        signedUrlEndpoint="/api/voice/signed-url"
+      >
+        <main
+          className={workspace === "builder"
+            ? "flex-1 flex flex-col gap-5 py-5 md:gap-8 md:py-8"
+            : "flex-1 flex flex-col gap-5 pb-6"
+          }
         >
-          <VoiceAgentProvider
-            bridge={voiceBridge}
-            agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
-            signedUrlEndpoint="/api/voice/signed-url"
+          {workspace === "builder" ? (
+            <ProgressionInput
+              onResult={handleResult}
+              timelineVersion={timelineVersion}
+              timelineVersionRef={timelineVersionRef}
+            />
+          ) : (
+            <Suspense
+              fallback={(
+                <section className="flex flex-1 items-center justify-center px-4 py-16" role="status">
+                  <span className="readout">Loading fretboard…</span>
+                </section>
+              )}
+            >
+              <FretboardExplorer />
+            </Suspense>
+          )}
+
+          {/* The provider, panel, and tree position remain stable across both
+              workspaces so navigation never tears down an active session. */}
+          <section
+            className="w-full px-4"
+            aria-label={workspace === "builder" ? "Progression actions" : "Workspace companion"}
           >
             <div className="w-full flex flex-col items-stretch justify-center gap-3 md:flex-row md:flex-wrap md:items-start">
-              <div
-                className={`flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center ${chords.length > 0 ? "" : "hidden"}`}
-              >
-                <button
-                  onClick={randomizeAll}
-                  className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
-                  style={{
-                    backgroundColor: "var(--interactive-warm-bg)",
-                    color: "var(--interactive-warm-text)",
-                    border: "1px solid var(--interactive-warm-border)",
-                    fontWeight: "var(--weight-medium)",
-                    transitionDuration: "var(--duration-normal)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg-hover)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg)";
-                  }}
+              {workspace === "builder" && (
+                <div
+                  className={`flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center ${chords.length > 0 ? "" : "hidden"}`}
                 >
-                  {instrument === "guitar" ? "Randomize All Variants" : "Randomize All Voicings"}
-                </button>
-
-                {instrument === "piano" && (
                   <button
-                    type="button"
-                    onClick={handleTogglePlayback}
-                    aria-label={isPlaying ? "Stop playback" : "Play progression"}
-                    className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all"
+                    onClick={randomizeAll}
+                    className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
                     style={{
-                      backgroundColor: isPlaying
-                        ? "var(--interactive-accent-bg)"
-                        : "var(--interactive-warm-bg)",
-                      color: isPlaying
-                        ? "var(--interactive-accent-text)"
-                        : "var(--interactive-warm-text)",
-                      border: `1px solid ${isPlaying ? "var(--interactive-accent-border)" : "var(--interactive-warm-border)"}`,
+                      backgroundColor: "var(--interactive-warm-bg)",
+                      color: "var(--interactive-warm-text)",
+                      border: "1px solid var(--interactive-warm-border)",
                       fontWeight: "var(--weight-medium)",
                       transitionDuration: "var(--duration-normal)",
-                      fontFamily: "var(--font-body)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg-hover)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg)";
                     }}
                   >
-                    {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-                    {isPlaying ? "Stop" : "Play progression"}
+                    {instrument === "guitar" ? "Randomize All Variants" : "Randomize All Voicings"}
                   </button>
-                )}
-              </div>
 
-              {/* The panel remains at this fixed tree position so collapsing,
-                  switching input tabs, or adding chords cannot reset a session. */}
+                  {instrument === "piano" && (
+                    <button
+                      type="button"
+                      onClick={handleTogglePlayback}
+                      aria-label={isPlaying ? "Stop playback" : "Play progression"}
+                      className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all"
+                      style={{
+                        backgroundColor: isPlaying
+                          ? "var(--interactive-accent-bg)"
+                          : "var(--interactive-warm-bg)",
+                        color: isPlaying
+                          ? "var(--interactive-accent-text)"
+                          : "var(--interactive-warm-text)",
+                        border: `1px solid ${isPlaying ? "var(--interactive-accent-border)" : "var(--interactive-warm-border)"}`,
+                        fontWeight: "var(--weight-medium)",
+                        transitionDuration: "var(--duration-normal)",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
+                      {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+                      {isPlaying ? "Stop" : "Play progression"}
+                    </button>
+                  )}
+                </div>
+              )}
+
               <VoiceAgentPanel />
             </div>
-          </VoiceAgentProvider>
-        </section>
+          </section>
 
-        {/* Chord Cards */}
-        {chords.length > 0 && (
+          {workspace === "builder" && chords.length > 0 && (
           <section
             className="w-full max-w-7xl mx-auto px-4"
             aria-label="Chord cards output"
@@ -403,10 +425,9 @@ function App() {
               })}
             </div>
           </section>
-        )}
+          )}
 
-        {/* Empty State */}
-        {chords.length === 0 && (
+          {workspace === "builder" && chords.length === 0 && (
           <div className="flex-1 flex items-center justify-center">
             <p
               className="text-center max-w-md"
@@ -419,8 +440,9 @@ function App() {
               </span>
             </p>
           </div>
-        )}
-      </main>
+          )}
+        </main>
+      </VoiceAgentProvider>
     </div>
   );
 }

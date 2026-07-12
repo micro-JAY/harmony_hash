@@ -2,8 +2,22 @@ export {
   isRootDiatonic,
   pitchClassOf,
   scaleDegreeOf,
+  scaleIntervalsFor,
   scalePitchClasses,
 } from "./scaleBasics";
+
+export {
+  buildFretboardRows,
+  fretboardTuningFor,
+  intervalLabelFor,
+  noteLabelForPitchClass,
+} from "./fretboard";
+export type {
+  FretboardInstrument,
+  FretboardPosition,
+  FretboardString,
+  FretboardStringRow,
+} from "./fretboard";
 
 export {
   findLastResolvedChord,

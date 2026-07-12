@@ -20,6 +20,7 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
             key={inst}
             type="button"
             onClick={() => onInstrumentChange(inst)}
+            aria-pressed={active}
             className="px-4 py-1.5 rounded-full text-sm font-medium transition-all"
             style={{
               fontFamily: "var(--font-body)",

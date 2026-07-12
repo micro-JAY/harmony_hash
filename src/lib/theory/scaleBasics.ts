@@ -16,15 +16,19 @@ const NOTE_PCS: Readonly<Record<string, number>> = {
   B: 11,
 };
 
-const SCALE_INTERVALS: Readonly<Record<ScaleType, ReadonlyArray<number>>> = {
-  major: [0, 2, 4, 5, 7, 9, 11],
-  natural_minor: [0, 2, 3, 5, 7, 8, 10],
-  harmonic_minor: [0, 2, 3, 5, 7, 8, 11],
-  dorian: [0, 2, 3, 5, 7, 9, 10],
-  mixolydian: [0, 2, 4, 5, 7, 9, 10],
-  lydian: [0, 2, 4, 6, 7, 9, 11],
-  phrygian: [0, 1, 3, 5, 7, 8, 10],
-};
+const SCALE_INTERVALS: Readonly<Record<ScaleType, ReadonlyArray<number>>> = Object.freeze({
+  major: Object.freeze([0, 2, 4, 5, 7, 9, 11]),
+  natural_minor: Object.freeze([0, 2, 3, 5, 7, 8, 10]),
+  harmonic_minor: Object.freeze([0, 2, 3, 5, 7, 8, 11]),
+  dorian: Object.freeze([0, 2, 3, 5, 7, 9, 10]),
+  mixolydian: Object.freeze([0, 2, 4, 5, 7, 9, 10]),
+  lydian: Object.freeze([0, 2, 4, 6, 7, 9, 11]),
+  phrygian: Object.freeze([0, 1, 3, 5, 7, 8, 10]),
+});
+
+export function scaleIntervalsFor(scaleType: ScaleType): ReadonlyArray<number> {
+  return SCALE_INTERVALS[scaleType];
+}
 
 export function pitchClassOf(rootName: string): number {
   const canonical = normalizeRoot(rootName);
@@ -37,7 +41,7 @@ export function scalePitchClasses(keyName: string, scaleType: ScaleType): Set<nu
   const keyPitchClass = pitchClassOf(keyName);
   if (keyPitchClass < 0) return new Set();
   return new Set(
-    SCALE_INTERVALS[scaleType].map((interval) => (keyPitchClass + interval) % 12),
+    scaleIntervalsFor(scaleType).map((interval) => (keyPitchClass + interval) % 12),
   );
 }
 
@@ -60,6 +64,6 @@ export function scaleDegreeOf(
   const keyPitchClass = pitchClassOf(keyName);
   if (rootPitchClass < 0 || keyPitchClass < 0) return null;
   const interval = (rootPitchClass - keyPitchClass + 12) % 12;
-  const index = SCALE_INTERVALS[scaleType].indexOf(interval);
+  const index = scaleIntervalsFor(scaleType).indexOf(interval);
   return index >= 0 ? index + 1 : null;
 }

@@ -79,3 +79,12 @@ export type {
   MoodKind,
   MoodScaleCandidate,
 } from "./moodEngine";
+
+export {
+  adjacentCircleKeys,
+  builderProgressionFor,
+  CIRCLE_KEYS,
+  circleKeyAt,
+  diatonicChordsFor,
+} from "./circleOfFifths";
+export type { CircleKey } from "./circleOfFifths";

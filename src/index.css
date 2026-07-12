@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+.circle-key-sector {
+  cursor: pointer;
+  outline: none;
+}
+
+.circle-key-sector__path {
+  transition: fill var(--duration-fast) var(--ease-out), stroke var(--duration-fast) var(--ease-out);
+}
+
+.circle-key-sector:hover .circle-key-sector__path,
+.circle-key-sector:focus-visible .circle-key-sector__path {
+  fill: var(--interactive-accent-bg-hover);
+  stroke: var(--interactive-focus-ring);
+  stroke-width: 4;
+}
+
+.circle-modulation-arc {
+  animation: circle-arc-travel 9s linear infinite;
+  pointer-events: none;
+}
+
+.circle-modulation-arc[data-reduced-motion="true"] {
+  animation: none;
+}
+
+@keyframes circle-arc-travel {
+  to { stroke-dashoffset: -160; }
+}
+
 :root {
   /* Harmony Hash learning colors extend the shared Tonari token layer with
      equal-strength categorical cues. Text labels remain the primary cue. */

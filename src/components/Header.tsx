@@ -27,7 +27,7 @@ export default function Header({
   const reduceMotion = useReducedMotion();
 
   return (
-    <header className="tonari-topbar flex-wrap sm:flex-nowrap">
+    <header className="tonari-topbar flex-wrap lg:flex-nowrap">
       <div className="tonari-brand">
         <span className="tonari-brand__name">
           HARMONY <span className="tonari-brand__name--accent">HASH</span>
@@ -38,10 +38,10 @@ export default function Header({
       <nav
         aria-label="Workspace"
         data-reduced-motion={reduceMotion ? "true" : "false"}
-        className="order-3 flex w-full justify-center rounded-full p-1 sm:order-none sm:w-auto"
+        className="order-3 flex w-full justify-center rounded-full p-1 lg:order-none lg:w-auto"
         style={{ backgroundColor: "var(--surface-overlay)" }}
       >
-        {(["builder", "fretboard"] as const).map((item) => {
+        {(["builder", "fretboard", "circle"] as const).map((item) => {
           const active = workspace === item;
           return (
             <button
@@ -49,7 +49,7 @@ export default function Header({
               type="button"
               onClick={() => onWorkspaceChange(item)}
               aria-pressed={active}
-              className="min-w-24 rounded-full px-4 py-1.5 text-sm transition-all"
+              className="min-w-20 rounded-full px-3 py-1.5 text-sm transition-all sm:min-w-24 sm:px-4"
               style={{
                 backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
                 color: active ? "var(--interactive-accent-text)" : "var(--text-muted)",

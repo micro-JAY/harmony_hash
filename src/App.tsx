@@ -6,14 +6,15 @@ import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
 import { computeVoiceLedProgression, isStyleApplicable } from "./lib/harmonyBrain";
-import { parseNotes } from "./lib/chordData";
+import { lookupChord, parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
 import type { ChordModifierOption } from "./lib/chordModifiers";
-import type { MoodId } from "./lib/theory";
+import { builderProgressionFor, type CircleKey, type MoodId } from "./lib/theory";
 import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
 
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 const ImprovInsight = lazy(() => import("./components/ImprovInsight"));
+const CircleOfFifths = lazy(() => import("./components/CircleOfFifths"));
 
 // Explicit (non-Auto) styles randomize cycles through. Auto is omitted
 // because it would defeat the "shake it up" intent of the button.
@@ -113,6 +114,19 @@ function App() {
     setHighlightedChordIndex(null);
     playbackHandleRef.current?.stop();
   }, [markTimelineMutation]);
+
+  const handleUseCircleKey = useCallback((key: CircleKey) => {
+    const resolved: DisplayChord[] = [];
+    for (const input of builderProgressionFor(key)) {
+      const chord = lookupChord(input);
+      if (!chord) {
+        throw new Error(`Circle progression contains an unavailable chord: ${input}`);
+      }
+      resolved.push({ input, chord });
+    }
+    handleResult(resolved, []);
+    setWorkspace("builder");
+  }, [handleResult]);
 
   const getPianoStyle = useCallback(
     (index: number): VoicingStyle => pianoStyles[index] ?? "auto",
@@ -332,11 +346,15 @@ function App() {
             <Suspense
               fallback={(
                 <section className="flex flex-1 items-center justify-center px-4 py-16" role="status">
-                  <span className="readout">Loading fretboard…</span>
+                  <span className="readout">Loading {workspace === "fretboard" ? "fretboard" : "circle"}…</span>
                 </section>
               )}
             >
-              <FretboardExplorer />
+              {workspace === "fretboard" ? (
+                <FretboardExplorer />
+              ) : (
+                <CircleOfFifths onUseKey={handleUseCircleKey} />
+              )}
             </Suspense>
           )}
 

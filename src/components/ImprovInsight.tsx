@@ -1,5 +1,6 @@
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
+import { prefersFlatNotation, splitRootAndQuality } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
 import { rankCompatibleScales, type ScaleSuggestion } from "../lib/theory/improvInsight";
 import { matchColorForPercent } from "./musicVisuals";
@@ -141,10 +142,19 @@ export default function ImprovInsight({ chords }: ImprovInsightProps) {
   const reduceMotion = useReducedMotion();
   const selectedChordIndex = Math.min(requestedChordIndex, Math.max(0, chords.length - 1));
   const suggestions = useMemo(() => {
-    const analysisChords = mode === "progression"
-      ? chords.map((item) => item.chord)
-      : chords[selectedChordIndex] ? [chords[selectedChordIndex].chord] : [];
-    return rankCompatibleScales(analysisChords, 6);
+    const analysisItems = mode === "progression"
+      ? chords
+      : chords[selectedChordIndex] ? [chords[selectedChordIndex]] : [];
+    return rankCompatibleScales(
+      analysisItems.map((item) => item.chord),
+      6,
+      {
+        preferFlats: analysisItems.some((item) => {
+          const [root] = splitRootAndQuality(item.input.trim());
+          return prefersFlatNotation(root);
+        }),
+      },
+    );
   }, [chords, mode, selectedChordIndex]);
 
   function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, currentMode: InsightMode) {

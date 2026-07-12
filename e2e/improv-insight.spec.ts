@@ -118,6 +118,25 @@ test.describe("Improv Insight", () => {
     expect(issues).toEqual([]);
   });
 
+  test("uses flat-key labels and degree spelling for flat-root progressions", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await enterProgression(page, "bbmaj7 ebmaj7 f7");
+    await openInsight(page);
+
+    const bFlatMajor = page.locator('[data-scale-result="Bb Major"]');
+    await expect(bFlatMajor).toBeVisible();
+    await expect(bFlatMajor).toContainText("Bb · C · D · Eb · F · G · A");
+    await expect(page.locator('[data-scale-result="A# Major"]')).toHaveCount(0);
+
+    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
+    await input.fill("Bfmaj7 Efmaj7 F7");
+    await input.press("Enter");
+    await expect(bFlatMajor).toBeVisible();
+    await expect(page.locator('[data-scale-result="A# Major"]')).toHaveCount(0);
+    expect(issues).toEqual([]);
+  });
+
   for (const viewport of [
     { name: "tablet", width: 820, height: 900 },
     { name: "mobile", width: 375, height: 812 },

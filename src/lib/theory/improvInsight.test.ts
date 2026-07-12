@@ -108,6 +108,15 @@ describe("Improv Insight theory", () => {
       .toEqual(["C", "D", "Eb", "E", "G", "A"]);
     expect(naturalResults.find((result) => result.label === "C Minor Blues")?.notes)
       .toEqual(["C", "Eb", "F", "Gb", "G", "Bb"]);
+
+    const flatResults = rankCompatibleScales(chords("Bbmaj7", "Ebmaj7", "F7"), 132, {
+      preferFlats: true,
+    });
+    expect(flatResults.find((result) => result.label === "Bb Major")).toMatchObject({
+      alsoKnownAs: "A# Major",
+      notes: ["Bb", "C", "D", "Eb", "F", "G", "A"],
+    });
+    expect(flatResults.some((result) => result.label === "A# Major")).toBe(false);
   });
 
   it("returns immutable deterministic rankings and validates limits", () => {

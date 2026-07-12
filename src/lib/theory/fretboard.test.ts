@@ -66,6 +66,9 @@ describe("fretboard theory", () => {
     for (const tuning of [...guitarTunings, ...bassTunings]) {
       expect([...tuning.strings].reverse().map((string) => string.openNote).join(" "))
         .toBe(tuning.pitchSequence);
+      for (const string of tuning.strings) {
+        expect(string.absoluteOpenPitch % 12).toBe(string.openPitchClass);
+      }
     }
   });
 

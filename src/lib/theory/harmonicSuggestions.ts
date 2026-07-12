@@ -1,6 +1,7 @@
-import { lookupChord, parseNotes } from "../chordData";
+import { lookupChord } from "../chordData";
 import type { IndexedChord, ScaleType } from "../types";
 import { pitchClassOf, scalePitchClasses } from "./scaleBasics";
+import { chordPitchClasses } from "./chordTones";
 
 export interface HarmonyContext {
   key: string;
@@ -64,13 +65,7 @@ function circularPitchDistance(left: number, right: number): number {
 }
 
 function uniquePitchClasses(chord: IndexedChord): number[] {
-  return Array.from(
-    new Set(
-      parseNotes(chord.entry)
-        .map(pitchClassOf)
-        .filter((pitchClass) => pitchClass >= 0),
-    ),
-  );
+  return [...chordPitchClasses(chord)];
 }
 
 function keyFitDetails(chord: IndexedChord, context: HarmonyContext): KeyFitDetails {

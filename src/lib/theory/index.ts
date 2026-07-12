@@ -24,6 +24,26 @@ export type {
   FretboardTuningId,
 } from "./fretboard";
 
+export { chordPitchClasses, deriveChordTones } from "./chordTones";
+export type { ChordTone, ChordToneRole } from "./chordTones";
+
+export {
+  buildFretboardPattern,
+  CAGED_FORM_OPTIONS,
+  decorateFretboardPositions,
+  PATTERN_COMPATIBILITY_REASON,
+  THREE_NPS_OPTIONS,
+} from "./fretboardPatterns";
+export type {
+  CagedFormId,
+  DecoratedFretboardPosition,
+  FretboardPatternEnvelope,
+  FretboardPatternFamily,
+  FretboardPatternResult,
+  FretboardPatternSelection,
+  ThreeNpsStartDegree,
+} from "./fretboardPatterns";
+
 export {
   findLastResolvedChord,
   harmonicFitTier,

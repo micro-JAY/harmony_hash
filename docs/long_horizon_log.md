@@ -559,7 +559,7 @@ Completed Phase 2.6 on `feat/circle-of-fifths` using the normal planning workflo
 
 **Verification:** production build and lint pass; Vitest is 1,023/1,023; full Playwright is 67/67. The seven Circle browser tests cover all twelve keys, pointer and spatial keyboard selection, guitar and piano rendering, desktop/tablet/mobile containment, reduced motion, the visual baseline, and stale-agent invalidation. In-app Browser QA confirmed the 375px and desktop layouts, no document overflow, and zero warnings/errors; the desktop baseline was visually compared with the generated concept. Context7 React and Playwright requests were attempted before implementation and test work but the documentation service stalled, so the slice used the installed current plugin guidance and established repository patterns.
 
-**Current state:** implementation commit `588a62e` is pushed and draft PR [#42](https://github.com/micro-JAY/harmony_hash/pull/42) targets `main`. It is intentionally draft because its branch starts from the reviewed recovery chain; merge clean PRs #38, #40, and #41 first, then refresh #42 so its diff collapses to the Circle feature alone.
+**Current state:** Circle of Fifths merged to `main` via [#42](https://github.com/micro-JAY/harmony_hash/pull/42) after the reviewed dependency chain and refreshed CI completed.
 
 ---
 
@@ -575,7 +575,7 @@ Completed Phase 2.7 on `feat/scale-synthesia` using the normal planning workflow
 
 Dependency install reports 0 vulnerabilities with only the repository’s existing `allow-scripts` notices. Production build and lint pass; Vitest is 1,028/1,028; full Playwright is 74/74; the focused Scale Synthesia suite is 7/7. Desktop, 820px tablet, and 375px mobile coverage proves containment, reduced motion, internal keyboard scrolling, seven distinct degree colors, exact F# harmonic-minor spelling, mood filtering, guitar/arpeggio behavior, audio UI state, Builder continuity, and the visual baseline.
 
-**Current state:** implementation commit `f7ed91e` is pushed and draft PR [#43](https://github.com/micro-JAY/harmony_hash/pull/43) targets `main`. It is stacked on Circle; merge clean PRs #38, #40, #41, then #42 before refreshing #43 so its diff collapses to Scale Synthesia alone.
+**Current state:** Scale Synthesia merged to `main` via [#43](https://github.com/micro-JAY/harmony_hash/pull/43) after the reviewed dependency chain and refreshed CI completed.
 
 ---
 
@@ -587,4 +587,4 @@ The final independent review caught and drove fixes for five cross-surface detai
 
 **Verification:** dependency install reports 0 vulnerabilities; production build and lint pass; Vitest is 1,035/1,035; full Playwright is 82/82. The eight Network browser tests cover exact E harmonic-minor relatives, pointer and keyboard selection, all four families, Parallel roots, mood-safe Scale Synthesia handoff, Builder/companion/network-state continuity, desktop/tablet/mobile containment, reduced motion, minimum readable mobile geometry, console health, and the inspected desktop visual baseline. The final independent re-review found no remaining Critical, High, or Medium issue. Context7 React and Playwright requests were attempted before implementation and browser-test work but stalled, so installed current plugin guidance and established repository patterns remained authoritative.
 
-**Current state:** implementation commit `9cb7637` is pushed and draft PR [#44](https://github.com/micro-JAY/harmony_hash/pull/44) targets `main`. PR #38 merged to `main` as `2a08af3` while this milestone was finishing. Merging that independent audit surfaced documentation conflicts across #40–#44; #44 preserves the newer reviewed milestone records and marks #38 done. PRs #40–#43 still need branch refreshes in dependency order before #44 can collapse to the Network-only diff. Obsolete #28 remains intentionally untouched.
+**Current state:** implementation commit `9cb7637` is pushed and draft PR [#44](https://github.com/micro-JAY/harmony_hash/pull/44) targets `main`. PRs #38 and #40–#43 are merged; #44 is refreshed onto that complete dependency chain and ready for its final CI/merge gate. Obsolete #28 remains intentionally untouched.

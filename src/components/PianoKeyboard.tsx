@@ -149,7 +149,11 @@ export default function PianoKeyboard({
   const totalWidth = WHITE_KEYS.length * whiteKeyW;
 
   return (
-    <div className="relative mx-auto" style={{ width: totalWidth, height: whiteKeyH }}>
+    <div
+      data-testid="piano-keyboard"
+      className="relative mx-auto"
+      style={{ width: totalWidth, height: whiteKeyH }}
+    >
       {/* White keys */}
       {WHITE_KEYS.map((key, i) => {
         const active = activeSet.get(key.midi);

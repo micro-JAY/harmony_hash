@@ -15,6 +15,7 @@ import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 const ImprovInsight = lazy(() => import("./components/ImprovInsight"));
 const CircleOfFifths = lazy(() => import("./components/CircleOfFifths"));
+const ScaleSynthesia = lazy(() => import("./components/ScaleSynthesia"));
 
 // Explicit (non-Auto) styles randomize cycles through. Auto is omitted
 // because it would defeat the "shake it up" intent of the button.
@@ -346,14 +347,16 @@ function App() {
             <Suspense
               fallback={(
                 <section className="flex flex-1 items-center justify-center px-4 py-16" role="status">
-                  <span className="readout">Loading {workspace === "fretboard" ? "fretboard" : "circle"}…</span>
+                  <span className="readout">Loading {workspace}…</span>
                 </section>
               )}
             >
               {workspace === "fretboard" ? (
                 <FretboardExplorer />
-              ) : (
+              ) : workspace === "circle" ? (
                 <CircleOfFifths onUseKey={handleUseCircleKey} />
+              ) : (
+                <ScaleSynthesia moodId={moodId} onMoodChange={setMoodId} />
               )}
             </Suspense>
           )}

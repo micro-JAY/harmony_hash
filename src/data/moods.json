@@ -1,4 +1,5 @@
-[
+{
+  "moods": [
   {
     "id": "bright",
     "label": "Bright",
@@ -95,4 +96,203 @@
     "scales": ["mixolydian", "major", "major_blues", "dorian"],
     "qualityWeights": { "major": 92, "minor": 68, "dominant": 98, "other": 58, "sustained": 80 }
   }
-]
+  ],
+  "scaleLearning": [
+    {
+      "id": "major",
+      "label": "Major (Ionian)",
+      "family": "major_modes",
+      "useItFor": "clear tonal melodies · familiar cadences · bright resolution",
+      "hearItIn": "Let It Be — The Beatles"
+    },
+    {
+      "id": "dorian",
+      "label": "Dorian",
+      "family": "major_modes",
+      "useItFor": "minor grooves · jazz-funk · modal vamps",
+      "hearItIn": "So What — Miles Davis"
+    },
+    {
+      "id": "phrygian",
+      "label": "Phrygian",
+      "family": "major_modes",
+      "useItFor": "dark riffs · flamenco color · flat-second tension",
+      "hearItIn": "White Rabbit — Jefferson Airplane"
+    },
+    {
+      "id": "lydian",
+      "label": "Lydian",
+      "family": "major_modes",
+      "useItFor": "bright cinematic lift · floating major harmony",
+      "hearItIn": "Flying in a Blue Dream — Joe Satriani"
+    },
+    {
+      "id": "mixolydian",
+      "label": "Mixolydian",
+      "family": "major_modes",
+      "useItFor": "dominant grooves · rock · folk melodies",
+      "hearItIn": "Norwegian Wood — The Beatles"
+    },
+    {
+      "id": "natural_minor",
+      "label": "Natural Minor (Aeolian)",
+      "family": "major_modes",
+      "useItFor": "melancholy pop · rock · minor-key songs",
+      "hearItIn": "Losing My Religion — R.E.M."
+    },
+    {
+      "id": "locrian",
+      "label": "Locrian",
+      "family": "major_modes",
+      "useItFor": "unstable diminished harmony · tension studies",
+      "hearItIn": "Army of Me — Björk"
+    },
+    {
+      "id": "harmonic_minor",
+      "label": "Harmonic Minor",
+      "family": "harmonic_minor_modes",
+      "useItFor": "neoclassical metal · flamenco · dramatic minor-key tension",
+      "hearItIn": "Hava Nagila — traditional"
+    },
+    {
+      "id": "locrian_natural_6",
+      "label": "Locrian natural 6",
+      "family": "harmonic_minor_modes",
+      "useItFor": "half-diminished chords · dark modal movement",
+      "hearItIn": "Harmonic-minor mode studies"
+    },
+    {
+      "id": "ionian_sharp_5",
+      "label": "Ionian sharp 5",
+      "family": "harmonic_minor_modes",
+      "useItFor": "augmented-major harmony · cinematic suspense",
+      "hearItIn": "Augmented-major film-score language"
+    },
+    {
+      "id": "dorian_sharp_4",
+      "label": "Dorian sharp 4",
+      "family": "harmonic_minor_modes",
+      "useItFor": "minor vamps · raised-fourth tension · fusion",
+      "hearItIn": "Harmonic-minor modal fusion"
+    },
+    {
+      "id": "phrygian_dominant",
+      "label": "Phrygian Dominant",
+      "family": "harmonic_minor_modes",
+      "useItFor": "flamenco · surf rock · dominant flat-nine color",
+      "hearItIn": "Misirlou — traditional"
+    },
+    {
+      "id": "lydian_sharp_2",
+      "label": "Lydian sharp 2",
+      "family": "harmonic_minor_modes",
+      "useItFor": "bright altered harmony · exotic major color",
+      "hearItIn": "Harmonic-minor mode studies"
+    },
+    {
+      "id": "altered_diminished",
+      "label": "Altered Diminished",
+      "family": "harmonic_minor_modes",
+      "useItFor": "diminished tension · altered resolution · modern jazz",
+      "hearItIn": "Harmonic-minor leading-tone lines"
+    },
+    {
+      "id": "melodic_minor",
+      "label": "Melodic Minor",
+      "family": "melodic_minor_modes",
+      "useItFor": "jazz minor harmony · ascending minor melodies",
+      "hearItIn": "Melodic-minor language in modern jazz"
+    },
+    {
+      "id": "dorian_flat_2",
+      "label": "Dorian flat 2",
+      "family": "melodic_minor_modes",
+      "useItFor": "minor-sus harmony · dark jazz vamps",
+      "hearItIn": "Melodic-minor modal jazz"
+    },
+    {
+      "id": "lydian_augmented",
+      "label": "Lydian Augmented",
+      "family": "melodic_minor_modes",
+      "useItFor": "augmented-major chords · luminous tension",
+      "hearItIn": "Modern jazz over major-sharp-five harmony"
+    },
+    {
+      "id": "lydian_dominant",
+      "label": "Lydian Dominant",
+      "family": "melodic_minor_modes",
+      "useItFor": "dominant sharp-eleven chords · fusion · jazz",
+      "hearItIn": "The Simpsons Theme — Danny Elfman"
+    },
+    {
+      "id": "mixolydian_flat_6",
+      "label": "Mixolydian flat 6",
+      "family": "melodic_minor_modes",
+      "useItFor": "dominant chords with minor-sixth color · film noir",
+      "hearItIn": "Melodic-minor dominant studies"
+    },
+    {
+      "id": "locrian_natural_2",
+      "label": "Locrian natural 2",
+      "family": "melodic_minor_modes",
+      "useItFor": "half-diminished chords · minor ii–V movement",
+      "hearItIn": "Jazz minor ii–V lines"
+    },
+    {
+      "id": "altered",
+      "label": "Altered Scale",
+      "family": "melodic_minor_modes",
+      "useItFor": "altered dominants · maximum tension before resolution",
+      "hearItIn": "Modern jazz altered-dominant lines"
+    },
+    {
+      "id": "major_pentatonic",
+      "label": "Major Pentatonic",
+      "family": "pentatonic",
+      "useItFor": "country · soul · bright melodic fills",
+      "hearItIn": "My Girl — The Temptations"
+    },
+    {
+      "id": "minor_pentatonic",
+      "label": "Minor Pentatonic",
+      "family": "pentatonic",
+      "useItFor": "rock riffs · blues solos · minor vamps",
+      "hearItIn": "Sunshine of Your Love — Cream"
+    },
+    {
+      "id": "major_blues",
+      "label": "Major Blues",
+      "family": "blues",
+      "useItFor": "rock-and-roll · country blues · upbeat fills",
+      "hearItIn": "Johnny B. Goode — Chuck Berry"
+    },
+    {
+      "id": "minor_blues",
+      "label": "Minor Blues",
+      "family": "blues",
+      "useItFor": "electric blues · rock leads · blue-note tension",
+      "hearItIn": "The Thrill Is Gone — B.B. King"
+    },
+    {
+      "id": "hungarian_minor",
+      "label": "Hungarian Minor",
+      "family": "exotic",
+      "useItFor": "dramatic folk color · metal · two augmented seconds",
+      "hearItIn": "Hungarian and Romani-influenced repertoire"
+    },
+    {
+      "id": "whole_tone",
+      "label": "Whole Tone",
+      "family": "exotic",
+      "useItFor": "dreamlike ambiguity · augmented chords · impressionism",
+      "hearItIn": "Voiles — Claude Debussy"
+    },
+    {
+      "id": "diminished_whole_half",
+      "label": "Diminished (whole–half)",
+      "family": "exotic",
+      "useItFor": "diminished-seventh chords · symmetrical tension",
+      "hearItIn": "Caravan — Duke Ellington"
+    }
+  ]
+}

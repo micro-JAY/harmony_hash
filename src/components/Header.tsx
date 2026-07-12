@@ -41,7 +41,7 @@ export default function Header({
         className="order-3 flex w-full justify-center rounded-full p-1 lg:order-none lg:w-auto"
         style={{ backgroundColor: "var(--surface-overlay)" }}
       >
-        {(["builder", "fretboard", "circle"] as const).map((item) => {
+        {(["builder", "fretboard", "circle", "scales"] as const).map((item) => {
           const active = workspace === item;
           return (
             <button

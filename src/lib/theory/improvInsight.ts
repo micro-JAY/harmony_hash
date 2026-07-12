@@ -13,6 +13,18 @@ export type ScaleMotion = "smooth" | "jumpy";
 export type ScaleTension = "rises" | "static" | "falls";
 export type ScalePalette = "diatonic" | "chromatic";
 export type ScaleStyle = "tonal" | "modal" | "blues";
+export type ImprovScaleFormulaType =
+  | "major"
+  | "natural_minor"
+  | "harmonic_minor"
+  | "dorian"
+  | "mixolydian"
+  | "lydian"
+  | "phrygian"
+  | "major_pentatonic"
+  | "minor_pentatonic"
+  | "major_blues"
+  | "minor_blues";
 
 export interface ScaleSuggestionMetadata {
   readonly motion: ScaleMotion;
@@ -23,7 +35,7 @@ export interface ScaleSuggestionMetadata {
 
 export interface ScaleSuggestion {
   readonly key: string;
-  readonly scaleType: ScaleFormulaType;
+  readonly scaleType: ImprovScaleFormulaType;
   readonly label: string;
   readonly alsoKnownAs?: string;
   readonly match: number;
@@ -63,11 +75,11 @@ const SCALE_TYPES = Object.freeze([
   "minor_pentatonic",
   "major_blues",
   "minor_blues",
-] as const satisfies ReadonlyArray<ScaleFormulaType>);
+] as const satisfies ReadonlyArray<ImprovScaleFormulaType>);
 
 export const SCALE_SUGGESTION_CANDIDATE_COUNT = CANDIDATE_ROOTS.length * SCALE_TYPES.length;
 
-const SCALE_TYPE_LABELS: Readonly<Record<ScaleFormulaType, string>> = Object.freeze({
+const SCALE_TYPE_LABELS: Readonly<Record<ImprovScaleFormulaType, string>> = Object.freeze({
   major: "Major",
   natural_minor: "Natural Minor",
   harmonic_minor: "Harmonic Minor",
@@ -157,7 +169,7 @@ export function scaleStyle(scaleType: ScaleFormulaType): ScaleStyle {
 function suggestionFor(
   progressionTones: ReadonlySet<number>,
   key: string,
-  scaleType: ScaleFormulaType,
+  scaleType: ImprovScaleFormulaType,
   preferFlats: boolean,
 ): ScaleSuggestion {
   const fit = scoreScale(scaleType, key, progressionTones);

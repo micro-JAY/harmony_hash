@@ -260,6 +260,7 @@ export default function GuitarChordDiagram({
   if (failed || !svgUrl) {
     return (
       <div
+        data-testid="guitar-chord-diagram"
         className="w-44 h-44 flex items-center justify-center rounded-lg"
         style={{ backgroundColor: "var(--surface-overlay)", color: "var(--text-muted)" }}
       >
@@ -271,6 +272,7 @@ export default function GuitarChordDiagram({
   if (loading) {
     return (
       <div
+        data-testid="guitar-chord-diagram"
         className="w-44 h-56 rounded-lg animate-pulse"
         style={{ backgroundColor: "var(--surface-overlay)" }}
       />
@@ -280,6 +282,7 @@ export default function GuitarChordDiagram({
   return (
     <div
       ref={containerRef}
+      data-testid="guitar-chord-diagram"
       className="w-44 h-auto"
       style={{ display: "flex", justifyContent: "center" }}
     />

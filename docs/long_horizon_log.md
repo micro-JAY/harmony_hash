@@ -517,6 +517,20 @@ The same branch adds app-local music-semantic tokens on top of the mirrored Tona
 
 ---
 
+## 2026-07-13 04:15 JST — Common Progressions Library Audit
+
+Completed the bounded Phase 2.4 audit on `feat/progression-library-expansion` using the normal planning workflow requested after the prior OpenSpec round. The inspiration roadmap names `I – IV – I – V` and `ii – V – I` as reference gaps, but both already ship as `The Plagal Loop` and `The 2-5-1 (The King)`. The existing picker already drops either preset into the shared timeline in the selected key, so neither a schema change nor speculative catalog additions were justified.
+
+**Coverage added:** a two-way source/document contract now compares all 62 presets by group, subgroup, label, numerals, and effective scale type. A parameterized matrix resolves every preset in all 12 keys through the same `transposeNumeralString` and `lookupChord` path used by the app (744 combinations). Browser coverage selects the two roadmap examples through accessible names, verifies D-major `I – IV – I – V` becomes D–G–D–A, and confirms C-major `ii – V – I` renders three real guitar SVGs and three piano keyboards. Progression controls now expose stable accessible labels; instrument render roots expose test ids without visual changes.
+
+**Review and verification:** Context7 supplied the current Vitest structured-parameter guidance. The first independent review found three Medium test-quality issues: an overbroad example claim, flattened documentation parity, and brittle/overstated browser assertions. All three were fixed, and the final re-review found no remaining Critical, High, or Medium issue. Production build and lint pass; Vitest is 986/986; full Playwright is 51/51; focused catalog coverage is 747/747; focused browser coverage is 2/2. The existing large-chunk build warning remains unchanged.
+
+**Current state:** implementation commit `c4da050` is pushed to `origin/feat/progression-library-expansion`; PR [#38](https://github.com/micro-JAY/harmony_hash/pull/38) targets `main`. The runtime catalog remains unchanged. PR [#37](https://github.com/micro-JAY/harmony_hash/pull/37) has since merged.
+
+**Voice deployment reconciliation:** the earlier S.2 blocker note was stale. PR [#29](https://github.com/micro-JAY/harmony_hash/pull/29) is merged, and `wrangler deployments list` shows tagged production deployments for merged recovery commit `ec35ad2` and completed feature-stack commit `063fe5b`; the active version exposes both OpenAI and ElevenLabs secret bindings by name. No redundant deploy was performed from this unrelated feature branch. Status-only curl and in-app Browser checks both stop at the custom domain's Cloudflare challenge (403 / "Just a moment...") before the Worker, so live signed-URL success remains unclaimed; no key, response body, or signed URL was read or printed.
+
+---
+
 ## 2026-07-13 04:58 JST — Mood and Genre Lens
 
 Completed Phase 2.5 on `feat/mood-genre-filter`, stacked on the reviewed Improv Insight branch because compatible-scale filtering consumes that engine. A validated `src/data/moods.json` catalog defines the complete twelve-item vocabulary—Bright, Dark, Jazzy, Bluesy, Latin, Film Noir, Ethereal, Happy, Melancholy, Heroic, Ancient, and Lively—using existing scale families plus dictionary-native Major/Minor/Dominant/Other/Sustained quality weights. The parser fails closed on malformed records, missing or duplicate ids, unsupported scales, duplicate scale entries, empty copy, out-of-range weights, and oversized vocabularies; all published definitions are deeply frozen.

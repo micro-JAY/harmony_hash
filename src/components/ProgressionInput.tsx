@@ -440,6 +440,7 @@ export default function ProgressionInput({
                       return (
                         <button
                           key={pIdx}
+                          aria-label={`${p.name}: ${p.numerals}`}
                           onClick={() => handleProgressionSelect(sIdx, pIdx, p, scaleType)}
                           title={p.name}
                           className="px-3 py-1.5 rounded-lg text-sm transition-all"

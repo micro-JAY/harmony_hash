@@ -8,6 +8,7 @@ import { useT } from "./i18n/I18nContext";
 import { computeVoiceLedProgression, isStyleApplicable } from "./lib/harmonyBrain";
 import { parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
+import type { ChordModifierOption } from "./lib/chordModifiers";
 import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
 
 // Explicit (non-Auto) styles randomize cycles through. Auto is omitted
@@ -74,6 +75,7 @@ function App() {
   const t = useT();
   const [instrument, setInstrument] = useState<Instrument>("guitar");
   const [chords, setChords] = useState<DisplayChord[]>([]);
+  const [cardKeys, setCardKeys] = useState<number[]>([]);
   const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
   const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
@@ -84,6 +86,7 @@ function App() {
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackHandleRef = useRef<PlaybackHandle | null>(null);
+  const nextCardKeyRef = useRef(1);
   const timelineVersionRef = useRef(0);
   const [timelineVersion, setTimelineVersion] = useState(0);
 
@@ -96,6 +99,7 @@ function App() {
   const handleResult = useCallback((resolved: DisplayChord[], _errors: ParseError[]) => {
     markTimelineMutation();
     setChords(resolved);
+    setCardKeys(resolved.map(() => nextCardKeyRef.current++));
     setCardVariants({});
     setLockedCards(new Set());
     setPianoStyles({});
@@ -211,12 +215,34 @@ function App() {
   const removeChordAt = useCallback((index: number) => {
     markTimelineMutation();
     setChords((prev) => prev.filter((_, i) => i !== index));
+    setCardKeys((prev) => prev.filter((_, i) => i !== index));
     setCardVariants((prev) => shiftIndexedRecord(prev, index));
     setPianoStyles((prev) => shiftIndexedRecord(prev, index));
     setLockedCards((prev) => shiftIndexedSet(prev, index));
     setHighlightedChordIndex((h) =>
       h === null || h === index ? null : h > index ? h - 1 : h,
     );
+    playbackHandleRef.current?.stop();
+  }, [markTimelineMutation]);
+
+  const replaceChordAt = useCallback((index: number, option: ChordModifierOption) => {
+    markTimelineMutation();
+    setChords((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { input: option.label, chord: option.chord } : item,
+      ),
+    );
+    setCardVariants((prev) => ({
+      ...prev,
+      [index]: clampVariant(prev[index] ?? 1, option.chord.variationCount),
+    }));
+    setPianoStyles((prev) => {
+      const currentStyle = prev[index];
+      if (!currentStyle || isStyleApplicable(parseNotes(option.chord.entry), currentStyle)) {
+        return prev;
+      }
+      return { ...prev, [index]: "auto" };
+    });
     playbackHandleRef.current?.stop();
   }, [markTimelineMutation]);
 
@@ -253,7 +279,9 @@ function App() {
         setProgression: (next) => handleResult(next, []),
         appendChords: (next) => {
           markTimelineMutation();
+          const newKeys = next.map(() => nextCardKeyRef.current++);
           setChords((prev) => [...prev, ...next]);
+          setCardKeys((prev) => [...prev, ...newKeys]);
         },
         removeChordAt: (index) => removeChordAt(index),
         startPlayback: () => {
@@ -356,7 +384,7 @@ function App() {
                 const maxVariants = chordResult.chord.variationCount;
                 return (
                   <ChordCard
-                    key={`${chordResult.input}-${index}`}
+                    key={cardKeys[index] ?? index}
                     chord={chordResult.chord}
                     instrument={instrument}
                     displayName={chordResult.input}
@@ -369,6 +397,7 @@ function App() {
                     voicing={pianoVoicings[index]}
                     pianoStyle={getPianoStyle(index)}
                     onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
+                    onChordChange={(option) => replaceChordAt(index, option)}
                     isPlaying={activeChordIndex === index || highlightedChordIndex === index}
                   />
                 );

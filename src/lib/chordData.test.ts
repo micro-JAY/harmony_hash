@@ -77,3 +77,23 @@ describe("lookupChord slash chords", () => {
     expect(plainD?.bass).toBeUndefined();
   });
 });
+
+describe("lookupChord catalog symbols", () => {
+  it("does not split aliases at commas inside parentheses", () => {
+    expect(lookupChord("G9")?.entry["Chord Name"]).toMatch(/^G9 /);
+    expect(lookupChord("G13")?.entry["Chord Name"]).toMatch(/^G13 /);
+    expect(lookupChord("G7(b5,#9)")?.entry["Chord Name"]).toMatch(/^G7\(b5,#9\) /);
+  });
+
+  it("normalizes optional quality parentheses for lookup", () => {
+    expect(lookupChord("Cmaj9(#11)")?.entry["Chord Name"]).toMatch(/^Cmaj9\(#11\) /);
+    expect(lookupChord("Cmaj9#11")?.entry["Chord Name"]).toMatch(/^Cmaj9\(#11\) /);
+  });
+
+  it("distinguishes natural suspended chords from internal sharp notation", () => {
+    expect(lookupChord("Csus2")?.entry.Notes).toBe("C-D-G");
+    expect(lookupChord("C#sus2")?.entry.Notes).not.toBe("C-D-G");
+    expect(lookupChord("Fsus")?.root).toBe("F");
+    expect(lookupChord("F#sus")?.root).toBe("Fs");
+  });
+});

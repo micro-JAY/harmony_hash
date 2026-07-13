@@ -642,3 +642,19 @@ A production in-app Browser check loaded the Hasher and reported the progression
 The independent accuracy review initially found two Medium ledger gaps: omitted supporting PRs/statuses and incomplete dispositions for earlier open questions. The final summary now records every PR from #13 through #51, marks #28 Cancelled as superseded, assigns Done to every shipped milestone including both side tracks, and resolves or explicitly defers every canonical Q/follow-up. The final re-review found no remaining Critical, High, or Medium issue.
 
 **Current state:** branch `chore/long-horizon-summary` contains only the independently reviewed summary and this dated closure entry. Next: standard docs-only CI and exact-head merge; future product work begins as a separate bounded feature from the sealed ledger baseline.
+
+---
+
+## 2026-07-13 18:31 JST — Lazy Voice Runtime
+
+Completed side-track S.3 on `feat/lazy-voice-runtime` using the normal planning workflow requested after the final archived OpenSpec change. The ElevenLabs provider, Hanz panel, and SDK now live behind one dynamic-import boundary. Pointer or keyboard intent on the contextual help control starts the fetch, activation opens the popup, and the provider remains mounted after first use so transcript, client-tool registration, and connection state survive close/reopen. The initial path imports the progression bridge directly rather than through the voice barrel, preventing eager SDK reachability.
+
+The lightweight loading shell preserves Hanz's Tonari surface, close/Escape focus restoration, and short-viewport scrolling before the runtime arrives. A failed runtime payload is contained without taking down the Hasher and offers a truthful page reload; the app never logs the provider key or signed URL. Closing during a pending signed-URL fetch still aborts the request before microphone access, and voice highlight state remains separate from the playback cursor.
+
+**Bundle result:** production initial JavaScript fell from 1,099.45 kB raw / 292.37 kB gzip to 596.91 kB raw / 158.73 kB gzip. The deferred voice runtime is 501.17 kB raw / 132.93 kB gzip, a 133.64 kB (45.7%) reduction in initial gzip transfer. Vite's >500 kB warning remains accurate for that optional chunk but no longer describes the initial voice cost.
+
+The independent review found one Medium issue in an early two-wrapper retry design: both wrappers shared the same provider payload, so a real payload failure could not be retried in place. The duplicate entry was removed, recovery became reload-only, and the browser test now aborts the actual 501 kB chunk. A Low test gap was also closed by proving signed-URL error state persists across close/reopen without a second request. The final re-review found no remaining Critical, High, or Medium issue.
+
+**Verification:** production build and lint pass; Vitest is 1,064/1,064; full Playwright is 97/97; the focused voice suite is 18/18 across three consecutive runs. Desktop, 375px portrait, short landscape, pointer intent, keyboard intent, Escape focus restoration, chunk failure, provider persistence, signed-URL failure, and pending-request cancellation are covered. The first CI pass exposed a Linux-only test race that measured the loading shell while React replaced it with the full panel; waiting for the full panel's connect control fixed the target-state ambiguity without weakening layout assertions. The exact `704d8cf` head then passed both build/test jobs, both full Playwright jobs, and the Worker build.
+
+**Current state:** Lazy Voice Runtime merged to `main` as `61464b5` via [#53](https://github.com/micro-JAY/harmony_hash/pull/53). PR #28 remains closed and superseded; no conflict resolution or deletion is needed.

@@ -1,6 +1,6 @@
 import { lookupChord } from "../chordData";
 import type { IndexedChord, ScaleType } from "../types";
-import { pitchClassOf, scalePitchClasses } from "./scaleBasics";
+import { pitchClassOf, scaleIntervalsFor, scalePitchClasses } from "./scaleBasics";
 import { chordPitchClasses } from "./chordTones";
 
 export interface HarmonyContext {
@@ -19,9 +19,19 @@ export interface HarmonicFitComponents {
 export interface HarmonicFitResult {
   score: number;
   tier: HarmonicFitTier;
-  basis: "key" | "next";
+  basis: "key" | "next" | "jazz";
   components: HarmonicFitComponents;
   reasons: string[];
+}
+
+export interface JazzHarmonicFitComponents extends HarmonicFitComponents {
+  jazzVocabulary: number;
+  cadence: number;
+}
+
+export interface JazzHarmonicFitResult extends Omit<HarmonicFitResult, "basis" | "components"> {
+  basis: "jazz";
+  components: JazzHarmonicFitComponents;
 }
 
 interface KeyFitDetails {
@@ -88,6 +98,133 @@ function rootMotionInterval(previous: IndexedChord, candidate: IndexedChord): nu
   const candidateRoot = pitchClassOf(candidate.root);
   if (previousRoot < 0 || candidateRoot < 0) return null;
   return (candidateRoot - previousRoot + 12) % 12;
+}
+
+function rootPitchClass(chord: IndexedChord): number | null {
+  const pitchClass = pitchClassOf(chord.root);
+  return pitchClass < 0 ? null : pitchClass;
+}
+
+function chordSteps(chord: IndexedChord): ReadonlySet<string> {
+  return new Set(chord.entry.Steps.split("-").filter(Boolean));
+}
+
+function hasDominantFunction(chord: IndexedChord): boolean {
+  const steps = chordSteps(chord);
+  return steps.has("3") && steps.has("b7");
+}
+
+function hasTonicFunction(chord: IndexedChord, context: HarmonyContext): boolean {
+  const intervals = scaleIntervalsFor(context.scaleType);
+  const steps = chordSteps(chord);
+  const tonicThird = intervals[2] === 3 ? "b3" : "3";
+  const conflictingThird = tonicThird === "b3" ? "3" : "b3";
+  const tonicFifth = intervals[4] === 6
+    ? "b5"
+    : intervals[4] === 8
+      ? "#5"
+      : "5";
+  const tonicSeventh = intervals[6] === 10 ? "b7" : "7";
+  const conflictingSeventh = tonicSeventh === "b7" ? "7" : "b7";
+
+  return steps.has(tonicThird)
+    && !steps.has(conflictingThird)
+    && steps.has(tonicFifth)
+    && !steps.has(conflictingSeventh);
+}
+
+function isCompatibleJazzIi(chord: IndexedChord, context: HarmonyContext): boolean {
+  const tonic = pitchClassOf(context.key);
+  const root = rootPitchClass(chord);
+  const intervals = scaleIntervalsFor(context.scaleType);
+  const secondDegree = intervals[1];
+  const iiThird = intervals[3] - secondDegree;
+  const iiFifth = intervals[5] - secondDegree;
+  const iiSeventh = 12 - secondDegree;
+
+  // The ii label is reserved for minor or half-diminished scale-degree-two
+  // functions. Lydian II7 and Phrygian bIImaj7 are different motions.
+  if (tonic < 0 || root !== (tonic + secondDegree) % 12 || iiThird !== 3) {
+    return false;
+  }
+
+  const steps = chordSteps(chord);
+  const expectedFifth = iiFifth === 6 ? "b5" : iiFifth === 8 ? "#5" : "5";
+  const expectedSeventh = iiSeventh === 11 ? "7" : "b7";
+  return steps.has("b3")
+    && steps.has(expectedFifth)
+    && steps.has(expectedSeventh);
+}
+
+interface JazzCadenceDetails {
+  score: number;
+  reason: string;
+}
+
+function jazzCadenceDetails(
+  candidate: IndexedChord,
+  context: HarmonyContext,
+  history: ReadonlyArray<IndexedChord>,
+): JazzCadenceDetails {
+  const tonic = pitchClassOf(context.key);
+  const candidateRoot = rootPitchClass(candidate);
+  if (tonic < 0 || candidateRoot === null) {
+    return { score: 35, reason: "open jazz color" };
+  }
+
+  const dominantRoot = (tonic + 7) % 12;
+  const tritoneSubRoot = (dominantRoot + 6) % 12;
+  const previous = history.at(-1);
+  const penultimate = history.at(-2);
+  const previousRoot = previous ? rootPitchClass(previous) : null;
+  const previousIsIi = previous !== undefined && isCompatibleJazzIi(previous, context);
+  const penultimateIsIi = penultimate !== undefined
+    && isCompatibleJazzIi(penultimate, context);
+  const previousIsDominant = previous !== undefined && hasDominantFunction(previous);
+  const candidateIsDominant = hasDominantFunction(candidate);
+  const candidateIsTonic = candidateRoot === tonic && hasTonicFunction(candidate, context);
+
+  if (
+    candidateIsTonic
+    && penultimateIsIi
+    && previousIsDominant
+    && previousRoot === dominantRoot
+  ) {
+    return { score: 100, reason: "completes ii–V–I" };
+  }
+  if (
+    candidateIsTonic
+    && penultimateIsIi
+    && previousIsDominant
+    && previousRoot === tritoneSubRoot
+  ) {
+    return { score: 98, reason: "completes ii–subV–I" };
+  }
+  if (candidateIsTonic && previousIsDominant && previousRoot === dominantRoot) {
+    return { score: 100, reason: "dominant resolution" };
+  }
+  if (candidateIsTonic && previousIsDominant && previousRoot === tritoneSubRoot) {
+    return { score: 96, reason: "tritone-sub resolution" };
+  }
+  if (previousIsIi && candidateIsDominant && candidateRoot === dominantRoot) {
+    return { score: 100, reason: "ii–V motion" };
+  }
+  if (previousIsIi && candidateIsDominant && candidateRoot === tritoneSubRoot) {
+    return { score: 92, reason: "tritone-substitute dominant" };
+  }
+  if (candidateIsDominant && candidateRoot === dominantRoot) {
+    return { score: 72, reason: "primary dominant function" };
+  }
+  if (candidateIsDominant && candidateRoot === tritoneSubRoot) {
+    return { score: 68, reason: "tritone-substitute color" };
+  }
+  if (isCompatibleJazzIi(candidate, context)) {
+    return { score: 72, reason: "ii function" };
+  }
+  if (candidateIsTonic) {
+    return { score: 66, reason: "tonic color" };
+  }
+  return { score: 35, reason: "open jazz color" };
 }
 
 function rootMotionReason(interval: number): string {
@@ -159,6 +296,70 @@ export function scoreRootMotionFit(
 ): number {
   const interval = rootMotionInterval(previous, candidate);
   return interval === null ? 0 : ROOT_MOTION_SCORES[interval] ?? 0;
+}
+
+export function scoreJazzVocabularyFit(chord: IndexedChord): number {
+  const steps = chordSteps(chord);
+  const toneCount = uniquePitchClasses(chord).length;
+  const hasAlteration = ["b5", "#5", "b9", "#9", "#11", "b13"]
+    .some((step) => steps.has(step));
+  const hasUpperExtension = ["9", "11", "13", "b9", "#9", "#11", "b13"]
+    .some((step) => steps.has(step));
+  const halfDiminished = steps.has("b3") && steps.has("b5") && steps.has("b7");
+  const diminishedSeventh = steps.has("b3") && steps.has("b5") && steps.has("6");
+  const hasSeventhOrSixth = ["6", "7", "b7"].some((step) => steps.has(step));
+
+  if (hasDominantFunction(chord) && hasAlteration) return 100;
+  if (hasUpperExtension || toneCount >= 5) return 96;
+  if (halfDiminished || diminishedSeventh) return 94;
+  if (hasSeventhOrSixth || toneCount >= 4) return 90;
+  if (toneCount === 3) return 58;
+  return 35;
+}
+
+export function scoreJazzChordFit(
+  candidate: IndexedChord,
+  context: HarmonyContext,
+  history: ReadonlyArray<IndexedChord> = [],
+): JazzHarmonicFitResult {
+  const keyResult = scoreChordKeyFit(candidate, context);
+  const previous = history.at(-1);
+  const jazzVocabulary = scoreJazzVocabularyFit(candidate);
+  const cadence = jazzCadenceDetails(candidate, context, history);
+  const voiceLeading = previous ? scoreVoiceLeadingFit(previous, candidate) : null;
+  const rootMotion = previous ? scoreRootMotionFit(previous, candidate) : null;
+  const score = previous
+    ? clampScore(
+      keyResult.components.key * 0.25
+      + (voiceLeading ?? 0) * 0.25
+      + (rootMotion ?? 0) * 0.1
+      + jazzVocabulary * 0.2
+      + cadence.score * 0.2,
+    )
+    : clampScore(
+      keyResult.components.key * 0.45
+      + jazzVocabulary * 0.35
+      + cadence.score * 0.2,
+    );
+
+  return {
+    score,
+    tier: harmonicFitTier(score),
+    basis: "jazz",
+    components: {
+      key: keyResult.components.key,
+      voiceLeading,
+      rootMotion,
+      jazzVocabulary,
+      cadence: cadence.score,
+    },
+    reasons: [
+      keyResult.reasons[0],
+      `jazz vocabulary ${jazzVocabulary}%`,
+      ...(voiceLeading === null ? [] : [voiceLeadingReason(voiceLeading)]),
+      cadence.reason,
+    ],
+  };
 }
 
 export function scoreNextChordFit(

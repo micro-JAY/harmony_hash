@@ -135,6 +135,82 @@ test.describe("Free Input harmonic suggestions", () => {
     expect(browserIssues).toEqual([]);
   });
 
+  test("maps jazz cadence paths, tritone substitutes, and tier-strength glow", async ({ page }) => {
+    const browserIssues = collectBrowserIssues(page);
+    await openFreeInputGrid(page);
+    await page.getByRole("button", { name: "Jazz chord suggestions" }).click();
+
+    await expect(page.getByRole("button", { name: "Jazz chord suggestions" }))
+      .toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("suggestion-summary")).toHaveText(
+      "Jazz vocabulary in C major. Add a chord to reveal cadence paths.",
+    );
+    await expect(page.locator('button[data-fit-basis="jazz"]')).toHaveCount(84);
+
+    await page.locator('button[data-chord-name="Dm7"]').click();
+    await expect(page.getByTestId("suggestion-summary")).toHaveText(
+      "Jazz movement after Dm7 in C major",
+    );
+    const primaryDominant = page.getByRole("button", {
+      name: /G7, \d+% fit, strong.*ii–V motion/,
+    });
+    const tritoneSubstitute = page.getByRole("button", {
+      name: /C#7, \d+% fit, good.*tritone-substitute dominant/,
+    });
+    await expect(primaryDominant).toBeVisible();
+    await expect(tritoneSubstitute).toBeVisible();
+
+    const primaryGlow = await primaryDominant.evaluate(
+      (element) => getComputedStyle(element).boxShadow,
+    );
+    const substituteGlow = await tritoneSubstitute.evaluate(
+      (element) => getComputedStyle(element).boxShadow,
+    );
+    expect(primaryGlow).not.toBe("none");
+    expect(substituteGlow).not.toBe("none");
+    expect(primaryGlow).not.toBe(substituteGlow);
+
+    const beforeHover = await primaryDominant.evaluate(
+      (element) => (element as HTMLElement).style.background,
+    );
+    await primaryDominant.hover();
+    await expect.poll(() => primaryDominant.evaluate(
+      (element) => (element as HTMLElement).style.background,
+    )).toBe(beforeHover);
+
+    await primaryDominant.click();
+    const tonicResolution = page.getByRole("button", {
+      name: /Cmaj7, \d+% fit, strong.*completes ii–V–I/,
+    });
+    await expect(tonicResolution).toBeVisible();
+
+    const startedAt = await page.evaluate(() => performance.now());
+    await page.getByRole("combobox", { name: "Free Input key" }).selectOption("D");
+    await expect(page.getByTestId("suggestion-summary")).toHaveText(
+      "Jazz movement after G7 in D major",
+    );
+    expect(await page.evaluate((start) => performance.now() - start, startedAt)).toBeLessThan(500);
+
+    expect(browserIssues).toEqual([]);
+  });
+
+  test("contains Jazz scoring inside the mobile viewport", async ({ page }) => {
+    const browserIssues = collectBrowserIssues(page);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openFreeInputGrid(page);
+    await page.getByRole("button", { name: "Jazz chord suggestions" }).click();
+
+    await expect(page.locator('button[data-fit-basis="jazz"]')).toHaveCount(84);
+    expect(await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    )).toBe(true);
+    expect(await page.getByTestId("chord-grid-scroll").evaluate(
+      (element) => element.scrollWidth > element.clientWidth,
+    )).toBe(true);
+    expect(browserIssues).toEqual([]);
+  });
+
   for (const viewport of [
     { name: "desktop", width: 1280, height: 900 },
     { name: "tablet", width: 820, height: 1000 },
@@ -232,6 +308,8 @@ test.describe("Free Input harmonic suggestions", () => {
     await keyMode.press("Enter");
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "Next chord suggestions" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Jazz chord suggestions" })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "Basic", exact: true })).toBeFocused();
 

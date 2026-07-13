@@ -2,11 +2,11 @@
 
 ## Final state
 
-The piano-voicing roadmap (v2–v5), its inspiration-led Phase 2 feature wave, and the user-directed agent recovery side track are complete on `main` as of 2026-07-13. The canonical milestone status remains in `docs/long_horizon_plan.md`; dated implementation and review evidence remains in `docs/long_horizon_log.md`.
+The piano-voicing roadmap (v2–v5), its inspiration-led Phase 2 feature wave, and the user-directed agent, sharing, and UI-system side tracks are complete on `main` as of 2026-07-14. The canonical milestone status remains in `docs/long_horizon_plan.md`; dated implementation and review evidence remains in `docs/long_horizon_log.md`.
 
-- Latest merged product baseline: `3cf12466bfb14b6fc462e2ce61bd26e391c6983b`.
-- Main CI: [run 29250944395](https://github.com/micro-JAY/harmony_hash/actions/runs/29250944395), green on the latest product baseline.
-- Latest product gates: local production build and lint pass, Vitest 1,095/1,095; exact-head CI Playwright 102/102.
+- Latest merged product baseline: `f2c39a4f1ee183e5758e99a18e7eaabcedbc43c6`.
+- Exact-head product CI: [run 29277215644](https://github.com/micro-JAY/harmony_hash/actions/runs/29277215644), green for build/test and Playwright alongside the successful Worker build.
+- Latest product gates: local production build and lint pass, Vitest 1,109/1,109; local and exact-head CI Playwright 121/121; Worker dry-run passes.
 - Repository search finds no undocumented `TODO`, `FIXME`, `XXX`, or `HACK` in shipped code.
 - User-owned untracked `.agents/` and `AGENTS.md` remain outside the product history. Local inspiration images remain untracked; the intentionally tracked `docs/inspiration/README.md` remains unchanged.
 
@@ -56,6 +56,9 @@ The Phase 2 surfaces consume shared pure functions under `src/lib/theory/`. The 
 | S.3 — Lazy Voice Runtime | **Done** | Intent-preloaded ElevenLabs chunk, persistent provider state, accessible loading/failure shell, and 45.7% lower initial JavaScript gzip. | [#53](https://github.com/micro-JAY/harmony_hash/pull/53) |
 | S.4 — Hanz Chord Focus | **Done** | Independent tokenized voice focus, non-color marker, simultaneous playback treatment, and complete UI/session/provider/timeline teardown clearing. | [#55](https://github.com/micro-JAY/harmony_hash/pull/55) |
 | S.5 — Truthful Hanz Playback & Live Provisioning | **Done** | Explicit playback outcomes, generation-safe audio start/cancellation, honest pending UI, fail-closed current-schema provisioning, and independently verified live nine-tool configuration. | [#57](https://github.com/micro-JAY/harmony_hash/pull/57), [#58](https://github.com/micro-JAY/harmony_hash/pull/58)–[#63](https://github.com/micro-JAY/harmony_hash/pull/63) |
+| S.6 — Composer Timeline Continuity | **Done** | Clean and dirty composer drafts rebase to every committed timeline replacement and invalidate delayed text-agent responses synchronously. | [#66](https://github.com/micro-JAY/harmony_hash/pull/66) |
+| S.7 — Versioned Progression Sharing | **Done** | Private Guitar/Piano snapshot links use the shared chord validator, import immediately, reject invalid payloads visibly, and handle clipboard and responsive recovery paths. | [#68](https://github.com/micro-JAY/harmony_hash/pull/68) |
+| S.8 — Tonari UI-System Cleanup | **Done** | Shared workspace chrome, typography, panels, 44px primary controls, reduced motion, modal focus containment, and desktop/tablet/mobile geometry across every shipped workspace. Intentional interval, match-score, chord-suggestion, playback, and Hanz colors remain distinct. | [#69](https://github.com/micro-JAY/harmony_hash/pull/69) |
 
 The recovery work retained dictionary validation on both Worker and client boundaries. The Builder was renamed Hasher, its prompt and chord composer were compacted into one workspace, preset analysis remains under Progressions, and Hanz Hasher appears only as an on-demand popup from prompt help.
 
@@ -65,7 +68,7 @@ Later that day, the source-owned provisioning workflow updated the existing Hanz
 
 ## Product-baseline PR ledger
 
-This ledger covers every pull request from the start of the documented long-horizon run through the latest merged product baseline, [#63](https://github.com/micro-JAY/harmony_hash/pull/63). The docs-only projection PR is recorded in the dated log rather than assigning itself a merged status. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
+This ledger covers every pull request from the start of the documented long-horizon run through the latest merged product baseline, [#69](https://github.com/micro-JAY/harmony_hash/pull/69). The docs-only projection PR is recorded in the dated log rather than assigning itself a merged status. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
 
 | PR | Status | Contribution |
 |---|---|---|
@@ -120,6 +123,12 @@ This ledger covers every pull request from the start of the documented long-hori
 | [#61](https://github.com/micro-JAY/harmony_hash/pull/61) | **Done** | Safe compatibility with the deprecated legacy tool mirror. |
 | [#62](https://github.com/micro-JAY/harmony_hash/pull/62) | **Done** | Toolbox schema annotation normalization. |
 | [#63](https://github.com/micro-JAY/harmony_hash/pull/63) | **Done** | Inert nested parameter-metadata normalization. |
+| [#64](https://github.com/micro-JAY/harmony_hash/pull/64) | **Done** | Truthful Hanz playback and provisioning ledger closure. |
+| [#65](https://github.com/micro-JAY/harmony_hash/pull/65) | **Done** | CI validation migration to Node 24. |
+| [#66](https://github.com/micro-JAY/harmony_hash/pull/66) | **Done** | Composer draft and committed-timeline continuity. |
+| [#67](https://github.com/micro-JAY/harmony_hash/pull/67) | **Done** | Usage-pause handoff after composer continuity. |
+| [#68](https://github.com/micro-JAY/harmony_hash/pull/68) | **Done** | Versioned private progression snapshot links and import recovery. |
+| [#69](https://github.com/micro-JAY/harmony_hash/pull/69) | **Done** | Cross-workspace Tonari UI-system cleanup and accessibility hardening. |
 
 ## Quality and safety outcomes
 
@@ -127,6 +136,8 @@ This ledger covers every pull request from the start of the documented long-hori
 - Voice callbacks use the intentional ref-mirror bridge, preserving fresh timeline state without a second store.
 - Signed voice URLs are minted server-side; provider keys and signed URLs never enter committed files or test output.
 - Security remediation is merged; provider errors are sanitized before logging or display.
+- Shared links contain only the validated chord snapshot and instrument; prompts, Hanz state, credentials, and unrelated URL data are excluded.
+- Structural Tonari tokens now govern workspace geometry and typography while interval identities, match-score gradients, chord suggestions, playback, and Hanz retain deliberate accessible color distinctions.
 - Exact-head merge guards and green CI were used for the final feature and ledger closure PRs.
 - The known Vite warning now belongs to the deferred 501.17 kB voice-runtime chunk; the initial app JavaScript fell from 292.37 kB to 158.73 kB gzip (45.7%) without changing Hanz session behavior.
 
@@ -152,10 +163,6 @@ This ledger covers every pull request from the start of the documented long-hori
 | Ship upper-structure-triad voicings? | **Deferred pending product choice.** USTs add pitches outside the selected chord's dictionary tones and require an explicit harmonic-model contract. |
 | Finish a production voice conversation? | **External action.** Grant microphone permission to the browser host, then repeat the Hanz session check without exposing the signed URL. |
 
-## Recommended next-session plan
+## Closure
 
-1. If the operator approves a CI policy change, add `npm run lint` to the required build/test job and verify a deliberately failing lint fixture in a temporary branch.
-2. Re-run the production Hanz session after microphone permission is granted and record only connection state, never the signed URL or credential.
-3. Treat UST as a design proposal only after choosing whether it mutates chord identity or represents an explicitly selected overlay.
-
-No roadmap milestone is Pending or In Progress. Future work starts as a new bounded feature from this baseline.
+No roadmap or major-update milestone is Pending or In Progress. Versioned sharing and the UI-system cleanup are merged, independently reviewed, and covered by the complete local and exact-head gates. Any future product work begins as a new bounded request from this sealed baseline.

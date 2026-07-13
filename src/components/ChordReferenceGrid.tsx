@@ -4,9 +4,11 @@ import { lookupChord } from "../lib/chordData";
 import {
   findLastResolvedChord,
   applyMoodToHarmonicFit,
+  modalRootLegend,
   moodDefinitionFor,
   scoreChordKeyFit,
   scoreJazzChordFit,
+  scoreModalChordFit,
   scoreNextChordFit,
 } from "../lib/theory";
 import type {
@@ -16,8 +18,9 @@ import type {
   MoodId,
 } from "../lib/theory";
 import type { ScaleType } from "../lib/types";
+import { fretboardIntervalColor } from "./fretboardVisuals";
 
-export type SuggestionMode = "off" | "key" | "next" | "jazz";
+export type SuggestionMode = "off" | "key" | "next" | "jazz" | "modal";
 
 export type KeyContext = HarmonyContext;
 
@@ -26,6 +29,7 @@ const MODE_OPTIONS: ReadonlyArray<{ value: SuggestionMode; label: string }> = [
   { value: "key", label: "Key" },
   { value: "next", label: "Next" },
   { value: "jazz", label: "Jazz" },
+  { value: "modal", label: "Modal" },
 ];
 
 const SCALE_TYPE_LABELS: Readonly<Record<ScaleType, string>> = {
@@ -67,6 +71,13 @@ const FIT_TIER_VISUALS = {
     shadow: "none",
     jazzGlow: "none",
   },
+} as const;
+
+const MODAL_TIER_STRENGTH = {
+  strong: { fill: 24, border: 68 },
+  good: { fill: 18, border: 56 },
+  color: { fill: 13, border: 44 },
+  outside: { fill: 8, border: 32 },
 } as const;
 
 const GRID_PANEL_ID = "chord-reference-grid-panel";
@@ -190,6 +201,10 @@ export default function ChordReferenceGrid({
     ?? findLastResolvedChord(chords.join(" "));
   const contextKey = keyContext?.key;
   const contextScaleType = keyContext?.scaleType;
+  const modalLegend = useMemo(() => {
+    if (suggestionMode !== "modal" || !contextKey || !contextScaleType) return [];
+    return modalRootLegend({ key: contextKey, scaleType: contextScaleType });
+  }, [contextKey, contextScaleType, suggestionMode]);
   const scoreByChord = useMemo(() => {
     const scores = new Map<string, HarmonicFitResult | MoodHarmonicFitResult>();
     if (suggestionMode === "off" || !contextKey || !contextScaleType) return scores;
@@ -200,7 +215,9 @@ export default function ChordReferenceGrid({
         const chordName = quality.suffix === "" ? root : `${root}${quality.suffix}`;
         const chord = lookupChord(chordName);
         if (!chord) continue;
-        const baseFit = suggestionMode === "jazz"
+        const baseFit = suggestionMode === "modal"
+          ? scoreModalChordFit(chord, context)
+          : suggestionMode === "jazz"
           ? scoreJazzChordFit(chord, context, chordHistory)
           : suggestionMode === "next"
             ? scoreNextChordFit(chord, context, previousChord)
@@ -216,7 +233,9 @@ export default function ChordReferenceGrid({
   const contextLabel = contextKey && contextScaleType
     ? `${contextKey} ${SCALE_TYPE_LABELS[contextScaleType]}`
     : "No key context";
-  const baseModeSummary = suggestionMode === "jazz"
+  const baseModeSummary = suggestionMode === "modal"
+    ? `Modal roots across ${contextLabel} · fill maps root modes; % tracks chord-tone fit.`
+    : suggestionMode === "jazz"
     ? previousChord
       ? `Jazz movement after ${previousChord.displayName} in ${contextLabel}`
       : `Jazz vocabulary in ${contextLabel}. Add a chord to reveal cadence paths.`
@@ -415,7 +434,38 @@ export default function ChordReferenceGrid({
               )}
             </div>
 
-            {overlayActive && (
+            {overlayActive && suggestionMode === "modal" ? (
+              <div
+                role="group"
+                aria-label="Modal root legend"
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: "6px 12px",
+                  padding: "6px 0 2px",
+                  color: "var(--text-muted)",
+                  fontSize: "var(--text-xs)",
+                }}
+              >
+                {modalLegend.map((item) => (
+                  <span
+                    key={item.degree}
+                    aria-label={`Scale degree ${item.degree}: ${item.label}`}
+                    data-modal-legend-id={item.scaleId}
+                    className="flex items-center gap-1.5"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: fretboardIntervalColor(item.paletteInterval) }}
+                    />
+                    M{item.degree} · {item.label}
+                  </span>
+                ))}
+                <span>Outside roots keep the low-fit cue.</span>
+              </div>
+            ) : overlayActive && (
               <div
                 role="group"
                 aria-label="Fit score legend"
@@ -538,8 +588,27 @@ export default function ChordReferenceGrid({
                         const fitVisual = fitResult
                           ? FIT_TIER_VISUALS[fitResult.tier]
                           : undefined;
-                        const baseBackground = fitVisual?.background ?? "var(--surface-base)";
-                        const baseBorder = fitVisual?.border ?? "var(--border-subtle)";
+                        const modalColor = suggestionMode === "modal" && fitResult?.modal
+                          ? fretboardIntervalColor(fitResult.modal.paletteInterval)
+                          : undefined;
+                        const modalStrength = fitResult
+                          ? MODAL_TIER_STRENGTH[fitResult.tier]
+                          : MODAL_TIER_STRENGTH.outside;
+                        const modalRootOutside = suggestionMode === "modal" && !modalColor;
+                        const baseBackground = modalColor
+                          ? `color-mix(in srgb, ${modalColor} ${modalStrength.fill}%, var(--surface-base))`
+                          : modalRootOutside
+                            ? FIT_TIER_VISUALS.outside.background
+                            : fitVisual?.background ?? "var(--surface-base)";
+                        const baseBorder = modalColor
+                          ? `color-mix(in srgb, ${modalColor} ${modalStrength.border}%, transparent)`
+                          : modalRootOutside
+                            ? FIT_TIER_VISUALS.outside.border
+                            : fitVisual?.border ?? "var(--border-subtle)";
+                        const baseBadge = modalColor
+                          ?? (modalRootOutside
+                            ? FIT_TIER_VISUALS.outside.badge
+                            : fitVisual?.badge);
                         const baseShadow = suggestionMode === "jazz"
                           ? fitVisual?.jazzGlow ?? "none"
                           : fitVisual?.shadow ?? "none";
@@ -572,6 +641,10 @@ export default function ChordReferenceGrid({
                             data-fit-score={fitResult?.score}
                             data-fit-tier={fitResult?.tier}
                             data-fit-basis={fitResult?.basis}
+                            data-modal-id={fitResult?.modal?.scaleId}
+                            data-modal-degree={fitResult?.modal?.degree}
+                            data-modal-interval={fitResult?.modal?.rootInterval}
+                            data-modal-palette-interval={fitResult?.modal?.paletteInterval}
                             style={{
                               display: "inline-flex",
                               flexDirection: "column",
@@ -607,7 +680,7 @@ export default function ChordReferenceGrid({
                                   ? baseBackground
                                   : "var(--surface-raised)";
                                 e.currentTarget.style.borderColor =
-                                  fitVisual?.badge ?? "var(--border-strong)";
+                                  baseBadge ?? "var(--border-strong)";
                                 e.currentTarget.style.boxShadow = baseShadow;
                               }
                             }}
@@ -626,13 +699,15 @@ export default function ChordReferenceGrid({
                               <span
                                 aria-hidden="true"
                                 style={{
-                                  color: fitVisual?.badge,
+                                  color: baseBadge,
                                   fontSize: "10px",
                                   fontWeight: "var(--weight-semibold)",
                                   letterSpacing: "0.02em",
                                 }}
                               >
-                                {fitResult.score}%
+                                {suggestionMode === "modal"
+                                  ? `${fitResult.modal ? `M${fitResult.modal.degree}` : "OUT"} · ${fitResult.score}%`
+                                  : `${fitResult.score}%`}
                               </span>
                             )}
                           </button>

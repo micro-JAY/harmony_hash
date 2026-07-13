@@ -1,6 +1,15 @@
 import { lookupChord } from "../chordData";
 import type { IndexedChord, ScaleType } from "../types";
-import { pitchClassOf, scaleIntervalsFor, scalePitchClasses } from "./scaleBasics";
+import { modeFamilyDefinitionFor } from "./modeNetwork";
+import type { ModeFamilyId } from "./modeNetwork";
+import { scaleLearningDefinitionFor } from "./scaleCatalog";
+import {
+  pitchClassOf,
+  scaleDegreeOf,
+  scaleIntervalsFor,
+  scalePitchClasses,
+} from "./scaleBasics";
+import type { ScaleFormulaType } from "./scaleBasics";
 import { chordPitchClasses } from "./chordTones";
 
 export interface HarmonyContext {
@@ -19,9 +28,10 @@ export interface HarmonicFitComponents {
 export interface HarmonicFitResult {
   score: number;
   tier: HarmonicFitTier;
-  basis: "key" | "next" | "jazz";
+  basis: "key" | "next" | "jazz" | "modal";
   components: HarmonicFitComponents;
   reasons: string[];
+  modal?: ModalRootIdentity | null;
 }
 
 export interface JazzHarmonicFitComponents extends HarmonicFitComponents {
@@ -32,6 +42,19 @@ export interface JazzHarmonicFitComponents extends HarmonicFitComponents {
 export interface JazzHarmonicFitResult extends Omit<HarmonicFitResult, "basis" | "components"> {
   basis: "jazz";
   components: JazzHarmonicFitComponents;
+}
+
+export interface ModalRootIdentity {
+  readonly degree: number;
+  readonly rootInterval: number;
+  readonly paletteInterval: number;
+  readonly scaleId: ScaleFormulaType;
+  readonly label: string;
+}
+
+export interface ModalHarmonicFitResult extends Omit<HarmonicFitResult, "basis" | "modal"> {
+  basis: "modal";
+  modal: ModalRootIdentity | null;
 }
 
 interface KeyFitDetails {
@@ -358,6 +381,82 @@ export function scoreJazzChordFit(
       `jazz vocabulary ${jazzVocabulary}%`,
       ...(voiceLeading === null ? [] : [voiceLeadingReason(voiceLeading)]),
       cadence.reason,
+    ],
+  };
+}
+
+const modalLegendCache = new Map<ScaleType, ReadonlyArray<ModalRootIdentity>>();
+
+function modalFamilyIdFor(scaleType: ScaleType): ModeFamilyId {
+  switch (scaleType) {
+    case "harmonic_minor":
+      return "harmonic_minor";
+    case "major":
+    case "natural_minor":
+    case "dorian":
+    case "mixolydian":
+    case "lydian":
+    case "phrygian":
+      return "major";
+  }
+}
+
+export function modalRootLegend(
+  context: HarmonyContext,
+): ReadonlyArray<ModalRootIdentity> {
+  const cached = modalLegendCache.get(context.scaleType);
+  if (cached) return cached;
+
+  const familyId = modalFamilyIdFor(context.scaleType);
+  const family = modeFamilyDefinitionFor(familyId);
+  const selectedModeIndex = family.members.indexOf(context.scaleType);
+  if (selectedModeIndex < 0) {
+    throw new RangeError(`No modal family mapping for ${context.scaleType}`);
+  }
+  const familyIntervals = scaleIntervalsFor(family.baseScaleId);
+
+  const legend = Object.freeze(scaleIntervalsFor(context.scaleType).map((rootInterval, index) => {
+    const scaleId = family.members[(selectedModeIndex + index) % family.members.length];
+    const familyIndex = family.members.indexOf(scaleId);
+    return Object.freeze({
+      degree: index + 1,
+      rootInterval,
+      paletteInterval: familyIntervals[familyIndex] ?? rootInterval,
+      scaleId,
+      label: scaleLearningDefinitionFor(scaleId).label,
+    });
+  }));
+  modalLegendCache.set(context.scaleType, legend);
+  return legend;
+}
+
+export function modalRootIdentityFor(
+  rootName: string,
+  context: HarmonyContext,
+): ModalRootIdentity | null {
+  const degree = scaleDegreeOf(rootName, context.key, context.scaleType);
+  return degree === null ? null : modalRootLegend(context)[degree - 1] ?? null;
+}
+
+export function scoreModalChordFit(
+  candidate: IndexedChord,
+  context: HarmonyContext,
+): ModalHarmonicFitResult {
+  const keyResult = scoreChordKeyFit(candidate, context);
+  const modal = modalRootIdentityFor(candidate.root, context);
+  const scaleLabel = SCALE_TYPE_LABELS[context.scaleType];
+
+  return {
+    score: keyResult.score,
+    tier: keyResult.tier,
+    basis: "modal",
+    components: keyResult.components,
+    modal,
+    reasons: [
+      keyResult.reasons[0],
+      modal
+        ? `${modal.label} mode on scale degree ${modal.degree}`
+        : `root falls outside ${context.key} ${scaleLabel}`,
     ],
   };
 }

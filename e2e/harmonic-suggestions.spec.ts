@@ -194,6 +194,65 @@ test.describe("Free Input harmonic suggestions", () => {
     expect(browserIssues).toEqual([]);
   });
 
+  test("maps scale degrees to modal identities across major and harmonic minor", async ({ page }) => {
+    const browserIssues = collectBrowserIssues(page);
+    await openFreeInputGrid(page);
+    const modalMode = page.getByRole("button", { name: "Modal chord suggestions" });
+    await modalMode.click();
+
+    await expect(modalMode).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("suggestion-summary")).toHaveText(
+      "Modal roots across C major · fill maps root modes; % tracks chord-tone fit.",
+    );
+    await expect(page.locator('button[data-fit-basis="modal"]')).toHaveCount(84);
+    await expect(page.getByRole("group", { name: "Modal root legend" })
+      .locator("[data-modal-legend-id]")).toHaveCount(7);
+
+    const tonic = page.locator('button[data-chord-name="Cmaj7"]');
+    const dorian = page.locator('button[data-chord-name="Dm7"]');
+    const mixolydian = page.locator('button[data-chord-name="G7"]');
+    const outside = page.locator('button[data-chord-name="C#7"]');
+    await expect(tonic).toHaveAttribute("data-modal-id", "major");
+    await expect(tonic).toHaveAttribute("data-modal-degree", "1");
+    await expect(dorian).toHaveAttribute("data-modal-id", "dorian");
+    await expect(dorian).toHaveAttribute("data-modal-degree", "2");
+    await expect(dorian).toContainText("M2");
+    await expect(dorian).toHaveAccessibleName(/Dorian mode on scale degree 2/);
+    await expect(mixolydian).toHaveAttribute("data-modal-id", "mixolydian");
+    await expect(mixolydian).toHaveAttribute("data-modal-degree", "5");
+    expect(await outside.getAttribute("data-modal-id")).toBeNull();
+    await expect(outside).toHaveAccessibleName(/root falls outside C major/);
+
+    const [tonicFill, dorianFill] = await Promise.all([
+      tonic.evaluate((element) => (element as HTMLElement).style.background),
+      dorian.evaluate((element) => (element as HTMLElement).style.background),
+    ]);
+    expect(tonicFill).not.toBe(dorianFill);
+
+    await page.getByRole("combobox", { name: "Free Input key" }).selectOption("D");
+    await page.getByRole("combobox", { name: "Free Input mode" }).selectOption("dorian");
+    await expect(dorian).toHaveAttribute("data-modal-id", "dorian");
+    await expect(dorian).toHaveAttribute("data-modal-degree", "1");
+    await expect(dorian).toContainText("M1");
+    expect(await dorian.evaluate((element) => (element as HTMLElement).style.background))
+      .toBe(dorianFill);
+
+    await page.getByRole("combobox", { name: "Free Input key" }).selectOption("A");
+    await expect(page.getByTestId("suggestion-summary")).toContainText("A Dorian");
+    const startedAt = await page.evaluate(() => performance.now());
+    await page.getByRole("combobox", { name: "Free Input mode" }).selectOption("harmonic_minor");
+    await expect(page.getByTestId("suggestion-summary")).toHaveText(
+      "Modal roots across A harmonic minor · fill maps root modes; % tracks chord-tone fit.",
+    );
+    await expect(page.locator('button[data-chord-name="Bm7"]'))
+      .toHaveAttribute("data-modal-id", "locrian_natural_6");
+    await expect(page.locator('button[data-chord-name="E7"]'))
+      .toHaveAttribute("data-modal-id", "phrygian_dominant");
+    expect(await page.evaluate((start) => performance.now() - start, startedAt)).toBeLessThan(500);
+
+    expect(browserIssues).toEqual([]);
+  });
+
   test("contains Jazz scoring inside the mobile viewport", async ({ page }) => {
     const browserIssues = collectBrowserIssues(page);
     await page.setViewportSize({ width: 375, height: 812 });
@@ -202,6 +261,24 @@ test.describe("Free Input harmonic suggestions", () => {
     await page.getByRole("button", { name: "Jazz chord suggestions" }).click();
 
     await expect(page.locator('button[data-fit-basis="jazz"]')).toHaveCount(84);
+    expect(await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    )).toBe(true);
+    expect(await page.getByTestId("chord-grid-scroll").evaluate(
+      (element) => element.scrollWidth > element.clientWidth,
+    )).toBe(true);
+    expect(browserIssues).toEqual([]);
+  });
+
+  test("contains the Modal palette inside the mobile viewport", async ({ page }) => {
+    const browserIssues = collectBrowserIssues(page);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openFreeInputGrid(page);
+    await page.getByRole("button", { name: "Modal chord suggestions" }).click();
+
+    await expect(page.locator('button[data-fit-basis="modal"]')).toHaveCount(84);
+    await expect(page.getByRole("group", { name: "Modal root legend" })).toBeVisible();
     expect(await page.evaluate(
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     )).toBe(true);
@@ -310,6 +387,8 @@ test.describe("Free Input harmonic suggestions", () => {
     await expect(page.getByRole("button", { name: "Next chord suggestions" })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "Jazz chord suggestions" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Modal chord suggestions" })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "Basic", exact: true })).toBeFocused();
 

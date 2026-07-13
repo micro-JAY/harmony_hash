@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { lookupChord } from "../chordData";
 import type { IndexedChord } from "../types";
-import { scoreChordKeyFit } from "./harmonicSuggestions";
+import { scoreChordKeyFit, scoreModalChordFit } from "./harmonicSuggestions";
 import { rankCompatibleScales } from "./improvInsight";
 import {
   applyMoodToHarmonicFit,
@@ -69,6 +69,27 @@ describe("mood and genre engine", () => {
     expect(adjusted.reasons.at(-1)).toMatch(/weight/);
     expect(Object.isFrozen(adjusted)).toBe(true);
     expect(Object.isFrozen(adjusted.components)).toBe(true);
+  });
+
+  it("preserves modal root identity through the mood lens", () => {
+    const context = { key: "C", scaleType: "major" } as const;
+    const candidate = chord("Dm7");
+    const base = scoreModalChordFit(candidate, context);
+    const adjusted = applyMoodToHarmonicFit(base, candidate, context, "jazzy");
+    const outsideCandidate = chord("C#dim");
+    const outsideAdjusted = applyMoodToHarmonicFit(
+      scoreModalChordFit(outsideCandidate, context),
+      outsideCandidate,
+      context,
+      "jazzy",
+    );
+
+    expect(adjusted).toMatchObject({
+      basis: "modal",
+      modal: { degree: 2, scaleId: "dorian", rootInterval: 2 },
+    });
+    expect(base.modal).toEqual(adjusted.modal);
+    expect(outsideAdjusted).toMatchObject({ basis: "modal", modal: null });
   });
 
   it("filters compatible-scale candidates to the selected mood families", () => {

@@ -658,3 +658,17 @@ The independent review found one Medium issue in an early two-wrapper retry desi
 **Verification:** production build and lint pass; Vitest is 1,064/1,064; full Playwright is 97/97; the focused voice suite is 18/18 across three consecutive runs. Desktop, 375px portrait, short landscape, pointer intent, keyboard intent, Escape focus restoration, chunk failure, provider persistence, signed-URL failure, and pending-request cancellation are covered. The first CI pass exposed a Linux-only test race that measured the loading shell while React replaced it with the full panel; waiting for the full panel's connect control fixed the target-state ambiguity without weakening layout assertions. The exact `704d8cf` head then passed both build/test jobs, both full Playwright jobs, and the Worker build.
 
 **Current state:** Lazy Voice Runtime merged to `main` as `61464b5` via [#53](https://github.com/micro-JAY/harmony_hash/pull/53). PR #28 remains closed and superseded; no conflict resolution or deletion is needed.
+
+---
+
+## 2026-07-13 19:25 JST — Hanz Chord Focus
+
+Completed side-track S.4 on `feat/hanz-chord-focus` using the normal planning workflow requested after the final archived OpenSpec change. Hanz focus now uses the academy-blue semantic tokens with an `AudioLines` marker and visible status text, while playback remains gold. When both states target the same chord, the gold playback border and glow remain intact and the inset blue rail and Hanz badge communicate the independent voice-agent state without relying on color alone. The shared card frame keeps guitar and piano rendering identical.
+
+Stale focus is cleared when the Hanz popup closes, the user leaves the Hasher workspace, a conversation ends, the ElevenLabs provider disconnects or errors, or a new timeline replaces the current progression. The progression bridge validates an index or symbol reference before focusing; explicit UI, session, provider, and timeline teardown owns stale-focus clearing. A Playwright-only focus hook is gated by `VITE_HH_E2E` and confirmed absent from the production bundle.
+
+The independent review found and drove fixes for incomplete popup/workspace teardown, missing bridge coverage, an arbitrary typography value, and session/provider teardown gaps. Shared lifecycle helpers and focused tests resolved each issue; the final re-review found no remaining Critical, High, or Medium issue. Per the user's authorization, official/current React and Playwright guidance plus established repository patterns were used without repeated Context7 queries.
+
+**Verification:** production build and lint pass; Vitest is 1,075/1,075; full Playwright is 101/101. Desktop, tablet, 375px mobile, pointer, keyboard, Hanz-only, playback-only, simultaneous focus, popup close, workspace exit, bridge validation, provider disconnect/error, accessibility status, and production-bundle exclusion paths are covered. The first CI Playwright attempt hit an inherited transient `boundingBox()` null in the mobile popup test after visibility succeeded; both the separate exact-head retry and the in-place rerun then passed all 101 tests, leaving every check green. The pre-existing large-chunk warning remains unchanged.
+
+**Current state:** Hanz Chord Focus merged to `main` as `c93440b` via [#55](https://github.com/micro-JAY/harmony_hash/pull/55) after exact-head build/test, two passing full Playwright jobs, and the Worker build. PR #28 remains closed and superseded; no conflict resolution or deletion is needed.

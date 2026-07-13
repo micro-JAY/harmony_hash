@@ -629,4 +629,4 @@ The independent review found and drove fixes for three issues before publication
 
 **Verification:** production build and lint pass; Vitest is 1,064/1,064; the focused harmony engine suite is 89/89; full Playwright is 95/95; the focused comparison browser suite is 6/6. Desktop, tablet, 375px mobile, pointer, keyboard, reduced-motion, clean-console, exact-preview, unavailable-style, playback-highlight, timeline-lock, and stale-agent invalidation paths are covered. The final desktop rendering was also inspected in the in-app Browser. The pre-existing large-chunk build warning remains unchanged.
 
-**Current state:** implementation commit `d1d80c2` is pushed and [#50](https://github.com/micro-JAY/harmony_hash/pull/50) is open as a draft against `main`; the next step is exact-head CI completion followed by ready/merge integration.
+**Current state:** Piano Voicing Comparison merged to `main` as `1587ff4` via [#50](https://github.com/micro-JAY/harmony_hash/pull/50) after its exact head passed two build/test jobs, two full Playwright jobs, and the Worker build. The deferred Phase 2.1.x milestone is complete.

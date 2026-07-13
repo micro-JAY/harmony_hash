@@ -33,6 +33,12 @@ interface SelectedProgression {
   scaleType: ScaleType;
 }
 
+interface ComposerDraftState {
+  baseTimelineVersion: number;
+  chordNames: string[];
+  dirty: boolean;
+}
+
 const FREE_MODE_OPTIONS: ReadonlyArray<{ value: ScaleType; label: string }> = [
   { value: "major", label: "Major" },
   { value: "natural_minor", label: "Natural Minor" },
@@ -54,7 +60,12 @@ export default function ProgressionInput({
   onVoiceIntent,
 }: ProgressionInputProps) {
   const t = useT();
-  const [composedChords, setComposedChords] = useState<string[]>([]);
+  const committedChordNames = chords.map((item) => item.input);
+  const [composerDraft, setComposerDraft] = useState<ComposerDraftState>(() => ({
+    baseTimelineVersion: timelineVersion,
+    chordNames: committedChordNames,
+    dirty: false,
+  }));
   const [freeKey, setFreeKey] = useState("C");
   const [freeScaleType, setFreeScaleType] = useState<ScaleType>("major");
   const [selected, setSelected] = useState<SelectedProgression | null>(null);
@@ -64,13 +75,41 @@ export default function ProgressionInput({
   const [activeTonality, setActiveTonality] = useState<TonalityId>("major");
   const [minorHelpOpen, setMinorHelpOpen] = useState(false);
   const cancellationVersionRef = useRef(0);
-  const agentCancellationVersion = 0;
+  const [agentCancellationVersion, setAgentCancellationVersion] = useState(0);
+
+  const composerWasRebased = composerDraft.baseTimelineVersion !== timelineVersion;
+  const composedChords = composerWasRebased
+    ? committedChordNames
+    : composerDraft.chordNames;
+  const composerRebaseNotice = composerWasRebased && composerDraft.dirty
+    ? "Composer synced to the latest timeline; your uncommitted grid changes were replaced."
+    : null;
 
   const activeGroup = PROGRESSION_LIBRARY.find((g) => g.id === activeTonality)!;
 
+  function cancelPendingAgentForDraftEdit() {
+    const nextVersion = cancellationVersionRef.current + 1;
+    cancellationVersionRef.current = nextVersion;
+    setAgentCancellationVersion(nextVersion);
+  }
+
+  function updateComposerDraft(update: (current: string[]) => string[]) {
+    cancelPendingAgentForDraftEdit();
+    setComposerDraft((current) => {
+      const currentChordNames = current.baseTimelineVersion === timelineVersion
+        ? current.chordNames
+        : committedChordNames;
+      return {
+        baseTimelineVersion: timelineVersion,
+        chordNames: update(currentChordNames),
+        dirty: true,
+      };
+    });
+  }
+
   function addComposedChord(chordName: string) {
     if (!lookupChord(chordName)) return;
-    setComposedChords((current) => [...current, chordName]);
+    updateComposerDraft((current) => [...current, chordName]);
   }
 
   function handleComposerSubmit() {
@@ -78,6 +117,11 @@ export default function ProgressionInput({
     const resolved = composedChords.flatMap((input) => {
       const chord = lookupChord(input);
       return chord ? [{ input, chord }] : [];
+    });
+    setComposerDraft({
+      baseTimelineVersion: timelineVersion,
+      chordNames: composedChords,
+      dirty: false,
     });
     setErrors([]);
     onResult(resolved, []);
@@ -221,7 +265,9 @@ export default function ProgressionInput({
                   <button
                     type="button"
                     aria-label={`Remove ${chordName} at position ${index + 1}`}
-                    onClick={() => setComposedChords((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                    onClick={() => updateComposerDraft((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index)
+                    )}
                     style={{ color: "inherit", background: "transparent", border: 0, cursor: "pointer" }}
                   >
                     ×
@@ -232,7 +278,7 @@ export default function ProgressionInput({
                 <button
                   type="button"
                   aria-label="Clear composed chords"
-                  onClick={() => setComposedChords([])}
+                  onClick={() => updateComposerDraft(() => [])}
                   className="ml-auto rounded-md px-2 py-1 text-xs"
                   style={{
                     background: "transparent",
@@ -268,6 +314,21 @@ export default function ProgressionInput({
               Run
             </button>
           </div>
+
+          {composerRebaseNotice ? (
+            <p
+              role="status"
+              aria-live="polite"
+              className="m-0"
+              style={{
+                color: "var(--status-warning-text)",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-xs)",
+              }}
+            >
+              {composerRebaseNotice}
+            </p>
+          ) : null}
 
           <div
             className="flex flex-wrap items-center gap-x-4 gap-y-2"
@@ -339,7 +400,7 @@ export default function ProgressionInput({
         <ChordReferenceGrid
           chords={composedChords}
           onChordAdd={addComposedChord}
-          onUndo={() => setComposedChords((current) => current.slice(0, -1))}
+          onUndo={() => updateComposerDraft((current) => current.slice(0, -1))}
           keyContext={{ key: freeKey, scaleType: freeScaleType }}
           moodId={moodId}
         />

@@ -616,3 +616,17 @@ The first independent review found four Medium issues: context-relative colors, 
 **Verification:** production build and lint pass; Vitest is 1,057/1,057; full Playwright is 89/89; the focused suggestion suite is 11/11. Desktop, 820px tablet, 375px mobile, pointer, keyboard, reduced-motion, console, stable-color, mode-rotation, harmonic-minor, mood-preservation, overflow, and sub-500ms recomputation paths are covered. The initial bundle increases by about 1.7 kB gzip from consuming the existing shared mode/learning catalogs; the pre-existing large-chunk warning remains.
 
 **Current state:** Modal merged to `main` as `2a6a60c` via [#48](https://github.com/micro-JAY/harmony_hash/pull/48) after the retargeted exact head passed two build/test jobs, two full Playwright jobs, and the Worker build. Jazz and Modal suggestion-overlay follow-ups are both complete.
+
+---
+
+## 2026-07-13 17:12 JST — Piano Voicing Comparison
+
+Completed the deferred Phase 2.1.x implementation on `feat/piano-voicing-comparison` using the normal planning workflow requested after the archived OpenSpec round. Each piano chord card now offers a collapsed, accessible comparison rail for the explicit voicings that are genuinely available in the shared C3–B5 engine range: Drop 2, Drop 3, Rootless, Shell, Spread, and Two-Hand. Compact interval-colored keyboards, note-and-octave labels, and Current/Use states make the choices directly comparable without disturbing the default card layout.
+
+Comparison previews use the same preceding adopted voicing and candidate selection path as the timeline, so choosing a preview produces exactly the voicing shown and preserves voice-leading continuity. Unavailable high-register shapes are omitted instead of being mislabeled through fallback output, and explicit-style progression computation now falls back safely to Auto candidates if its requested shape becomes unavailable. Keyboard users can open with Enter, traverse choices, select with Enter or Space, and close with Escape while focus returns to the disclosure trigger; reduced-motion behavior is preserved.
+
+The independent review found and drove fixes for three issues before publication: empty-candidate styles could be mislabeled and later crash progression computation, later-card previews could differ from the adopted inversion, and visible note labels were not associated with their option controls. Candidate-availability guards, shared context-aware preview computation, and `aria-describedby` note associations resolved all three. The post-fix re-review found no remaining Critical, High, or Medium issue. Per the user's authorization, official/current React and Playwright guidance plus established repository patterns were used without repeated Context7 queries.
+
+**Verification:** production build and lint pass; Vitest is 1,064/1,064; the focused harmony engine suite is 89/89; full Playwright is 95/95; the focused comparison browser suite is 6/6. Desktop, tablet, 375px mobile, pointer, keyboard, reduced-motion, clean-console, exact-preview, unavailable-style, playback-highlight, timeline-lock, and stale-agent invalidation paths are covered. The final desktop rendering was also inspected in the in-app Browser. The pre-existing large-chunk build warning remains unchanged.
+
+**Current state:** implementation commit `d1d80c2` is pushed and [#50](https://github.com/micro-JAY/harmony_hash/pull/50) is open as a draft against `main`; the next step is exact-head CI completion followed by ready/merge integration.

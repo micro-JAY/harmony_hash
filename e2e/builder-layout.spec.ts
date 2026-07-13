@@ -1,4 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { composeProgression } from "./helpers/progression";
+
+const HELP_LABEL = /Need help\?|Stuck\?|Writer's block got you down\?|Phone a friend/;
 
 async function expectNoDocumentOverflow(page: Page): Promise<void> {
   const widths = await page.evaluate(() => ({
@@ -47,53 +50,35 @@ async function mockReadyHealth(page: Page): Promise<void> {
   });
 }
 
-async function settlePaint(page: Page): Promise<void> {
-  await page.evaluate(
-    () => new Promise<void>((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    }),
-  );
-}
-
-test("compact action toolbar keeps cards adjacent and companion state mounted", async ({
+test("compact action toolbar keeps cards adjacent and opens Hanz from prompt help", async ({
   page,
 }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-  await input.fill("Cmaj7 Am7 Dm7 G7");
-  await input.press("Enter");
+  await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
 
   const actions = page.getByRole("region", { name: "Progression actions" });
   const cards = page.getByRole("region", { name: "Chord cards output" });
-  const panel = page.getByRole("region", {
-    name: "Harmony companion voice agent",
-  });
-  const compactBox = await panel.boundingBox();
   const actionBox = await actions.boundingBox();
   const cardBox = await cards.boundingBox();
-  expect(compactBox).not.toBeNull();
   expect(actionBox).not.toBeNull();
   expect(cardBox).not.toBeNull();
-  expect(compactBox!.height).toBeLessThan(64);
   expect(cardBox!.y - (actionBox!.y + actionBox!.height)).toBeLessThanOrEqual(40);
+  await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
-  const collapse = page.getByRole("button", {
-    name: "Collapse Harmony Companion",
-  });
-  await expect(collapse).toHaveAttribute("aria-expanded", "true");
-  await expect(
-    page.getByRole("button", { name: /Talk to the companion/i }),
-  ).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Describe the progression you want" })
+    .fill("help me tighten this progression");
+  await page.getByRole("button", { name: HELP_LABEL }).click();
+  const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
 
   await page.getByRole("button", { name: "Progressions" }).click();
-  await expect(collapse).toHaveAttribute("aria-expanded", "true");
+  await expect(dialog).toBeVisible();
   await page.getByRole("button", { name: "Free Input" }).click();
-  await expect(collapse).toHaveAttribute("aria-expanded", "true");
-  await settlePaint(page);
-  await expect(page).toHaveScreenshot("builder-desktop-expanded-companion.png", {
-    fullPage: true,
-  });
+  await expect(dialog).toBeVisible();
+  await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+  await expect(dialog).toHaveCount(0);
 });
 
 test.describe("800px tablet layout", () => {
@@ -103,9 +88,7 @@ test.describe("800px tablet layout", () => {
     page,
   }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Cmaj7 Am7 Dm7 G7");
-    await input.press("Enter");
+    await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
 
     const cards = page
       .getByRole("region", { name: "Chord cards output" })
@@ -119,41 +102,42 @@ test.describe("800px tablet layout", () => {
   });
 });
 
-test.describe("375px builder layout", () => {
+test.describe("375px Hasher layout", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
-  test("stacks both input modes and keeps the compact companion in bounds", async ({
+  test("stacks the prompt and composer and keeps the Hanz popup in bounds", async ({
     page,
   }) => {
     await mockReadyHealth(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    const run = page.getByRole("button", { name: "Run" });
-    await expectStacked(freeInput, run);
-    await expectNoDocumentOverflow(page);
-
-    const panel = page.getByRole("region", {
-      name: "Harmony companion voice agent",
-    });
-    expect((await panel.boundingBox())!.height).toBeLessThan(64);
-    await settlePaint(page);
-    await expect(page).toHaveScreenshot("builder-mobile-free.png", {
-      fullPage: true,
-    });
-
-    await page.getByRole("button", { name: "Progressions" }).click();
     const prompt = page.getByRole("textbox", {
       name: "Describe the progression you want",
     });
-    const build = page.getByRole("button", { name: "Build progression" });
-    await expectStacked(prompt, build);
-    await expect(page.getByText("API ready", { exact: true })).toBeVisible();
+    const agentRun = page.getByRole("button", { name: "Run progression agent" });
+    await expectStacked(prompt, agentRun);
+    const composer = page.getByRole("list", { name: "Chord progression composer" });
+    const composerRun = page.getByRole("button", { name: "Run chord composer" });
+    await expectStacked(composer, composerRun);
     await expectNoDocumentOverflow(page);
-    await settlePaint(page);
-    await expect(page).toHaveScreenshot("builder-mobile-progressions.png", {
-      fullPage: true,
-    });
+
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await prompt.fill("help me get unstuck");
+    await page.getByRole("button", { name: HELP_LABEL }).click();
+    const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+    await expect(dialog).toBeVisible();
+    const dialogBox = await dialog.boundingBox();
+    expect(dialogBox).not.toBeNull();
+    expect(dialogBox!.x).toBeGreaterThanOrEqual(0);
+    expect(dialogBox!.x + dialogBox!.width).toBeLessThanOrEqual(375);
+
+    await page.getByRole("button", { name: "Progressions" }).click();
+    await expectStacked(prompt, agentRun);
+    await expect(page.getByText("API ready", { exact: true })).toBeVisible();
+    await expect(dialog).toBeVisible();
+    await expectNoDocumentOverflow(page);
+    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await expect(dialog).toHaveCount(0);
   });
 
   test("contains rendered guitar and piano cards without page overflow", async ({
@@ -168,9 +152,7 @@ test.describe("375px builder layout", () => {
     page.on("pageerror", (error) => browserErrors.push(error.message));
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Cmaj7 Am7 Dm7 G7");
-    await input.press("Enter");
+    await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
     await expectNoDocumentOverflow(page);
     await expect(

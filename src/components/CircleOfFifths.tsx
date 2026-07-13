@@ -292,7 +292,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
               color: "var(--interactive-accent-text)",
             }}
           >
-            Use {displayRoot(selectedKey)} in Builder
+            Use {displayRoot(selectedKey)} in Hasher
           </button>
 
           <p className="mt-auto pt-6 text-sm" style={{ color: "var(--text-secondary)" }}>

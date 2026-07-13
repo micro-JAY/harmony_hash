@@ -19,7 +19,6 @@ import {
 import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
 
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
-const ImprovInsight = lazy(() => import("./components/ImprovInsight"));
 const CircleOfFifths = lazy(() => import("./components/CircleOfFifths"));
 const ScaleSynthesia = lazy(() => import("./components/ScaleSynthesia"));
 const NoteNeuralNetwork = lazy(() => import("./components/NoteNeuralNetwork"));
@@ -98,7 +97,7 @@ function App() {
   // the playback cursor (isPlaying derives from it), so the agent highlighting a
   // chord must not look like playback or block the Play button / play tool.
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
-  const [showImprovInsight, setShowImprovInsight] = useState(false);
+  const [hanzOpen, setHanzOpen] = useState(false);
   const [moodId, setMoodId] = useState<MoodId | null>(null);
   const [scaleLaunch, setScaleLaunch] = useState<{
     root: string;
@@ -116,6 +115,10 @@ function App() {
   const nextCardKeyRef = useRef(1);
   const timelineVersionRef = useRef(0);
   const [timelineVersion, setTimelineVersion] = useState(0);
+
+  useEffect(() => {
+    if (workspace !== "builder") setHanzOpen(false);
+  }, [workspace]);
 
   const markTimelineMutation = useCallback(() => {
     const nextVersion = timelineVersionRef.current + 1;
@@ -366,6 +369,8 @@ function App() {
               timelineVersionRef={timelineVersionRef}
               moodId={moodId}
               onMoodChange={setMoodId}
+              chords={chords}
+              onRequestVoice={() => setHanzOpen(true)}
             />
           ) : (
             <Suspense
@@ -397,11 +402,10 @@ function App() {
             </Suspense>
           )}
 
-          {/* The provider, panel, and tree position remain stable across both
-              workspaces so navigation never tears down an active session. */}
+          {/* Progression playback and voicing actions. */}
           <section
             className="w-full px-4"
-            aria-label={workspace === "builder" ? "Progression actions" : "Workspace companion"}
+            aria-label="Progression actions"
           >
             <div className="w-full flex flex-col items-stretch justify-center gap-3 md:flex-row md:flex-wrap md:items-start">
               {workspace === "builder" && (
@@ -452,31 +456,8 @@ function App() {
                     </button>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => setShowImprovInsight((current) => !current)}
-                    aria-expanded={showImprovInsight}
-                    aria-controls="improv-insight-panel"
-                    className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
-                    style={{
-                      backgroundColor: showImprovInsight
-                        ? "var(--interactive-academy-bg)"
-                        : "var(--interactive-secondary-bg)",
-                      color: showImprovInsight
-                        ? "var(--interactive-academy-text)"
-                        : "var(--interactive-secondary-text)",
-                      border: `1px solid ${showImprovInsight
-                        ? "var(--interactive-academy-border)"
-                        : "var(--interactive-secondary-border)"}`,
-                      transitionDuration: "var(--duration-normal)",
-                    }}
-                  >
-                    {showImprovInsight ? "Hide compatible scales" : "Show compatible scales"}
-                  </button>
                 </div>
               )}
-
-              <VoiceAgentPanel />
             </div>
           </section>
 
@@ -512,23 +493,6 @@ function App() {
           </section>
           )}
 
-          {workspace === "builder" && chords.length > 0 && showImprovInsight && (
-            <Suspense
-              fallback={(
-                <section className="w-full px-4" aria-label="Improv Insight" role="status">
-                  <div
-                    className="mx-auto max-w-7xl rounded-2xl p-6"
-                    style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)" }}
-                  >
-                    <span className="readout">Ranking compatible scales…</span>
-                  </div>
-                </section>
-              )}
-            >
-              <ImprovInsight chords={chords} moodId={moodId} />
-            </Suspense>
-          )}
-
           {workspace === "builder" && chords.length === 0 && (
           <div className="flex-1 flex items-center justify-center">
             <p
@@ -544,6 +508,7 @@ function App() {
           </div>
           )}
         </main>
+        <VoiceAgentPanel open={hanzOpen} onClose={() => setHanzOpen(false)} />
       </VoiceAgentProvider>
     </div>
   );

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { composeProgression } from "./helpers/progression";
 
 function deferred(): { promise: Promise<void>; resolve: () => void } {
   let resolvePromise!: () => void;
@@ -66,7 +67,6 @@ async function mockHealthyProgressionService(page: Page): Promise<void> {
 
 async function openProgressionAgent(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Progressions" }).click();
   await expect(page.getByText("API ready", { exact: true })).toBeVisible();
 }
 
@@ -93,7 +93,7 @@ test.describe("OpenAI progression builder", () => {
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("slow health check");
-    const build = page.getByRole("button", { name: "Build progression" });
+    const build = page.getByRole("button", { name: "Run progression agent" });
     await expect(page.getByText("Checking…", { exact: true })).toBeVisible();
     await expect(build).toBeDisabled();
 
@@ -124,7 +124,7 @@ test.describe("OpenAI progression builder", () => {
 
     await expect(page.getByText("Service unavailable", { exact: true })).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Build progression" }),
+      page.getByRole("button", { name: "Run progression agent" }),
     ).toBeDisabled();
   });
 
@@ -151,7 +151,7 @@ test.describe("OpenAI progression builder", () => {
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("neo-soul turnaround with chromatic bass");
-    await page.getByRole("button", { name: "Build progression" }).click();
+    await page.getByRole("button", { name: "Run progression agent" }).click();
 
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "D/F#" })).toBeVisible();
@@ -191,16 +191,14 @@ test.describe("OpenAI progression builder", () => {
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await freeInput.fill("Cmaj7 Am7 Dm7 G7");
-    await freeInput.press("Enter");
+    await composeProgression(page, "Cmaj7 Am7 Dm7 G7");
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
 
     await page.getByRole("button", { name: "Progressions" }).click();
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("test malformed response");
-    await page.getByRole("button", { name: "Build progression" }).click();
+    await page.getByRole("button", { name: "Run progression agent" }).click();
 
     await expect(page.getByRole("alert")).toContainText("between 3 and 8");
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
@@ -236,15 +234,13 @@ test.describe("OpenAI progression builder", () => {
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await freeInput.fill("Cmaj7 Am7 Dm7 G7");
-    await freeInput.press("Enter");
+    await composeProgression(page, "Cmaj7 Am7 Dm7 G7");
     await page.getByRole("button", { name: "Progressions" }).click();
 
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("bright cinematic resolution");
-    await page.getByRole("button", { name: "Build progression" }).click();
+    await page.getByRole("button", { name: "Run progression agent" }).click();
 
     await expect(page.getByRole("alert")).toContainText(
       "Progression service is temporarily unavailable",
@@ -269,13 +265,11 @@ test.describe("OpenAI progression builder", () => {
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("delayed agent response");
-    await page.getByRole("button", { name: "Build progression" }).click();
+    await page.getByRole("button", { name: "Run progression agent" }).click();
     await delayed.requestStarted;
 
     await page.getByRole("button", { name: "Free Input" }).click();
-    const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await freeInput.fill("Fmaj7 G7 Cmaj7 Am7");
-    await freeInput.press("Enter");
+    await composeProgression(page, "Fmaj7 G7 Cmaj7 Am7");
     await expect(page.getByRole("heading", { name: "Fmaj7" })).toBeVisible();
 
     delayed.releaseResponse();
@@ -302,9 +296,10 @@ test.describe("OpenAI progression builder", () => {
       name: "Describe the progression you want",
     });
     await prompt.fill("delayed agent response");
-    await page.getByRole("button", { name: "Build progression" }).click();
+    await page.getByRole("button", { name: "Run progression agent" }).click();
     await delayed.requestStarted;
 
+    await page.getByRole("button", { name: "Progressions" }).click();
     await page.getByText("Or pick a preset", { exact: true }).click();
     await page.getByTitle('The "Primary" Loop').click();
     await expect(page.getByRole("heading", { name: "F", exact: true })).toBeVisible();
@@ -325,16 +320,13 @@ test.describe("OpenAI progression builder", () => {
     const delayed = await mockDelayedProgression(page);
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await freeInput.fill("C G7 Am F");
-    await freeInput.press("Enter");
-    await page.getByRole("button", { name: "Progressions" }).click();
+    await composeProgression(page, "C G7 Am F");
     await expect(page.getByText("API ready", { exact: true })).toBeVisible();
 
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("delayed agent response");
-    await page.getByRole("button", { name: "Build progression" }).click();
+    await page.getByRole("button", { name: "Run progression agent" }).click();
     await delayed.requestStarted;
 
     const secondCard = page.getByTestId("chord-card").nth(1);

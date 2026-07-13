@@ -1,7 +1,7 @@
-import { useState, useRef, type MutableRefObject } from "react";
+import { lazy, Suspense, useState, useRef, type DragEvent, type MutableRefObject } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { ParseResult, TonalityId, Progression, ScaleType } from "../lib/types";
-import { parseChordInput, transposeNumeralString, ALL_KEYS } from "../lib/harmonyBrain";
+import { transposeNumeralString, ALL_KEYS } from "../lib/harmonyBrain";
 import { lookupChord } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
 import { PROGRESSION_LIBRARY } from "../data/progressions";
@@ -12,12 +12,16 @@ import { useT } from "../i18n/I18nContext";
 import type { MoodId } from "../lib/theory";
 import MoodFilter from "./MoodFilter";
 
+const ImprovInsight = lazy(() => import("./ImprovInsight"));
+
 interface ProgressionInputProps {
   onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
   timelineVersion: number;
   timelineVersionRef: MutableRefObject<number>;
   moodId: MoodId | null;
   onMoodChange: (moodId: MoodId | null) => void;
+  chords: ReadonlyArray<{ input: string; chord: IndexedChord }>;
+  onRequestVoice: () => void;
 }
 
 interface SelectedProgression {
@@ -44,12 +48,13 @@ export default function ProgressionInput({
   timelineVersionRef,
   moodId,
   onMoodChange,
+  chords,
+  onRequestVoice,
 }: ProgressionInputProps) {
   const t = useT();
-  const [freeText, setFreeText] = useState("");
+  const [composedChords, setComposedChords] = useState<string[]>([]);
   const [freeKey, setFreeKey] = useState("C");
   const [freeScaleType, setFreeScaleType] = useState<ScaleType>("major");
-  const inputRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<SelectedProgression | null>(null);
   const [selectedKey, setSelectedKey] = useState("C");
   const [errors, setErrors] = useState<ParseResult["errors"]>([]);
@@ -57,25 +62,28 @@ export default function ProgressionInput({
   const [activeTonality, setActiveTonality] = useState<TonalityId>("major");
   const [minorHelpOpen, setMinorHelpOpen] = useState(false);
   const cancellationVersionRef = useRef(0);
-  const [agentCancellationVersion, setAgentCancellationVersion] = useState(0);
-  const [hasOpenedProgressions, setHasOpenedProgressions] = useState(false);
+  const agentCancellationVersion = 0;
 
   const activeGroup = PROGRESSION_LIBRARY.find((g) => g.id === activeTonality)!;
 
-  function cancelAgentRequest() {
-    const nextVersion = cancellationVersionRef.current + 1;
-    cancellationVersionRef.current = nextVersion;
-    setAgentCancellationVersion(nextVersion);
+  function addComposedChord(chordName: string) {
+    if (!lookupChord(chordName)) return;
+    setComposedChords((current) => [...current, chordName]);
   }
 
-  function handleFreeTextSubmit() {
-    if (!freeText.trim()) return;
-    const result = parseChordInput(freeText);
-    setErrors(result.errors);
-    onResult(
-      result.chords.map((c) => ({ input: c.input, chord: c.chord })),
-      result.errors
-    );
+  function handleComposerSubmit() {
+    if (composedChords.length === 0) return;
+    const resolved = composedChords.flatMap((input) => {
+      const chord = lookupChord(input);
+      return chord ? [{ input, chord }] : [];
+    });
+    setErrors([]);
+    onResult(resolved, []);
+  }
+
+  function handleComposerDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    addComposedChord(event.dataTransfer.getData("text/plain"));
   }
 
   function handleProgressionSelect(
@@ -142,12 +150,6 @@ export default function ProgressionInput({
           <button
             key={tab}
             onClick={() => {
-              if (tab === "preset") {
-                setHasOpenedProgressions(true);
-              }
-              if (tab === "free" && activeTab === "preset") {
-                cancelAgentRequest();
-              }
               setActiveTab(tab);
             }}
             className="px-4 py-2 rounded-lg text-sm transition-all"
@@ -164,37 +166,94 @@ export default function ProgressionInput({
         ))}
       </div>
 
+      <ProgressionAgent
+        onResult={onResult}
+        timelineVersion={timelineVersion}
+        timelineVersionRef={timelineVersionRef}
+        cancellationVersion={agentCancellationVersion}
+        cancellationVersionRef={cancellationVersionRef}
+        placeholder={t("agentPromptPlaceholder")}
+        onRequestHelp={onRequestVoice}
+      />
+
       <MoodFilter value={moodId} onChange={onMoodChange} />
 
-      {/* Free Text Input */}
+      {/* Dictionary-backed composer. Click is the primary keyboard/mobile path;
+          drag and drop is an additive pointer shortcut. */}
       {activeTab === "free" && (
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              ref={inputRef}
-              type="text"
-              value={freeText}
-              onChange={(e) => setFreeText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleFreeTextSubmit()}
-              placeholder={t("freeInputHint")}
-              className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all"
+            <div
+              role="list"
+              aria-label="Chord progression composer"
+              data-testid="chord-composer"
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={handleComposerDrop}
+              className="w-full min-w-0 flex-1 flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg"
               style={{
                 backgroundColor: "var(--surface-overlay)",
                 color: "var(--text-primary)",
                 border: "1px solid var(--border-subtle)",
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-base)",
+                minHeight: "3rem",
               }}
-            />
+            >
+              {composedChords.length === 0 ? (
+                <span style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
+                  Choose chords from the grid, or drag them here.
+                </span>
+              ) : composedChords.map((chordName, index) => (
+                <span
+                  key={`${chordName}-${index}`}
+                  role="listitem"
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1"
+                  style={{
+                    backgroundColor: "var(--interactive-accent-bg)",
+                    border: "1px solid var(--interactive-accent-border)",
+                    color: "var(--interactive-accent-text)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-sm)",
+                  }}
+                >
+                  {chordName}
+                  <button
+                    type="button"
+                    aria-label={`Remove ${chordName} at position ${index + 1}`}
+                    onClick={() => setComposedChords((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                    style={{ color: "inherit", background: "transparent", border: 0, cursor: "pointer" }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              {composedChords.length > 0 ? (
+                <button
+                  type="button"
+                  aria-label="Clear composed chords"
+                  onClick={() => setComposedChords([])}
+                  className="ml-auto rounded-md px-2 py-1 text-xs"
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--border-subtle)",
+                    color: "var(--text-muted)",
+                    fontFamily: "var(--font-body)",
+                  }}
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
             <button
-              onClick={handleFreeTextSubmit}
+              onClick={handleComposerSubmit}
+              aria-label="Run chord composer"
+              disabled={composedChords.length === 0}
               className="w-full px-6 py-3 rounded-lg font-semibold transition-all sm:w-auto"
               style={{
-                backgroundColor: "var(--interactive-accent-bg)",
-                color: "var(--interactive-accent-text)",
-                border: "1px solid var(--interactive-accent-border)",
+                backgroundColor: composedChords.length > 0 ? "var(--interactive-accent-bg)" : "var(--interactive-disabled-bg)",
+                color: composedChords.length > 0 ? "var(--interactive-accent-text)" : "var(--interactive-disabled-text)",
+                border: `1px solid ${composedChords.length > 0 ? "var(--interactive-accent-border)" : "var(--interactive-disabled-border)"}`,
                 fontWeight: "var(--weight-semibold)",
                 transitionDuration: "var(--duration-normal)",
+                cursor: composedChords.length > 0 ? "pointer" : "not-allowed",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg-hover)";
@@ -266,7 +325,7 @@ export default function ProgressionInput({
             </label>
 
             <span style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)" }}>
-              Suggestions update as you type.
+              Suggestions follow the last chord in the composer.
             </span>
           </div>
         </div>
@@ -275,28 +334,19 @@ export default function ProgressionInput({
       {/* Chord Reference Grid — stays available while extending a result. */}
       {activeTab === "free" && (
         <ChordReferenceGrid
-          inputValue={freeText}
-          setInputValue={setFreeText}
-          inputRef={inputRef}
+          chords={composedChords}
+          onChordAdd={addComposedChord}
+          onUndo={() => setComposedChords((current) => current.slice(0, -1))}
           keyContext={{ key: freeKey, scaleType: freeScaleType }}
           moodId={moodId}
         />
       )}
 
-      {/* Agent + Progression Browser */}
-      {hasOpenedProgressions && (
+      {/* Progression presets and analysis tools. */}
+      {activeTab === "preset" && (
         <div
-          className={activeTab === "preset" ? "flex flex-col gap-4" : "hidden"}
+          className="flex flex-col gap-4"
         >
-          <ProgressionAgent
-            onResult={onResult}
-            timelineVersion={timelineVersion}
-            timelineVersionRef={timelineVersionRef}
-            cancellationVersion={agentCancellationVersion}
-            cancellationVersionRef={cancellationVersionRef}
-            placeholder={t("agentPromptPlaceholder")}
-          />
-
           <details
             className="rounded-lg"
             style={{
@@ -470,6 +520,12 @@ export default function ProgressionInput({
           </div>
             </div>
           </details>
+
+          {chords.length > 0 ? (
+            <Suspense fallback={<span className="readout">Loading Improv Insight…</span>}>
+              <ImprovInsight chords={chords} moodId={moodId} />
+            </Suspense>
+          ) : null}
         </div>
       )}
 

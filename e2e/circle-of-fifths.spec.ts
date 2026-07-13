@@ -78,9 +78,9 @@ test.describe("Circle of Fifths", () => {
     const gMajor = page.getByRole("option", { name: /G major, relative E minor/ });
     await gMajor.focus();
     await gMajor.press("ArrowRight");
-    await page.getByRole("button", { name: "Use D in Builder" }).click();
+    await page.getByRole("button", { name: "Use D in Hasher" }).click();
 
-    await expect(page.getByRole("button", { name: "Builder" })).toHaveAttribute(
+    await expect(page.getByRole("button", { name: "Hasher" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -163,11 +163,11 @@ test.describe("Circle of Fifths", () => {
     await page.getByRole("textbox", { name: "Describe the progression you want" }).fill(
       "delayed circle race",
     );
-    await page.getByRole("button", { name: "Build progression" }).click();
+    await page.getByRole("button", { name: "Run progression agent" }).click();
     await started;
 
     await page.getByRole("button", { name: "Circle" }).click();
-    await page.getByRole("button", { name: "Use C in Builder" }).click();
+    await page.getByRole("button", { name: "Use C in Hasher" }).click();
     releaseResponse();
     await expect(page.getByTestId("chord-card")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);

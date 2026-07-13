@@ -3,6 +3,7 @@ export {
   pitchClassOf,
   scaleDegreeOf,
   scaleIntervalsFor,
+  scaleIntervalFormulaFor,
   scalePitchClasses,
   spellScaleNotes,
 } from "./scaleBasics";
@@ -27,6 +28,19 @@ export type {
   ScaleLearningDefinition,
   ScalePracticeNote,
 } from "./scaleCatalog";
+
+export {
+  buildModeNetwork,
+  characteristicIntervalFor,
+  MODE_FAMILIES,
+  modeFamilyDefinitionFor,
+} from "./modeNetwork";
+export type {
+  ModeFamilyId,
+  ModeNetwork,
+  ModeNetworkNode,
+  ModeRelationship,
+} from "./modeNetwork";
 
 export {
   buildFretboardRows,

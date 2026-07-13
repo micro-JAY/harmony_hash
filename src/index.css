@@ -31,6 +31,37 @@
   to { stroke-dashoffset: -160; }
 }
 
+.mode-network-node {
+  cursor: pointer;
+  outline: none;
+  animation: mode-network-settle var(--duration-slow) var(--ease-out) both;
+}
+
+.mode-network-node:focus-visible circle {
+  stroke: var(--interactive-focus-ring);
+  stroke-width: 5;
+}
+
+.mode-network-node[data-reduced-motion="true"],
+.mode-network-edge[data-reduced-motion="true"] {
+  animation: none;
+  transition: none;
+}
+
+.mode-network-edge {
+  animation: mode-network-edge-reveal var(--duration-slow) var(--ease-out) both;
+}
+
+@keyframes mode-network-settle {
+  from { opacity: 0; transform: scale(0.94); transform-origin: center; }
+  to { opacity: 1; transform: scale(1); transform-origin: center; }
+}
+
+@keyframes mode-network-edge-reveal {
+  from { stroke-dasharray: 1 900; }
+  to { stroke-dasharray: 900 1; }
+}
+
 :root {
   /* Harmony Hash learning colors extend the shared Tonari token layer with
      equal-strength categorical cues. Text labels remain the primary cue. */

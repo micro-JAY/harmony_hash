@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Play, Square } from "lucide-react";
 import type { Instrument, IndexedChord, ParseError, VoicingStyle, Workspace } from "./lib/types";
 import Header from "./components/Header";
+import type { NoteNeuralNetworkState } from "./components/NoteNeuralNetwork";
 import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
@@ -9,13 +10,19 @@ import { computeVoiceLedProgression, isStyleApplicable } from "./lib/harmonyBrai
 import { lookupChord, parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
 import type { ChordModifierOption } from "./lib/chordModifiers";
-import { builderProgressionFor, type CircleKey, type MoodId } from "./lib/theory";
+import {
+  builderProgressionFor,
+  type CircleKey,
+  type MoodId,
+  type ScaleFormulaType,
+} from "./lib/theory";
 import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
 
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 const ImprovInsight = lazy(() => import("./components/ImprovInsight"));
 const CircleOfFifths = lazy(() => import("./components/CircleOfFifths"));
 const ScaleSynthesia = lazy(() => import("./components/ScaleSynthesia"));
+const NoteNeuralNetwork = lazy(() => import("./components/NoteNeuralNetwork"));
 
 // Explicit (non-Auto) styles randomize cycles through. Auto is omitted
 // because it would defeat the "shake it up" intent of the button.
@@ -93,6 +100,17 @@ function App() {
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const [showImprovInsight, setShowImprovInsight] = useState(false);
   const [moodId, setMoodId] = useState<MoodId | null>(null);
+  const [scaleLaunch, setScaleLaunch] = useState<{
+    root: string;
+    scaleId: ScaleFormulaType;
+    version: number;
+  }>();
+  const [noteNetworkState, setNoteNetworkState] = useState<NoteNeuralNetworkState>({
+    root: "E",
+    familyId: "harmonic_minor",
+    relationship: "relative",
+    selectedScaleId: "harmonic_minor",
+  });
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackHandleRef = useRef<PlaybackHandle | null>(null);
   const nextCardKeyRef = useRef(1);
@@ -128,6 +146,12 @@ function App() {
     handleResult(resolved, []);
     setWorkspace("builder");
   }, [handleResult]);
+
+  const handleOpenScale = useCallback((root: string, scaleId: ScaleFormulaType) => {
+    setMoodId(null);
+    setScaleLaunch((current) => ({ root, scaleId, version: (current?.version ?? 0) + 1 }));
+    setWorkspace("scales");
+  }, []);
 
   const getPianoStyle = useCallback(
     (index: number): VoicingStyle => pianoStyles[index] ?? "auto",
@@ -355,8 +379,20 @@ function App() {
                 <FretboardExplorer />
               ) : workspace === "circle" ? (
                 <CircleOfFifths onUseKey={handleUseCircleKey} />
+              ) : workspace === "scales" ? (
+                <ScaleSynthesia
+                  key={scaleLaunch?.version ?? 0}
+                  moodId={moodId}
+                  onMoodChange={setMoodId}
+                  initialRoot={scaleLaunch?.root}
+                  initialScaleId={scaleLaunch?.scaleId}
+                />
               ) : (
-                <ScaleSynthesia moodId={moodId} onMoodChange={setMoodId} />
+                <NoteNeuralNetwork
+                  onOpenScale={handleOpenScale}
+                  state={noteNetworkState}
+                  onStateChange={setNoteNetworkState}
+                />
               )}
             </Suspense>
           )}

@@ -601,7 +601,7 @@ Rendered in-app Browser QA found and fixed a React shorthand/longhand border war
 
 **Verification:** production build and lint pass; Vitest is 1,044/1,044; full Playwright is 87/87. Desktop, tablet, 375px mobile, keyboard, pointer-hover, reduced-motion, console, and performance paths are covered. Context7 returned current React purity and Playwright locator/assertion guidance before implementation; OpenSpec was intentionally not used per the user's post-archive workflow direction. The existing large-chunk build warning remains unchanged.
 
-**Current state:** implementation commit `46be187` is pushed; after [#46](https://github.com/micro-JAY/harmony_hash/pull/46) merged, draft [#47](https://github.com/micro-JAY/harmony_hash/pull/47) was retargeted cleanly to `main`. PR #28 was closed as superseded by the merged OpenAI migration rather than conflict-resolved.
+**Current state:** Jazz merged to `main` as `b415fe5` via [#47](https://github.com/micro-JAY/harmony_hash/pull/47) after exact-head CI completed. PR #28 was closed as superseded by the merged OpenAI migration rather than conflict-resolved.
 
 ---
 
@@ -615,4 +615,4 @@ The first independent review found four Medium issues: context-relative colors, 
 
 **Verification:** production build and lint pass; Vitest is 1,057/1,057; full Playwright is 89/89; the focused suggestion suite is 11/11. Desktop, 820px tablet, 375px mobile, pointer, keyboard, reduced-motion, console, stable-color, mode-rotation, harmonic-minor, mood-preservation, overflow, and sub-500ms recomputation paths are covered. The initial bundle increases by about 1.7 kB gzip from consuming the existing shared mode/learning catalogs; the pre-existing large-chunk warning remains.
 
-**Current state:** implementation commit `2a2dc58` is pushed to `origin/feat/suggestion-overlay-modal`; stacked draft [#48](https://github.com/micro-JAY/harmony_hash/pull/48) targets [#47](https://github.com/micro-JAY/harmony_hash/pull/47). Keep both unmerged until normal review and CI complete; after #47 lands, retarget or rebase #48 cleanly.
+**Current state:** implementation commit `2a2dc58` is pushed to `origin/feat/suggestion-overlay-modal`; after #47 merged, draft [#48](https://github.com/micro-JAY/harmony_hash/pull/48) was retargeted to `main` and refreshed with the exact `main` merge ancestry. Keep #48 unmerged until its refreshed exact-head CI completes.

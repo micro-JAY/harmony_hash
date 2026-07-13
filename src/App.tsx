@@ -13,6 +13,7 @@ import type { Instrument, IndexedChord, ParseError, VoicingStyle, Workspace } fr
 import Header from "./components/Header";
 import type { NoteNeuralNetworkState } from "./components/NoteNeuralNetwork";
 import ProgressionInput from "./components/ProgressionInput";
+import ShareProgression from "./components/ShareProgression";
 import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
 import {
@@ -36,6 +37,10 @@ import {
   type ScaleFormulaType,
 } from "./lib/theory";
 import { createProgressionBridge } from "./voice/progressionBridge";
+import {
+  parseProgressionShareUrl,
+  type ProgressionShareParseResult,
+} from "./lib/progressionShare";
 
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 const CircleOfFifths = lazy(() => import("./components/CircleOfFifths"));
@@ -98,12 +103,27 @@ function shiftIndexedSet(set: ReadonlySet<number>, removed: number): Set<number>
   return next;
 }
 
+function readInitialProgressionShare(): ProgressionShareParseResult {
+  if (typeof window === "undefined") return { status: "absent" };
+  return parseProgressionShareUrl(window.location.href);
+}
+
 function App() {
   const t = useT();
-  const [instrument, setInstrument] = useState<Instrument>("guitar");
+  const [initialShare] = useState(readInitialProgressionShare);
+  const importedChordCount = initialShare.status === "valid" ? initialShare.share.chords.length : 0;
+  const [instrument, setInstrument] = useState<Instrument>(() =>
+    initialShare.status === "valid" ? initialShare.share.instrument : "guitar",
+  );
   const [workspace, setWorkspace] = useState<Workspace>("builder");
-  const [chords, setChords] = useState<DisplayChord[]>([]);
-  const [cardKeys, setCardKeys] = useState<number[]>([]);
+  const [chords, setChords] = useState<DisplayChord[]>(() =>
+    initialShare.status === "valid"
+      ? initialShare.share.chords.map(({ input, chord }) => ({ input, chord }))
+      : [],
+  );
+  const [cardKeys, setCardKeys] = useState<number[]>(() =>
+    Array.from({ length: importedChordCount }, (_, index) => index + 1),
+  );
   const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
   const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
@@ -151,9 +171,10 @@ function App() {
       onError: (error) => console.error("Progression playback failed", error),
     }),
   );
-  const nextCardKeyRef = useRef(1);
-  const timelineVersionRef = useRef(0);
-  const [timelineVersion, setTimelineVersion] = useState(0);
+  const nextCardKeyRef = useRef(importedChordCount + 1);
+  const initialTimelineVersion = importedChordCount > 0 ? 1 : 0;
+  const timelineVersionRef = useRef(initialTimelineVersion);
+  const [timelineVersion, setTimelineVersion] = useState(initialTimelineVersion);
 
   const handleCloseHanz = useCallback(() => {
     setHanzOpen(false);
@@ -411,6 +432,27 @@ function App() {
           : "flex-1 flex flex-col gap-5 pb-6"
         }
       >
+          {workspace === "builder" && initialShare.status === "invalid" ? (
+            <section className="w-full px-4" aria-label="Shared progression status">
+              <p
+                role="alert"
+                className="mx-auto max-w-3xl rounded-lg"
+                style={{
+                  marginTop: 0,
+                  marginBottom: 0,
+                  padding: "var(--space-3) var(--space-4)",
+                  color: "var(--status-error-text)",
+                  backgroundColor: "var(--status-error-bg)",
+                  border: "1px solid var(--status-error-border)",
+                  fontSize: "var(--text-sm)",
+                  lineHeight: "var(--leading-normal)",
+                }}
+              >
+                {initialShare.message} Start a new progression below.
+              </p>
+            </section>
+          ) : null}
+
           {workspace === "builder" ? (
             <ProgressionInput
               onResult={handleResult}
@@ -514,6 +556,7 @@ function App() {
                     </button>
                   )}
 
+                  <ShareProgression instrument={instrument} chords={chords} />
                 </div>
               )}
             </div>

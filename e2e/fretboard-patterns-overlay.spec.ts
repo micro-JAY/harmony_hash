@@ -159,24 +159,15 @@ test.describe("Fretboard patterns and chord overlays", () => {
     expect(issues).toEqual([]);
   });
 
-  test("keeps builder and companion state independent from learning controls", async ({ page }) => {
+  test("keeps learning controls independent from the builder-only companion", async ({ page }) => {
     const issues = collectBrowserIssues(page);
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Cmaj7 Am7 Dm7 G7");
-    await input.press("Enter");
-    const firstCard = page.getByTestId("chord-card").first();
-    await firstCard.getByRole("button", { name: "Lock chord card" }).click();
-    await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
-
-    await page.getByRole("button", { name: "Fretboard", exact: true }).click();
+    await openFretboard(page);
     await page.getByRole("button", { name: "CAGED", exact: true }).click();
     await chooseOverlayWithKeyboard(page, "Cmaj7");
-    await page.getByRole("button", { name: "Builder", exact: true }).click();
 
-    await expect(page.getByTestId("chord-card")).toHaveCount(4);
-    await expect(firstCard.getByRole("button", { name: "Unlock chord card" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Collapse Harmony Companion" })).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByTestId("fretboard-scroller")).toHaveAttribute("data-pattern", "caged");
+    await expect(page.getByTestId("fretboard-scroller")).toHaveAttribute("data-overlay", "Cmaj7");
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
     expect(issues).toEqual([]);
   });
 

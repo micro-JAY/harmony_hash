@@ -36,6 +36,7 @@ interface ActivePosition {
 
 const MARKER_FRETS = new Set([3, 5, 7, 9, 12, 15]);
 const BOARD_COLUMNS = "64px repeat(16, 64px)";
+const BOARD_WIDTH = "1088px";
 const RIGHT_HANDED_FRETS = Object.freeze(Array.from({ length: 16 }, (_, fret) => fret));
 const LEFT_HANDED_FRETS = Object.freeze([...RIGHT_HANDED_FRETS].reverse());
 
@@ -204,12 +205,14 @@ export default function HorizontalFretboard({
           role="grid"
           aria-label={`${handednessLabel} ${instrumentName} scale positions in ${tuning.label} tuning`}
           className="p-3"
-          style={{ minWidth: "1088px" }}
+          data-testid="fretboard-grid"
+          style={{ minWidth: "100%", width: "max-content" }}
         >
           <div
             role="row"
             className="grid items-end"
-            style={{ gridTemplateColumns: BOARD_COLUMNS }}
+            data-testid="fretboard-column-headers"
+            style={{ gridTemplateColumns: BOARD_COLUMNS, marginInline: "auto", width: BOARD_WIDTH }}
           >
             <span role="columnheader" />
             {visualFrets.map((fret) => (
@@ -217,8 +220,12 @@ export default function HorizontalFretboard({
                 key={fret}
                 role="columnheader"
                 className="pb-2 text-center"
+                data-fret-column={fret}
+                data-open-column={fret === 0 ? "true" : undefined}
                 style={{
                   color: fret === 0 ? "var(--text-warm)" : "var(--text-muted)",
+                  backgroundColor: fret === 0 ? "var(--surface-raised)" : "transparent",
+                  borderInline: fret === 0 ? "1px solid var(--border-strong)" : undefined,
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-xs)",
                 }}
@@ -233,7 +240,7 @@ export default function HorizontalFretboard({
               key={`${row.string.number}-${row.string.registerLabel}`}
               role="row"
               className="grid items-center"
-              style={{ gridTemplateColumns: BOARD_COLUMNS }}
+              style={{ gridTemplateColumns: BOARD_COLUMNS, marginInline: "auto", width: BOARD_WIDTH }}
             >
               <span
                 role="rowheader"
@@ -274,6 +281,8 @@ export default function HorizontalFretboard({
                     key={key}
                     role="gridcell"
                     className="relative flex h-14 items-center justify-center"
+                    data-fret={position.fret}
+                    data-open-column={position.fret === 0 ? "true" : undefined}
                     style={{
                       borderLeft: handedness === "right" && position.fret === 0
                         ? "1px solid var(--border-accent)"
@@ -281,9 +290,14 @@ export default function HorizontalFretboard({
                       borderRight: handedness === "left" && position.fret === 0
                         ? "1px solid var(--border-accent)"
                         : undefined,
-                      backgroundColor: position.fret % 2 === 0
-                        ? "var(--surface-highlight)"
-                        : "transparent",
+                      backgroundColor: position.fret === 0
+                        ? "var(--surface-raised)"
+                        : position.fret % 2 === 0
+                          ? "var(--surface-highlight)"
+                          : "transparent",
+                      boxShadow: position.fret === 0
+                        ? "inset 0 0 0 1px var(--border-strong)"
+                        : undefined,
                     }}
                   >
                     <span
@@ -341,7 +355,7 @@ export default function HorizontalFretboard({
           <div
             aria-hidden="true"
             className="grid"
-            style={{ gridTemplateColumns: BOARD_COLUMNS }}
+            style={{ gridTemplateColumns: BOARD_COLUMNS, marginInline: "auto", width: BOARD_WIDTH }}
           >
             <span />
             {visualFrets.map((fret) => (
@@ -350,6 +364,11 @@ export default function HorizontalFretboard({
                 className="flex h-6 items-center justify-center gap-1"
                 data-fret-marker={MARKER_FRETS.has(fret) ? fret : undefined}
                 data-double-marker={fret === 12 ? "true" : undefined}
+                data-open-column={fret === 0 ? "true" : undefined}
+                style={{
+                  backgroundColor: fret === 0 ? "var(--surface-raised)" : "transparent",
+                  borderInline: fret === 0 ? "1px solid var(--border-strong)" : undefined,
+                }}
               >
                 {MARKER_FRETS.has(fret) && (
                   <>

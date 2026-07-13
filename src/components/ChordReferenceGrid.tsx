@@ -6,6 +6,7 @@ import {
   applyMoodToHarmonicFit,
   moodDefinitionFor,
   scoreChordKeyFit,
+  scoreJazzChordFit,
   scoreNextChordFit,
 } from "../lib/theory";
 import type {
@@ -16,7 +17,7 @@ import type {
 } from "../lib/theory";
 import type { ScaleType } from "../lib/types";
 
-export type SuggestionMode = "off" | "key" | "next";
+export type SuggestionMode = "off" | "key" | "next" | "jazz";
 
 export type KeyContext = HarmonyContext;
 
@@ -24,6 +25,7 @@ const MODE_OPTIONS: ReadonlyArray<{ value: SuggestionMode; label: string }> = [
   { value: "off", label: "Off" },
   { value: "key", label: "Key" },
   { value: "next", label: "Next" },
+  { value: "jazz", label: "Jazz" },
 ];
 
 const SCALE_TYPE_LABELS: Readonly<Record<ScaleType, string>> = {
@@ -42,24 +44,28 @@ const FIT_TIER_VISUALS = {
     border: "color-mix(in srgb, var(--music-match-high) 42%, transparent)",
     badge: "var(--music-match-high)",
     shadow: "none",
+    jazzGlow: "0 0 0 1px color-mix(in srgb, var(--music-match-high) 48%, transparent), 0 0 14px color-mix(in srgb, var(--music-match-high) 28%, transparent)",
   },
   good: {
     background: "color-mix(in srgb, var(--music-match-good) 14%, transparent)",
     border: "color-mix(in srgb, var(--music-match-good) 42%, transparent)",
     badge: "var(--music-match-good)",
     shadow: "none",
+    jazzGlow: "0 0 10px color-mix(in srgb, var(--music-match-good) 22%, transparent)",
   },
   color: {
     background: "color-mix(in srgb, var(--music-match-mid) 14%, transparent)",
     border: "color-mix(in srgb, var(--music-match-mid) 42%, transparent)",
     badge: "var(--music-match-mid)",
     shadow: "none",
+    jazzGlow: "0 0 7px color-mix(in srgb, var(--music-match-mid) 16%, transparent)",
   },
   outside: {
     background: "color-mix(in srgb, var(--music-match-low) 10%, transparent)",
     border: "color-mix(in srgb, var(--music-match-low) 34%, transparent)",
     badge: "var(--music-match-low)",
     shadow: "none",
+    jazzGlow: "none",
   },
 } as const;
 
@@ -173,7 +179,15 @@ export default function ChordReferenceGrid({
     return "basic";
   });
   const [suggestionMode, setSuggestionMode] = useState<SuggestionMode>("off");
-  const previousChord = useMemo(() => findLastResolvedChord(chords.join(" ")), [chords]);
+  const chordHistory = useMemo(
+    () => chords.flatMap((chordName) => {
+      const chord = lookupChord(chordName);
+      return chord ? [chord] : [];
+    }),
+    [chords],
+  );
+  const previousChord = chordHistory.at(-1)
+    ?? findLastResolvedChord(chords.join(" "));
   const contextKey = keyContext?.key;
   const contextScaleType = keyContext?.scaleType;
   const scoreByChord = useMemo(() => {
@@ -186,25 +200,31 @@ export default function ChordReferenceGrid({
         const chordName = quality.suffix === "" ? root : `${root}${quality.suffix}`;
         const chord = lookupChord(chordName);
         if (!chord) continue;
-        const baseFit = suggestionMode === "next"
-          ? scoreNextChordFit(chord, context, previousChord)
-          : scoreChordKeyFit(chord, context);
+        const baseFit = suggestionMode === "jazz"
+          ? scoreJazzChordFit(chord, context, chordHistory)
+          : suggestionMode === "next"
+            ? scoreNextChordFit(chord, context, previousChord)
+            : scoreChordKeyFit(chord, context);
         scores.set(chordName, moodId
           ? applyMoodToHarmonicFit(baseFit, chord, context, moodId)
           : baseFit);
       }
     }
     return scores;
-  }, [contextKey, contextScaleType, moodId, previousChord, suggestionMode]);
+  }, [chordHistory, contextKey, contextScaleType, moodId, previousChord, suggestionMode]);
   const overlayActive = suggestionMode !== "off" && !!contextKey && !!contextScaleType;
   const contextLabel = contextKey && contextScaleType
     ? `${contextKey} ${SCALE_TYPE_LABELS[contextScaleType]}`
     : "No key context";
-  const baseModeSummary = suggestionMode === "next"
+  const baseModeSummary = suggestionMode === "jazz"
     ? previousChord
-      ? `Ranking what follows ${previousChord.displayName} in ${contextLabel}`
-      : `Key fit in ${contextLabel}. Add a chord to rank what follows.`
-    : `Key fit in ${contextLabel}`;
+      ? `Jazz movement after ${previousChord.displayName} in ${contextLabel}`
+      : `Jazz vocabulary in ${contextLabel}. Add a chord to reveal cadence paths.`
+    : suggestionMode === "next"
+      ? previousChord
+        ? `Ranking what follows ${previousChord.displayName} in ${contextLabel}`
+        : `Key fit in ${contextLabel}. Add a chord to rank what follows.`
+      : `Key fit in ${contextLabel}`;
   const modeSummary = moodId
     ? `${baseModeSummary} · ${moodDefinitionFor(moodId).label} lens`
     : baseModeSummary;
@@ -520,7 +540,9 @@ export default function ChordReferenceGrid({
                           : undefined;
                         const baseBackground = fitVisual?.background ?? "var(--surface-base)";
                         const baseBorder = fitVisual?.border ?? "var(--border-subtle)";
-                        const baseShadow = fitVisual?.shadow ?? "none";
+                        const baseShadow = suggestionMode === "jazz"
+                          ? fitVisual?.jazzGlow ?? "none"
+                          : fitVisual?.shadow ?? "none";
                         const accessibleLabel = fitResult
                           ? `${chordName}, ${fitResult.score}% fit, ${fitResult.tier}. ${fitResult.reasons.join(". ")}`
                           : chordName;
@@ -549,6 +571,7 @@ export default function ChordReferenceGrid({
                             data-chord-name={chordName}
                             data-fit-score={fitResult?.score}
                             data-fit-tier={fitResult?.tier}
+                            data-fit-basis={fitResult?.basis}
                             style={{
                               display: "inline-flex",
                               flexDirection: "column",
@@ -569,7 +592,9 @@ export default function ChordReferenceGrid({
                               touchAction: "manipulation",
                               background: baseBackground,
                               color: "var(--text-secondary)",
-                              border: `1px solid ${baseBorder}`,
+                              borderWidth: "1px",
+                              borderStyle: "solid",
+                              borderColor: baseBorder,
                               boxShadow: baseShadow,
                               transition: shouldReduceMotion
                                 ? "none"
@@ -578,10 +603,12 @@ export default function ChordReferenceGrid({
                             }}
                             onMouseEnter={(e) => {
                               if (flashCell !== chordName) {
-                                e.currentTarget.style.background =
-                                  "var(--surface-raised)";
+                                e.currentTarget.style.background = fitResult
+                                  ? baseBackground
+                                  : "var(--surface-raised)";
                                 e.currentTarget.style.borderColor =
-                                  "var(--border-strong)";
+                                  fitVisual?.badge ?? "var(--border-strong)";
+                                e.currentTarget.style.boxShadow = baseShadow;
                               }
                             }}
                             onMouseLeave={(e) => {
@@ -590,6 +617,7 @@ export default function ChordReferenceGrid({
                                   baseBackground;
                                 e.currentTarget.style.borderColor =
                                   baseBorder;
+                                e.currentTarget.style.boxShadow = baseShadow;
                               }
                             }}
                           >

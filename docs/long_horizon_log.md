@@ -588,3 +588,17 @@ The final independent review caught and drove fixes for five cross-surface detai
 **Verification:** dependency install reports 0 vulnerabilities; production build and lint pass; Vitest is 1,035/1,035; full Playwright is 82/82. The eight Network browser tests cover exact E harmonic-minor relatives, pointer and keyboard selection, all four families, Parallel roots, mood-safe Scale Synthesia handoff, Builder/companion/network-state continuity, desktop/tablet/mobile containment, reduced motion, minimum readable mobile geometry, console health, and the inspected desktop visual baseline. The final independent re-review found no remaining Critical, High, or Medium issue. Context7 React and Playwright requests were attempted before implementation and browser-test work but stalled, so installed current plugin guidance and established repository patterns remained authoritative.
 
 **Current state:** Note Neural Network merged to `main` as `4046435` via [#44](https://github.com/micro-JAY/harmony_hash/pull/44) after the full #38/#40–#43 dependency chain, exact-head merge guards, refreshed build/Worker checks, and two passing Playwright jobs. Obsolete #28 remains intentionally untouched.
+
+---
+
+## 2026-07-13 15:33 JST — Jazz Suggestion Overlay
+
+Completed the bounded Jazz suggestion slice on `feat/jazz-suggestion-overlay`, stacked on the reviewed Hasher workspace branch. The shared pure theory engine now combines key fit, existing voice-leading and root-motion scores, Jazz chord vocabulary, and cadence context. It recognizes mode-aware ii–V–I and ii–subV–I paths, direct dominant and tritone-substitute resolutions, altered dominants, extensions, and half-diminished vocabulary without mutating timeline history.
+
+The chord grid adds an accessible Jazz mode beside Off, Key, and Next. Every dictionary-valid cell retains the existing four-tier percentage treatment, while Jazz mode adds tier-strength glow and preserves the fit background on pointer hover. Summaries and accessible names explain the active movement, the existing mood lens still composes over the result, and recomputation remains inside the 500ms interaction budget.
+
+Rendered in-app Browser QA found and fixed a React shorthand/longhand border warning; the clean desktop pass reports zero warnings/errors. The independent theory review found two Medium labeling edge cases: incompatible tonic-root chords could be called I resolutions, and ii was initially fixed at two semitones across every mode. Cadence recognition now requires scale-compatible tonic and degree-two qualities; negative tonic-quality and Phrygian coverage prevent regressions. The final re-review found no remaining Critical, High, or Medium issue.
+
+**Verification:** production build and lint pass; Vitest is 1,044/1,044; full Playwright is 87/87. Desktop, tablet, 375px mobile, keyboard, pointer-hover, reduced-motion, console, and performance paths are covered. Context7 returned current React purity and Playwright locator/assertion guidance before implementation; OpenSpec was intentionally not used per the user's post-archive workflow direction. The existing large-chunk build warning remains unchanged.
+
+**Current state:** implementation commit `46be187` is pushed; after [#46](https://github.com/micro-JAY/harmony_hash/pull/46) merged, draft [#47](https://github.com/micro-JAY/harmony_hash/pull/47) was retargeted cleanly to `main`. PR #28 was closed as superseded by the merged OpenAI migration rather than conflict-resolved.

@@ -5,6 +5,8 @@ import {
   findLastResolvedChord,
   harmonicFitTier,
   scoreChordKeyFit,
+  scoreJazzChordFit,
+  scoreJazzVocabularyFit,
   scoreNextChordFit,
   scoreRootMotionFit,
   scoreVoiceLeadingFit,
@@ -93,6 +95,108 @@ describe("scoreNextChordFit", () => {
     const second = scoreNextChordFit(chord("Am7"), C_MAJOR, chord("Cmaj7"));
 
     expect(second).toEqual(first);
+  });
+});
+
+describe("scoreJazzChordFit", () => {
+  it("rewards altered and extended jazz vocabulary without consulting mutable data", () => {
+    expect(scoreJazzVocabularyFit(chord("G7#9"))).toBe(100);
+    expect(scoreJazzVocabularyFit(chord("Cmaj9"))).toBe(96);
+    expect(scoreJazzVocabularyFit(chord("Bm7b5"))).toBe(94);
+    expect(scoreJazzVocabularyFit(chord("Cmaj7"))).toBe(90);
+    expect(scoreJazzVocabularyFit(chord("C"))).toBe(58);
+    expect(scoreJazzVocabularyFit(chord("C5"))).toBe(35);
+  });
+
+  it("recognizes ii–V and the tritone-substitute dominant", () => {
+    const iiToV = scoreJazzChordFit(chord("G7"), C_MAJOR, [chord("Dm7")]);
+    const iiToSubV = scoreJazzChordFit(chord("Db7"), C_MAJOR, [chord("Dm7")]);
+
+    expect(iiToV).toMatchObject({
+      basis: "jazz",
+      tier: "strong",
+      components: { cadence: 100, rootMotion: 100 },
+    });
+    expect(iiToV.reasons).toContain("ii–V motion");
+    expect(iiToSubV.components.cadence).toBe(92);
+    expect(iiToSubV.reasons).toContain("tritone-substitute dominant");
+    expect(iiToSubV.score).toBeGreaterThanOrEqual(70);
+  });
+
+  it("recognizes direct and completed dominant resolutions", () => {
+    const direct = scoreJazzChordFit(chord("Cmaj7"), C_MAJOR, [chord("G7")]);
+    const tritone = scoreJazzChordFit(chord("Cmaj7"), C_MAJOR, [chord("Db7")]);
+    const completed = scoreJazzChordFit(
+      chord("Cmaj7"),
+      C_MAJOR,
+      [chord("Dm7"), chord("G7")],
+    );
+    const completedSubstitute = scoreJazzChordFit(
+      chord("Cmaj7"),
+      C_MAJOR,
+      [chord("Dm7"), chord("Db7")],
+    );
+
+    expect(direct.reasons).toContain("dominant resolution");
+    expect(tritone.reasons).toContain("tritone-sub resolution");
+    expect(completed.reasons).toContain("completes ii–V–I");
+    expect(completedSubstitute.reasons).toContain("completes ii–subV–I");
+    expect(completed.components.cadence).toBe(100);
+    expect(completedSubstitute.components.cadence).toBe(98);
+  });
+
+  it("reserves tonic-resolution labels for a compatible tonic quality", () => {
+    const history = [chord("Dm7"), chord("G7")];
+
+    for (const candidate of ["C5", "Cdim", "Caug", "C7"]) {
+      const result = scoreJazzChordFit(chord(candidate), C_MAJOR, history);
+      expect(result.components.cadence, candidate).not.toBe(100);
+      expect(result.reasons, candidate).not.toContain("completes ii–V–I");
+      expect(result.reasons, candidate).not.toContain("dominant resolution");
+    }
+  });
+
+  it("derives ii quality from the selected scale and avoids false modal labels", () => {
+    const harmonicMinor = scoreJazzChordFit(
+      chord("G7"),
+      { key: "C", scaleType: "harmonic_minor" },
+      [chord("Dm7b5")],
+    );
+    const phrygian = scoreJazzChordFit(
+      chord("A7"),
+      { key: "D", scaleType: "phrygian" },
+      [chord("Em7")],
+    );
+
+    expect(harmonicMinor.reasons).toContain("ii–V motion");
+    expect(harmonicMinor.components.cadence).toBe(100);
+    expect(phrygian.reasons).not.toContain("ii–V motion");
+    expect(phrygian.components.cadence).toBe(72);
+  });
+
+  it("falls back to key, vocabulary, and functional context without history", () => {
+    const result = scoreJazzChordFit(chord("G13"), C_MAJOR);
+
+    expect(result).toMatchObject({
+      basis: "jazz",
+      components: {
+        key: 100,
+        voiceLeading: null,
+        rootMotion: null,
+        jazzVocabulary: 96,
+        cadence: 72,
+      },
+    });
+    expect(result.reasons).toContain("primary dominant function");
+  });
+
+  it("is deterministic and does not mutate chord history", () => {
+    const history = Object.freeze([chord("Dm7"), chord("G7")]);
+    const first = scoreJazzChordFit(chord("Cmaj7"), C_MAJOR, history);
+    const second = scoreJazzChordFit(chord("Cmaj7"), C_MAJOR, history);
+
+    expect(second).toEqual(first);
+    expect(history.map((item) => item.displayName)).toEqual(["Dm7", "G7"]);
   });
 });
 

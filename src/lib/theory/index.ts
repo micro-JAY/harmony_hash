@@ -84,6 +84,8 @@ export {
   findLastResolvedChord,
   harmonicFitTier,
   scoreChordKeyFit,
+  scoreJazzChordFit,
+  scoreJazzVocabularyFit,
   scoreNextChordFit,
   scoreRootMotionFit,
   scoreVoiceLeadingFit,
@@ -93,6 +95,8 @@ export type {
   HarmonicFitResult,
   HarmonicFitTier,
   HarmonyContext,
+  JazzHarmonicFitComponents,
+  JazzHarmonicFitResult,
 } from "./harmonicSuggestions";
 
 export {

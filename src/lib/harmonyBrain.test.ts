@@ -5,8 +5,11 @@ import {
   computeVoicing,
   computeVoiceLedProgression,
   computeVoicingForStyle,
+  computeVoicingComparisons,
   enumerateVoicingCandidatesForStyle,
+  EXPLICIT_VOICING_STYLES,
   isStyleApplicable,
+  isVoicingStyleAvailable,
   noteToPitchClass,
 } from "./harmonyBrain";
 import type { VoicedChord, VoicedNote, VoicingStyle } from "./types";
@@ -562,6 +565,81 @@ describe("computeVoicingForStyle", () => {
     // underflow). Notes: C3, E3, G3, A3 = MIDI [48, 52, 55, 57].
     expect(v.notes.map((n) => n.midi)).toEqual([48, 52, 55, 57]);
     expect(v.voicingType).toBe("root");
+  });
+});
+
+describe("computeVoicingComparisons", () => {
+  it("returns every applicable explicit style in canonical order for Cmaj7", () => {
+    const comparisons = computeVoicingComparisons(["C", "E", "G", "B"]);
+
+    expect(comparisons.map(({ style }) => style)).toEqual(EXPLICIT_VOICING_STYLES);
+    expect(comparisons.map(({ voicing }) => voicing.notes.map(({ midi }) => midi))).toEqual([
+      [55, 60, 64, 71],
+      [52, 60, 67, 71],
+      [52, 55, 59],
+      [52, 59],
+      [48, 64, 67, 71],
+      [48, 55, 64, 71],
+    ]);
+  });
+
+  it("offers only Spread and Two-Hand for triads", () => {
+    expect(computeVoicingComparisons(["C", "E", "G"]).map(({ style }) => style)).toEqual([
+      "spread",
+      "two-hand",
+    ]);
+  });
+
+  it("returns no comparisons for empty input", () => {
+    expect(computeVoicingComparisons([])).toEqual([]);
+  });
+
+  it("is deterministic, range-safe, and does not mutate its input", () => {
+    const noteNames = ["G", "B", "D", "F"];
+    const original = [...noteNames];
+    const first = computeVoicingComparisons(noteNames);
+    const second = computeVoicingComparisons(noteNames);
+
+    expect(first).toEqual(second);
+    expect(noteNames).toEqual(original);
+    for (const { voicing } of first) {
+      expect(voicing.notes.every(({ midi }) => midi >= 48 && midi <= 83)).toBe(true);
+    }
+  });
+
+  it("excludes styles with no in-range candidate for high extended chords", () => {
+    const bMajor13 = ["B", "Ds", "Fs", "As", "Cs", "Gs"];
+
+    expect(isStyleApplicable(bMajor13, "spread")).toBe(true);
+    expect(isVoicingStyleAvailable(bMajor13, "spread")).toBe(false);
+    expect(isVoicingStyleAvailable(bMajor13, "two-hand")).toBe(false);
+    expect(computeVoicingComparisons(bMajor13).map(({ style }) => style)).not.toContain("spread");
+    expect(computeVoicingComparisons(bMajor13).map(({ style }) => style)).not.toContain("two-hand");
+  });
+
+  it("previews the same voice-led candidate a later chord adopts", () => {
+    const cMajor7 = ["C", "E", "G", "B"];
+    const g7 = ["G", "B", "D", "F"];
+    const prior = computeVoiceLedProgression([cMajor7])[0].notes;
+    const drop2Preview = computeVoicingComparisons(g7, prior)
+      .find(({ style }) => style === "drop2")?.voicing;
+    const adopted = computeVoiceLedProgression([cMajor7, g7], ["auto", "drop2"])[1];
+
+    expect(drop2Preview).toEqual(adopted);
+  });
+
+  it("falls back to voice-led Auto instead of crashing on an unavailable later style", () => {
+    const result = computeVoiceLedProgression(
+      [
+        ["C", "E", "G", "B"],
+        ["B", "Ds", "Fs", "As", "Cs", "Gs"],
+      ],
+      ["auto", "spread"],
+    );
+
+    expect(result).toHaveLength(2);
+    expect(result[1].notes.every(({ midi }) => midi >= 48 && midi <= 83)).toBe(true);
+    expect(result[1].voicingType).not.toBe("spread");
   });
 });
 

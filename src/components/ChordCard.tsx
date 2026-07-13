@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Lock, Unlock } from "lucide-react";
 import type {
   Instrument,
@@ -9,11 +9,12 @@ import type {
   VoicingStyle,
 } from "../lib/types";
 import { formatNoteForDisplay, parseNotes, prefersFlatNotation } from "../lib/chordData";
-import { isStyleApplicable } from "../lib/harmonyBrain";
+import { isVoicingStyleAvailable } from "../lib/harmonyBrain";
 import type { ChordModifierOption } from "../lib/chordModifiers";
 import GuitarChordDiagram from "./GuitarChordDiagram";
 import PianoKeyboard from "./PianoKeyboard";
 import ChordModifier from "./ChordModifier";
+import PianoVoicingComparison, { PIANO_STYLE_OPTIONS } from "./PianoVoicingComparison";
 
 interface ChordCardProps {
   chord: IndexedChord;
@@ -24,22 +25,13 @@ interface ChordCardProps {
   isLocked: boolean;
   onToggleLock: () => void;
   voicing: VoicedChord;
+  priorVoicing?: VoicedChord;
   pianoStyle: VoicingStyle;
   onPianoStyleChange: (style: VoicingStyle) => void;
   onChordChange: (option: ChordModifierOption) => void;
   /** True when this card is the currently-sounding chord during playback. */
   isPlaying?: boolean;
 }
-
-const PIANO_STYLE_OPTIONS: ReadonlyArray<{ value: VoicingStyle; label: string }> = [
-  { value: "auto", label: "Auto" },
-  { value: "drop2", label: "Drop 2" },
-  { value: "drop3", label: "Drop 3" },
-  { value: "rootless", label: "Rootless" },
-  { value: "shell", label: "Shell" },
-  { value: "spread", label: "Spread" },
-  { value: "two-hand", label: "Two-Hand" },
-];
 
 const VOICING_TYPE_LABEL: Partial<Record<VoicedChord["voicingType"], string>> = {
   drop2: "Drop 2",
@@ -49,6 +41,8 @@ const VOICING_TYPE_LABEL: Partial<Record<VoicedChord["voicingType"], string>> = 
   spread: "Spread",
   "two-hand": "Two-Hand",
 };
+
+const EMPTY_PRIOR_NOTES: VoicedChord["notes"] = [];
 
 function extractDisplayRoot(chordName: string): string {
   const match = chordName.match(/^([A-G](?:#|b)?)/);
@@ -64,6 +58,7 @@ export default function ChordCard({
   isLocked,
   onToggleLock,
   voicing,
+  priorVoicing,
   pianoStyle,
   onPianoStyleChange,
   onChordChange,
@@ -73,6 +68,7 @@ export default function ChordCard({
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
   const [guitarDisplay, setGuitarDisplay] = useState<GuitarDisplayMode>("fingering");
   const [pianoDisplay, setPianoDisplay] = useState<PianoDisplayMode>("notes");
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   function prevVariant() {
     if (maxVariants <= 1) return;
@@ -86,7 +82,7 @@ export default function ChordCard({
     onVariantChange(nextVariant);
   }
 
-  const noteNames = parseNotes(chord.entry);
+  const noteNames = useMemo(() => parseNotes(chord.entry), [chord.entry]);
   const preferFlats = prefersFlatNotation(extractDisplayRoot(displayName));
   const formattedNoteNames = noteNames.map((noteName) => formatNoteForDisplay(noteName, preferFlats));
 
@@ -95,7 +91,9 @@ export default function ChordCard({
       data-testid="chord-card"
       className={`relative flex max-w-full flex-col items-center overflow-hidden rounded-xl ${
         instrument === "piano"
-          ? "w-full min-w-0 lg:w-auto lg:min-w-[440px]"
+          ? comparisonOpen
+            ? "w-full min-w-0 md:col-span-2 lg:basis-full"
+            : "w-full min-w-0 lg:w-auto lg:min-w-[440px]"
           : "w-full min-w-0 lg:w-auto lg:min-w-[200px]"
       }`}
       data-playing={isPlaying ? "true" : undefined}
@@ -279,7 +277,7 @@ export default function ChordCard({
               }}
             >
               {PIANO_STYLE_OPTIONS.map((opt) => {
-                const applicable = isStyleApplicable(noteNames, opt.value);
+                const applicable = isVoicingStyleAvailable(noteNames, opt.value);
                 const active = pianoStyle === opt.value;
                 return (
                   <button
@@ -382,6 +380,16 @@ export default function ChordCard({
                 {formattedNoteNames.join(" – ")}
               </span>
             </div>
+            <PianoVoicingComparison
+              displayName={displayName}
+              noteNames={noteNames}
+              priorNotes={priorVoicing?.notes ?? EMPTY_PRIOR_NOTES}
+              preferFlats={preferFlats}
+              currentStyle={pianoStyle}
+              expanded={comparisonOpen}
+              onExpandedChange={setComparisonOpen}
+              onStyleChange={onPianoStyleChange}
+            />
           </>
         )}
       </div>

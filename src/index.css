@@ -97,3 +97,9 @@ body {
 .piano-key-active-lh {
   box-shadow: var(--glow-warm);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .piano-voicing-comparison-motion {
+    transition: none !important;
+  }
+}

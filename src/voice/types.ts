@@ -45,12 +45,18 @@ export interface ChordRef {
   symbol?: string;
 }
 
-/** Outcome of a playback request, so the agent can relay a constraint to the user. */
-export interface PlaybackResult {
-  ok: boolean;
-  /** When `ok` is false, a short reason the agent can speak (e.g. playback needs the piano view). */
-  message?: string;
-}
+/** Outcome of a playback request, so the agent never mistakes a no-op for a new start. */
+export type PlaybackResult =
+  | {
+      ok: true;
+      status: "started" | "already_playing";
+      message: string;
+    }
+  | {
+      ok: false;
+      status: "requires_piano" | "empty" | "cancelled" | "unavailable";
+      message: string;
+    };
 
 /**
  * Adapter the host app implements over its progression-builder state.

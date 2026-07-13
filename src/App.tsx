@@ -21,7 +21,11 @@ import {
   isVoicingStyleAvailable,
 } from "./lib/harmonyBrain";
 import { lookupChord, parseNotes } from "./lib/chordData";
-import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
+import { buildPlaybackSchedule, playSchedule } from "./lib/audioEngine";
+import {
+  createProgressionPlaybackController,
+  type PlaybackControllerState,
+} from "./lib/progressionPlayback";
 import type { ChordModifierOption } from "./lib/chordModifiers";
 import type { VoiceAgentRuntimeProps } from "./voice/VoiceAgentRuntime";
 import VoiceRuntimeFallback from "./voice/VoiceRuntimeFallback";
@@ -51,11 +55,6 @@ function loadVoiceAgentRuntime() {
 }
 
 const PLAYBACK_BPM = 80;
-
-interface AudioContextLike {
-  state: "suspended" | "running" | "closed";
-  resume(): Promise<void>;
-}
 
 function createAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -109,6 +108,7 @@ function App() {
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
   const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
   const [activeChordIndex, setActiveChordIndex] = useState<number | null>(null);
+  const [playbackPhase, setPlaybackPhase] = useState<PlaybackControllerState>("idle");
   // Voice-companion highlight, kept SEPARATE from activeChordIndex: the latter is
   // the playback cursor (isPlaying derives from it), so the agent highlighting a
   // chord must not look like playback or block the Play button / play tool.
@@ -141,8 +141,16 @@ function App() {
     relationship: "relative",
     selectedScaleId: "harmonic_minor",
   });
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const playbackHandleRef = useRef<PlaybackHandle | null>(null);
+  const [playbackController] = useState(() =>
+    createProgressionPlaybackController({
+      createContext: createAudioContext,
+      schedule: (voicings, context, onChordChange) =>
+        playSchedule(buildPlaybackSchedule(voicings, PLAYBACK_BPM), context, onChordChange),
+      onChordChange: setActiveChordIndex,
+      onStateChange: setPlaybackPhase,
+      onError: (error) => console.error("Progression playback failed", error),
+    }),
+  );
   const nextCardKeyRef = useRef(1);
   const timelineVersionRef = useRef(0);
   const [timelineVersion, setTimelineVersion] = useState(0);
@@ -189,8 +197,8 @@ function App() {
     setLockedCards(new Set());
     setPianoStyles({});
     setHighlightedChordIndex(null);
-    playbackHandleRef.current?.stop();
-  }, [markTimelineMutation]);
+    playbackController.stop();
+  }, [markTimelineMutation, playbackController]);
 
   const handleUseCircleKey = useCallback((key: CircleKey) => {
     const resolved: DisplayChord[] = [];
@@ -249,33 +257,28 @@ function App() {
     return computeVoiceLedProgression(noteSets, styles);
   }, [chords, getPianoStyle]);
 
-  const isPlaying = activeChordIndex !== null;
+  const isPlaying = playbackPhase === "playing";
+  const isPlaybackStarting = playbackPhase === "starting";
+
+  function startProgressionPlayback() {
+    return playbackController.start(pianoVoicings);
+  }
 
   function handleTogglePlayback() {
-    if (isPlaying) {
-      playbackHandleRef.current?.stop();
+    if (playbackController.getState() !== "idle") {
+      playbackController.stop();
       return;
     }
-    if (pianoVoicings.length === 0) return;
-    if (!audioContextRef.current) {
-      audioContextRef.current = createAudioContext();
-    }
-    const ctx = audioContextRef.current;
-    if (!ctx) return;
-    if ((ctx as AudioContextLike).state === "suspended") {
-      void (ctx as AudioContextLike).resume();
-    }
-    const schedule = buildPlaybackSchedule(pianoVoicings, PLAYBACK_BPM);
-    playbackHandleRef.current = playSchedule(schedule, ctx, setActiveChordIndex);
+    void startProgressionPlayback();
   }
 
   // Stop any in-flight playback when the progression changes or the
   // component unmounts. The cleanup uses the ref snapshot at effect time.
   useEffect(() => {
     return () => {
-      playbackHandleRef.current?.stop();
+      playbackController.stop();
     };
-  }, [chords, pianoVoicings]);
+  }, [chords, pianoVoicings, playbackController]);
 
   function randomizeAll() {
     if (instrument === "guitar") {
@@ -326,8 +329,8 @@ function App() {
     setHighlightedChordIndex((h) =>
       h === null || h === index ? null : h > index ? h - 1 : h,
     );
-    playbackHandleRef.current?.stop();
-  }, [markTimelineMutation]);
+    playbackController.stop();
+  }, [markTimelineMutation, playbackController]);
 
   const replaceChordAt = useCallback((index: number, option: ChordModifierOption) => {
     markTimelineMutation();
@@ -347,8 +350,8 @@ function App() {
       }
       return { ...prev, [index]: "auto" };
     });
-    playbackHandleRef.current?.stop();
-  }, [markTimelineMutation]);
+    playbackController.stop();
+  }, [markTimelineMutation, playbackController]);
 
   // ── Voice companion bridge ──────────────────────────────────────────────
   // Tool callbacks fire OUTSIDE React's render cycle, so the bridge reads live
@@ -356,17 +359,15 @@ function App() {
   // latest randomize/playback closures via refs. Built once; deps are stable.
   const chordsRef = useRef(chords);
   const instrumentRef = useRef(instrument);
-  const activeIndexRef = useRef(activeChordIndex);
   const pianoVoicingsRef = useRef(pianoVoicings);
   const randomizeAllRef = useRef(randomizeAll);
-  const togglePlaybackRef = useRef(handleTogglePlayback);
+  const startPlaybackRef = useRef(startProgressionPlayback);
   useEffect(() => {
     chordsRef.current = chords;
     instrumentRef.current = instrument;
-    activeIndexRef.current = activeChordIndex;
     pianoVoicingsRef.current = pianoVoicings;
     randomizeAllRef.current = randomizeAll;
-    togglePlaybackRef.current = handleTogglePlayback;
+    startPlaybackRef.current = startProgressionPlayback;
   });
 
   // Built once and stable. Every method reads live state through the refs above
@@ -388,9 +389,7 @@ function App() {
           setCardKeys((prev) => [...prev, ...newKeys]);
         },
         removeChordAt: (index) => removeChordAt(index),
-        startPlayback: () => {
-          if (activeIndexRef.current === null) togglePlaybackRef.current();
-        },
+        startPlayback: () => startPlaybackRef.current(),
         randomizeVoicings: () => randomizeAllRef.current(),
         setHighlight: (index) => setHighlightedChordIndex(index),
       }),
@@ -487,7 +486,15 @@ function App() {
                     <button
                       type="button"
                       onClick={handleTogglePlayback}
-                      aria-label={isPlaying ? "Stop playback" : "Play progression"}
+                      aria-label={
+                        isPlaybackStarting
+                          ? "Starting playback"
+                          : isPlaying
+                            ? "Stop playback"
+                            : "Play progression"
+                      }
+                      aria-busy={isPlaybackStarting}
+                      disabled={isPlaybackStarting}
                       className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all"
                       style={{
                         backgroundColor: isPlaying
@@ -503,7 +510,7 @@ function App() {
                       }}
                     >
                       {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-                      {isPlaying ? "Stop" : "Play progression"}
+                      {isPlaybackStarting ? "Starting…" : isPlaying ? "Stop" : "Play progression"}
                     </button>
                   )}
 

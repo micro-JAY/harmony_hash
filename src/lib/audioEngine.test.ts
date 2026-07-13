@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { buildPlaybackSchedule, midiToFrequency } from "./audioEngine";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { buildPlaybackSchedule, midiToFrequency, playSchedule } from "./audioEngine";
 import type { VoicedChord } from "./types";
 
 function voicing(midis: number[]): VoicedChord {
@@ -98,5 +98,56 @@ describe("midiToFrequency", () => {
 
   it("matches the standard A2 = 110Hz reference", () => {
     expect(midiToFrequency(45)).toBeCloseTo(110, 3);
+  });
+});
+
+describe("playSchedule", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("cleans partially created audio nodes and timers when scheduling throws", () => {
+    vi.useFakeTimers();
+    const stop = vi.fn();
+    const destination = {};
+    const gain = {
+      gain: {
+        value: 0,
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+      },
+      connect: vi.fn(() => destination),
+    };
+    const oscillator = {
+      type: "triangle",
+      frequency: { value: 0 },
+      connect: vi.fn(() => gain),
+      start: vi.fn(),
+      stop,
+    } satisfies {
+      type: OscillatorType;
+      frequency: { value: number };
+      connect: (next: typeof gain) => typeof gain;
+      start: (when?: number) => void;
+      stop: (when?: number) => void;
+    };
+    const context = {
+      currentTime: 0,
+      destination,
+      createOscillator: vi.fn(() => oscillator),
+      createGain: vi.fn((): typeof gain => {
+        throw new Error("gain creation failed");
+      }),
+    };
+    const onChordChange = vi.fn<(index: number | null) => void>();
+
+    expect(() => playSchedule(
+      [{ startTime: 0, duration: 1, notes: [60], chordIndex: 0 }],
+      context,
+      onChordChange,
+    )).toThrow("gain creation failed");
+
+    expect(stop).toHaveBeenCalledTimes(1);
+    vi.runAllTimers();
+    expect(onChordChange).toHaveBeenCalledOnce();
+    expect(onChordChange).toHaveBeenCalledWith(null);
   });
 });

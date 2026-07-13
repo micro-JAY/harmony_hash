@@ -20,6 +20,9 @@ import {
   prefersFlatNotation,
 } from "../lib/chordData";
 import type {
+  PlaybackStartOutcome,
+} from "../lib/progressionPlayback";
+import type {
   ChordRef,
   PlaybackResult,
   ProgressionAnalysis,
@@ -51,8 +54,8 @@ export interface ProgressionBridgeDeps {
   appendChords(chords: BridgeChord[]): void;
   /** Remove one chord by index, reindexing per-card state so survivors keep their choices. */
   removeChordAt(index: number): void;
-  /** Start playback if it is not already running (no-op when playing). */
-  startPlayback(): void;
+  /** Atomically start playback or report that it is active/unavailable. */
+  startPlayback(): PlaybackStartOutcome | Promise<PlaybackStartOutcome>;
   /** Reshuffle the variants/voicings of the existing chords. */
   randomizeVoicings(): void;
   /** Highlight a timeline chord by index, or clear with null. */
@@ -148,19 +151,45 @@ export function createProgressionBridge(deps: ProgressionBridgeDeps): Progressio
       deps.removeChordAt(i);
     },
 
-    play: (): PlaybackResult => {
+    play: async (): Promise<PlaybackResult> => {
       if (deps.getInstrument() !== "piano") {
         return {
           ok: false,
+          status: "requires_piano",
           message:
             "Playback works in the piano view. Ask the user to switch to piano, then try again.",
         };
       }
       if (deps.getChords().length === 0) {
-        return { ok: false, message: "There are no chords on the timeline to play yet." };
+        return {
+          ok: false,
+          status: "empty",
+          message: "There are no chords on the timeline to play yet.",
+        };
       }
-      deps.startPlayback();
-      return { ok: true };
+      const outcome = await deps.startPlayback();
+      if (outcome === "already_active") {
+        return {
+          ok: true,
+          status: "already_playing",
+          message: "The progression is already starting or playing; playback was not restarted.",
+        };
+      }
+      if (outcome === "unavailable") {
+        return {
+          ok: false,
+          status: "unavailable",
+          message: "Audio playback could not start in this browser.",
+        };
+      }
+      if (outcome === "cancelled") {
+        return {
+          ok: false,
+          status: "cancelled",
+          message: "Playback start was cancelled before audio began.",
+        };
+      }
+      return { ok: true, status: "started", message: "Progression playback started." };
     },
 
     randomize: () => deps.randomizeVoicings(),

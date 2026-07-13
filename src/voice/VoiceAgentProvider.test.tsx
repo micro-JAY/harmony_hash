@@ -34,7 +34,11 @@ function bridgeFixture() {
     removeChord: vi.fn(),
     replaceProgression: vi.fn(),
     clear: vi.fn(),
-    play: () => ({ ok: false }),
+    play: () => ({
+      ok: false,
+      status: "empty",
+      message: "There are no chords on the timeline to play yet.",
+    }),
     randomize: vi.fn(),
     highlightChord,
   };

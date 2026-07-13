@@ -40,6 +40,7 @@ function agentPayload(options: {
   toolIds?: string[];
   builtInTools?: Record<string, unknown>;
   tts?: Record<string, unknown>;
+  workflow?: Record<string, unknown>;
 } = {}) {
   return {
     agent_id: AGENT_ID,
@@ -65,6 +66,7 @@ function agentPayload(options: {
     platform_settings: {
       auth: { enable_auth: true, allowlist: [] },
     },
+    workflow: options.workflow,
   };
 }
 
@@ -173,6 +175,16 @@ describe("voice agent provisioning orchestration", () => {
             end_call: null,
             language_detection: null,
             run_subagent: null,
+          },
+          workflow: {
+            nodes: {
+              start_node: {
+                type: "start",
+                edge_order: [],
+                position: { x: 0, y: 0 },
+              },
+            },
+            edges: {},
           },
         }));
       }

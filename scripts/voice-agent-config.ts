@@ -766,6 +766,45 @@ function canonicalize(value: unknown, key = ""): unknown {
   );
 }
 
+function canonicalizeProviderParameterSchema(value: unknown, key = ""): unknown {
+  if (Array.isArray(value)) {
+    const values = value.map((entry) => canonicalizeProviderParameterSchema(entry));
+    return key === "required" && values.every((entry) => typeof entry === "string")
+      ? [...values].sort()
+      : values;
+  }
+  if (!isRecord(value)) return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .filter((entryKey) => {
+        const entryValue = value[entryKey];
+        if (entryKey === "required") {
+          return !Array.isArray(entryValue) || entryValue.length > 0;
+        }
+        if (entryKey === "description") return entryValue !== "";
+        if (entryKey === "enum") return entryValue !== null;
+        if (entryKey === "is_system_provided" || entryKey === "is_omitted") {
+          return entryValue !== false;
+        }
+        if (
+          entryKey === "dynamic_variable" ||
+          entryKey === "allowed_values_dynamic_variable"
+        ) {
+          return entryValue !== "";
+        }
+        if (entryKey === "constant_value") {
+          return entryValue !== "" && entryValue !== null;
+        }
+        return true;
+      })
+      .sort()
+      .map((entryKey) => [
+        entryKey,
+        canonicalizeProviderParameterSchema(value[entryKey], entryKey),
+      ]),
+  );
+}
+
 function sourceContract(tool: ClientToolSchema): ClientToolContract {
   return {
     name: tool.name,
@@ -791,7 +830,10 @@ function sourceContract(tool: ClientToolSchema): ClientToolContract {
 }
 
 function contractFingerprint(contract: ClientToolContract): string {
-  return JSON.stringify(canonicalize(contract));
+  return JSON.stringify(canonicalize({
+    ...contract,
+    parameters: canonicalizeProviderParameterSchema(contract.parameters),
+  }));
 }
 
 export function clientToolMatchesSource(

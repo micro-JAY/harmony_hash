@@ -627,6 +627,47 @@ describe("voice agent verification", () => {
       parameters: { ...sourceParameters, description: "Provider drift" },
     });
     expect(clientToolMatchesSource(described, TOOL_SCHEMAS[0])).toBe(false);
+    const providerNormalizedAddChords = linkedTool(2, {
+      parameters: {
+        type: "object",
+        required: ["chords"],
+        description: "",
+        properties: {
+          chords: {
+            type: "array",
+            description: "Chord symbols to append, in order, e.g. ['Am','F','C','G'].",
+            items: {
+              type: "string",
+              description: "A chord symbol, e.g. 'Am7'.",
+              enum: null,
+              is_system_provided: false,
+              dynamic_variable: "",
+              allowed_values_dynamic_variable: "",
+              constant_value: "",
+              is_omitted: false,
+            },
+            dynamic_variable: "",
+            constant_value: null,
+            is_omitted: false,
+          },
+        },
+      },
+    });
+    expect(clientToolMatchesSource(providerNormalizedAddChords, TOOL_SCHEMAS[2])).toBe(true);
+    const providerOwnedValue = linkedTool(2, {
+      parameters: {
+        ...providerNormalizedAddChords.clientContract?.parameters,
+        properties: {
+          chords: {
+            type: "array",
+            description: "Chord symbols to append, in order, e.g. ['Am','F','C','G'].",
+            items: { type: "string", description: "A chord symbol, e.g. 'Am7'." },
+            dynamic_variable: "injected_chords",
+          },
+        },
+      },
+    });
+    expect(clientToolMatchesSource(providerOwnedValue, TOOL_SCHEMAS[2])).toBe(false);
     const drifted = [linkedTool(0, { description: "drifted" }), ...tools.slice(1)];
     expect(findReusableClientToolId(TOOL_SCHEMAS[0], drifted)).toBeUndefined();
     expect(clientToolMatchesSource(tools[0], TOOL_SCHEMAS[0])).toBe(true);

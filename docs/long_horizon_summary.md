@@ -4,9 +4,9 @@
 
 The piano-voicing roadmap (v2–v5), its inspiration-led Phase 2 feature wave, and the user-directed agent recovery side track are complete on `main` as of 2026-07-13. The canonical milestone status remains in `docs/long_horizon_plan.md`; dated implementation and review evidence remains in `docs/long_horizon_log.md`.
 
-- Latest merged product baseline: `61464b5b80e94295dff33a96e11978b48fce83ec`.
-- Main CI: [run 29239358732](https://github.com/micro-JAY/harmony_hash/actions/runs/29239358732), green on the latest product baseline.
-- Latest local product gate: production build and lint pass, Vitest 1,064/1,064, Playwright 97/97.
+- Latest merged product baseline: `c93440b79a258ce512b4e4a9292edbb58b5e3d9e`.
+- Main CI: [run 29242702536](https://github.com/micro-JAY/harmony_hash/actions/runs/29242702536), green on the latest product baseline.
+- Latest local product gate: production build and lint pass, Vitest 1,075/1,075, Playwright 101/101.
 - Repository search finds no undocumented `TODO`, `FIXME`, `XXX`, or `HACK` in shipped code.
 - User-owned untracked `.agents/` and `AGENTS.md` remain outside the product history. Local inspiration images remain untracked; the intentionally tracked `docs/inspiration/README.md` remains unchanged.
 
@@ -54,6 +54,7 @@ The Phase 2 surfaces consume shared pure functions under `src/lib/theory/`. The 
 | S.1 — Voice Companion | **Done** | ElevenLabs real-time agent, nine client tools, signed authentication, review fixes, and progression bridge. | [#25](https://github.com/micro-JAY/harmony_hash/pull/25), [#26](https://github.com/micro-JAY/harmony_hash/pull/26), [#27](https://github.com/micro-JAY/harmony_hash/pull/27) |
 | S.2 — Agent Builder Recovery | **Done** | OpenAI Responses migration, signed voice repair, compact Hasher actions, on-demand Hanz popup, and responsive UI polish. | [#29](https://github.com/micro-JAY/harmony_hash/pull/29), [#34](https://github.com/micro-JAY/harmony_hash/pull/34), [#46](https://github.com/micro-JAY/harmony_hash/pull/46) |
 | S.3 — Lazy Voice Runtime | **Done** | Intent-preloaded ElevenLabs chunk, persistent provider state, accessible loading/failure shell, and 45.7% lower initial JavaScript gzip. | [#53](https://github.com/micro-JAY/harmony_hash/pull/53) |
+| S.4 — Hanz Chord Focus | **Done** | Independent tokenized voice focus, non-color marker, simultaneous playback treatment, and complete UI/session/provider/timeline teardown clearing. | [#55](https://github.com/micro-JAY/harmony_hash/pull/55) |
 
 The recovery work retained dictionary validation on both Worker and client boundaries. The Builder was renamed Hasher, its prompt and chord composer were compacted into one workspace, preset analysis remains under Progressions, and Hanz Hasher appears only as an on-demand popup from prompt help.
 
@@ -106,6 +107,8 @@ This ledger covers every pull request from the start of the documented long-hori
 | [#51](https://github.com/micro-JAY/harmony_hash/pull/51) | **Done** | Piano comparison milestone reconciliation. |
 | [#52](https://github.com/micro-JAY/harmony_hash/pull/52) | **Done** | Long-horizon summary and final run-ledger closure. |
 | [#53](https://github.com/micro-JAY/harmony_hash/pull/53) | **Done** | Intent-preloaded, on-demand ElevenLabs voice runtime. |
+| [#54](https://github.com/micro-JAY/harmony_hash/pull/54) | **Done** | Lazy Voice Runtime milestone reconciliation. |
+| [#55](https://github.com/micro-JAY/harmony_hash/pull/55) | **Done** | Accessible Hanz chord focus distinct from playback. |
 
 ## Quality and safety outcomes
 
@@ -127,7 +130,7 @@ This ledger covers every pull request from the start of the documented long-hori
 |---|---|
 | Gate every CI run on `npm run lint`? | **Open — approval required.** Local lint is green and was run for every recent feature, but `.github/workflows/ci.yml` still gates only build/test and Playwright. The run contract classifies a CI behavior change as an operator decision, so this was not changed silently. |
 | Lazy-load the ElevenLabs voice runtime? | **Resolved.** PR [#53](https://github.com/micro-JAY/harmony_hash/pull/53) moved the provider, panel, and SDK behind intent preload while preserving provider state, focus behavior, failure containment, and signed-URL handling. |
-| Distinguish agent highlight from playback highlight? | **Open — recommended follow-up.** State is correctly separate, but the visual treatment still shares the active-card emphasis. A dedicated non-color marker and tokenized accent should land as its own accessible UI slice. |
+| Distinguish agent highlight from playback highlight? | **Resolved.** PR [#55](https://github.com/micro-JAY/harmony_hash/pull/55) gives Hanz focus an academy-blue tokenized accent plus an `AudioLines` marker and status text, preserves gold playback emphasis when both states overlap, and clears stale focus across popup, workspace, session, provider, and timeline teardown paths. |
 | Distinguish `play_progression` started vs already playing? | **Deferred.** Current behavior is correct; richer tool feedback is a voice-copy improvement, not a blocker. |
 | Add a `provision:voice` npm script? | **Deferred.** The documented command remains functional; this is developer experience only. |
 | Replace minimum-distance voice leading with Hungarian one-to-one assignment? | **Resolved — retain minimum distance.** No counterexample emerged through the complete voicing and progression suite; the current deterministic metric is covered and changing it without a failing musical case would add complexity without proven benefit. |
@@ -140,9 +143,8 @@ This ledger covers every pull request from the start of the documented long-hori
 
 ## Recommended next-session plan
 
-1. Add a distinct accessible agent-highlight treatment that cannot be confused with playback state; cover simultaneous and alternating highlight/playback events.
-2. If the operator approves a CI policy change, add `npm run lint` to the required build/test job and verify a deliberately failing lint fixture in a temporary branch.
-3. Re-run the production Hanz session after microphone permission is granted and record only connection state, never the signed URL or credential.
-4. Treat UST as a design proposal only after choosing whether it mutates chord identity or represents an explicitly selected overlay.
+1. If the operator approves a CI policy change, add `npm run lint` to the required build/test job and verify a deliberately failing lint fixture in a temporary branch.
+2. Re-run the production Hanz session after microphone permission is granted and record only connection state, never the signed URL or credential.
+3. Treat UST as a design proposal only after choosing whether it mutates chord identity or represents an explicitly selected overlay.
 
 No roadmap milestone is Pending or In Progress. Future work starts as a new bounded feature from this baseline.

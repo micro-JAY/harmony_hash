@@ -134,6 +134,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
 
     // Before clicking Play, no card should carry the playing marker.
     expect(await page.locator('[data-playing="true"]').count()).toBe(0);
+    await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(0);
 
     const play = page.getByRole("button", { name: "Play progression" });
     await expect(play).toBeVisible();
@@ -143,6 +144,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     // schedule; the visual marker is the real contract: at least one
     // chord card must be flagged playing within a beat.
     await expect(page.locator('[data-playing="true"]').first()).toBeVisible({ timeout: 2000 });
+    await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(0);
 
     // Stop control becomes available while playing.
     await expect(page.getByRole("button", { name: "Stop playback" })).toBeVisible();

@@ -7,6 +7,7 @@ import {
   type TranscriptEntry,
   type VoiceAgentContextValue,
 } from "./voiceAgentContext";
+import { clearVoiceFocus } from "./sessionLifecycle";
 
 export interface VoiceAgentProviderProps {
   /** Adapter over the host app's progression-builder state (see progressionBridge.ts). */
@@ -59,14 +60,27 @@ export function VoiceAgentProvider({
     [bridge, agentId, signedUrlEndpoint, transcript],
   );
 
+  const clearFocusAfterSession = useCallback(async () => {
+    try {
+      await clearVoiceFocus(bridge);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      console.error("[harmony-hash-voice] Could not clear Hanz focus", sanitizeProviderDetail(detail));
+    }
+  }, [bridge]);
+
+  const handleProviderError = useCallback((error: unknown) => {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("[harmony-hash-voice]", sanitizeProviderDetail(detail));
+    void clearFocusAfterSession();
+  }, [clearFocusAfterSession]);
+
   return (
     <VoiceAgentContext.Provider value={value}>
       <ConversationProvider
         onMessage={handleMessage}
-        onError={(err: unknown) => {
-          const detail = err instanceof Error ? err.message : String(err);
-          console.error("[harmony-hash-voice]", sanitizeProviderDetail(detail));
-        }}
+        onDisconnect={() => void clearFocusAfterSession()}
+        onError={handleProviderError}
       >
         {children}
       </ConversationProvider>

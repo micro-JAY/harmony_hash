@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Lock, Unlock } from "lucide-react";
 import type {
   Instrument,
   IndexedChord,
@@ -14,6 +13,7 @@ import type { ChordModifierOption } from "../lib/chordModifiers";
 import GuitarChordDiagram from "./GuitarChordDiagram";
 import PianoKeyboard from "./PianoKeyboard";
 import ChordModifier from "./ChordModifier";
+import ChordCardFrame from "./ChordCardFrame";
 import PianoVoicingComparison, { PIANO_STYLE_OPTIONS } from "./PianoVoicingComparison";
 
 interface ChordCardProps {
@@ -31,6 +31,8 @@ interface ChordCardProps {
   onChordChange: (option: ChordModifierOption) => void;
   /** True when this card is the currently-sounding chord during playback. */
   isPlaying?: boolean;
+  /** True when Hanz is calling attention to this chord during a voice session. */
+  isAgentHighlighted?: boolean;
 }
 
 const VOICING_TYPE_LABEL: Partial<Record<VoicedChord["voicingType"], string>> = {
@@ -63,6 +65,7 @@ export default function ChordCard({
   onPianoStyleChange,
   onChordChange,
   isPlaying = false,
+  isAgentHighlighted = false,
 }: ChordCardProps) {
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
@@ -87,64 +90,16 @@ export default function ChordCard({
   const formattedNoteNames = noteNames.map((noteName) => formatNoteForDisplay(noteName, preferFlats));
 
   return (
-    <div
-      data-testid="chord-card"
-      className={`relative flex max-w-full flex-col items-center overflow-hidden rounded-xl ${
-        instrument === "piano"
-          ? comparisonOpen
-            ? "w-full min-w-0 md:col-span-2 lg:basis-full"
-            : "w-full min-w-0 lg:w-auto lg:min-w-[440px]"
-          : "w-full min-w-0 lg:w-auto lg:min-w-[200px]"
-      }`}
-      data-playing={isPlaying ? "true" : undefined}
-      style={{
-        backgroundColor: "var(--surface-raised)",
-        border: `1px solid ${isPlaying ? "var(--border-accent)" : "var(--border-subtle)"}`,
-        transition: `all var(--duration-normal) var(--ease-out)`,
-        boxShadow: isPlaying ? "var(--glow-accent)" : "none",
-      }}
+    <ChordCardFrame
+      instrument={instrument}
+      comparisonOpen={comparisonOpen}
+      displayName={displayName}
+      usageNotes={chord.entry["Usage Notes"]}
+      isLocked={isLocked}
+      onToggleLock={onToggleLock}
+      isPlaying={isPlaying}
+      isAgentHighlighted={isAgentHighlighted}
     >
-      <button
-        type="button"
-        aria-label={isLocked ? "Unlock chord card" : "Lock chord card"}
-        title={isLocked ? "Unlock" : "Lock"}
-        onClick={onToggleLock}
-        className="absolute top-2 right-2 rounded-md p-1 transition-colors"
-        style={{
-          backgroundColor: "var(--surface-highlight)",
-          border: `1px solid ${isLocked ? "var(--border-accent)" : "var(--border-subtle)"}`,
-          color: isLocked ? "var(--text-accent)" : "var(--text-muted)",
-          zIndex: 2,
-        }}
-      >
-        {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
-      </button>
-
-      {/* Chord Name */}
-      <div
-        className="w-full text-center py-3 px-4"
-        style={{ borderBottom: "1px solid var(--border-subtle)" }}
-      >
-        <h3
-          className="text-lg font-semibold"
-          style={{
-            fontFamily: "var(--font-display)",
-            color: "var(--text-primary)",
-            fontWeight: "var(--weight-semibold)",
-          }}
-        >
-          {displayName}
-        </h3>
-        {chord.entry["Usage Notes"] && (
-          <p
-            className="text-xs mt-0.5"
-            style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
-          >
-            {chord.entry["Usage Notes"]}
-          </p>
-        )}
-      </div>
-
       {/* Visualization */}
       <div className="flex w-full min-w-0 flex-col items-center gap-2 p-4">
         <ChordModifier
@@ -393,6 +348,6 @@ export default function ChordCard({
           </>
         )}
       </div>
-    </div>
+    </ChordCardFrame>
   );
 }

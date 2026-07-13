@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useConversationControls, useConversationStatus } from "@elevenlabs/react";
 import { X } from "lucide-react";
 import { useVoiceAgent } from "./voiceAgentContext";
@@ -34,6 +34,8 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
 
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const connectionAttemptRef = useRef<AbortController | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const live = status === "connected";
   // Treat the SDK's own "connecting" status as busy too: startSession resolves
@@ -50,11 +52,17 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
     error ?? (status === "error" ? (message ?? "The voice session ran into a problem.") : null);
 
   const handleStart = useCallback(async () => {
+    connectionAttemptRef.current?.abort();
+    const controller = new AbortController();
+    connectionAttemptRef.current = controller;
     setError(null);
     setConnecting(true);
     try {
       if (signedUrlEndpoint) {
-        const res = await fetch(signedUrlEndpoint, { method: "POST" });
+        const res = await fetch(signedUrlEndpoint, {
+          method: "POST",
+          signal: controller.signal,
+        });
         // The Worker always replies JSON (even on failure); read its { error } so
         // the user sees a real message rather than a bare status code.
         const data = (await res.json().catch(() => ({}))) as {
@@ -64,16 +72,22 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
         if (!res.ok || !data.signedUrl) {
           throw new Error(data.error ?? "Couldn't start the voice session — please try again.");
         }
+        if (controller.signal.aborted) return;
         await startSession({ signedUrl: data.signedUrl });
       } else {
         await startSession({ agentId });
       }
+      if (controller.signal.aborted) await endSession();
     } catch (e) {
+      if (controller.signal.aborted || (e instanceof Error && e.name === "AbortError")) return;
       setError(e instanceof Error ? e.message : "Could not start the voice session");
     } finally {
-      setConnecting(false);
+      if (connectionAttemptRef.current === controller) {
+        connectionAttemptRef.current = null;
+        setConnecting(false);
+      }
     }
-  }, [signedUrlEndpoint, agentId, startSession]);
+  }, [signedUrlEndpoint, agentId, endSession, startSession]);
 
   const handleStop = useCallback(async () => {
     try {
@@ -84,6 +98,9 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   }, [endSession]);
 
   const handleClose = useCallback(async () => {
+    connectionAttemptRef.current?.abort();
+    connectionAttemptRef.current = null;
+    setConnecting(false);
     if (status === "connected" || status === "connecting") {
       await handleStop();
     }
@@ -93,18 +110,27 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
 
   useEffect(() => {
     if (!open) return;
+    const focusFrame = requestAnimationFrame(() => closeButtonRef.current?.focus());
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") void handleClose();
     }
     window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", handleEscape);
+    };
   }, [handleClose, open]);
 
   useEffect(() => {
-    if (!open && (status === "connected" || status === "connecting")) {
-      void handleStop();
+    if (!open) {
+      connectionAttemptRef.current?.abort();
+      connectionAttemptRef.current = null;
+      setConnecting(false);
+      if (status === "connected" || status === "connecting") void handleStop();
     }
   }, [handleStop, open, status]);
+
+  useEffect(() => () => connectionAttemptRef.current?.abort(), []);
 
   const statusColor =
     displayError
@@ -135,6 +161,9 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
         zIndex: 50,
         right: "var(--space-5)",
         bottom: "var(--space-5)",
+        maxHeight: "calc(100dvh - (2 * var(--space-5)))",
+        overflowY: "auto",
+        overscrollBehavior: "contain",
         padding: "var(--space-5)",
         background: "var(--surface-overlay)",
         border: `1px solid ${live ? "var(--border-accent)" : "var(--border-subtle)"}`,
@@ -172,6 +201,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
             {statusLabel}
           </span>
           <button
+            ref={closeButtonRef}
             type="button"
             className="hhv-toggle grid place-items-center rounded-md"
             aria-label="Close Hanz Hasher"

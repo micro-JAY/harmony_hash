@@ -17,9 +17,16 @@ interface ProgressionAgentProps {
   cancellationVersion: number;
   cancellationVersionRef: MutableRefObject<number>;
   placeholder?: string;
+  onRequestHelp?: () => void;
 }
 
 const MAX_PROMPT = 500;
+const HELP_LABELS = [
+  "Need help?",
+  "Stuck?",
+  "Writer's block got you down?",
+  "Phone a friend",
+] as const;
 
 export default function ProgressionAgent({
   onResult,
@@ -28,8 +35,10 @@ export default function ProgressionAgent({
   cancellationVersion,
   cancellationVersionRef,
   placeholder,
+  onRequestHelp,
 }: ProgressionAgentProps) {
   const [prompt, setPrompt] = useState("");
+  const [helpLabel, setHelpLabel] = useState<(typeof HELP_LABELS)[number] | null>(null);
   const [loadingRequest, setLoadingRequest] = useState<{
     id: number;
     timelineVersion: number;
@@ -165,14 +174,23 @@ export default function ProgressionAgent({
 
   const remaining = MAX_PROMPT - prompt.length;
 
+  function handlePromptChange(value: string) {
+    if (!prompt.trim() && value.trim()) {
+      setHelpLabel(HELP_LABELS[Math.floor(Math.random() * HELP_LABELS.length)]);
+    } else if (!value.trim()) {
+      setHelpLabel(null);
+    }
+    setPrompt(value);
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 items-stretch sm:flex-row">
         <textarea
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={(e) => handlePromptChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          rows={3}
+          rows={1}
           placeholder={placeholder ?? "Describe the mood, style, or feel — e.g. “melancholic with a jazz feel in minor”"}
           disabled={loading}
           className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
@@ -183,6 +201,8 @@ export default function ProgressionAgent({
             fontFamily: "var(--font-body)",
             fontSize: "var(--text-base)",
             lineHeight: "var(--leading-normal)",
+            minHeight: "3rem",
+            maxHeight: "7.5rem",
             transitionDuration: "var(--duration-normal)",
             opacity: loading ? 0.6 : 1,
           }}
@@ -190,8 +210,9 @@ export default function ProgressionAgent({
         />
         <button
           onClick={handleSubmit}
+          aria-label="Run progression agent"
           disabled={!canSubmit}
-          className="w-full px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2 sm:w-auto sm:min-w-[11rem]"
+          className="w-full px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2 sm:w-auto sm:min-w-[7rem]"
           style={{
             backgroundColor: canSubmit
               ? "var(--interactive-accent-bg)"
@@ -234,23 +255,42 @@ export default function ProgressionAgent({
               <span>Building…</span>
             </>
           ) : (
-            <span>Build progression</span>
+            <span>Run</span>
           )}
         </button>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span
-          className="text-xs"
-          style={{
-            color: overLength ? "var(--status-error-text)" : "var(--text-muted)",
-            fontFamily: "var(--font-mono)",
-          }}
-        >
-          {overLength
-            ? `${Math.abs(remaining)} over the ${MAX_PROMPT}-character limit`
-            : `${remaining} characters left`}
-        </span>
+        <div className="flex flex-wrap items-center gap-3">
+          <span
+            className="text-xs"
+            style={{
+              color: overLength ? "var(--status-error-text)" : "var(--text-muted)",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            {overLength
+              ? `${Math.abs(remaining)} over the ${MAX_PROMPT}-character limit`
+              : `${remaining} characters left`}
+          </span>
+          {helpLabel && onRequestHelp ? (
+            <button
+              id="hanz-help-trigger"
+              type="button"
+              onClick={onRequestHelp}
+              className="rounded-full px-3 py-1 text-xs"
+              style={{
+                backgroundColor: "var(--interactive-warm-bg)",
+                border: "1px solid var(--interactive-warm-border)",
+                color: "var(--interactive-warm-text)",
+                fontFamily: "var(--font-body)",
+                fontWeight: "var(--weight-medium)",
+              }}
+            >
+              {helpLabel}
+            </button>
+          ) : null}
+        </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
           <HealthPill status={health} />
           <span

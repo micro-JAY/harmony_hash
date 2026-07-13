@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useConversationControls, useConversationStatus } from "@elevenlabs/react";
-import { ChevronDown } from "lucide-react";
+import { X } from "lucide-react";
 import { useVoiceAgent } from "./voiceAgentContext";
 import { useProgressionAgentTools } from "./useProgressionAgentTools";
 
@@ -19,7 +19,12 @@ import { useProgressionAgentTools } from "./useProgressionAgentTools";
  * for the orb keyframes, :focus-visible rings, and the reduced-motion guard —
  * the same local-<style> pattern ProgressionAgent.tsx uses for its spinner.
  */
-export function VoiceAgentPanel() {
+interface VoiceAgentPanelProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   const { bridge, agentId, signedUrlEndpoint, transcript } = useVoiceAgent();
   const { startSession, endSession } = useConversationControls();
   const { status, message } = useConversationStatus();
@@ -29,7 +34,8 @@ export function VoiceAgentPanel() {
 
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const connectionAttemptRef = useRef<AbortController | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const live = status === "connected";
   // Treat the SDK's own "connecting" status as busy too: startSession resolves
@@ -46,11 +52,17 @@ export function VoiceAgentPanel() {
     error ?? (status === "error" ? (message ?? "The voice session ran into a problem.") : null);
 
   const handleStart = useCallback(async () => {
+    connectionAttemptRef.current?.abort();
+    const controller = new AbortController();
+    connectionAttemptRef.current = controller;
     setError(null);
     setConnecting(true);
     try {
       if (signedUrlEndpoint) {
-        const res = await fetch(signedUrlEndpoint, { method: "POST" });
+        const res = await fetch(signedUrlEndpoint, {
+          method: "POST",
+          signal: controller.signal,
+        });
         // The Worker always replies JSON (even on failure); read its { error } so
         // the user sees a real message rather than a bare status code.
         const data = (await res.json().catch(() => ({}))) as {
@@ -60,16 +72,22 @@ export function VoiceAgentPanel() {
         if (!res.ok || !data.signedUrl) {
           throw new Error(data.error ?? "Couldn't start the voice session — please try again.");
         }
+        if (controller.signal.aborted) return;
         await startSession({ signedUrl: data.signedUrl });
       } else {
         await startSession({ agentId });
       }
+      if (controller.signal.aborted) await endSession();
     } catch (e) {
+      if (controller.signal.aborted || (e instanceof Error && e.name === "AbortError")) return;
       setError(e instanceof Error ? e.message : "Could not start the voice session");
     } finally {
-      setConnecting(false);
+      if (connectionAttemptRef.current === controller) {
+        connectionAttemptRef.current = null;
+        setConnecting(false);
+      }
     }
-  }, [signedUrlEndpoint, agentId, startSession]);
+  }, [signedUrlEndpoint, agentId, endSession, startSession]);
 
   const handleStop = useCallback(async () => {
     try {
@@ -78,6 +96,41 @@ export function VoiceAgentPanel() {
       setError(e instanceof Error ? e.message : "Could not end the session cleanly");
     }
   }, [endSession]);
+
+  const handleClose = useCallback(async () => {
+    connectionAttemptRef.current?.abort();
+    connectionAttemptRef.current = null;
+    setConnecting(false);
+    if (status === "connected" || status === "connecting") {
+      await handleStop();
+    }
+    onClose();
+    requestAnimationFrame(() => document.getElementById("hanz-help-trigger")?.focus());
+  }, [handleStop, onClose, status]);
+
+  useEffect(() => {
+    if (!open) return;
+    const focusFrame = requestAnimationFrame(() => closeButtonRef.current?.focus());
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") void handleClose();
+    }
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [handleClose, open]);
+
+  useEffect(() => {
+    if (!open) {
+      connectionAttemptRef.current?.abort();
+      connectionAttemptRef.current = null;
+      setConnecting(false);
+      if (status === "connected" || status === "connecting") void handleStop();
+    }
+  }, [handleStop, open, status]);
+
+  useEffect(() => () => connectionAttemptRef.current?.abort(), []);
 
   const statusColor =
     displayError
@@ -95,34 +148,32 @@ export function VoiceAgentPanel() {
         ? "Connecting"
         : "Offline";
 
+  if (!open) return null;
+
   return (
     <section
-      className={`hhv rounded-xl ${expanded ? "flex flex-col gap-4 w-full max-w-md" : "w-full md:w-auto"}`}
-      aria-label="Harmony companion voice agent"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="hanz-hasher-title"
+      className="hhv hhv-popup flex w-full max-w-md flex-col gap-4 rounded-xl"
       style={{
-        padding: expanded ? "var(--space-5, 1.25rem)" : "0.4rem 0.5rem",
+        position: "fixed",
+        zIndex: 50,
+        right: "var(--space-5)",
+        bottom: "var(--space-5)",
+        maxHeight: "calc(100dvh - (2 * var(--space-5)))",
+        overflowY: "auto",
+        overscrollBehavior: "contain",
+        padding: "var(--space-5)",
         background: "var(--surface-overlay)",
         border: `1px solid ${live ? "var(--border-accent)" : "var(--border-subtle)"}`,
         boxShadow: live ? "var(--glow-accent)" : "none",
         transition: "padding var(--duration-normal) var(--ease-out), border-color var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out)",
       }}
     >
-      <button
-        type="button"
-        className="hhv-toggle w-full flex items-center justify-between gap-3 rounded-lg"
-        onClick={() => setExpanded((current) => !current)}
-        aria-expanded={expanded}
-        aria-controls="harmony-companion-details"
-        aria-label={expanded ? "Collapse Harmony Companion" : "Expand Harmony Companion"}
-        style={{
-          padding: expanded ? 0 : "0.35rem 0.5rem",
-          color: "var(--text-primary)",
-          background: "transparent",
-          border: 0,
-          cursor: "pointer",
-        }}
-      >
+      <header className="flex w-full items-center justify-between gap-3">
         <span
+          id="hanz-hasher-title"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-xs)",
@@ -132,7 +183,7 @@ export function VoiceAgentPanel() {
             color: "var(--text-secondary)",
           }}
         >
-          Harmony Companion
+          Hanz Hasher
         </span>
         <span className="flex items-center gap-2">
           <span
@@ -149,20 +200,27 @@ export function VoiceAgentPanel() {
           >
             {statusLabel}
           </span>
-          <ChevronDown
-            size={15}
-            aria-hidden="true"
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className="hhv-toggle grid place-items-center rounded-md"
+            aria-label="Close Hanz Hasher"
+            onClick={() => void handleClose()}
             style={{
+              width: "2rem",
+              height: "2rem",
+              background: "transparent",
+              border: "1px solid var(--border-subtle)",
               color: "var(--text-muted)",
-              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-              transition: "transform var(--duration-fast) var(--ease-out)",
+              cursor: "pointer",
             }}
-          />
+          >
+            <X size={15} aria-hidden="true" />
+          </button>
         </span>
-      </button>
+      </header>
 
-      {expanded && (
-        <div id="harmony-companion-details" className="flex flex-col gap-4">
+        <div id="hanz-hasher-details" className="flex flex-col gap-4">
           <div
             className="hhv-orb self-center"
             data-state={state}
@@ -240,7 +298,7 @@ export function VoiceAgentPanel() {
                   color: entry.role === "user" ? "var(--text-muted)" : "var(--text-accent)",
                 }}
               >
-                {entry.role === "user" ? "You" : "Companion"}
+                {entry.role === "user" ? "You" : "Hanz"}
               </span>
               {entry.text}
             </li>
@@ -318,11 +376,10 @@ export function VoiceAgentPanel() {
             e.currentTarget.style.background = "var(--interactive-accent-bg)";
           }}
         >
-          {busy ? "Connecting…" : "Talk to the companion"}
+          {busy ? "Connecting…" : "Hanz, Help!"}
         </button>
           )}
         </div>
-      )}
 
       <style>{`
         @keyframes hhv-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
@@ -333,6 +390,9 @@ export function VoiceAgentPanel() {
         .hhv-btn:focus-visible, .hhv-toggle:focus-visible { outline: 2px solid var(--interactive-focus-ring); outline-offset: 2px; }
         @media (prefers-reduced-motion: reduce) {
           .hhv-orb-core, .hhv-orb-ring { animation: none !important; }
+        }
+        @media (max-width: 640px) {
+          .hhv-popup { right: var(--space-3) !important; bottom: var(--space-3) !important; width: calc(100vw - (2 * var(--space-3))) !important; }
         }
       `}</style>
     </section>

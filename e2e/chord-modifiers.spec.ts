@@ -1,10 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { composeProgression } from "./helpers/progression";
 
 async function enterProgression(page: Page, progression: string): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-  await input.fill(progression);
-  await input.press("Enter");
+  await composeProgression(page, progression);
   await expect(page.getByTestId("chord-card")).toHaveCount(progression.split(" ").length);
 }
 

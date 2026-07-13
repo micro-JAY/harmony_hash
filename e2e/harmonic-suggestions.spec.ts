@@ -71,9 +71,7 @@ test.describe("Free Input harmonic suggestions", () => {
     ].map((locator) => locator.getByText(/%$/).evaluate((element) => getComputedStyle(element).color)));
     expect(new Set(fitColors).size).toBe(3);
     await dMinorSeven.click();
-    const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await expect(freeInput).toHaveValue("Dm7");
-    await expect(freeInput).toBeFocused();
+    await expect(page.getByRole("list", { name: "Chord progression composer" })).toContainText("Dm7");
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
 
     await freeKey.selectOption("D");
@@ -89,17 +87,17 @@ test.describe("Free Input harmonic suggestions", () => {
     await expect(freeKey).toHaveValue("D");
     await expect(freeMode).toHaveValue("dorian");
     await page.getByRole("button", { name: "Progressions" }).click();
+    await page.getByText("Or pick a preset", { exact: true }).click();
     await expect(presetKey).toHaveValue("E");
     expect(browserIssues).toEqual([]);
   });
 
-  test("uses the last valid chord, preserves explicit Run, and survives instrument changes", async ({
+  test("uses the last composed chord, preserves explicit Run, and survives instrument changes", async ({
     page,
   }) => {
     const browserIssues = collectBrowserIssues(page);
     await openFreeInputGrid(page);
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("G7 nope");
+    await page.locator('button[data-chord-name="G7"]').click();
 
     await page.getByRole("button", { name: "Next chord suggestions" }).click();
     await expect(page.getByTestId("suggestion-summary")).toContainText(
@@ -118,13 +116,14 @@ test.describe("Free Input harmonic suggestions", () => {
 
     await cMajorSeven.focus();
     await cMajorSeven.press("Enter");
-    await expect(input).toBeFocused();
-    await expect(input).toHaveValue("G7 nope Cmaj7");
+    await expect(page.locator('button[data-chord-name="Cmaj7"]')).toBeFocused();
+    const composer = page.getByRole("list", { name: "Chord progression composer" });
+    await expect(composer.getByRole("button", { name: "Remove G7 at position 1" })).toBeVisible();
+    await expect(composer.getByRole("button", { name: "Remove Cmaj7 at position 2" })).toBeVisible();
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Run" }).click();
+    await page.getByRole("button", { name: "Run chord composer" }).click();
     await expect(page.getByTestId("chord-card")).toHaveCount(2);
-    await expect(page.getByText(/nope.*Unrecognized chord/)).toBeVisible();
     await expect(page.getByTestId("chord-grid-panel")).toBeVisible();
     await expect(page.getByRole("button", { name: /Hide grid/ })).toBeVisible();
 
@@ -186,7 +185,7 @@ test.describe("Free Input harmonic suggestions", () => {
     await expect(cMajorSeven).toHaveAttribute("data-fit-score", "100");
 
     const startedAt = await page.evaluate(() => performance.now());
-    await page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ }).fill("G7");
+    await page.locator('button[data-chord-name="G7"]').click();
     await expect(cMajorSeven).toHaveAttribute("data-fit-score", "96");
     const elapsed = await page.evaluate((start) => performance.now() - start, startedAt);
 
@@ -244,8 +243,8 @@ test.describe("Free Input harmonic suggestions", () => {
     const firstChord = page.locator('button[data-chord-name="C"]');
     await expect(firstChord).toBeFocused();
     await firstChord.press("Enter");
-    await expect(page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ })).toBeFocused();
-    await expect(page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ })).toHaveValue("C");
+    await expect(firstChord).toBeFocused();
+    await expect(page.getByRole("list", { name: "Chord progression composer" })).toContainText("C");
     expect(browserIssues).toEqual([]);
   });
 });

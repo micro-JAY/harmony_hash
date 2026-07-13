@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { composeProgression } from "./helpers/progression";
 
 function collectPageIssues(page: Page): string[] {
   const issues: string[] = [];
@@ -50,9 +51,7 @@ test.describe("Mood and genre lens", () => {
     expect(updateDuration).toBeLessThan(500);
     expect(Number(await cMajor.getAttribute("data-fit-score"))).toBeLessThan(baselineScore);
 
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Cm7 Fm7");
-    await input.press("Enter");
+    await composeProgression(page, ["Cm7", "Fm7"]);
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Cm7", "Fm7"]);
     await moodSelect.selectOption("happy");
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Cm7", "Fm7"]);
@@ -62,11 +61,10 @@ test.describe("Mood and genre lens", () => {
   test("filters Improv Insight to mood-preferred scale families", async ({ page }) => {
     const issues = collectPageIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("C7 F7 G7");
-    await input.press("Enter");
+    await composeProgression(page, ["C7", "F7", "G7"]);
     await page.getByRole("combobox", { name: "Mood or genre lens" }).selectOption("bluesy");
-    await page.getByRole("button", { name: "Show compatible scales" }).click();
+    await page.getByRole("button", { name: "Progressions" }).click();
+    await page.getByRole("button", { name: "Improv Insight" }).click();
 
     await expect(page.getByTestId("improv-insight")).toHaveAttribute("data-mood-id", "bluesy");
     await expect(page.getByTestId("improv-mood-summary")).toContainText("Bluesy lens");
@@ -95,8 +93,7 @@ test.describe("Mood and genre lens", () => {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await openFreeInputGrid(page);
       const moodSelect = page.getByRole("combobox", { name: "Mood or genre lens" });
-      await page.getByRole("button", { name: "Progressions" }).focus();
-      await page.keyboard.press("Tab");
+      await moodSelect.focus();
       await expect(moodSelect).toBeFocused();
       await moodSelect.selectOption("film_noir");
       await expect(page.getByTestId("mood-filter-description")).toBeVisible();

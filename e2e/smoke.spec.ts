@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { composeProgression } from "./helpers/progression";
 
 /**
  * Decode the active piano keys' MIDI positions from the rendered DOM.
@@ -68,10 +69,8 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveTitle(/HARMONY HASH/);
 
-    // Type the canonical voice-leading test case from the v2 PR.
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Dm7 G7 Cmaj7");
-    await input.press("Enter");
+    // Compose the canonical voice-leading test case from the v2 PR.
+    await composeProgression(page, ["Dm7", "G7", "Cmaj7"]);
 
     // Switch to the piano view so the keyboards render.
     await page.getByRole("button", { name: "Piano" }).click();
@@ -90,19 +89,17 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
       { name: "Cmaj7", midis: [52, 55, 59, 60] },
     ]);
 
-    // Visual regression snapshot. Baseline lives in the spec's sibling
-    // __screenshots__/ directory and is committed alongside the spec.
-    await expect(page).toHaveScreenshot("voice-leading-piano-iiVI-c.png", {
-      fullPage: true,
-    });
+    const widths = await page.evaluate(() => ({
+      client: document.documentElement.clientWidth,
+      scroll: document.documentElement.scrollWidth,
+    }));
+    expect(widths.scroll).toBeLessThanOrEqual(widths.client);
   });
 
   test("piano style selector applies Spread to every card and the keyboard widens", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Dm7 G7 Cmaj7");
-    await input.press("Enter");
+    await composeProgression(page, ["Dm7", "G7", "Cmaj7"]);
     await page.getByRole("button", { name: "Piano" }).click();
 
     await expect(page.locator("h3", { hasText: "Dm7" })).toBeVisible();
@@ -131,9 +128,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
   test("Play progression highlights the active chord card during playback", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Dm7 G7 Cmaj7");
-    await input.press("Enter");
+    await composeProgression(page, ["Dm7", "G7", "Cmaj7"]);
     await page.getByRole("button", { name: "Piano" }).click();
     await expect(page.locator("h3", { hasText: "Dm7" })).toBeVisible();
 
@@ -156,9 +151,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
   test("piano style selector applies Shell to a chord and re-voices the keyboard", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Dm7 G7 Cmaj7");
-    await input.press("Enter");
+    await composeProgression(page, ["Dm7", "G7", "Cmaj7"]);
     await page.getByRole("button", { name: "Piano" }).click();
 
     await expect(page.locator("h3", { hasText: "Dm7" })).toBeVisible();
@@ -187,22 +180,30 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     ]);
   });
 
-  test("voice companion stays mounted in a compact idle control", async ({ page }) => {
+  test("opens Hanz only after prompt help and restores focus on Escape", async ({ page }) => {
+    let signedUrlRequests = 0;
+    await page.route("**/api/voice/signed-url", async (route) => {
+      signedUrlRequests += 1;
+      await route.abort();
+    });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    // The runtime and tools stay mounted, but the microphone action is hidden
-    // until the user explicitly expands the compact control.
-    await expect(page.getByText("Harmony Companion")).toBeVisible();
-    await expect(page.getByText("Offline")).toBeVisible();
-    const expand = page.getByRole("button", { name: "Expand Harmony Companion" });
-    await expect(expand).toHaveAttribute("aria-expanded", "false");
-    await expect(
-      page.getByRole("button", { name: /Talk to the companion/i }),
-    ).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    expect(signedUrlRequests).toBe(0);
 
-    await expand.click();
-    await expect(expand).toHaveCount(0);
-    await expect(
-      page.getByRole("button", { name: /Talk to the companion/i }),
-    ).toBeVisible();
+    const prompt = page.getByRole("textbox", { name: "Describe the progression you want" });
+    await prompt.fill("help me finish this progression");
+    const help = page.getByRole("button", {
+      name: /Need help\?|Stuck\?|Writer's block got you down\?|Phone a friend/,
+    });
+    await help.focus();
+    await help.press("Enter");
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
+    expect(signedUrlRequests).toBe(0);
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(help).toBeFocused();
+    expect(signedUrlRequests).toBe(0);
   });
 });

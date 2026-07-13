@@ -1,5 +1,6 @@
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { prefersFlatNotation, splitRootAndQuality } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
 import {
@@ -50,7 +51,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
   const matchColor = matchColorForPercent(suggestion.match);
   return (
     <article
-      className="grid gap-4 rounded-xl p-4 lg:grid-cols-[minmax(12rem,0.9fr)_minmax(15rem,1.2fr)_minmax(18rem,1.6fr)] lg:items-center"
+      className="grid gap-3 rounded-lg p-3 lg:grid-cols-[minmax(11rem,0.85fr)_minmax(13rem,1fr)_minmax(17rem,1.45fr)] lg:items-center"
       style={{
         backgroundColor: "var(--surface-overlay)",
         border: "1px solid var(--border-subtle)",
@@ -149,6 +150,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
 
 export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
   const [mode, setMode] = useState<InsightMode>("progression");
+  const [expanded, setExpanded] = useState(false);
   const [requestedChordIndex, setRequestedChordIndex] = useState(0);
   const reduceMotion = useReducedMotion();
   const selectedChordIndex = Math.min(requestedChordIndex, Math.max(0, chords.length - 1));
@@ -182,27 +184,55 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
 
   return (
     <section
-      id="improv-insight-panel"
-      aria-labelledby="improv-insight-title"
-      className="w-full max-w-7xl px-4 pb-2"
-      style={{ marginInline: "auto" }}
+      aria-label="Improv Insight"
+      className="w-full"
       data-testid="improv-insight"
+      data-expanded={expanded ? "true" : "false"}
       data-insight-mode={mode}
       data-reduced-motion={reduceMotion ? "true" : "false"}
       data-mood-id={moodId ?? "none"}
     >
-      <div
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls="improv-insight-panel"
+        onClick={() => setExpanded((current) => !current)}
+        className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-left"
+        style={{
+          backgroundColor: "var(--surface-overlay)",
+          border: "1px solid var(--border-subtle)",
+          color: "var(--text-primary)",
+          fontFamily: "var(--font-body)",
+          fontSize: "var(--text-base)",
+          fontWeight: "var(--weight-semibold)",
+        }}
+      >
+        <span>Improv Insight</span>
+        <ChevronDown
+          aria-hidden="true"
+          size={18}
+          style={{
+            color: "var(--text-muted)",
+            transform: expanded ? "rotate(180deg)" : "none",
+            transition: reduceMotion ? "none" : "transform var(--duration-fast) var(--ease-out)",
+          }}
+        />
+      </button>
+
+      {expanded ? <div
+        id="improv-insight-panel"
         className="overflow-hidden rounded-2xl"
         style={{
+          marginTop: "var(--space-3)",
           background: "linear-gradient(135deg, var(--surface-raised), var(--surface-overlay))",
           border: "1px solid var(--border-default)",
           boxShadow: "var(--shadow-md)",
         }}
       >
-        <header className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between md:p-6">
+        <header className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <span className="label-caps" style={{ color: "var(--text-academy)" }}>Play over this</span>
-            <h2 id="improv-insight-title" className="mt-1" style={{ fontSize: "var(--text-2xl)" }}>
+            <h2 id="improv-insight-title" className="mt-1" style={{ fontSize: "var(--text-xl)" }}>
               Improv Insight
             </h2>
             <p className="mt-2 max-w-2xl" style={{ color: "var(--text-secondary)" }}>
@@ -257,7 +287,7 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
           id={insightPanelId(mode)}
           role="tabpanel"
           aria-labelledby={insightTabId(mode)}
-          className="border-t p-4 md:p-6"
+          className="border-t p-3 md:p-4"
           style={{ borderColor: "var(--border-subtle)" }}
         >
           {mode === "chord" ? (
@@ -292,7 +322,7 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
             ))}
           </div>
         </div>
-      </div>
+      </div> : null}
     </section>
   );
 }

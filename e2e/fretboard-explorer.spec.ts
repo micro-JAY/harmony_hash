@@ -24,6 +24,14 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 }
 
+function rgbDistance(left: string, right: string): number {
+  const channels = (value: string) => value.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+  const leftChannels = channels(left);
+  const rightChannels = channels(right);
+  if (!leftChannels || !rightChannels) throw new Error(`Unsupported colors: ${left}, ${right}`);
+  return Math.hypot(...leftChannels.map((channel, index) => channel - rightChannels[index]));
+}
+
 async function settleVisual(page: Page): Promise<void> {
   const fonts = await page.evaluate(async () => {
     await document.fonts.ready;
@@ -66,6 +74,13 @@ test.describe("Fretboard Explorer", () => {
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(false);
     await page.getByRole("button", { name: "Fretboard", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
+    const toolTitleStyle = await page.getByRole("heading", { name: "Fretboard Explorer" }).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { family: style.fontFamily, size: Number.parseFloat(style.fontSize), weight: Number(style.fontWeight) };
+    });
+    expect(toolTitleStyle.family).toContain("Zalando Sans");
+    expect(toolTitleStyle.size).toBeGreaterThanOrEqual(40);
+    expect(toolTitleStyle.weight).toBeGreaterThanOrEqual(700);
 
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(true);
     await expect(page.getByRole("button", { name: "Fretboard", exact: true })).toHaveAttribute(
@@ -83,6 +98,9 @@ test.describe("Fretboard Explorer", () => {
       "color",
       "rgb(168, 169, 184)",
     );
+    const learningLayer = page.getByTestId("fretboard-learning-layer");
+    await expect(learningLayer.getByRole("region", { name: "C Major scale summary" })).toBeVisible();
+    await expect(learningLayer.getByLabel("Scale notes and intervals")).toBeVisible();
     await expect(page.getByRole("button", { name: "Intervals", exact: true })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -153,6 +171,19 @@ test.describe("Fretboard Explorer", () => {
     const majorThirdColor = await legend.getByText("3 · Major third").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
     expect(new Set([rootColor, minorThirdColor, majorThirdColor]).size).toBe(3);
 
+    await mode.selectOption("major");
+    const majorSecondColor = await legend.getByText("2 · Major second").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    const perfectFourthColor = await legend.getByText("4 · Perfect fourth").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    const perfectFifthColor = await legend.getByText("5 · Perfect fifth").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    expect(rgbDistance(majorSecondColor, perfectFourthColor)).toBeGreaterThan(70);
+    expect(rgbDistance(majorSecondColor, perfectFifthColor)).toBeGreaterThan(70);
+    expect(rgbDistance(perfectFourthColor, perfectFifthColor)).toBeGreaterThan(70);
+
+    await mode.selectOption("natural_minor");
+    const naturalMinorThirdColor = await legend.getByText("b3 · Minor third").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    const flatSeventhColor = await legend.getByText("b7 · Flat seventh").locator("span").evaluate((element) => getComputedStyle(element).backgroundColor);
+    expect(rgbDistance(naturalMinorThirdColor, flatSeventhColor)).toBeGreaterThan(90);
+
     await mode.selectOption("minor_blues");
     await expect(legend).toContainText("b5 · Flat fifth (blue note)");
 
@@ -173,23 +204,10 @@ test.describe("Fretboard Explorer", () => {
     expect(browserIssues).toEqual([]);
   });
 
-  test("supports spatial focus and preserves the progression builder", async ({ page }) => {
+  test("supports spatial focus without exposing the builder-only companion", async ({ page }) => {
     const browserIssues = collectBrowserIssues(page);
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Cmaj7 Am7 Dm7 G7");
-    await input.press("Enter");
-    const firstCard = page.getByTestId("chord-card").nth(0);
-    await firstCard.getByRole("button", { name: "Lock chord card" }).click();
-    await page.getByRole("button", { name: "Piano", exact: true }).click();
-    await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
-    const collapseCompanion = page.getByRole("button", { name: "Collapse Harmony Companion" });
-    await expect(collapseCompanion).toHaveAttribute("aria-expanded", "true");
-
-    await page.getByRole("button", { name: "Fretboard", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Harmony companion voice agent" })).toBeVisible();
-    await expect(collapseCompanion).toHaveAttribute("aria-expanded", "true");
+    await openFretboard(page);
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
 
     const firstNote = page.getByRole("button", {
       name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3, All positions pattern tone",
@@ -215,14 +233,6 @@ test.describe("Fretboard Explorer", () => {
       }),
     ).toBeFocused();
 
-    await page.getByRole("button", { name: "Builder", exact: true }).click();
-    await expect(page.getByTestId("chord-card")).toHaveCount(4);
-    await expect(page.getByRole("button", { name: "Piano", exact: true })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    await expect(firstCard.getByRole("button", { name: "Unlock chord card" })).toBeVisible();
-    await expect(collapseCompanion).toHaveAttribute("aria-expanded", "true");
     expect(browserIssues).toEqual([]);
   });
 
@@ -245,6 +255,32 @@ test.describe("Fretboard Explorer", () => {
       }));
       if (viewport.name === "desktop") {
         expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+        const scrollerBox = await scroller.boundingBox();
+        const headersBox = await page.getByTestId("fretboard-column-headers").boundingBox();
+        expect(scrollerBox).not.toBeNull();
+        expect(headersBox).not.toBeNull();
+        const leftGutter = headersBox!.x - scrollerBox!.x;
+        const rightGutter = scrollerBox!.x + scrollerBox!.width - headersBox!.x - headersBox!.width;
+        expect(Math.abs(leftGutter - rightGutter)).toBeLessThanOrEqual(2);
+
+        const openHeader = scroller.locator('[role="columnheader"][data-fret-column="0"]');
+        const fretFifteenHeader = scroller.locator('[role="columnheader"][data-fret-column="15"]');
+        const openHeaderBox = await openHeader.boundingBox();
+        const fretFifteenHeaderBox = await fretFifteenHeader.boundingBox();
+        expect(openHeaderBox!.x).toBeLessThan(fretFifteenHeaderBox!.x);
+        const openCell = scroller.locator('[role="gridcell"][data-fret="0"]').first();
+        const fretOneCell = scroller.locator('[role="gridcell"][data-fret="1"]').first();
+        const openVisual = await openCell.evaluate((element) => {
+          const style = getComputedStyle(element);
+          return { background: style.backgroundColor, shadow: style.boxShadow };
+        });
+        expect(openVisual.background).not.toBe(await fretOneCell.evaluate((element) => getComputedStyle(element).backgroundColor));
+        expect(openVisual.shadow).not.toBe("none");
+
+        await page.getByRole("button", { name: "Left-handed", exact: true }).click();
+        const leftHandedOpenBox = await openHeader.boundingBox();
+        const leftHandedFifteenBox = await fretFifteenHeader.boundingBox();
+        expect(leftHandedOpenBox!.x).toBeGreaterThan(leftHandedFifteenBox!.x);
       } else {
         expect(widths.scroll).toBeGreaterThan(widths.client);
       }

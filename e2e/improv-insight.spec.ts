@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { composeProgression } from "./helpers/progression";
 
 interface BrowserIssue {
   type: "console" | "pageerror";
@@ -35,14 +36,13 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 }
 
 async function enterProgression(page: Page, value = "Cmaj7 Am7 Dm7 G7") {
-  const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-  await input.fill(value);
-  await input.press("Enter");
-  await expect(page.getByRole("button", { name: "Show compatible scales" })).toBeVisible();
+  await composeProgression(page, value);
+  await page.getByRole("button", { name: "Progressions" }).click();
+  await expect(page.getByRole("button", { name: "Improv Insight" })).toHaveAttribute("aria-expanded", "false");
 }
 
 async function openInsight(page: Page) {
-  await page.getByRole("button", { name: "Show compatible scales" }).click();
+  await page.getByRole("button", { name: "Improv Insight" }).click();
   await expect(page.getByRole("heading", { name: "Improv Insight" })).toBeVisible();
 }
 
@@ -65,7 +65,7 @@ test.describe("Improv Insight", () => {
     expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(false);
 
     await enterProgression(page);
-    expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(false);
+    expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(true);
     await openInsight(page);
     expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(true);
     await expect(page.getByRole("tab", { name: "Whole progression" })).toHaveAttribute("aria-selected", "true");
@@ -83,9 +83,10 @@ test.describe("Improv Insight", () => {
     await expect(cMajor).toContainText("static");
     await expect(cMajor).toContainText("diatonic");
     await expect(cMajor).toContainText("tonal");
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Cmaj7 Dm7 G7#9 Cmaj7");
-    await input.press("Enter");
+    await page.getByRole("button", { name: "Free Input" }).click();
+    await composeProgression(page, "Cmaj7 Dm7 G7#9 Cmaj7");
+    await page.getByRole("button", { name: "Progressions" }).click();
+    await openInsight(page);
     await expect(cMajor).toHaveAttribute("data-match", "88");
     const lowerMatchColor = await cMajor.getByText("88%").evaluate((element) => getComputedStyle(element).color);
     expect(lowerMatchColor).not.toBe(highMatchColor);
@@ -111,9 +112,9 @@ test.describe("Improv Insight", () => {
     await expect(page.locator('[data-scale-result="G Mixolydian"]')).toContainText("modal");
     const elapsed = await page.evaluate((start) => performance.now() - start, startedAt);
     expect(elapsed).toBeLessThan(500);
-    const hide = page.getByRole("button", { name: "Hide compatible scales" });
-    await hide.click();
-    await expect(page.getByRole("button", { name: "Show compatible scales" })).toBeFocused();
+    const disclosure = page.getByRole("button", { name: "Improv Insight" });
+    await disclosure.click();
+    await expect(disclosure).toBeFocused();
     await expect(page.getByRole("heading", { name: "Improv Insight" })).toBeHidden();
     expect(issues).toEqual([]);
   });
@@ -129,9 +130,10 @@ test.describe("Improv Insight", () => {
     await expect(bFlatMajor).toContainText("Bb · C · D · Eb · F · G · A");
     await expect(page.locator('[data-scale-result="A# Major"]')).toHaveCount(0);
 
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Bfmaj7 Efmaj7 F7");
-    await input.press("Enter");
+    await page.getByRole("button", { name: "Free Input" }).click();
+    await composeProgression(page, "Bfmaj7 Efmaj7 F7");
+    await page.getByRole("button", { name: "Progressions" }).click();
+    await openInsight(page);
     await expect(bFlatMajor).toBeVisible();
     await expect(page.locator('[data-scale-result="A# Major"]')).toHaveCount(0);
     expect(issues).toEqual([]);

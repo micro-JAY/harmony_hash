@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { composeProgression } from "./helpers/progression";
 
 interface BrowserIssue {
   type: "console" | "pageerror";
@@ -129,15 +130,17 @@ test.describe("Note Neural Network", () => {
     expect(issues).toEqual([]);
   });
 
-  test("keeps the Builder timeline and companion mounted across the network", async ({ page }) => {
+  test("keeps the Hasher timeline and hides Hanz outside the Hasher", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    const input = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await input.fill("Cmaj7 Am7 Dm7 G7");
-    await input.press("Enter");
+    await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
     await expect(page.getByTestId("chord-card")).toHaveCount(4);
+    await page.getByRole("textbox", { name: "Describe the progression you want" }).fill("help me reharmonize this");
+    await page.getByRole("button", { name: /Need help\?|Stuck\?|Writer's block got you down\?|Phone a friend/ }).click();
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
 
     await page.getByRole("button", { name: "Network", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Note Neural Network" })).toBeVisible();
     await page.getByRole("combobox", { name: "Root" }).selectOption("D");
     await page.getByRole("combobox", { name: "Family" }).selectOption("melodic_minor");
@@ -145,9 +148,9 @@ test.describe("Note Neural Network", () => {
     await page.getByRole("listbox").getByRole("option").nth(3).click();
     await expect(page.getByRole("complementary", { name: "D Lydian Dominant details" }))
       .toBeVisible();
-    await page.getByRole("button", { name: "Builder", exact: true }).click();
+    await page.getByRole("button", { name: "Hasher", exact: true }).click();
     await expect(page.getByTestId("chord-card")).toHaveCount(4);
-    await expect(page.getByRole("button", { name: "Expand Harmony Companion" })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
     await page.getByRole("button", { name: "Network", exact: true }).click();
     await expect(page.getByRole("combobox", { name: "Root" })).toHaveValue("D");
     await expect(page.getByRole("combobox", { name: "Family" })).toHaveValue("melodic_minor");

@@ -97,6 +97,10 @@ const QUALITY_CANDIDATES = [
   { label: "m11",   suffix: "m11",   group: "9ths+" as const },
   { label: "dim7",  suffix: "dim7",  group: "alt"   as const },
   { label: "m7b5",  suffix: "m7b5",  group: "alt"   as const },
+  { label: "7b9",   suffix: "7b9",   group: "alt"   as const },
+  { label: "7#9",   suffix: "7#9",   group: "alt"   as const },
+  { label: "7b5",   suffix: "7b5",   group: "alt"   as const },
+  { label: "7#5",   suffix: "7#5",   group: "alt"   as const },
   { label: "aug7",  suffix: "+7",    group: "alt"   as const },
   { label: "add9",  suffix: "add9",  group: "9ths+" as const },
   { label: "madd9", suffix: "madd9", group: "9ths+" as const },
@@ -136,9 +140,9 @@ const GROUP_LABELS: { id: QualityGroup | "all"; label: string }[] = [
 // ─── Props ──────────────────────────────────────────────────────────
 
 interface ChordReferenceGridProps {
-  inputValue: string;
-  setInputValue: (value: string) => void;
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  chords: ReadonlyArray<string>;
+  onChordAdd: (chordName: string) => void;
+  onUndo: () => void;
   /**
    * Optional key + scale context used by Key and Next suggestions.
    * When absent or when mode is "off", the grid keeps its baseline
@@ -151,9 +155,9 @@ interface ChordReferenceGridProps {
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function ChordReferenceGrid({
-  inputValue,
-  setInputValue,
-  inputRef,
+  chords,
+  onChordAdd,
+  onUndo,
   keyContext,
   moodId,
 }: ChordReferenceGridProps) {
@@ -168,9 +172,8 @@ export default function ChordReferenceGrid({
     }
     return "basic";
   });
-  const [insertHistory, setInsertHistory] = useState<string[]>([]);
   const [suggestionMode, setSuggestionMode] = useState<SuggestionMode>("off");
-  const previousChord = useMemo(() => findLastResolvedChord(inputValue), [inputValue]);
+  const previousChord = useMemo(() => findLastResolvedChord(chords.join(" ")), [chords]);
   const contextKey = keyContext?.key;
   const contextScaleType = keyContext?.scaleType;
   const scoreByChord = useMemo(() => {
@@ -212,7 +215,6 @@ export default function ChordReferenceGrid({
     setIsOpen(next);
     if (!next) {
       setActiveGroup("basic");
-      setInsertHistory([]);
     }
   }
 
@@ -224,28 +226,17 @@ export default function ChordReferenceGrid({
 
   // ── Insert handler ──
   function handleChordInsert(chordName: string) {
-    const current = inputValue.trim();
-    const next = current ? `${current} ${chordName}` : chordName;
-    setInputValue(next);
-    inputRef.current?.focus();
+    onChordAdd(chordName);
     setFlashCell(chordName);
     setTimeout(() => setFlashCell(null), 300);
-    setInsertHistory((prev) => [...prev, chordName]);
   }
 
   // ── Undo handler — pops the last inserted chord ──
   function handleUndo() {
-    if (!insertHistory.length) return;
-    const last = insertHistory[insertHistory.length - 1];
-    const tokens = inputValue.trimEnd().split(" ");
-    const idx = tokens.lastIndexOf(last);
-    if (idx !== -1) tokens.splice(idx, 1);
-    setInputValue(tokens.join(" "));
-    setInsertHistory((prev) => prev.slice(0, -1));
-    inputRef.current?.focus();
+    onUndo();
   }
 
-  const canUndo = insertHistory.length > 0 && inputValue.trim().length > 0;
+  const canUndo = chords.length > 0;
 
   // ── Group filter handler ──
   function handleGroupSelect(group: QualityGroup | "all") {
@@ -548,6 +539,11 @@ export default function ChordReferenceGrid({
                             key={q.label}
                             type="button"
                             onClick={() => handleChordInsert(chordName)}
+                            draggable
+                            onDragStart={(event) => {
+                              event.dataTransfer.effectAllowed = "copy";
+                              event.dataTransfer.setData("text/plain", chordName);
+                            }}
                             aria-label={accessibleLabel}
                             title={fitResult ? accessibleLabel : undefined}
                             data-chord-name={chordName}

@@ -223,15 +223,25 @@ export default function FretboardExplorer() {
       aria-labelledby="fretboard-title"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <header className="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h1
               id="fretboard-title"
-              style={{ color: "var(--text-primary)", fontSize: "var(--text-2xl)" }}
+              style={{
+                color: "var(--text-primary)",
+                fontFamily: "var(--font-display)",
+                fontSize: "var(--text-3xl)",
+                fontWeight: "var(--weight-bold)",
+                letterSpacing: "var(--tracking-tight)",
+                lineHeight: "var(--leading-tight)",
+              }}
             >
               Fretboard Explorer
             </h1>
-            <p className="mt-2 max-w-2xl" style={{ color: "var(--text-secondary)" }}>
+            <p
+              className="mt-2 max-w-3xl"
+              style={{ color: "var(--text-secondary)", fontSize: "var(--text-md)" }}
+            >
               See a scale across the whole instrument. Roots stay gold; interval roles keep the same color wherever they repeat.
             </p>
           </div>
@@ -243,7 +253,7 @@ export default function FretboardExplorer() {
               {tuning.label} · {tuning.pitchSequence} · frets 0–15
             </span>
           </div>
-        </div>
+        </header>
 
         <section
           aria-label="Fretboard controls"
@@ -311,53 +321,61 @@ export default function FretboardExplorer() {
         </section>
 
         <section
-          aria-label="Fretboard learning controls"
-          className="mb-6 flex min-w-0 flex-col gap-4 rounded-xl p-4 md:p-5 lg:flex-row lg:items-start"
+          aria-label="Fretboard learning controls and current map"
+          className="mb-5 grid min-w-0 gap-4 rounded-xl p-4 md:p-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]"
           data-testid="fretboard-learning-layer"
           style={{
             backgroundColor: "var(--status-academy-bg)",
             border: "1px solid var(--status-academy-border)",
           }}
         >
-          <div className="flex min-w-0 flex-wrap items-end gap-3">
-            <SegmentedControl
-              label="Pattern"
-              value={patternFamily}
-              onChange={setPatternFamily}
-              reducedMotion={Boolean(reduceMotion)}
-              options={[
-                { value: "all", label: "All" },
-                { value: "caged", label: "CAGED" },
-                { value: "three-nps", label: "3NPS" },
-              ]}
-            />
-            {patternFamily === "caged" ? (
-              <SelectControl
-                id="fretboard-caged-form"
-                label="CAGED form"
-                value={cagedForm}
-                onChange={setCagedForm}
-              >
-                {CAGED_FORM_OPTIONS.map((option) => (
-                  <option key={option.id} value={option.id}>{option.label}</option>
-                ))}
-              </SelectControl>
-            ) : null}
-            {patternFamily === "three-nps" ? (
-              <SelectControl
-                id="fretboard-three-nps-position"
-                label="3NPS position"
-                value={String(threeNpsStartDegree)}
-                onChange={(value) => setThreeNpsStartDegree(Number(value) as ThreeNpsStartDegree)}
-              >
-                {THREE_NPS_OPTIONS.map((option) => (
-                  <option key={option.id} value={option.id}>{option.label}</option>
-                ))}
-              </SelectControl>
-            ) : null}
+          <div className="flex min-w-0 flex-col gap-3">
+            <div className="flex min-w-0 flex-wrap items-end gap-3">
+              <SegmentedControl
+                label="Pattern"
+                value={patternFamily}
+                onChange={setPatternFamily}
+                reducedMotion={Boolean(reduceMotion)}
+                options={[
+                  { value: "all", label: "All" },
+                  { value: "caged", label: "CAGED" },
+                  { value: "three-nps", label: "3NPS" },
+                ]}
+              />
+              {patternFamily === "caged" ? (
+                <SelectControl
+                  id="fretboard-caged-form"
+                  label="CAGED form"
+                  value={cagedForm}
+                  onChange={setCagedForm}
+                >
+                  {CAGED_FORM_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.id}>{option.label}</option>
+                  ))}
+                </SelectControl>
+              ) : null}
+              {patternFamily === "three-nps" ? (
+                <SelectControl
+                  id="fretboard-three-nps-position"
+                  label="3NPS position"
+                  value={String(threeNpsStartDegree)}
+                  onChange={(value) => setThreeNpsStartDegree(Number(value) as ThreeNpsStartDegree)}
+                >
+                  {THREE_NPS_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.id}>{option.label}</option>
+                  ))}
+                </SelectControl>
+              ) : null}
+              <ChordOverlayPicker
+                selectedLabel={overlay?.displayName}
+                reducedMotion={Boolean(reduceMotion)}
+                onSelect={setOverlay}
+                onClear={() => setOverlay(undefined)}
+              />
+            </div>
             <p
               role="status"
-              className="basis-full text-sm"
+              className="text-sm"
               style={{ color: pattern.available ? "var(--status-academy-text)" : "var(--status-warning-text)" }}
             >
               {pattern.available
@@ -365,47 +383,40 @@ export default function FretboardExplorer() {
                 : `${pattern.reason}. Showing All while your choice stays remembered.`}
             </p>
           </div>
-          <div className="hidden self-stretch lg:block" aria-hidden="true" style={{ width: "1px", backgroundColor: "var(--border-default)" }} />
-          <ChordOverlayPicker
-            selectedLabel={overlay?.displayName}
-            reducedMotion={Boolean(reduceMotion)}
-            onSelect={setOverlay}
-            onClear={() => setOverlay(undefined)}
-          />
-        </section>
 
-        <section
-          aria-label={`${keyName} ${modeLabel} scale summary`}
-          className="mb-5 flex flex-col gap-4 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between"
-          style={{ backgroundColor: "var(--surface-highlight)", border: "1px solid var(--border-subtle)" }}
-        >
-          <div>
+          <section
+            aria-label={`${keyName} ${modeLabel} scale summary`}
+            className="min-w-0 border-t pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0"
+            style={{ borderColor: "var(--status-academy-border)" }}
+          >
             <span className="label-caps" style={{ color: "var(--text-secondary)" }}>Current map</span>
-            <p className="mt-1" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)" }}>
-              {keyName} {modeLabel} · {instrument === "guitar" ? "Guitar" : "Bass"}
-            </p>
-            <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
-              {pattern.available ? pattern.label : "All positions"}
-              {overlay ? ` · ${overlay.displayName} overlay` : ""}
-            </p>
-          </div>
-          <ol className="flex flex-wrap gap-2" aria-label="Scale notes and intervals">
-            {scaleNotes.map((item) => (
-              <li
-                key={`${item.note}-${item.interval}`}
-                className="rounded-full px-3 py-1"
-                style={{
-                  backgroundColor: item.interval === "1" ? "var(--interactive-accent-bg)" : "var(--surface-overlay)",
-                  border: `1px solid ${item.interval === "1" ? "var(--interactive-accent-border)" : "var(--border-subtle)"}`,
-                  color: item.interval === "1" ? "var(--interactive-accent-text)" : "var(--text-secondary)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-xs)",
-                }}
-              >
-                {item.note} <span style={{ color: "var(--text-secondary)" }}>{item.interval}</span>
-              </li>
-            ))}
-          </ol>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <p style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)" }}>
+                {keyName} {modeLabel} · {instrument === "guitar" ? "Guitar" : "Bass"}
+              </p>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                {pattern.available ? pattern.label : "All positions"}
+                {overlay ? ` · ${overlay.displayName} overlay` : ""}
+              </p>
+            </div>
+            <ol className="mt-2 flex flex-wrap gap-1.5" aria-label="Scale notes and intervals">
+              {scaleNotes.map((item) => (
+                <li
+                  key={`${item.note}-${item.interval}`}
+                  className="rounded-full px-2 py-1"
+                  style={{
+                    backgroundColor: item.interval === "1" ? "var(--interactive-accent-bg)" : "var(--surface-overlay)",
+                    border: `1px solid ${item.interval === "1" ? "var(--interactive-accent-border)" : "var(--border-subtle)"}`,
+                    color: item.interval === "1" ? "var(--interactive-accent-text)" : "var(--text-secondary)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-xs)",
+                  }}
+                >
+                  {item.note} <span style={{ color: "var(--text-secondary)" }}>{item.interval}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
         </section>
 
         <HorizontalFretboard

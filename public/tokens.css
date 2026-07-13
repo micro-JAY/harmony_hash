@@ -174,6 +174,21 @@
   --status-academy-text:   #6DBAED;
   --status-academy-border: rgba(109, 186, 237, 0.25);
 
+  /* Harmony Hash interval roles use equal-salience categorical hues so
+     adjacent scale functions remain distinguishable on dense instruments. */
+  --music-interval-root:    #E8C05A;
+  --music-interval-flat-2:  #F2A36F;
+  --music-interval-2:       #70B8F0;
+  --music-interval-minor-3: #B59AE8;
+  --music-interval-major-3: #8FA7F7;
+  --music-interval-4:       #76CFA8;
+  --music-interval-tritone: #E79BD7;
+  --music-interval-5:       #F28C9F;
+  --music-interval-flat-6:  #C693E8;
+  --music-interval-6:       #55C6C2;
+  --music-interval-flat-7:  #A8CC72;
+  --music-interval-major-7: #F2A36F;
+
 
   /* ----------------------------------------------------------
      TYPOGRAPHY

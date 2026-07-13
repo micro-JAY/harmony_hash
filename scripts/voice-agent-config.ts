@@ -287,14 +287,17 @@ function optionalStringArray(
   return value.map((entry, index) => stringAt(entry, `${path}[${index}]`));
 }
 
-function optionalRecordKeys(
+function optionalConfiguredRecordKeys(
   root: Record<string, unknown>,
   key: string,
   path: string,
 ): string[] {
   const value = root[key];
   if (value === undefined || value === null) return [];
-  return Object.keys(recordAt(value, path));
+  // ElevenLabs serializes every supported built-in as a null placeholder.
+  return Object.entries(recordAt(value, path))
+    .filter(([, config]) => config !== null)
+    .map(([name]) => name);
 }
 
 function optionalArrayLength(value: unknown, path: string): number {
@@ -612,7 +615,7 @@ export function readAgentConfiguration(
       "tool_ids",
       "conversation_config.agent.prompt.tool_ids",
     ),
-    builtInToolNames: optionalRecordKeys(
+    builtInToolNames: optionalConfiguredRecordKeys(
       prompt,
       "built_in_tools",
       "conversation_config.agent.prompt.built_in_tools",

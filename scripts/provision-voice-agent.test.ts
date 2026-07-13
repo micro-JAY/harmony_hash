@@ -167,7 +167,14 @@ describe("voice agent provisioning orchestration", () => {
 
     const { fetchImpl, requests } = createMockFetch((request) => {
       if (request.url === `${AGENTS_API}/${AGENT_ID}` && request.method === "GET") {
-        return jsonResponse(agentPayload({ toolIds: patched ? allIds : existingIds }));
+        return jsonResponse(agentPayload({
+          toolIds: patched ? allIds : existingIds,
+          builtInTools: {
+            end_call: null,
+            language_detection: null,
+            run_subagent: null,
+          },
+        }));
       }
       if (request.url === TOOLS_API && request.method === "POST") {
         expect(request.body).toEqual(buildClientToolPayload(sourceAt(missingIndex)));

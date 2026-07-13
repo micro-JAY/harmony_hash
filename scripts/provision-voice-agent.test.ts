@@ -39,8 +39,11 @@ function toolRecord(index: number, id = toolIdAt(index)) {
 function agentPayload(options: {
   toolIds?: string[];
   builtInTools?: Record<string, unknown>;
+  promptDefaults?: Record<string, unknown>;
   tts?: Record<string, unknown>;
   workflow?: Record<string, unknown>;
+  overrides?: Record<string, unknown>;
+  procedures?: Record<string, unknown>;
 } = {}) {
   return {
     agent_id: AGENT_ID,
@@ -53,6 +56,7 @@ function agentPayload(options: {
           tools: TOOL_SCHEMAS.map((tool) =>
             buildClientToolPayload(tool).tool_config
           ),
+          ...options.promptDefaults,
         },
       },
       tts: {
@@ -65,8 +69,10 @@ function agentPayload(options: {
     },
     platform_settings: {
       auth: { enable_auth: true, allowlist: [] },
+      overrides: options.overrides,
     },
     workflow: options.workflow,
+    procedures: options.procedures,
   };
 }
 
@@ -186,6 +192,23 @@ describe("voice agent provisioning orchestration", () => {
             },
             edges: {},
           },
+          promptDefaults: {
+            reasoning_effort: null,
+            opener: null,
+            enable_parallel_tool_calls: false,
+            custom_llm: null,
+            rag: { enabled: false, optional_rag_enabled: false },
+            timezone: "UTC",
+            backup_llm_config: { preference: "system_default" },
+            cascade_timeout_seconds: 10,
+            knowledge_base: [],
+          },
+          overrides: {
+            conversation_config_override: {
+              agent: { prompt: { tool_ids: false, native_mcp_server_ids: false } },
+            },
+          },
+          procedures: {},
         }));
       }
       if (request.url === TOOLS_API && request.method === "POST") {

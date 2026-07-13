@@ -457,6 +457,135 @@ describe("voice agent verification", () => {
     });
   });
 
+  it("ignores current inert prompt and capability defaults", () => {
+    const parsed = readAgentConfiguration(livePayload({
+      reasoning_effort: null,
+      opener: null,
+      thinking_budget: null,
+      enable_reasoning_summary: false,
+      enable_parallel_tool_calls: false,
+      custom_llm: null,
+      speech_engine: null,
+      ignore_default_personality: false,
+      rag: {
+        enabled: false,
+        embedding_model: "e5_mistral_7b_instruct",
+        optional_rag_enabled: false,
+        max_vector_distance: 0.6,
+        max_documents_length: 10000,
+        max_retrieved_rag_chunks_count: 20,
+        num_candidates: null,
+        query_rewrite_prompt_override: null,
+      },
+      timezone: "UTC",
+      backup_llm_config: { preference: "system_default" },
+      cascade_timeout_seconds: 10,
+      knowledge_base: [],
+    }, {
+      platform_settings: {
+        auth: { enable_auth: true, allowlist: [] },
+        overrides: {
+          conversation_config_override: {
+            agent: { prompt: { tool_ids: false, native_mcp_server_ids: false } },
+          },
+        },
+      },
+      procedures: {},
+    }));
+
+    expect(parsed.unknownCapabilityFields).toEqual([]);
+  });
+
+  it("retains active current-schema capabilities for the update guard", () => {
+    const cases: Array<[Record<string, unknown>, Record<string, unknown>, string]> = [
+      [{ enable_parallel_tool_calls: true }, {}, "enable_parallel_tool_calls"],
+      [{ custom_llm: {} }, {}, "custom_llm"],
+      [{ rag: { enabled: true, optional_rag_enabled: false } }, {}, "rag"],
+      [{ knowledge_base: [{ id: "kb", usage_mode: "prompt" }] }, {}, "knowledge_base"],
+      [{}, { procedures: { build: {} } }, "procedures"],
+      [{}, {
+        platform_settings: {
+          auth: { enable_auth: true, allowlist: [] },
+          overrides: {
+            conversation_config_override: {
+              agent: { prompt: { tool_ids: true } },
+            },
+          },
+        },
+      }, "tool_ids"],
+      [{}, {
+        platform_settings: {
+          auth: { enable_auth: true, allowlist: [] },
+          overrides: {
+            conversation_config_override: {
+              agent: { prompt: { llm: true } },
+            },
+          },
+        },
+      }, "llm"],
+      [{}, {
+        conversation_config: {
+          agent: livePayload().conversation_config.agent,
+          tts: livePayload().conversation_config.tts,
+          language_presets: {
+            es: { overrides: { agent: { prompt: { custom_llm: { url: "https://llm.test" } } } } },
+          },
+        },
+      }, "custom_llm"],
+      [{}, {
+        conversation_config: {
+          agent: livePayload().conversation_config.agent,
+          tts: livePayload().conversation_config.tts,
+          language_presets: {
+            es: { overrides: { agent: { prompt: { rag: { enabled: true } } } } },
+          },
+        },
+      }, "rag"],
+      [{}, {
+        conversation_config: {
+          agent: livePayload().conversation_config.agent,
+          tts: livePayload().conversation_config.tts,
+          language_presets: {
+            es: { overrides: { agent: { prompt: { knowledge_base: [{ id: "kb" }] } } } },
+          },
+        },
+      }, "knowledge_base"],
+      [{}, {
+        platform_settings: {
+          auth: { enable_auth: true, allowlist: [] },
+          overrides: {
+            conversation_config_override: {
+              agent: { prompt: { tool_ids: {} } },
+            },
+          },
+        },
+      }, "tool_ids"],
+      [{}, {
+        conversation_config: {
+          agent: livePayload().conversation_config.agent,
+          tts: livePayload().conversation_config.tts,
+          language_presets: {
+            es: { overrides: { agent: { prompt: { custom_llm: [] } } } },
+          },
+        },
+      }, "custom_llm"],
+      [{}, {
+        conversation_config: {
+          agent: livePayload().conversation_config.agent,
+          tts: livePayload().conversation_config.tts,
+          language_presets: {
+            es: { overrides: { agent: { prompt: { rag: [] } } } },
+          },
+        },
+      }, "rag"],
+    ];
+
+    cases.forEach(([prompt, root, expected]) => {
+      expect(readAgentConfiguration(livePayload(prompt, root)).unknownCapabilityFields)
+        .toEqual(expect.arrayContaining([expect.stringContaining(expected)]));
+    });
+  });
+
   it("rejects an altered legacy client mirror when the provider returns it", () => {
     const parsed = readAgentConfiguration(livePayload({
       tools: TOOL_SCHEMAS.map((_, index) =>

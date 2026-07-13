@@ -618,6 +618,15 @@ describe("voice agent verification", () => {
   it("reuses only exact source-owned client contracts", () => {
     const tools = linkedTools();
     expect(findReusableClientToolId(TOOL_SCHEMAS[0], tools)).toBe(TOOL_IDS[0]);
+    const sourceParameters = sourceToolConfig(0).parameters;
+    const normalized = linkedTool(0, {
+      parameters: { ...sourceParameters, required: [], description: "" },
+    });
+    expect(clientToolMatchesSource(normalized, TOOL_SCHEMAS[0])).toBe(true);
+    const described = linkedTool(0, {
+      parameters: { ...sourceParameters, description: "Provider drift" },
+    });
+    expect(clientToolMatchesSource(described, TOOL_SCHEMAS[0])).toBe(false);
     const drifted = [linkedTool(0, { description: "drifted" }), ...tools.slice(1)];
     expect(findReusableClientToolId(TOOL_SCHEMAS[0], drifted)).toBeUndefined();
     expect(clientToolMatchesSource(tools[0], TOOL_SCHEMAS[0])).toBe(true);

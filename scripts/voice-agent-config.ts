@@ -753,9 +753,13 @@ function canonicalize(value: unknown, key = ""): unknown {
   return Object.fromEntries(
     Object.keys(value)
       .filter((entryKey) => {
-        if (entryKey !== "required") return true;
-        const required = value[entryKey];
-        return !Array.isArray(required) || required.length > 0;
+        if (entryKey === "required") {
+          const required = value[entryKey];
+          return !Array.isArray(required) || required.length > 0;
+        }
+        // The toolbox API injects empty descriptions into JSON Schema objects.
+        if (entryKey === "description") return value[entryKey] !== "";
+        return true;
       })
       .sort()
       .map((entryKey) => [entryKey, canonicalize(value[entryKey], entryKey)]),

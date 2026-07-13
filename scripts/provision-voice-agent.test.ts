@@ -36,6 +36,21 @@ function toolRecord(index: number, id = toolIdAt(index)) {
   };
 }
 
+function providerNormalizedToolRecord(index: number, id: string) {
+  const record = toolRecord(index, id);
+  return {
+    ...record,
+    tool_config: {
+      ...record.tool_config,
+      parameters: {
+        ...sourceAt(index).parameters,
+        required: [],
+        description: "",
+      },
+    },
+  };
+}
+
 function agentPayload(options: {
   toolIds?: string[];
   builtInTools?: Record<string, unknown>;
@@ -223,7 +238,7 @@ describe("voice agent provisioning orchestration", () => {
       }
       if (request.url === TOOLS_API && request.method === "POST") {
         expect(request.body).toEqual(buildClientToolPayload(sourceAt(missingIndex)));
-        return jsonResponse(toolRecord(missingIndex, createdId));
+        return jsonResponse(providerNormalizedToolRecord(missingIndex, createdId));
       }
       if (request.url === `${AGENTS_API}/${AGENT_ID}` && request.method === "PATCH") {
         patched = true;
@@ -236,7 +251,9 @@ describe("voice agent provisioning orchestration", () => {
       }
       if (request.method === "GET" && request.url.startsWith(`${TOOLS_API}/`)) {
         const id = decodeURIComponent(request.url.slice(`${TOOLS_API}/`.length));
-        if (id === createdId) return jsonResponse(toolRecord(missingIndex, createdId));
+        if (id === createdId) {
+          return jsonResponse(providerNormalizedToolRecord(missingIndex, createdId));
+        }
         const index = TOOL_IDS.indexOf(id);
         if (index >= 0) return jsonResponse(toolRecord(index));
       }

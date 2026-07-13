@@ -630,3 +630,15 @@ The independent review found and drove fixes for three issues before publication
 **Verification:** production build and lint pass; Vitest is 1,064/1,064; the focused harmony engine suite is 89/89; full Playwright is 95/95; the focused comparison browser suite is 6/6. Desktop, tablet, 375px mobile, pointer, keyboard, reduced-motion, clean-console, exact-preview, unavailable-style, playback-highlight, timeline-lock, and stale-agent invalidation paths are covered. The final desktop rendering was also inspected in the in-app Browser. The pre-existing large-chunk build warning remains unchanged.
 
 **Current state:** Piano Voicing Comparison merged to `main` as `1587ff4` via [#50](https://github.com/micro-JAY/harmony_hash/pull/50) after its exact head passed two build/test jobs, two full Playwright jobs, and the Worker build. The deferred Phase 2.1.x milestone is complete.
+
+---
+
+## 2026-07-13 17:32 JST — Long-Horizon Ledger Closure
+
+Closed the final contract gap by authoring `docs/long_horizon_summary.md`, which records every Phase 0, Piano v2–v5, Phase 2, and agent-recovery milestone with its merged PR evidence, current quality gates, architectural outcomes, and deliberately deferred work. The summary does not include or describe any local inspiration asset beyond the tracked documentation contract.
+
+A production in-app Browser check loaded the Hasher and reported the progression API ready. Starting Hanz successfully passed the Worker's signed-URL fetch before the ElevenLabs SDK reached its microphone handshake; the host then returned `Permission denied by system`. This verifies the rotated production credential and signed-auth path without reading or printing the secret or signed URL. A command-line request remains intercepted by Cloudflare's challenge before reaching the Worker, so its 403 is not treated as a provider failure.
+
+The independent accuracy review initially found two Medium ledger gaps: omitted supporting PRs/statuses and incomplete dispositions for earlier open questions. The final summary now records every PR from #13 through #51, marks #28 Cancelled as superseded, assigns Done to every shipped milestone including both side tracks, and resolves or explicitly defers every canonical Q/follow-up. The final re-review found no remaining Critical, High, or Medium issue.
+
+**Current state:** branch `chore/long-horizon-summary` contains only the independently reviewed summary and this dated closure entry. Next: standard docs-only CI and exact-head merge; future product work begins as a separate bounded feature from the sealed ledger baseline.

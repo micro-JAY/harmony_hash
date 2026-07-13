@@ -54,7 +54,17 @@ function agentPayload(options: {
           tool_ids: options.toolIds ?? [...TOOL_IDS],
           built_in_tools: options.builtInTools ?? {},
           tools: TOOL_SCHEMAS.map((tool) =>
-            buildClientToolPayload(tool).tool_config
+            tool.name === "get_progression"
+              ? {
+                  ...buildClientToolPayload(tool).tool_config,
+                  response_timeout_secs: 20,
+                  parameters: {
+                    ...tool.parameters,
+                    required: [],
+                    description: "",
+                  },
+                }
+              : buildClientToolPayload(tool).tool_config
           ),
           ...options.promptDefaults,
         },

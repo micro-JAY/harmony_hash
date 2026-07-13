@@ -840,21 +840,22 @@ function assertSourceToolContracts(
   });
 }
 
-function assertLegacyToolContracts(
+function assertLegacyClientInventory(
   contracts: readonly ClientToolContract[],
 ): void {
   if (contracts.length === 0) return;
-  const tools: LinkedToolSnapshot[] = contracts.map((contract, index) => ({
-    id: `legacy-${index}`,
-    type: "client",
-    name: contract.name,
-    clientContract: contract,
-    responseMockCount: 0,
-    taskSupport: "forbidden",
-    unknownToolFields: [],
-    unknownExecutionFields: [],
-  }));
-  assertSourceToolContracts(tools, "Agent legacy client tools");
+  if (contracts.length !== TOOL_SCHEMAS.length) {
+    throw new Error(
+      `Agent legacy client tools count does not match source (expected ${TOOL_SCHEMAS.length}; received ${contracts.length})`,
+    );
+  }
+  const actualNames = sorted(contracts.map((contract) => contract.name));
+  const expectedNames = sorted(TOOL_NAMES);
+  if (JSON.stringify(actualNames) !== JSON.stringify(expectedNames)) {
+    throw new Error(
+      `Agent legacy client tools names do not match source (expected ${expectedNames.join(", ")}; received ${actualNames.join(", ")})`,
+    );
+  }
 }
 
 export function assertAgentCanBeNarrowlyUpdated(
@@ -877,7 +878,7 @@ export function assertAgentCanBeNarrowlyUpdated(
       );
     }
   }
-  assertLegacyToolContracts(snapshot.legacyClientTools);
+  assertLegacyClientInventory(snapshot.legacyClientTools);
 }
 
 export function assertLiveAgentConfiguration(
@@ -905,7 +906,7 @@ export function assertLiveAgentConfiguration(
     throw new Error("Resolved linked tools do not match the agent tool_ids inventory");
   }
   assertSourceToolContracts(linkedTools, "Agent linked client tools");
-  assertLegacyToolContracts(snapshot.legacyClientTools);
+  assertLegacyClientInventory(snapshot.legacyClientTools);
 }
 
 export function assertPreservedAgentUpdate(

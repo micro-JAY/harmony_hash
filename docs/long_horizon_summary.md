@@ -4,9 +4,9 @@
 
 The piano-voicing roadmap (v2–v5), its inspiration-led Phase 2 feature wave, and the user-directed agent recovery side track are complete on `main` as of 2026-07-13. The canonical milestone status remains in `docs/long_horizon_plan.md`; dated implementation and review evidence remains in `docs/long_horizon_log.md`.
 
-- Latest merged product baseline: `c93440b79a258ce512b4e4a9292edbb58b5e3d9e`.
-- Main CI: [run 29242702536](https://github.com/micro-JAY/harmony_hash/actions/runs/29242702536), green on the latest product baseline.
-- Latest local product gate: production build and lint pass, Vitest 1,075/1,075, Playwright 101/101.
+- Latest merged product baseline: `3cf12466bfb14b6fc462e2ce61bd26e391c6983b`.
+- Main CI: [run 29250944395](https://github.com/micro-JAY/harmony_hash/actions/runs/29250944395), green on the latest product baseline.
+- Latest product gates: local production build and lint pass, Vitest 1,095/1,095; exact-head CI Playwright 102/102.
 - Repository search finds no undocumented `TODO`, `FIXME`, `XXX`, or `HACK` in shipped code.
 - User-owned untracked `.agents/` and `AGENTS.md` remain outside the product history. Local inspiration images remain untracked; the intentionally tracked `docs/inspiration/README.md` remains unchanged.
 
@@ -55,14 +55,17 @@ The Phase 2 surfaces consume shared pure functions under `src/lib/theory/`. The 
 | S.2 — Agent Builder Recovery | **Done** | OpenAI Responses migration, signed voice repair, compact Hasher actions, on-demand Hanz popup, and responsive UI polish. | [#29](https://github.com/micro-JAY/harmony_hash/pull/29), [#34](https://github.com/micro-JAY/harmony_hash/pull/34), [#46](https://github.com/micro-JAY/harmony_hash/pull/46) |
 | S.3 — Lazy Voice Runtime | **Done** | Intent-preloaded ElevenLabs chunk, persistent provider state, accessible loading/failure shell, and 45.7% lower initial JavaScript gzip. | [#53](https://github.com/micro-JAY/harmony_hash/pull/53) |
 | S.4 — Hanz Chord Focus | **Done** | Independent tokenized voice focus, non-color marker, simultaneous playback treatment, and complete UI/session/provider/timeline teardown clearing. | [#55](https://github.com/micro-JAY/harmony_hash/pull/55) |
+| S.5 — Truthful Hanz Playback & Live Provisioning | **Done** | Explicit playback outcomes, generation-safe audio start/cancellation, honest pending UI, fail-closed current-schema provisioning, and independently verified live nine-tool configuration. | [#57](https://github.com/micro-JAY/harmony_hash/pull/57), [#58](https://github.com/micro-JAY/harmony_hash/pull/58)–[#63](https://github.com/micro-JAY/harmony_hash/pull/63) |
 
 The recovery work retained dictionary validation on both Worker and client boundaries. The Builder was renamed Hasher, its prompt and chord composer were compacted into one workspace, preset analysis remains under Progressions, and Hanz Hasher appears only as an on-demand popup from prompt help.
 
 On 2026-07-13 the production app loaded successfully in a real browser and reported the progression API ready. Starting Hanz fetched the signed URL before the ElevenLabs SDK reached the microphone handshake; the session then stopped at the host's system microphone permission with `Permission denied by system`. This proves the deployed Worker/key path progressed past signed-URL acquisition without exposing the URL, while full live-audio validation still requires granting microphone access to the browser host. A direct command-line probe remains intercepted by Cloudflare's 403 challenge before the Worker and is not a provider-health signal.
 
-## Complete run PR ledger
+Later that day, the source-owned provisioning workflow updated the existing Hanz Hasher agent and a separate verify-only readback confirmed signed authentication, an empty hostname allowlist, exactly nine linked client tools, no built-ins or MCP servers, no active workflow graph, and no unknown capability fields. The guard accepts only exact inert provider defaults; nonempty parameter bindings, omissions, constraints, and tool behavior remain fail-closed. No credential or signed URL was read or printed.
 
-This ledger covers every pull request from the start of the documented long-horizon run through its final milestone reconciliation. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
+## Product-baseline PR ledger
+
+This ledger covers every pull request from the start of the documented long-horizon run through the latest merged product baseline, [#63](https://github.com/micro-JAY/harmony_hash/pull/63). The docs-only projection PR is recorded in the dated log rather than assigning itself a merged status. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
 
 | PR | Status | Contribution |
 |---|---|---|
@@ -109,6 +112,14 @@ This ledger covers every pull request from the start of the documented long-hori
 | [#53](https://github.com/micro-JAY/harmony_hash/pull/53) | **Done** | Intent-preloaded, on-demand ElevenLabs voice runtime. |
 | [#54](https://github.com/micro-JAY/harmony_hash/pull/54) | **Done** | Lazy Voice Runtime milestone reconciliation. |
 | [#55](https://github.com/micro-JAY/harmony_hash/pull/55) | **Done** | Accessible Hanz chord focus distinct from playback. |
+| [#56](https://github.com/micro-JAY/harmony_hash/pull/56) | **Done** | Hanz chord-focus milestone reconciliation. |
+| [#57](https://github.com/micro-JAY/harmony_hash/pull/57) | **Done** | Truthful Hanz playback outcomes and generation-safe audio start. |
+| [#58](https://github.com/micro-JAY/harmony_hash/pull/58) | **Done** | Disabled ElevenLabs built-in placeholder classification. |
+| [#59](https://github.com/micro-JAY/harmony_hash/pull/59) | **Done** | Inert provider workflow-scaffolding classification. |
+| [#60](https://github.com/micro-JAY/harmony_hash/pull/60) | **Done** | Current provider schema defaults plus fail-closed capability hardening. |
+| [#61](https://github.com/micro-JAY/harmony_hash/pull/61) | **Done** | Safe compatibility with the deprecated legacy tool mirror. |
+| [#62](https://github.com/micro-JAY/harmony_hash/pull/62) | **Done** | Toolbox schema annotation normalization. |
+| [#63](https://github.com/micro-JAY/harmony_hash/pull/63) | **Done** | Inert nested parameter-metadata normalization. |
 
 ## Quality and safety outcomes
 
@@ -131,7 +142,7 @@ This ledger covers every pull request from the start of the documented long-hori
 | Gate every CI run on `npm run lint`? | **Open — approval required.** Local lint is green and was run for every recent feature, but `.github/workflows/ci.yml` still gates only build/test and Playwright. The run contract classifies a CI behavior change as an operator decision, so this was not changed silently. |
 | Lazy-load the ElevenLabs voice runtime? | **Resolved.** PR [#53](https://github.com/micro-JAY/harmony_hash/pull/53) moved the provider, panel, and SDK behind intent preload while preserving provider state, focus behavior, failure containment, and signed-URL handling. |
 | Distinguish agent highlight from playback highlight? | **Resolved.** PR [#55](https://github.com/micro-JAY/harmony_hash/pull/55) gives Hanz focus an academy-blue tokenized accent plus an `AudioLines` marker and status text, preserves gold playback emphasis when both states overlap, and clears stale focus across popup, workspace, session, provider, and timeline teardown paths. |
-| Distinguish `play_progression` started vs already playing? | **Deferred.** Current behavior is correct; richer tool feedback is a voice-copy improvement, not a blocker. |
+| Distinguish `play_progression` started vs already playing? | **Resolved.** PR [#57](https://github.com/micro-JAY/harmony_hash/pull/57) returns `started`, `already_playing`, `requires_piano`, `empty`, `cancelled`, or `unavailable`; the UI also exposes the bounded audio-start phase truthfully. |
 | Add a `provision:voice` npm script? | **Deferred.** The documented command remains functional; this is developer experience only. |
 | Replace minimum-distance voice leading with Hungarian one-to-one assignment? | **Resolved — retain minimum distance.** No counterexample emerged through the complete voicing and progression suite; the current deterministic metric is covered and changing it without a failing musical case would add complexity without proven benefit. |
 | Tighten the cross-platform screenshot tolerance? | **Resolved — retain current tolerance.** Semantic and MIDI assertions are the strong contracts; the shared macOS/Linux visual tolerance held across the full roadmap without masking a confirmed regression. Reopen only with a concrete false negative. |

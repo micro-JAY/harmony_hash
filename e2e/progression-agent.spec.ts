@@ -285,6 +285,37 @@ test.describe("OpenAI progression builder", () => {
     await expect(page.getByText("API ready", { exact: true })).toBeVisible();
   });
 
+  test("cancels a delayed agent response when the user edits the composer draft", async ({
+    page,
+  }) => {
+    await mockHealthyProgressionService(page);
+    const delayed = await mockDelayedProgression(page);
+
+    await openProgressionAgent(page);
+    await page
+      .getByRole("textbox", { name: "Describe the progression you want" })
+      .fill("delayed agent response");
+    const agentRun = page.getByRole("button", { name: "Run progression agent" });
+    await agentRun.click();
+    await delayed.requestStarted;
+
+    await page.getByRole("button", { name: "Browse chords ↓" }).click();
+    await page.getByRole("button", { name: "Cmaj7", exact: true }).click();
+    await expect(agentRun).toBeEnabled();
+
+    delayed.releaseResponse();
+    await delayed.responseHandled;
+    await settlePaint(page);
+
+    await expect(page.getByTestId("chord-card")).toHaveCount(0);
+    await expect(
+      page
+        .getByRole("list", { name: "Chord progression composer" })
+        .getByRole("listitem"),
+    ).toHaveText(["Cmaj7×"]);
+    await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);
+  });
+
   test("does not let a superseded agent response overwrite a newer preset", async ({
     page,
   }) => {

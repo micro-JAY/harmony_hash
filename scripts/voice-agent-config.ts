@@ -520,9 +520,29 @@ function workflowCounts(value: unknown, path: string): {
       `${path}.prevent_subagent_loops`,
     );
   }
+  const configuredNodeCount = (nodesValue: unknown): number => {
+    if (nodesValue === undefined || nodesValue === null) return 0;
+    const nodes = recordAt(nodesValue, `${path}.nodes`);
+    return Object.entries(nodes).filter(([id, value]) => {
+      if (id !== "start_node") return true;
+      const node = recordAt(value, `${path}.nodes.start_node`);
+      if (node.type !== "start") return true;
+      if (!Array.isArray(node.edge_order) || node.edge_order.length > 0) return true;
+      if (Object.keys(node).some((key) =>
+        key !== "type" && key !== "edge_order" && key !== "position"
+      )) return true;
+      if (node.position === undefined || node.position === null) return false;
+      const position = recordAt(node.position, `${path}.nodes.start_node.position`);
+      return Object.entries(position).some(([key, coordinate]) =>
+        (key !== "x" && key !== "y") ||
+        typeof coordinate !== "number" ||
+        !Number.isFinite(coordinate)
+      );
+    }).length;
+  };
   const nodes = workflow.nodes === undefined || workflow.nodes === null
     ? 0
-    : Object.keys(recordAt(workflow.nodes, `${path}.nodes`)).length;
+    : configuredNodeCount(workflow.nodes);
   const edges = workflow.edges === undefined || workflow.edges === null
     ? 0
     : Object.keys(recordAt(workflow.edges, `${path}.edges`)).length;

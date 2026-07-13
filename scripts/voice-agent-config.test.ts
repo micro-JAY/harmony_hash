@@ -428,6 +428,35 @@ describe("voice agent verification", () => {
     expect(parsed.builtInToolNames).toEqual(["transfer_to_number"]);
   });
 
+  it("ignores only the inert provider start node in a workflow", () => {
+    const inert = readAgentConfiguration(livePayload({}, {
+      workflow: {
+        nodes: {
+          start_node: {
+            type: "start",
+            edge_order: [],
+            position: { x: 0, y: 0 },
+          },
+        },
+        edges: {},
+      },
+    }));
+    expect(inert.workflowNodeCount).toBe(0);
+    expect(inert.workflowEdgeCount).toBe(0);
+
+    const configured = [
+      { type: "start", edge_order: ["next"], position: { x: 0, y: 0 } },
+      { type: "start", edge_order: [], position: { x: 0, y: 0 }, tools: [] },
+      { type: "override_agent", edge_order: [], position: { x: 0, y: 0 } },
+    ];
+    configured.forEach((startNode) => {
+      const parsed = readAgentConfiguration(livePayload({}, {
+        workflow: { nodes: { start_node: startNode }, edges: {} },
+      }));
+      expect(parsed.workflowNodeCount).toBe(1);
+    });
+  });
+
   it("rejects an altered legacy client mirror when the provider returns it", () => {
     const parsed = readAgentConfiguration(livePayload({
       tools: TOOL_SCHEMAS.map((_, index) =>

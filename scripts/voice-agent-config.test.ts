@@ -586,7 +586,7 @@ describe("voice agent verification", () => {
     });
   });
 
-  it("rejects an altered legacy client mirror when the provider returns it", () => {
+  it("treats the legacy client mirror as inventory, not tool authority", () => {
     const parsed = readAgentConfiguration(livePayload({
       tools: TOOL_SCHEMAS.map((_, index) =>
         index === 3
@@ -596,7 +596,14 @@ describe("voice agent verification", () => {
     }));
     expect(() =>
       assertLiveAgentConfiguration(parsed, "agent_test", linkedTools()),
-    ).toThrow("legacy client tools contract for replace_progression");
+    ).not.toThrow();
+
+    const incomplete = readAgentConfiguration(livePayload({
+      tools: TOOL_SCHEMAS.slice(1).map((_, index) => sourceToolConfig(index + 1)),
+    }));
+    expect(() =>
+      assertLiveAgentConfiguration(incomplete, "agent_test", linkedTools()),
+    ).toThrow("legacy client tools count does not match source");
   });
 
   it("blocks ambiguous preserved capabilities before any narrow update", () => {

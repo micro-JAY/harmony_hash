@@ -129,10 +129,13 @@ test.describe("375px Hasher layout", () => {
     await page.getByRole("button", { name: HELP_LABEL }).click();
     const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
     await expect(dialog).toBeVisible();
-    const dialogBox = await dialog.boundingBox();
-    expect(dialogBox).not.toBeNull();
-    expect(dialogBox!.x).toBeGreaterThanOrEqual(0);
-    expect(dialogBox!.x + dialogBox!.width).toBeLessThanOrEqual(375);
+    await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
+    const dialogBox = await dialog.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      return { x: bounds.x, width: bounds.width };
+    });
+    expect(dialogBox.x).toBeGreaterThanOrEqual(0);
+    expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(375);
 
     await page.getByRole("button", { name: "Progressions" }).click();
     await expectStacked(prompt, agentRun);

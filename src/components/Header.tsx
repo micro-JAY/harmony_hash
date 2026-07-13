@@ -38,7 +38,7 @@ export default function Header({
       <nav
         aria-label="Workspace"
         data-reduced-motion={reduceMotion ? "true" : "false"}
-        className="order-3 flex w-full justify-center rounded-full p-1 lg:order-none lg:w-auto"
+        className="order-3 flex w-full justify-center gap-1 rounded-full p-1 lg:order-none lg:w-auto"
         style={{ backgroundColor: "var(--surface-overlay)" }}
       >
         {(["builder", "fretboard", "circle", "scales", "network"] as const).map((item) => {
@@ -49,8 +49,9 @@ export default function Header({
               type="button"
               onClick={() => onWorkspaceChange(item)}
               aria-pressed={active}
-              className="min-w-16 rounded-full px-2 py-1.5 text-sm transition-all sm:min-w-20 sm:px-3 lg:min-w-24 lg:px-4"
+              className="min-w-0 flex-1 rounded-full px-1.5 text-xs transition-all sm:min-w-20 sm:flex-none sm:px-3 sm:text-sm lg:min-w-24 lg:px-4"
               style={{
+                minHeight: "var(--control-min-height)",
                 backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
                 color: active ? "var(--interactive-accent-text)" : "var(--text-muted)",
                 border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",

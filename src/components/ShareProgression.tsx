@@ -148,7 +148,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
         onClick={open ? handleClose : handleOpen}
         aria-expanded={open}
         aria-controls={PANEL_ID}
-        className="flex items-center justify-center gap-2 rounded-lg px-5 py-2 text-sm transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--interactive-focus-ring)]"
+        className="hh-action w-full transition-all sm:w-auto"
         style={{
           backgroundColor: open
             ? "var(--interactive-academy-bg-hover)"
@@ -170,7 +170,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
           role="dialog"
           aria-modal="false"
           aria-labelledby={TITLE_ID}
-          className="absolute right-0 top-full z-40 mt-2 flex flex-col gap-4 rounded-xl text-left"
+          className="hh-panel absolute right-0 top-full z-40 mt-2 flex flex-col gap-4 text-left"
           style={{
             width: "min(30rem, calc(100vw - (2 * var(--space-4))))",
             maxHeight: "calc(100dvh - 8rem)",

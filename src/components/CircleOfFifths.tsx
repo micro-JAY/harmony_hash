@@ -1,5 +1,6 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 import { ArrowRight } from "lucide-react";
+import { WorkspaceHeader } from "./WorkspaceChrome";
 import { useReducedMotion } from "framer-motion";
 import {
   adjacentCircleKeys,
@@ -96,17 +97,16 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 md:py-10" data-testid="circle-of-fifths">
-      <header className="mb-7 max-w-3xl">
-        <h1 style={{ fontSize: "var(--text-2xl)" }}>Circle of Fifths</h1>
-        <p className="mt-2" style={{ color: "var(--text-secondary)", fontSize: "var(--text-md)" }}>
-          Move by fifths to compare keys, relatives, and nearby modulation paths.
-        </p>
-      </header>
+    <section className="hh-workspace" data-testid="circle-of-fifths" aria-labelledby="circle-title">
+      <div className="hh-workspace__inner">
+      <WorkspaceHeader
+        titleId="circle-title"
+        title="Circle of Fifths"
+        description="Move by fifths to compare keys, relatives, and nearby modulation paths."
+      />
 
       <div
-        className="grid overflow-hidden rounded-2xl lg:grid-cols-[minmax(0,1.65fr)_minmax(19rem,0.85fr)]"
-        style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-default)" }}
+        className="hh-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.65fr)_minmax(19rem,0.85fr)]"
       >
         <div className="min-w-0 p-3 sm:p-6 lg:p-8">
           <svg
@@ -235,7 +235,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
           aria-label={`${selectedKey.major} details`}
         >
           <div>
-            <h2 style={{ fontSize: "var(--text-2xl)" }}>{selectedKey.major}</h2>
+            <h2 className="hh-panel-title">{selectedKey.major}</h2>
             <p className="mt-2 readout" style={{ color: "var(--text-accent)", fontSize: "var(--text-xl)" }}>
               {selectedKey.relativeMinor}
             </p>
@@ -285,7 +285,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
           <button
             type="button"
             onClick={() => onUseKey(selectedKey)}
-            className="mt-8 rounded-lg px-5 py-3 font-medium transition-colors"
+            className="hh-action mt-8 transition-colors"
             style={{
               backgroundColor: "var(--interactive-accent-bg)",
               border: "1px solid var(--interactive-accent-border)",
@@ -299,6 +299,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
             Use arrow keys to move around the circle.
           </p>
         </aside>
+      </div>
       </div>
     </section>
   );

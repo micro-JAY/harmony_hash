@@ -197,10 +197,8 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
         aria-expanded={expanded}
         aria-controls="improv-insight-panel"
         onClick={() => setExpanded((current) => !current)}
-        className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-left"
+      className="hh-disclosure flex w-full items-center justify-between px-4 py-3 text-left"
         style={{
-          backgroundColor: "var(--surface-overlay)",
-          border: "1px solid var(--border-subtle)",
           color: "var(--text-primary)",
           fontFamily: "var(--font-body)",
           fontSize: "var(--text-base)",
@@ -221,18 +219,15 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
 
       {expanded ? <div
         id="improv-insight-panel"
-        className="overflow-hidden rounded-2xl"
+        className="hh-panel overflow-hidden"
         style={{
           marginTop: "var(--space-3)",
-          background: "linear-gradient(135deg, var(--surface-raised), var(--surface-overlay))",
-          border: "1px solid var(--border-default)",
-          boxShadow: "var(--shadow-md)",
         }}
       >
         <header className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <span className="label-caps" style={{ color: "var(--text-academy)" }}>Play over this</span>
-            <h2 id="improv-insight-title" className="mt-1" style={{ fontSize: "var(--text-xl)" }}>
+            <h2 id="improv-insight-title" className="hh-panel-title mt-1">
               Improv Insight
             </h2>
             <p className="mt-2 max-w-2xl" style={{ color: "var(--text-secondary)" }}>

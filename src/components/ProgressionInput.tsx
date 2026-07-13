@@ -189,29 +189,28 @@ export default function ProgressionInput({
   }
 
   return (
-    <section className="w-full max-w-6xl mx-auto px-4">
+    <section className="hh-builder w-full max-w-6xl mx-auto px-4">
       {/* Tab Switcher */}
-      <div className="flex gap-1 mb-4">
+      <div className="hh-builder-tabs" role="group" aria-label="Hasher input mode">
         {(["free", "preset"] as const).map((tab) => (
           <button
             key={tab}
+            type="button"
+            aria-pressed={activeTab === tab}
             onClick={() => {
               setActiveTab(tab);
             }}
-            className="px-4 py-2 rounded-lg text-sm transition-all"
-            style={{
-              fontWeight: activeTab === tab ? "var(--weight-semibold)" : "var(--weight-regular)",
-              backgroundColor: activeTab === tab ? "var(--surface-overlay)" : "transparent",
-              color: activeTab === tab ? "var(--text-primary)" : "var(--text-muted)",
-              border: activeTab === tab ? "1px solid var(--border-subtle)" : "1px solid transparent",
-              transitionDuration: "var(--duration-normal)",
-            }}
+            className="hh-builder-tabs__tab"
           >
             {tab === "free" ? t("freeInput") : t("progressions")}
           </button>
         ))}
       </div>
 
+      <div
+        id={`hasher-${activeTab}-panel`}
+        className="hh-panel hh-builder-primary"
+      >
       <ProgressionAgent
         onResult={onResult}
         timelineVersion={timelineVersion}
@@ -228,7 +227,7 @@ export default function ProgressionInput({
       {/* Dictionary-backed composer. Click is the primary keyboard/mobile path;
           drag and drop is an additive pointer shortcut. */}
       {activeTab === "free" && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-3 sm:flex-row">
             <div
               role="list"
@@ -236,13 +235,7 @@ export default function ProgressionInput({
               data-testid="chord-composer"
               onDragOver={(event) => event.preventDefault()}
               onDrop={handleComposerDrop}
-              className="w-full min-w-0 flex-1 flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg"
-              style={{
-                backgroundColor: "var(--surface-overlay)",
-                color: "var(--text-primary)",
-                border: "1px solid var(--border-subtle)",
-                minHeight: "3rem",
-              }}
+              className="hh-composer w-full min-w-0 flex-1 flex flex-wrap items-center gap-2"
             >
               {composedChords.length === 0 ? (
                 <span style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
@@ -295,7 +288,7 @@ export default function ProgressionInput({
               onClick={handleComposerSubmit}
               aria-label="Run chord composer"
               disabled={composedChords.length === 0}
-              className="w-full px-6 py-3 rounded-lg font-semibold transition-all sm:w-auto"
+              className="hh-action w-full transition-all sm:w-auto"
               style={{
                 backgroundColor: composedChords.length > 0 ? "var(--interactive-accent-bg)" : "var(--interactive-disabled-bg)",
                 color: composedChords.length > 0 ? "var(--interactive-accent-text)" : "var(--interactive-disabled-text)",
@@ -331,28 +324,21 @@ export default function ProgressionInput({
           ) : null}
 
           <div
-            className="flex flex-wrap items-center gap-x-4 gap-y-2"
+            className="hh-harmony-context flex flex-wrap items-end gap-x-4 gap-y-3"
             role="group"
             aria-label="Free Input harmony context"
           >
             <label
               htmlFor="free-input-key"
-              className="flex items-center gap-2 text-sm"
-              style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
+              className="hh-control-group min-w-28"
             >
-              Key
+              <span className="hh-control-label">Key</span>
               <select
                 id="free-input-key"
                 aria-label="Free Input key"
                 value={freeKey}
                 onChange={(event) => setFreeKey(event.target.value)}
-                className="px-3 py-2 rounded-lg text-sm"
-                style={{
-                  backgroundColor: "var(--surface-overlay)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border-subtle)",
-                  fontFamily: "var(--font-mono)",
-                }}
+                className="hh-select w-full"
               >
                 {ALL_KEYS.map((key) => (
                   <option key={key.value} value={key.value}>
@@ -364,21 +350,15 @@ export default function ProgressionInput({
 
             <label
               htmlFor="free-input-mode"
-              className="flex items-center gap-2 text-sm"
-              style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
+              className="hh-control-group min-w-40"
             >
-              Mode
+              <span className="hh-control-label">Mode</span>
               <select
                 id="free-input-mode"
                 aria-label="Free Input mode"
                 value={freeScaleType}
                 onChange={(event) => setFreeScaleType(event.target.value as ScaleType)}
-                className="px-3 py-2 rounded-lg text-sm"
-                style={{
-                  backgroundColor: "var(--surface-overlay)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border-subtle)",
-                }}
+                className="hh-select w-full"
               >
                 {FREE_MODE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -394,6 +374,7 @@ export default function ProgressionInput({
           </div>
         </div>
       )}
+      </div>
 
       {/* Chord Reference Grid — stays available while extending a result. */}
       {activeTab === "free" && (
@@ -412,18 +393,13 @@ export default function ProgressionInput({
           className="flex flex-col gap-4"
         >
           <details
-            className="rounded-lg"
-            style={{
-              border: "1px solid var(--border-subtle)",
-              backgroundColor: "var(--surface-overlay)",
-            }}
+            className="hh-disclosure"
           >
             <summary
-              className="px-4 py-3 cursor-pointer select-none text-sm flex items-center gap-2"
+              className="cursor-pointer select-none flex items-center gap-2"
               style={{
                 color: "var(--text-secondary)",
                 fontWeight: "var(--weight-medium)",
-                listStyle: "none",
               }}
             >
               <span
@@ -448,57 +424,39 @@ export default function ProgressionInput({
               }}
             >
           {/* Key + Tonality Selectors */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <label
-                className="text-sm"
-                style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
-              >
-                {t("key")}
+          <div className="flex items-end gap-4 flex-wrap">
+              <label className="hh-control-group min-w-28">
+                <span className="hh-control-label">{t("key")}</span>
+                <select
+                  aria-label="Progression key"
+                  value={selectedKey}
+                  onChange={(e) => handleKeyChange(e.target.value)}
+                  className="hh-select w-full"
+                >
+                  {ALL_KEYS.map((k) => (
+                    <option key={k.value} value={k.value}>
+                      {k.label}
+                    </option>
+                  ))}
+                </select>
               </label>
-              <select
-                aria-label="Progression key"
-                value={selectedKey}
-                onChange={(e) => handleKeyChange(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm outline-none"
-                style={{
-                  backgroundColor: "var(--surface-overlay)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border-subtle)",
-                }}
-              >
-                {ALL_KEYS.map((k) => (
-                  <option key={k.value} value={k.value}>
-                    {k.label}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-            <div className="flex items-center gap-3">
-              <label
-                className="text-sm"
-                style={{ color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" }}
-              >
-                {t("tonality")}
+            <div className="flex items-end gap-2">
+              <label className="hh-control-group min-w-40">
+                <span className="hh-control-label">{t("tonality")}</span>
+                <select
+                  aria-label="Progression tonality"
+                  value={activeTonality}
+                  onChange={(e) => handleTonalityChange(e.target.value as TonalityId)}
+                  className="hh-select w-full"
+                >
+                  {PROGRESSION_LIBRARY.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
               </label>
-              <select
-                aria-label="Progression tonality"
-                value={activeTonality}
-                onChange={(e) => handleTonalityChange(e.target.value as TonalityId)}
-                className="px-3 py-2 rounded-lg text-sm outline-none"
-                style={{
-                  backgroundColor: "var(--surface-overlay)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border-subtle)",
-                }}
-              >
-                {PROGRESSION_LIBRARY.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.label}
-                  </option>
-                ))}
-              </select>
               {activeTonality === "minor" && (
                 <button
                   className="minor-help-btn"
@@ -506,12 +464,12 @@ export default function ProgressionInput({
                   aria-label="What is the Minor Blend?"
                   title="What is the Minor Blend?"
                   style={{
-                    width: "22px",
-                    height: "22px",
+                    width: "var(--control-min-height)",
+                    height: "var(--control-min-height)",
                     backgroundColor: "var(--surface-overlay)",
                     color: "var(--text-muted)",
                     border: "1px solid var(--border-subtle)",
-                    borderRadius: "50%",
+                    borderRadius: "var(--radius-full)",
                     fontSize: "var(--text-xs)",
                     fontWeight: "var(--weight-semibold)",
                     cursor: "help",

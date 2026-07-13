@@ -251,6 +251,13 @@
   --space-20: 5rem;      /* 80px */
   --space-24: 6rem;      /* 96px */
 
+  /* Harmony Hash keeps every primary touch control at the accessible 44px floor. */
+  --control-min-height: 2.75rem;
+
+  /* Shared workspace measures keep every tool aligned to the same content rail. */
+  --layout-content-max: 80rem;
+  --layout-copy-max: 48rem;
+
 
   /* ----------------------------------------------------------
      BORDER RADIUS

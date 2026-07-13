@@ -16,7 +16,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     freeInputHint: "Cmaj7 Dm7 G7 C ...",
     progressions: "Progressions",
     orPickPreset: "Or pick a preset",
-    agentPromptPlaceholder: "Describe the mood, style, or feel — e.g. “melancholic with a jazz feel in minor”",
+    agentPromptPlaceholder: "Describe a progression…",
     emptyStateHint: "Build with the chord grid, describe a progression, or pick a preset to get started.",
   },
   ja: {
@@ -34,7 +34,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     freeInputHint: "Cmaj7 Dm7 G7 C ...",
     progressions: "コード進行",
     orPickPreset: "またはプリセットから選ぶ",
-    agentPromptPlaceholder: "雰囲気・スタイル・感じを入力してください — 例:「ジャズ感のある切ないマイナー」",
+    agentPromptPlaceholder: "コード進行を説明してください…",
     emptyStateHint: "コードグリッドで組み立てるか、進行を説明するか、プリセットを選んで始めましょう。",
   },
 };

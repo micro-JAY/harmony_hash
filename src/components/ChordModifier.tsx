@@ -71,7 +71,7 @@ export default function ChordModifier({
         aria-controls={panelId}
         aria-label={`Modify ${displayName}`}
         onClick={handleTrigger}
-        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all"
+        className="flex min-h-9 items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all"
         style={{
           alignSelf: "flex-start",
           backgroundColor: isOpen
@@ -101,10 +101,9 @@ export default function ChordModifier({
               closeAndRestoreFocus();
             }
           }}
-          className="mt-2 flex w-full min-w-0 flex-col gap-3 rounded-lg p-3"
+          className="hh-panel mt-2 flex w-full min-w-0 flex-col gap-3 p-3"
           style={{
             backgroundColor: "var(--surface-overlay)",
-            border: "1px solid var(--border-subtle)",
           }}
         >
           <div className="flex items-center justify-between gap-3">

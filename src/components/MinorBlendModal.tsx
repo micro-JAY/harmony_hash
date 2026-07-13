@@ -1,16 +1,27 @@
-import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useLocale } from "../i18n/I18nContext";
 
 interface MinorBlendModalProps {
   onClose: () => void;
 }
 
+const MINOR_BLEND_TITLE_ID = "minor-blend-title";
+const FOCUSABLE_SELECTOR = [
+  "button:not([disabled])",
+  "a[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
 function EnContent() {
   return (
     <>
-      <header style={{ marginBottom: "var(--space-4)", paddingRight: "var(--space-8)" }}>
+      <header style={{ marginBottom: "var(--space-4)", paddingRight: "calc(var(--control-min-height) + var(--space-3))" }}>
         <h1
+          id={MINOR_BLEND_TITLE_ID}
           style={{
             color: "var(--text-accent)",
             fontSize: "var(--text-xl)",
@@ -222,8 +233,9 @@ function EnContent() {
 function JaContent() {
   return (
     <>
-      <header style={{ marginBottom: "var(--space-4)", paddingRight: "var(--space-8)" }}>
+      <header style={{ marginBottom: "var(--space-4)", paddingRight: "calc(var(--control-min-height) + var(--space-3))" }}>
         <h1
+          id={MINOR_BLEND_TITLE_ID}
           style={{
             color: "var(--text-accent)",
             fontSize: "var(--text-xl)",
@@ -420,17 +432,59 @@ function JaContent() {
 
 export default function MinorBlendModal({ onClose }: MinorBlendModalProps) {
   const { locale } = useLocale();
+  const reduceMotion = useReducedMotion();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
 
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const focusFrame = requestAnimationFrame(() => {
+      const firstFocusable = dialog?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+      (firstFocusable ?? dialog)?.focus();
+    });
+
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        onClose();
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== "Tab" || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", handleKeyDown);
+      requestAnimationFrame(() => {
+        if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      });
+    };
+  }, []);
 
   return (
     <div
@@ -439,8 +493,8 @@ export default function MinorBlendModal({ onClose }: MinorBlendModalProps) {
         position: "fixed",
         inset: 0,
         zIndex: 1000,
-        backgroundColor: "rgba(0,0,0,0.75)",
-        backdropFilter: "blur(4px)",
+        backgroundColor: "color-mix(in srgb, var(--surface-base) 82%, transparent)",
+        backdropFilter: "blur(var(--space-1))",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -448,13 +502,18 @@ export default function MinorBlendModal({ onClose }: MinorBlendModalProps) {
       }}
     >
       <motion.div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={MINOR_BLEND_TITLE_ID}
+        tabIndex={-1}
+        data-reduced-motion={reduceMotion ? "true" : "false"}
+        className="hh-panel"
         onClick={(event) => event.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.97 }}
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.97 }}
-        transition={{ duration: 0.18 }}
+        exit={reduceMotion ? undefined : { opacity: 0, scale: 0.97 }}
+        transition={{ duration: reduceMotion ? 0 : 0.18 }}
         style={{
           position: "relative",
           maxWidth: "640px",
@@ -464,7 +523,8 @@ export default function MinorBlendModal({ onClose }: MinorBlendModalProps) {
           backgroundColor: "var(--surface-raised)",
           border: "1px solid var(--border-subtle)",
           borderRadius: "var(--radius-xl)",
-          padding: "var(--space-8)",
+          padding: "clamp(var(--space-5), 5vw, var(--space-8))",
+          boxShadow: "var(--shadow-lg)",
         }}
       >
         <button
@@ -475,8 +535,8 @@ export default function MinorBlendModal({ onClose }: MinorBlendModalProps) {
             position: "absolute",
             top: "var(--space-4)",
             right: "var(--space-4)",
-            width: "28px",
-            height: "28px",
+            width: "var(--control-min-height)",
+            height: "var(--control-min-height)",
             borderRadius: "var(--radius-sm)",
             border: "1px solid var(--border-subtle)",
             backgroundColor: "var(--surface-overlay)",

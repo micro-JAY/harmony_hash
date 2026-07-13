@@ -71,7 +71,9 @@ test("compact action toolbar keeps cards adjacent and opens Hanz from prompt hel
   await page.getByRole("button", { name: HELP_LABEL }).click();
   const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
   await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveClass(/hh-panel/);
   await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
+  await expect(page).toHaveScreenshot("builder-desktop-expanded-companion.png", { fullPage: true });
 
   await page.getByRole("button", { name: "Progressions" }).click();
   await expect(dialog).toBeVisible();
@@ -120,6 +122,7 @@ test.describe("375px Hasher layout", () => {
     const composerRun = page.getByRole("button", { name: "Run chord composer" });
     await expectStacked(composer, composerRun);
     await expectNoDocumentOverflow(page);
+    await expect(page).toHaveScreenshot("builder-mobile-free.png", { fullPage: true });
 
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
     await prompt.fill("help me get unstuck");
@@ -138,6 +141,7 @@ test.describe("375px Hasher layout", () => {
     await expectNoDocumentOverflow(page);
     await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
     await expect(dialog).toHaveCount(0);
+    await expect(page).toHaveScreenshot("builder-mobile-progressions.png", { fullPage: true });
   });
 
   test("contains rendered guitar and piano cards without page overflow", async ({

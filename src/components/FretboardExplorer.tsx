@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
 import { Guitar, Music2 } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
@@ -26,6 +25,11 @@ import HorizontalFretboard, {
   type FretboardLabelMode,
 } from "./HorizontalFretboard";
 import { fretboardIntervalColor, fretboardIntervalName } from "./fretboardVisuals";
+import {
+  WorkspaceHeader,
+  WorkspaceSegmentedControl,
+  WorkspaceSelectControl,
+} from "./WorkspaceChrome";
 
 const MODE_OPTIONS: ReadonlyArray<{ value: ScaleFormulaType; label: string }> = [
   { value: "major", label: "Major" },
@@ -45,121 +49,6 @@ const DEFAULT_TUNINGS: Readonly<Record<FretboardInstrument, FretboardTuningId>> 
   guitar: "guitar-standard",
   bass: "bass-standard",
 });
-
-interface SegmentOption<T extends string> {
-  value: T;
-  label: string;
-}
-
-interface SegmentedControlProps<T extends string> {
-  label: string;
-  value: T;
-  options: ReadonlyArray<SegmentOption<T>>;
-  onChange: (value: T) => void;
-  reducedMotion: boolean;
-}
-
-function SegmentedControl<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-  reducedMotion,
-}: SegmentedControlProps<T>) {
-  return (
-    <div>
-      <span
-        className="mb-2 block"
-        style={{
-          color: "var(--text-secondary)",
-          fontSize: "var(--text-xs)",
-          fontWeight: "var(--weight-semibold)",
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </span>
-      <div
-        role="group"
-        aria-label={label}
-        className="inline-flex rounded-full p-1"
-        style={{ backgroundColor: "var(--surface-overlay)" }}
-      >
-        {options.map((option) => {
-          const active = option.value === value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onChange(option.value)}
-              aria-pressed={active}
-              className="flex min-h-9 items-center gap-2 rounded-full px-4 text-sm"
-              style={{
-                backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
-                color: active ? "var(--interactive-accent-text)" : "var(--text-secondary)",
-                border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
-                fontFamily: "var(--font-body)",
-                fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
-                transitionDuration: reducedMotion ? "0ms" : "var(--duration-normal)",
-              }}
-            >
-              {option.value === "guitar" && <Guitar size={14} aria-hidden="true" />}
-              {option.value === "bass" && <Music2 size={14} aria-hidden="true" />}
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function SelectControl<T extends string>({
-  id,
-  label,
-  value,
-  onChange,
-  children,
-}: {
-  id: string;
-  label: string;
-  value: T;
-  onChange: (value: T) => void;
-  children: ReactNode;
-}) {
-  return (
-    <label htmlFor={id} className="block w-40 min-w-0">
-      <span
-        className="mb-2 block"
-        style={{
-          color: "var(--text-secondary)",
-          fontSize: "var(--text-xs)",
-          fontWeight: "var(--weight-semibold)",
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </span>
-      <select
-        id={id}
-        aria-label={`Fretboard ${label.toLowerCase()}`}
-        value={value}
-        onChange={(event) => onChange(event.currentTarget.value as T)}
-        className="w-full rounded-lg px-3 py-2 text-sm"
-        style={{
-          backgroundColor: "var(--surface-overlay)",
-          color: "var(--text-primary)",
-          border: "1px solid var(--border-default)",
-          fontFamily: "var(--font-mono)",
-        }}
-      >
-        {children}
-      </select>
-    </label>
-  );
-}
 
 export default function FretboardExplorer() {
   const reduceMotion = useReducedMotion();
@@ -217,67 +106,52 @@ export default function FretboardExplorer() {
 
   return (
     <section
-      className="flex-1 px-4 py-6 md:py-10"
+      className="hh-workspace"
       data-testid="fretboard-workspace"
       data-reduced-motion={reduceMotion ? "true" : "false"}
       aria-labelledby="fretboard-title"
     >
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1
-              id="fretboard-title"
-              style={{
-                color: "var(--text-primary)",
-                fontFamily: "var(--font-display)",
-                fontSize: "var(--text-3xl)",
-                fontWeight: "var(--weight-bold)",
-                letterSpacing: "var(--tracking-tight)",
-                lineHeight: "var(--leading-tight)",
-              }}
+      <div className="hh-workspace__inner">
+        <WorkspaceHeader
+          titleId="fretboard-title"
+          title="Fretboard Explorer"
+          description="See a scale across the whole instrument. Roots stay gold; interval roles keep the same color wherever they repeat."
+          trailing={(
+            <div
+              className="readout rounded-full px-3 py-1.5"
+              style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-subtle)" }}
             >
-              Fretboard Explorer
-            </h1>
-            <p
-              className="mt-2 max-w-3xl"
-              style={{ color: "var(--text-secondary)", fontSize: "var(--text-md)" }}
-            >
-              See a scale across the whole instrument. Roots stay gold; interval roles keep the same color wherever they repeat.
-            </p>
-          </div>
-          <div
-            className="readout self-start rounded-full px-3 py-1.5 md:self-auto"
-            style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-subtle)" }}
-          >
-            <span data-testid="fretboard-tuning-readout">
-              {tuning.label} · {tuning.pitchSequence} · frets 0–15
-            </span>
-          </div>
-        </header>
+              <span data-testid="fretboard-tuning-readout">
+                {tuning.label} · {tuning.pitchSequence} · frets 0–15
+              </span>
+            </div>
+          )}
+        />
 
         <section
           aria-label="Fretboard controls"
-          className="mb-6 flex flex-wrap items-end gap-x-2 gap-y-4 rounded-xl p-4 md:p-5"
-          style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)" }}
+          className="hh-control-rail"
         >
-          <SegmentedControl
+          <WorkspaceSegmentedControl
             label="Instrument"
             value={instrument}
             onChange={setInstrument}
             reducedMotion={Boolean(reduceMotion)}
             options={[
-              { value: "guitar", label: "Guitar" },
-              { value: "bass", label: "Bass" },
+              { value: "guitar", label: "Guitar", icon: <Guitar size={14} aria-hidden="true" /> },
+              { value: "bass", label: "Bass", icon: <Music2 size={14} aria-hidden="true" /> },
             ]}
           />
-          <SelectControl
+          <WorkspaceSelectControl
             id="fretboard-tuning"
             label="Tuning"
             value={tuningId}
+            className="w-48"
+            ariaLabel="Fretboard tuning"
             onChange={(nextTuningId) => {
               setTuningByInstrument((current) => ({
                 ...current,
-                [instrument]: nextTuningId,
+                [instrument]: nextTuningId as FretboardTuningId,
               }));
             }}
           >
@@ -286,8 +160,8 @@ export default function FretboardExplorer() {
                 {option.label} · {option.pitchSequence}
               </option>
             ))}
-          </SelectControl>
-          <SegmentedControl
+          </WorkspaceSelectControl>
+          <WorkspaceSegmentedControl
             label="Handedness"
             value={handedness}
             onChange={setHandedness}
@@ -297,18 +171,20 @@ export default function FretboardExplorer() {
               { value: "left", label: "Left-handed" },
             ]}
           />
-          <SelectControl id="fretboard-root" label="Root" value={keyName} onChange={setKeyName}>
+          <WorkspaceSelectControl id="fretboard-root" label="Root" value={keyName} onChange={setKeyName} className="w-32" ariaLabel="Fretboard root">
             {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
-          </SelectControl>
-          <SelectControl
+          </WorkspaceSelectControl>
+          <WorkspaceSelectControl
             id="fretboard-mode"
             label="Mode"
             value={scaleType}
-            onChange={setScaleType}
+            onChange={(value) => setScaleType(value as ScaleFormulaType)}
+            className="w-44"
+            ariaLabel="Fretboard mode"
           >
             {MODE_OPTIONS.map((mode) => <option key={mode.value} value={mode.value}>{mode.label}</option>)}
-          </SelectControl>
-          <SegmentedControl
+          </WorkspaceSelectControl>
+          <WorkspaceSegmentedControl
             label="Labels"
             value={labelMode}
             onChange={setLabelMode}
@@ -322,16 +198,12 @@ export default function FretboardExplorer() {
 
         <section
           aria-label="Fretboard learning controls and current map"
-          className="mb-5 grid min-w-0 gap-4 rounded-xl p-4 md:p-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]"
+          className="hh-panel hh-panel--academy mb-5 grid min-w-0 gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]"
           data-testid="fretboard-learning-layer"
-          style={{
-            backgroundColor: "var(--status-academy-bg)",
-            border: "1px solid var(--status-academy-border)",
-          }}
         >
           <div className="flex min-w-0 flex-col gap-3">
             <div className="flex min-w-0 flex-wrap items-end gap-3">
-              <SegmentedControl
+              <WorkspaceSegmentedControl
                 label="Pattern"
                 value={patternFamily}
                 onChange={setPatternFamily}
@@ -343,28 +215,32 @@ export default function FretboardExplorer() {
                 ]}
               />
               {patternFamily === "caged" ? (
-                <SelectControl
+                <WorkspaceSelectControl
                   id="fretboard-caged-form"
                   label="CAGED form"
                   value={cagedForm}
-                  onChange={setCagedForm}
+                  onChange={(value) => setCagedForm(value as CagedFormId)}
+                  className="w-40"
+                  ariaLabel="Fretboard caged form"
                 >
                   {CAGED_FORM_OPTIONS.map((option) => (
                     <option key={option.id} value={option.id}>{option.label}</option>
                   ))}
-                </SelectControl>
+                </WorkspaceSelectControl>
               ) : null}
               {patternFamily === "three-nps" ? (
-                <SelectControl
+                <WorkspaceSelectControl
                   id="fretboard-three-nps-position"
                   label="3NPS position"
                   value={String(threeNpsStartDegree)}
                   onChange={(value) => setThreeNpsStartDegree(Number(value) as ThreeNpsStartDegree)}
+                  className="w-40"
+                  ariaLabel="Fretboard 3nps position"
                 >
                   {THREE_NPS_OPTIONS.map((option) => (
                     <option key={option.id} value={option.id}>{option.label}</option>
                   ))}
-                </SelectControl>
+                </WorkspaceSelectControl>
               ) : null}
               <ChordOverlayPicker
                 selectedLabel={overlay?.displayName}

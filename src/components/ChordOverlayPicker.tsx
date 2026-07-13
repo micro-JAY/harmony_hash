@@ -54,13 +54,13 @@ export default function ChordOverlayPicker({
   };
 
   return (
-    <div className="min-w-0 flex-1" onKeyDown={(event) => {
+    <div className="hh-control-group min-w-36 flex-1" onKeyDown={(event) => {
       if (event.key === "Escape" && open) {
         event.preventDefault();
         closeAndRestoreFocus();
       }
     }}>
-      <span className="mb-2 block label-caps">Chord overlay</span>
+      <span className="hh-control-label">Chord overlay</span>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <button
           ref={triggerRef}
@@ -71,7 +71,7 @@ export default function ChordOverlayPicker({
             setError("");
             setOpen((current) => !current);
           }}
-          className="min-h-10 rounded-lg px-4 text-sm"
+          className="min-h-11 whitespace-nowrap rounded-lg px-4 text-sm"
           style={{
             backgroundColor: selectedLabel ? "var(--interactive-academy-bg)" : "var(--surface-overlay)",
             border: `1px solid ${selectedLabel ? "var(--interactive-academy-border)" : "var(--border-default)"}`,

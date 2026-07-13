@@ -506,7 +506,7 @@ function App() {
                 >
                   <button
                     onClick={randomizeAll}
-                    className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
+                    className="hh-action transition-all"
                     style={{
                       backgroundColor: "var(--interactive-warm-bg)",
                       color: "var(--interactive-warm-text)",
@@ -537,7 +537,7 @@ function App() {
                       }
                       aria-busy={isPlaybackStarting}
                       disabled={isPlaybackStarting}
-                      className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all"
+                      className="hh-action transition-all"
                       style={{
                         backgroundColor: isPlaying
                           ? "var(--interactive-accent-bg)"
@@ -597,7 +597,7 @@ function App() {
           )}
 
           {workspace === "builder" && chords.length === 0 && (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex min-h-28 items-center justify-center px-4">
             <p
               className="text-center max-w-md"
               style={{ color: "var(--text-muted)", fontSize: "var(--text-base)" }}

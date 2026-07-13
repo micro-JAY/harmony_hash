@@ -33,9 +33,14 @@ const PARSED_CAPABILITY_SUBTREES = new Set([
 
 const CAPABILITY_FIELD_NAMES = new Set([
   "tools",
+  "llm",
   "tool_ids",
   "additional_tool_ids",
   "built_in_tools",
+  "custom_llm",
+  "speech_engine",
+  "rag",
+  "knowledge_base",
   "mcp_server_ids",
   "native_mcp_server_ids",
   "workflow",
@@ -44,6 +49,25 @@ const CAPABILITY_FIELD_NAMES = new Set([
   "integrations",
   "transfers",
   "procedures",
+]);
+
+const EMPTY_OBJECT_CAPABILITY_CONTAINERS = new Set([
+  "built_in_tools",
+  "integrations",
+  "transfers",
+  "procedures",
+  "workflow",
+]);
+
+const EMPTY_LIST_CAPABILITY_CONTAINERS = new Set([
+  "tools",
+  "tool_ids",
+  "additional_tool_ids",
+  "knowledge_base",
+  "mcp_server_ids",
+  "native_mcp_server_ids",
+  "action_ids",
+  "integration_ids",
 ]);
 
 const KNOWN_CLIENT_TOOL_CONFIG_FIELDS = new Set([
@@ -561,7 +585,62 @@ function workflowCounts(value: unknown, path: string): {
 }
 
 function unknownPromptCapabilityFields(prompt: Record<string, unknown>): string[] {
-  return Object.keys(prompt).filter((key) => !KNOWN_PROMPT_FIELDS.has(key));
+  const nullableDefaults = new Set([
+    "reasoning_effort",
+    "opener",
+    "thinking_budget",
+    "custom_llm",
+    "speech_engine",
+  ]);
+  const disabledBooleanDefaults = new Set([
+    "enable_reasoning_summary",
+    "enable_parallel_tool_calls",
+    "ignore_default_personality",
+  ]);
+  const ragFields = new Set([
+    "enabled",
+    "embedding_model",
+    "optional_rag_enabled",
+    "max_vector_distance",
+    "max_documents_length",
+    "max_retrieved_rag_chunks_count",
+    "num_candidates",
+    "query_rewrite_prompt_override",
+  ]);
+
+  return Object.entries(prompt).filter(([key, value]) => {
+    if (key === "knowledge_base") {
+      return !Array.isArray(value) || value.length > 0;
+    }
+    if (KNOWN_PROMPT_FIELDS.has(key)) return false;
+    if (nullableDefaults.has(key)) return value !== null;
+    if (disabledBooleanDefaults.has(key)) return value !== false;
+    if (key === "timezone") return typeof value !== "string";
+    if (key === "cascade_timeout_seconds") {
+      return typeof value !== "number" || !Number.isFinite(value);
+    }
+    if (key === "backup_llm_config") {
+      if (!isRecord(value)) return true;
+      return Object.keys(value).some((field) => field !== "preference") ||
+        typeof value.preference !== "string";
+    }
+    if (key === "rag") {
+      if (!isRecord(value)) return true;
+      return value.enabled !== false ||
+        value.optional_rag_enabled !== false ||
+        Object.keys(value).some((field) => !ragFields.has(field));
+    }
+    return true;
+  }).map(([key]) => key);
+}
+
+function isInactiveCapabilityValue(key: string, value: unknown): boolean {
+  if (value === undefined || value === null || value === false) return true;
+  if (EMPTY_LIST_CAPABILITY_CONTAINERS.has(key) && Array.isArray(value)) {
+    return value.length === 0;
+  }
+  return EMPTY_OBJECT_CAPABILITY_CONTAINERS.has(key) &&
+    isRecord(value) && Object.keys(value).length === 0;
 }
 
 function nestedCapabilityFields(value: unknown, path = ""): string[] {
@@ -582,7 +661,7 @@ function nestedCapabilityFields(value: unknown, path = ""): string[] {
       normalized.includes("tool") ||
       normalized.includes("mcp")
     ) {
-      results.push(currentPath);
+      if (!isInactiveCapabilityValue(key, entry)) results.push(currentPath);
       continue;
     }
     results.push(...nestedCapabilityFields(entry, currentPath));

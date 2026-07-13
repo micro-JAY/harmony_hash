@@ -1,4 +1,5 @@
 import { MOODS, moodDefinitionFor, type MoodId } from "../lib/theory";
+import { useT } from "../i18n/I18nContext";
 
 interface MoodFilterProps {
   value: MoodId | null;
@@ -16,6 +17,7 @@ function parseMoodSelection(value: string): MoodId | null {
 }
 
 export default function MoodFilter({ value, onChange }: MoodFilterProps) {
+  const t = useT();
   const activeDefinition = value ? moodDefinitionFor(value) : null;
 
   return (
@@ -32,16 +34,16 @@ export default function MoodFilter({ value, onChange }: MoodFilterProps) {
       }}
     >
       <span id="mood-filter-label" className="label-caps" style={{ color: "var(--text-academy)" }}>
-        Mood lens
+        {t("Mood lens")}
       </span>
       <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-        Optional · rankings only
+        {t("Optional · rankings only")}
       </span>
 
       <label className="ml-auto flex min-w-0 items-center gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-        Feel
+        {t("Feel")}
         <select
-          aria-label="Mood or genre lens"
+          aria-label={t("Mood or genre lens")}
           aria-describedby="mood-filter-description"
           value={value ?? ""}
           onChange={(event) => onChange(parseMoodSelection(event.target.value))}
@@ -53,15 +55,15 @@ export default function MoodFilter({ value, onChange }: MoodFilterProps) {
             fontFamily: "var(--font-body)",
           }}
         >
-          <option value="">Any harmony</option>
-          <optgroup label="Moods">
+          <option value="">{t("Any harmony")}</option>
+          <optgroup label={t("Moods")}>
             {MOOD_OPTIONS.map((definition) => (
-              <option key={definition.id} value={definition.id}>{definition.label}</option>
+              <option key={definition.id} value={definition.id}>{t(definition.label)}</option>
             ))}
           </optgroup>
-          <optgroup label="Genres & styles">
+          <optgroup label={t("Genres & styles")}>
             {GENRE_OPTIONS.map((definition) => (
-              <option key={definition.id} value={definition.id}>{definition.label}</option>
+              <option key={definition.id} value={definition.id}>{t(definition.label)}</option>
             ))}
           </optgroup>
         </select>
@@ -74,8 +76,8 @@ export default function MoodFilter({ value, onChange }: MoodFilterProps) {
         style={{ color: "var(--text-secondary)" }}
       >
         {activeDefinition
-          ? activeDefinition.description
-          : "Use the original key, next-chord, and compatible-scale scores."}
+          ? t(activeDefinition.description)
+          : t("Use the original key, next-chord, and compatible-scale scores.")}
       </p>
     </section>
   );

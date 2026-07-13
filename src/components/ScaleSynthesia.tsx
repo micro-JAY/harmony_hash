@@ -29,6 +29,7 @@ import {
 } from "../lib/theory";
 import HorizontalFretboard from "./HorizontalFretboard";
 import { fretboardIntervalColor } from "./fretboardVisuals";
+import { useT } from "../i18n/I18nContext";
 import ScalePianoKeyboard from "./ScalePianoKeyboard";
 import {
   WorkspaceHeader,
@@ -73,6 +74,7 @@ export default function ScaleSynthesia({
   initialRoot = "F#",
   initialScaleId = "harmonic_minor",
 }: ScaleSynthesiaProps) {
+  const t = useT();
   const reduceMotion = Boolean(useReducedMotion());
   const initialDefinition = scaleLearningDefinitionFor(initialScaleId);
   const [instrument, setInstrument] = useState<PracticeInstrument>("piano");
@@ -192,7 +194,7 @@ export default function ScaleSynthesia({
         />
 
         <section
-          aria-label="Scale practice controls"
+          aria-label={t("Scale practice controls")}
           className="hh-control-rail"
         >
           <WorkspaceSegmentedControl
@@ -210,7 +212,7 @@ export default function ScaleSynthesia({
           </WorkspaceSelectControl>
           <WorkspaceSelectControl id="scale-family" label="Family" value={resolvedFamily} onChange={handleFamilyChange} className="w-52">
             {availableFamilies.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>{candidate.label}</option>
+              <option key={candidate.id} value={candidate.id}>{t(candidate.label)}</option>
             ))}
           </WorkspaceSelectControl>
           <WorkspaceSelectControl
@@ -221,7 +223,7 @@ export default function ScaleSynthesia({
             className="w-56"
           >
             {familyDefinitions.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>{candidate.label}</option>
+              <option key={candidate.id} value={candidate.id}>{t(candidate.label)}</option>
             ))}
           </WorkspaceSelectControl>
           <WorkspaceSelectControl
@@ -231,8 +233,8 @@ export default function ScaleSynthesia({
             onChange={(value) => onMoodChange(value === "" ? null : value as MoodId)}
             className="w-44"
           >
-            <option value="">Any harmony</option>
-            {MOODS.map((mood) => <option key={mood.id} value={mood.id}>{mood.label}</option>)}
+            <option value="">{t("Any harmony")}</option>
+            {MOODS.map((mood) => <option key={mood.id} value={mood.id}>{t(mood.label)}</option>)}
           </WorkspaceSelectControl>
           <WorkspaceSegmentedControl
             label="Direction"
@@ -262,15 +264,15 @@ export default function ScaleSynthesia({
               onChange={(value) => setArpeggioType(value as ArpeggioType)}
               className="w-44"
             >
-              <option value="triad">Triad (1 3 5)</option>
-              <option value="seventh">Seventh (1 3 5 7)</option>
+              <option value="triad">{t("Triad")} (1 3 5)</option>
+              <option value="seventh">{t("Seventh")} (1 3 5 7)</option>
             </WorkspaceSelectControl>
           ) : null}
           <button
             type="button"
             onClick={() => void handlePlayback()}
             className="hh-action ml-auto"
-            aria-label={isPlaying ? "Stop scale playback" : "Play scale"}
+            aria-label={t(isPlaying ? "Stop scale playback" : "Play scale")}
             style={{
               backgroundColor: "var(--interactive-accent-bg)",
               border: "1px solid var(--interactive-accent-border)",
@@ -278,31 +280,31 @@ export default function ScaleSynthesia({
             }}
           >
             {isPlaying ? <Pause size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}
-            {isPlaying ? "Stop" : "Play scale"}
+            {t(isPlaying ? "Stop scale" : "Play scale")}
           </button>
         </section>
 
         {moodId ? (
           <p className="mb-4 text-sm" role="status" style={{ color: "var(--status-academy-text)" }}>
-            {moodDefinitionFor(moodId).label} lens · showing {availableDefinitions.length} matching scales from the shared mood vocabulary.
+            {t(`${moodDefinitionFor(moodId).label} lens · showing ${availableDefinitions.length} matching scales from the shared mood vocabulary.`)}
           </p>
         ) : null}
 
         <section
-          aria-label={`${root} ${definition.label} ${instrument} practice map`}
+          aria-label={t(`${root} ${definition.label} ${t(instrument)} practice map`)}
           className="hh-panel overflow-hidden"
           style={{ backgroundColor: "var(--surface-sunken)" }}
         >
           <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3" style={{ borderColor: "var(--border-default)" }}>
             <p style={{ color: "var(--text-primary)", fontWeight: "var(--weight-semibold)" }}>
-              {root} {definition.label} · {direction === "ascending" ? "Ascending" : "Descending"}
+              {root} {t(definition.label)} · {t(direction === "ascending" ? "Ascending" : "Descending")}
             </p>
-            <ol className="flex flex-wrap gap-2" aria-label="Playback sequence">
+            <ol className="flex flex-wrap gap-2" aria-label={t("Playback sequence")}>
               {practiceSequence.map((note, index) => (
                 <li
                   key={`${note.midi}-${index}`}
                   className="h-2.5 w-2.5 rounded-full"
-                  aria-label={`${index + 1}: ${note.label}, degree ${note.degree}`}
+                  aria-label={t(`${index + 1}: ${note.label}, degree ${note.degree}`)}
                   data-playing={activeSequenceIndex === index ? "true" : "false"}
                   style={{
                     backgroundColor: activeSequenceIndex === index
@@ -337,11 +339,11 @@ export default function ScaleSynthesia({
           </div>
         </section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]" aria-label="Scale learning guide">
+        <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]" aria-label={t("Scale learning guide")}>
           <div className="min-w-0 border-l-2 pl-5 md:pl-7" style={{ borderColor: "var(--border-accent)" }}>
             <div className="grid gap-y-5 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-x-6">
-              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>Scale notes</h2>
-              <ol className="flex flex-wrap items-center gap-2" aria-label="Scale notes">
+              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Scale notes")}</h2>
+              <ol className="flex flex-wrap items-center gap-2" aria-label={t("Scale notes")}>
                 {[...scaleNotes, scaleNotes[0]].map((note, index) => (
                   <li key={`${note}-${index}`} className="flex items-center gap-2 readout" style={{ color: fretboardIntervalColor(intervals[index] ?? 0), fontSize: "var(--text-lg)" }}>
                     {note}{index < scaleNotes.length ? <span aria-hidden="true" style={{ color: "var(--text-muted)" }}>›</span> : null}
@@ -349,8 +351,8 @@ export default function ScaleSynthesia({
                 ))}
               </ol>
 
-              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>Interval formula</h2>
-              <ol className="flex flex-wrap gap-2" aria-label="Whole and half step formula">
+              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Interval formula")}</h2>
+              <ol className="flex flex-wrap gap-2" aria-label={t("Whole and half step formula")}>
                 {steps.map((step, index) => (
                   <li key={`${step}-${index}`} className="min-w-12 rounded-md px-3 py-1.5 text-center readout" style={{ border: `1px solid ${fretboardIntervalColor(intervals[index])}`, color: fretboardIntervalColor(intervals[index]) }}>
                     {step}
@@ -358,36 +360,36 @@ export default function ScaleSynthesia({
                 ))}
               </ol>
 
-              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>Named degrees</h2>
-              <ol className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Named scale degrees">
+              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Named degrees")}</h2>
+              <ol className="flex flex-wrap gap-x-4 gap-y-2" aria-label={t("Named scale degrees")}>
                 {intervals.map((interval, index) => (
                   <li key={`${interval}-${index}`} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-primary)" }}>
                     <span className="flex h-7 w-7 items-center justify-center rounded-full readout" style={{ border: `1px solid ${fretboardIntervalColor(interval)}`, color: fretboardIntervalColor(interval) }}>
                       {index + 1}
                     </span>
-                    {scaleDegreeName(interval, resolvedScaleId)}
+                    {t(scaleDegreeName(interval, resolvedScaleId))}
                   </li>
                 ))}
               </ol>
 
-              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>Use it for</h2>
-              <p style={{ color: "var(--interactive-accent-text)", fontSize: "var(--text-lg)" }}>{definition.useItFor}</p>
+              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Use it for")}</h2>
+              <p style={{ color: "var(--interactive-accent-text)", fontSize: "var(--text-lg)" }}>{t(definition.useItFor)}</p>
 
-              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>Hear it in</h2>
-              <p style={{ color: "var(--interactive-academy-text)", fontSize: "var(--text-lg)" }}>{definition.hearItIn}</p>
+              <h2 className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Hear it in")}</h2>
+              <p style={{ color: "var(--interactive-academy-text)", fontSize: "var(--text-lg)" }}>{t(definition.hearItIn)}</p>
             </div>
           </div>
 
-          <aside className="hh-panel p-5" aria-label="Practice summary">
-            <span className="label-caps" style={{ color: "var(--text-secondary)" }}>Current practice</span>
+          <aside className="hh-panel p-5" aria-label={t("Practice summary")}>
+            <span className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Current practice")}</span>
             <p className="mt-3" style={{ fontSize: "var(--text-xl)", fontWeight: "var(--weight-semibold)" }}>
-              {material === "scale" ? definition.label : `${definition.label} ${arpeggioType}`}
+              {material === "scale" ? t(definition.label) : `${t(definition.label)} ${t(arpeggioType)}`}
             </p>
             <p className="mt-2 readout" style={{ color: "var(--text-secondary)" }}>
               {practiceSequence.map((note) => note.label).join(" · ")}
             </p>
             <p className="mt-6 text-sm" style={{ color: "var(--text-muted)" }}>
-              Root color stays gold in both instrument views. Every other degree keeps its interval color.
+              {t("Root color stays gold in both instrument views. Every other degree keeps its interval color.")}
             </p>
           </aside>
         </section>

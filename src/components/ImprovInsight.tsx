@@ -14,6 +14,7 @@ import {
   type ScaleSuggestion,
 } from "../lib/theory/improvInsight";
 import { matchColorForPercent } from "./musicVisuals";
+import { useT } from "../i18n/I18nContext";
 
 interface ImprovInsightChord {
   readonly input: string;
@@ -48,6 +49,7 @@ function insightPanelId(mode: InsightMode): string {
 }
 
 function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: number }) {
+  const t = useT();
   const matchColor = matchColorForPercent(suggestion.match);
   return (
     <article
@@ -67,22 +69,22 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
             className="truncate"
             style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}
           >
-            {suggestion.label}
+            {t(suggestion.label)}
           </h3>
         </div>
         {suggestion.alsoKnownAs ? (
           <p className="mt-1 pl-8 text-sm" style={{ color: "var(--text-secondary)" }}>
-            Also known as {suggestion.alsoKnownAs}
+            {t("Also known as")} {t(suggestion.alsoKnownAs)}
           </p>
         ) : null}
-        <p className="mt-2 pl-8 readout" aria-label={`${suggestion.label} notes`}>
+        <p className="mt-2 pl-8 readout" aria-label={t(`${suggestion.label} notes`)}>
           {suggestion.notes.join(" · ")}
         </p>
       </div>
 
       <div>
         <div className="mb-2 flex items-end justify-between gap-3">
-          <span className="label-caps" style={{ color: "var(--text-secondary)" }}>Match</span>
+          <span className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Match")}</span>
           <strong
             style={{
               color: matchColor,
@@ -95,7 +97,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
         </div>
         <div
           role="meter"
-          aria-label={`${suggestion.label} match`}
+          aria-label={t(`${suggestion.label} match`)}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={suggestion.match}
@@ -111,7 +113,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
           />
         </div>
         <p className="mt-2 text-xs" style={{ color: "var(--text-secondary)" }}>
-          {suggestion.reasons[0]}
+          {t(suggestion.reasons[0])}
         </p>
       </div>
 
@@ -129,7 +131,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
               className="label-caps"
               style={{ color: "var(--text-secondary)", fontSize: "var(--text-xs)" }}
             >
-              {label}
+              {t(label)}
             </dt>
             <dd
               className="mt-1 capitalize"
@@ -139,7 +141,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
                 fontSize: "var(--text-xs)",
               }}
             >
-              {suggestion.metadata[key]}
+              {t(suggestion.metadata[key])}
             </dd>
           </div>
         ))}
@@ -149,6 +151,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
 }
 
 export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
+  const t = useT();
   const [mode, setMode] = useState<InsightMode>("progression");
   const [expanded, setExpanded] = useState(false);
   const [requestedChordIndex, setRequestedChordIndex] = useState(0);
@@ -184,7 +187,7 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
 
   return (
     <section
-      aria-label="Improv Insight"
+      aria-label={t("Improv Insight")}
       className="w-full"
       data-testid="improv-insight"
       data-expanded={expanded ? "true" : "false"}
@@ -205,7 +208,7 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
           fontWeight: "var(--weight-semibold)",
         }}
       >
-        <span>Improv Insight</span>
+        <span>{t("Improv Insight")}</span>
         <ChevronDown
           aria-hidden="true"
           size={18}
@@ -226,12 +229,12 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
       >
         <header className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <span className="label-caps" style={{ color: "var(--text-academy)" }}>Play over this</span>
+            <span className="label-caps" style={{ color: "var(--text-academy)" }}>{t("Play over this")}</span>
             <h2 id="improv-insight-title" className="hh-panel-title mt-1">
-              Improv Insight
+              {t("Improv Insight")}
             </h2>
             <p className="mt-2 max-w-2xl" style={{ color: "var(--text-secondary)" }}>
-              Ranked scale paths from the chord tones already on your timeline—not a guessed key.
+              {t("Ranked scale paths from the chord tones already on your timeline—not a guessed key.")}
             </p>
             {moodDefinition ? (
               <p
@@ -239,13 +242,13 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
                 data-testid="improv-mood-summary"
                 style={{ color: "var(--text-academy)" }}
               >
-                {moodDefinition.label} lens · showing {moodDefinition.scales.length} preferred scale families
+                {t(`${moodDefinition.label} lens · showing ${moodDefinition.scales.length} preferred scale families`)}
               </p>
             ) : null}
           </div>
           <div
             role="tablist"
-            aria-label="Improv Insight scope"
+            aria-label={t("Improv Insight scope")}
             className="inline-flex self-start rounded-full p-1 sm:self-auto"
             style={{ backgroundColor: "var(--surface-sunken)", border: "1px solid var(--border-subtle)" }}
           >
@@ -271,7 +274,7 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
                     transition: reduceMotion ? "none" : "all var(--duration-normal) var(--ease-out)",
                   }}
                 >
-                  {item.label}
+                  {t(item.label)}
                 </button>
               );
             })}
@@ -286,7 +289,7 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
           style={{ borderColor: "var(--border-subtle)" }}
         >
           {mode === "chord" ? (
-            <div className="mb-4 flex gap-2 overflow-x-auto pb-2" aria-label="Chord to analyze">
+            <div className="mb-4 flex gap-2 overflow-x-auto pb-2" aria-label={t("Chord to analyze")}>
               {chords.map((item, index) => {
                 const active = index === selectedChordIndex;
                 return (

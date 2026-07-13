@@ -12,6 +12,7 @@ import {
   type ScaleFormulaType,
 } from "../lib/theory";
 import { fretboardIntervalColor } from "./fretboardVisuals";
+import { useLocale, useT } from "../i18n/I18nContext";
 import {
   WorkspaceHeader,
   WorkspaceSegmentedControl,
@@ -65,6 +66,8 @@ export default function NoteNeuralNetwork({
   state,
   onStateChange,
 }: NoteNeuralNetworkProps) {
+  const t = useT();
+  const { locale } = useLocale();
   const reduceMotion = Boolean(useReducedMotion());
   const { root, familyId, relationship, selectedScaleId } = state;
   const nodeRefs = useRef<Array<SVGGElement | null>>([]);
@@ -109,14 +112,14 @@ export default function NoteNeuralNetwork({
     const selected = index === resolvedSelectedIndex;
     const central = selected;
     const color = fretboardIntervalColor(NODE_INTERVAL_COLORS[index]);
-    const lines = modeLabelLines(node.learning.label);
+    const lines = modeLabelLines(t(node.learning.label));
     return (
       <g
         key={node.id}
         ref={(element) => { nodeRefs.current[index] = element; }}
         id={`mode-network-node-${index}`}
         role="option"
-        aria-label={`${node.label}. ${node.characteristicInterval}`}
+        aria-label={`${t(node.label)}${locale === "ja" ? "。" : ". "}${t(node.characteristicInterval)}`}
         aria-selected={selected}
         tabIndex={selected ? 0 : -1}
         className="mode-network-node"
@@ -178,7 +181,7 @@ export default function NoteNeuralNetwork({
           description="See how modes connect without losing the notes beneath your hands."
         />
 
-        <section className="hh-control-rail" aria-label="Mode network controls">
+        <section className="hh-control-rail" aria-label={t("Mode network controls")}>
           <WorkspaceSelectControl
             id="mode-network-root"
             label="Root"
@@ -196,7 +199,7 @@ export default function NoteNeuralNetwork({
             onChange={(value) => handleFamilyChange(value as ModeFamilyId)}
             className="w-56"
           >
-            {MODE_FAMILIES.map((family) => <option key={family.id} value={family.id}>{family.label}</option>)}
+            {MODE_FAMILIES.map((family) => <option key={family.id} value={family.id}>{t(family.label)}</option>)}
           </WorkspaceSelectControl>
 
           <WorkspaceSegmentedControl
@@ -220,7 +223,7 @@ export default function NoteNeuralNetwork({
               viewBox="0 0 700 680"
               className="mx-auto block aspect-square w-full min-w-[42rem] max-w-[44rem] sm:min-w-0"
               role="listbox"
-              aria-label={`${root} ${network.familyLabel} ${relationship} mode relationships`}
+              aria-label={t(`${root} ${t(network.familyLabel)} ${t(relationship)} mode relationships`)}
             >
               <circle cx={CENTER.x} cy={CENTER.y} r="286" fill="var(--surface-sunken)" stroke="var(--border-subtle)" />
               {network.nodes.map((node, index) => {
@@ -247,45 +250,49 @@ export default function NoteNeuralNetwork({
             </svg>
           </div>
 
-          <aside className="flex flex-col border-t p-6 lg:border-l lg:border-t-0 lg:p-8" style={{ borderColor: "var(--border-default)" }} aria-label={`${selectedNode.label} details`}>
+          <aside className="flex flex-col border-t p-6 lg:border-l lg:border-t-0 lg:p-8" style={{ borderColor: "var(--border-default)" }} aria-label={t(`${t(selectedNode.label)} details`)}>
             <div className="flex items-start gap-3">
               <Network size={23} aria-hidden="true" style={{ color: "var(--interactive-academy-text)", marginTop: "0.35rem" }} />
-              <h2 className="hh-panel-title" style={{ color: "var(--interactive-academy-text)" }}>{selectedNode.label}</h2>
+              <h2 className="hh-panel-title" style={{ color: "var(--interactive-academy-text)" }}>{t(selectedNode.label)}</h2>
             </div>
 
             <dl className="mt-6 divide-y" style={{ borderColor: "var(--border-default)" }}>
               <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>Notes</dt>
+                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Notes")}</dt>
                 <dd className="mt-2 readout" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>{selectedNode.notes.join(" · ")}</dd>
               </div>
               <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>Characteristic interval</dt>
-                <dd className="mt-2" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>{selectedNode.characteristicInterval}</dd>
+                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Characteristic interval")}</dt>
+                <dd className="mt-2" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>{t(selectedNode.characteristicInterval)}</dd>
               </div>
               <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>Interval formula</dt>
+                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Interval formula")}</dt>
                 <dd className="mt-2 readout" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>
                   {scaleIntervalFormulaFor(selectedNode.scaleId).join(" · ")}
                 </dd>
               </div>
               <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>Steps</dt>
+                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Steps")}</dt>
                 <dd className="mt-2 readout" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>{selectedNode.steps.join(" · ")}</dd>
               </div>
               <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>Use it over</dt>
-                <dd className="mt-2" style={{ color: "var(--interactive-accent-text)" }}>{selectedNode.learning.useItOver}</dd>
+                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Use it over")}</dt>
+                <dd className="mt-2" style={{ color: "var(--interactive-accent-text)" }}>{t(selectedNode.learning.useItOver)}</dd>
               </div>
               <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>Hear it in</dt>
-                <dd className="mt-2" style={{ color: "var(--interactive-academy-text)" }}>{selectedNode.learning.hearItIn}</dd>
+                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Hear it in")}</dt>
+                <dd className="mt-2" style={{ color: "var(--interactive-academy-text)" }}>{t(selectedNode.learning.hearItIn)}</dd>
               </div>
               <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>Relationship</dt>
+                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Relationship")}</dt>
                 <dd className="mt-2" style={{ color: "var(--text-primary)" }}>
                   {relationship === "relative"
-                    ? "Relative: same seven notes, new tonal center"
-                    : `Parallel: same ${root} root, new interval formula`}
+                    ? locale === "ja"
+                      ? t("Relative: same seven notes, heard from a different tonal center.")
+                      : "Relative: same seven notes, new tonal center"
+                    : locale === "ja"
+                      ? t("Parallel: same root, different interval color and harmonic gravity.")
+                      : `Parallel: same ${root} root, new interval formula`}
                 </dd>
               </div>
             </dl>
@@ -296,7 +303,7 @@ export default function NoteNeuralNetwork({
               className="hh-action mt-6"
               style={{ backgroundColor: "var(--interactive-academy-bg)", border: "1px solid var(--interactive-academy-border)", color: "var(--interactive-academy-text)" }}
             >
-              Open in Scale Synthesia
+              {t("Open in Scale Synthesia")}
               <ArrowRight size={17} aria-hidden="true" />
             </button>
           </aside>

@@ -25,6 +25,7 @@ import HorizontalFretboard, {
   type FretboardLabelMode,
 } from "./HorizontalFretboard";
 import { fretboardIntervalColor, fretboardIntervalName } from "./fretboardVisuals";
+import { useLocale, useT } from "../i18n/I18nContext";
 import {
   WorkspaceHeader,
   WorkspaceSegmentedControl,
@@ -51,6 +52,8 @@ const DEFAULT_TUNINGS: Readonly<Record<FretboardInstrument, FretboardTuningId>> 
 });
 
 export default function FretboardExplorer() {
+  const t = useT();
+  const { locale } = useLocale();
   const reduceMotion = useReducedMotion();
   const [instrument, setInstrument] = useState<FretboardInstrument>("guitar");
   const [keyName, setKeyName] = useState("C");
@@ -86,7 +89,7 @@ export default function FretboardExplorer() {
       .sort(([degreeA], [degreeB]) => degreeA - degreeB)
       .map(([, value]) => value);
   }, [rows]);
-  const modeLabel = MODE_OPTIONS.find((option) => option.value === scaleType)?.label ?? scaleType;
+  const modeLabel = t(MODE_OPTIONS.find((option) => option.value === scaleType)?.label ?? scaleType);
   const pattern = useMemo(() => buildFretboardPattern(
     rows,
     instrument,
@@ -122,14 +125,14 @@ export default function FretboardExplorer() {
               style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-subtle)" }}
             >
               <span data-testid="fretboard-tuning-readout">
-                {tuning.label} · {tuning.pitchSequence} · frets 0–15
+                {t(tuning.label)} · {tuning.pitchSequence} · {t("frets")} 0–15
               </span>
             </div>
           )}
         />
 
         <section
-          aria-label="Fretboard controls"
+          aria-label={t("Fretboard controls")}
           className="hh-control-rail"
         >
           <WorkspaceSegmentedControl
@@ -157,7 +160,7 @@ export default function FretboardExplorer() {
           >
             {tuningOptions.map((option) => (
               <option key={option.id} value={option.id}>
-                {option.label} · {option.pitchSequence}
+                {t(option.label)} · {option.pitchSequence}
               </option>
             ))}
           </WorkspaceSelectControl>
@@ -182,7 +185,7 @@ export default function FretboardExplorer() {
             className="w-44"
             ariaLabel="Fretboard mode"
           >
-            {MODE_OPTIONS.map((mode) => <option key={mode.value} value={mode.value}>{mode.label}</option>)}
+            {MODE_OPTIONS.map((mode) => <option key={mode.value} value={mode.value}>{t(mode.label)}</option>)}
           </WorkspaceSelectControl>
           <WorkspaceSegmentedControl
             label="Labels"
@@ -197,7 +200,7 @@ export default function FretboardExplorer() {
         </section>
 
         <section
-          aria-label="Fretboard learning controls and current map"
+          aria-label={t("Fretboard learning controls and current map")}
           className="hh-panel hh-panel--academy mb-5 grid min-w-0 gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]"
           data-testid="fretboard-learning-layer"
         >
@@ -255,27 +258,29 @@ export default function FretboardExplorer() {
               style={{ color: pattern.available ? "var(--status-academy-text)" : "var(--status-warning-text)" }}
             >
               {pattern.available
-                ? `${pattern.label} · ${pattern.positionKeys.length} scale positions`
-                : `${pattern.reason}. Showing All while your choice stays remembered.`}
+                ? `${t(pattern.label)} · ${pattern.positionKeys.length} ${t("scale positions")}`
+                : locale === "ja"
+                  ? "選択したパターンはこの設定では利用できないため、選択を保持したまま「すべて」を表示しています。"
+                  : `${pattern.reason}. Showing All while your choice stays remembered.`}
             </p>
           </div>
 
           <section
-            aria-label={`${keyName} ${modeLabel} scale summary`}
+            aria-label={t(`${keyName} ${modeLabel} scale summary`)}
             className="min-w-0 border-t pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0"
             style={{ borderColor: "var(--status-academy-border)" }}
           >
-            <span className="label-caps" style={{ color: "var(--text-secondary)" }}>Current map</span>
+            <span className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Current map")}</span>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
               <p style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)" }}>
-                {keyName} {modeLabel} · {instrument === "guitar" ? "Guitar" : "Bass"}
+                {keyName} {modeLabel} · {t(instrument === "guitar" ? "Guitar" : "Bass")}
               </p>
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                {pattern.available ? pattern.label : "All positions"}
-                {overlay ? ` · ${overlay.displayName} overlay` : ""}
+                {t(pattern.available ? pattern.label : "All positions")}
+                {overlay ? ` · ${overlay.displayName} ${t("overlay")}` : ""}
               </p>
             </div>
-            <ol className="mt-2 flex flex-wrap gap-1.5" aria-label="Scale notes and intervals">
+            <ol className="mt-2 flex flex-wrap gap-1.5" aria-label={t("Scale notes and intervals")}>
               {scaleNotes.map((item) => (
                 <li
                   key={`${item.note}-${item.interval}`}
@@ -309,7 +314,7 @@ export default function FretboardExplorer() {
         />
 
         <aside
-          aria-label="Interval color legend"
+          aria-label={t("Interval color legend")}
           className="mt-5 flex flex-wrap gap-x-5 gap-y-2"
           style={{ color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}
         >
@@ -318,7 +323,7 @@ export default function FretboardExplorer() {
             return (
             <span key={label} className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: fretboardIntervalColor(item.semitones) }} />
-              {item.interval} · {label}
+              {item.interval} · {t(label)}
             </span>
             );
           })}
@@ -326,11 +331,11 @@ export default function FretboardExplorer() {
             <>
               <span className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full" style={{ border: "2px solid var(--interactive-primary-bg)" }} />
-                Ring = chord tone
+                {t("Ring = chord tone")}
               </span>
               <span className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full" style={{ border: "2px dashed var(--status-warning-text)" }} />
-                Dashed = outside selected scale
+                {t("Dashed = outside selected scale")}
               </span>
             </>
           ) : null}

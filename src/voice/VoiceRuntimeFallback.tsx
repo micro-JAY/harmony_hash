@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import { useT } from "../i18n/I18nContext";
 
 interface VoiceRuntimeFallbackProps {
   failed: boolean;
@@ -13,6 +14,7 @@ export default function VoiceRuntimeFallback({
   onClose,
   onReload,
 }: VoiceRuntimeFallbackProps) {
+  const t = useT();
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function VoiceRuntimeFallback({
     <section
       role="dialog"
       aria-modal="false"
-      aria-label="Hanz Hasher"
+      aria-label={t("Hanz Hasher")}
       className="hhv-popup flex w-full max-w-md flex-col gap-4 rounded-xl"
       style={{
         position: "fixed",
@@ -65,12 +67,12 @@ export default function VoiceRuntimeFallback({
             color: "var(--text-secondary)",
           }}
         >
-          Hanz Hasher
+          {t("Hanz Hasher")}
         </span>
         <button
           ref={closeRef}
           type="button"
-          aria-label="Close Hanz Hasher"
+          aria-label={t("Close Hanz Hasher")}
           onClick={handleClose}
           className="grid place-items-center rounded-md"
           style={{
@@ -96,8 +98,8 @@ export default function VoiceRuntimeFallback({
         }}
       >
         {failed
-          ? "Voice tools couldn’t load. Reload Harmony Hash to try again."
-          : "Loading voice tools…"}
+          ? t("Voice tools couldn’t load. Reload Harmony Hash to try again.")
+          : t("Loading voice tools…")}
       </p>
 
       {failed ? (
@@ -114,7 +116,7 @@ export default function VoiceRuntimeFallback({
             cursor: "pointer",
           }}
         >
-          Reload Harmony Hash
+          {t("Reload Harmony Hash")}
         </button>
       ) : null}
     </section>

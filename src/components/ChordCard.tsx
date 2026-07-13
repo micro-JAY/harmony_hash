@@ -15,6 +15,7 @@ import PianoKeyboard from "./PianoKeyboard";
 import ChordModifier from "./ChordModifier";
 import ChordCardFrame from "./ChordCardFrame";
 import PianoVoicingComparison, { PIANO_STYLE_OPTIONS } from "./PianoVoicingComparison";
+import { useT } from "../i18n/I18nContext";
 
 interface ChordCardProps {
   chord: IndexedChord;
@@ -67,6 +68,7 @@ export default function ChordCard({
   isPlaying = false,
   isAgentHighlighted = false,
 }: ChordCardProps) {
+  const t = useT();
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
   const [guitarDisplay, setGuitarDisplay] = useState<GuitarDisplayMode>("fingering");
@@ -142,7 +144,7 @@ export default function ChordCard({
                       fontFamily: "var(--font-body)",
                     }}
                   >
-                    {mode === "fingering" ? "Fingering" : mode === "intervals" ? "Intervals" : "Notes"}
+                    {t(mode === "fingering" ? "Fingering" : mode === "intervals" ? "Intervals" : "Notes")}
                   </button>
                 );
               })}
@@ -169,7 +171,7 @@ export default function ChordCard({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  aria-label="Previous guitar variant"
+                  aria-label={t("Previous guitar variant")}
                   onClick={prevVariant}
                   className="w-7 h-7 flex items-center justify-center rounded-full transition-all"
                   style={{
@@ -200,7 +202,7 @@ export default function ChordCard({
                 </span>
                 <button
                   type="button"
-                  aria-label="Next guitar variant"
+                  aria-label={t("Next guitar variant")}
                   onClick={nextVariant}
                   className="w-7 h-7 flex items-center justify-center rounded-full transition-all"
                   style={{
@@ -306,7 +308,7 @@ export default function ChordCard({
                         fontFamily: "var(--font-body)",
                       }}
                     >
-                      {mode === "notes" ? "Notes" : "Fingering"}
+                      {t(mode === "notes" ? "Notes" : "Fingering")}
                     </button>
                   );
                 })}

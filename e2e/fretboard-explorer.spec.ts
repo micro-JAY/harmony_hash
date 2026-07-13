@@ -239,12 +239,14 @@ test.describe("Fretboard Explorer", () => {
   for (const viewport of [
     { name: "desktop", width: 1280, height: 900 },
     { name: "tablet", width: 820, height: 900 },
+    { name: "transition", width: 500, height: 812 },
     { name: "mobile", width: 375, height: 812 },
+    { name: "compact-mobile", width: 320, height: 720 },
   ]) {
     test(`contains the board at ${viewport.name} width`, async ({ page }) => {
       const browserIssues = collectBrowserIssues(page);
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      if (viewport.name === "mobile") await page.emulateMedia({ reducedMotion: "reduce" });
+      if (viewport.width <= 375) await page.emulateMedia({ reducedMotion: "reduce" });
       await openFretboard(page);
 
       await expectNoDocumentOverflow(page);
@@ -253,21 +255,36 @@ test.describe("Fretboard Explorer", () => {
         client: element.clientWidth,
         scroll: element.scrollWidth,
       }));
-      if (viewport.name === "desktop") {
-        expect(widths.scroll).toBeLessThanOrEqual(widths.client);
-        const scrollerBox = await scroller.boundingBox();
-        const headersBox = await page.getByTestId("fretboard-column-headers").boundingBox();
-        expect(scrollerBox).not.toBeNull();
-        expect(headersBox).not.toBeNull();
-        const leftGutter = headersBox!.x - scrollerBox!.x;
-        const rightGutter = scrollerBox!.x + scrollerBox!.width - headersBox!.x - headersBox!.width;
-        expect(Math.abs(leftGutter - rightGutter)).toBeLessThanOrEqual(2);
+      expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+      const scrollerBox = await scroller.boundingBox();
+      const headersBox = await page.getByTestId("fretboard-column-headers").boundingBox();
+      expect(scrollerBox).not.toBeNull();
+      expect(headersBox).not.toBeNull();
+      const leftGutter = headersBox!.x - scrollerBox!.x;
+      const rightGutter = scrollerBox!.x + scrollerBox!.width - headersBox!.x - headersBox!.width;
+      expect(Math.abs(leftGutter - rightGutter)).toBeLessThanOrEqual(2);
+      const firstTarget = scroller.locator('button[data-string="1"]').first();
+      const targetSize = await firstTarget.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return { width: bounds.width, height: bounds.height };
+      });
+      expect(targetSize.width).toBeGreaterThanOrEqual(24);
+      expect(targetSize.height).toBeGreaterThanOrEqual(24);
 
-        const openHeader = scroller.locator('[role="columnheader"][data-fret-column="0"]');
-        const fretFifteenHeader = scroller.locator('[role="columnheader"][data-fret-column="15"]');
-        const openHeaderBox = await openHeader.boundingBox();
-        const fretFifteenHeaderBox = await fretFifteenHeader.boundingBox();
-        expect(openHeaderBox!.x).toBeLessThan(fretFifteenHeaderBox!.x);
+      const openHeader = scroller.locator('[role="columnheader"][data-fret-column="0"]');
+      const lastVisibleFret = viewport.width <= 375 ? 12 : 15;
+      const lastFretHeader = scroller.locator(`[role="columnheader"][data-fret-column="${lastVisibleFret}"]`);
+      const openHeaderBox = await openHeader.boundingBox();
+      const lastFretHeaderBox = await lastFretHeader.boundingBox();
+      expect(openHeaderBox).not.toBeNull();
+      expect(lastFretHeaderBox).not.toBeNull();
+      expect(openHeaderBox!.x).toBeLessThan(lastFretHeaderBox!.x);
+      expect(openHeaderBox!.x).toBeGreaterThanOrEqual(scrollerBox!.x - 1);
+      expect(lastFretHeaderBox!.x + lastFretHeaderBox!.width).toBeLessThanOrEqual(
+        scrollerBox!.x + scrollerBox!.width + 1,
+      );
+
+      if (viewport.name === "desktop") {
         const openCell = scroller.locator('[role="gridcell"][data-fret="0"]').first();
         const fretOneCell = scroller.locator('[role="gridcell"][data-fret="1"]').first();
         const openVisual = await openCell.evaluate((element) => {
@@ -279,12 +296,10 @@ test.describe("Fretboard Explorer", () => {
 
         await page.getByRole("button", { name: "Left-handed", exact: true }).click();
         const leftHandedOpenBox = await openHeader.boundingBox();
-        const leftHandedFifteenBox = await fretFifteenHeader.boundingBox();
+        const leftHandedFifteenBox = await lastFretHeader.boundingBox();
         expect(leftHandedOpenBox!.x).toBeGreaterThan(leftHandedFifteenBox!.x);
-      } else {
-        expect(widths.scroll).toBeGreaterThan(widths.client);
       }
-      if (viewport.name === "mobile") {
+      if (viewport.width <= 375) {
         await expect(page.getByTestId("fretboard-workspace")).toHaveAttribute(
           "data-reduced-motion",
           "true",
@@ -299,7 +314,7 @@ test.describe("Fretboard Explorer", () => {
           name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3, All positions pattern tone",
         });
         await firstNote.focus();
-        const scaleFrets = [0, 1, 3, 5, 7, 8, 10, 12, 13, 15];
+        const scaleFrets = [0, 1, 3, 5, 7, 8, 10, 12];
         for (let index = 0; index < scaleFrets.length - 1; index++) {
           const current = scroller.locator(
             `button[data-string="1"][data-fret="${scaleFrets[index]}"]`,
@@ -310,7 +325,15 @@ test.describe("Fretboard Explorer", () => {
           await current.press("ArrowRight");
           await expect(next).toBeFocused();
         }
-        expect(await scroller.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+        expect(await scroller.evaluate((element) => element.scrollLeft)).toBe(0);
+        const finalNote = scroller.locator('button[data-string="1"][data-fret="12"]');
+        const finalBounds = await finalNote.boundingBox();
+        expect(finalBounds).not.toBeNull();
+        expect(finalBounds!.x + finalBounds!.width).toBeLessThanOrEqual(
+          scrollerBox!.x + scrollerBox!.width + 1,
+        );
+        await expect(firstNote.locator(".hh-fretboard-note-label")).toBeVisible();
+        await expect(scroller.locator('[role="columnheader"][data-fret-column="15"]')).toBeHidden();
       }
       expect(browserIssues).toEqual([]);
     });

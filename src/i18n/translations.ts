@@ -29,12 +29,509 @@ export const translations: Record<Locale, Record<string, string>> = {
     fretboard: "指板",
     circle: "五度圏",
     scales: "スケール",
-    network: "ネットワーク",
+    network: "音の関係",
     freeInput: "フリー入力",
     freeInputHint: "Cmaj7 Dm7 G7 C ...",
     progressions: "コード進行",
     orPickPreset: "またはプリセットから選ぶ",
     agentPromptPlaceholder: "コード進行を説明してください…",
     emptyStateHint: "コードグリッドで組み立てるか、進行を説明するか、プリセットを選んで始めましょう。",
+    Workspace: "ワークスペース",
+    "Shared progression status": "共有コード進行の状態",
+    "Progression actions": "コード進行の操作",
+    "Chord cards output": "コードカードの出力",
+    "Randomize All Variants": "すべてのバリエーションをランダム化",
+    "Randomize All Voicings": "すべてのボイシングをランダム化",
+    "Starting playback": "再生を開始中",
+    "Stop playback": "再生を停止",
+    "Play progression": "コード進行を再生",
+    "Starting…": "開始中…",
+    Stop: "停止",
+    Loading: "読み込み中",
+    "Start a new progression below.": "下から新しいコード進行を始めてください。",
+    "Try: Cmaj7 Am9 Dm7 G7": "例：Cmaj7 Am9 Dm7 G7",
+    "Hasher input mode": "ハッシャーの入力モード",
+    "Describe the progression you want": "作りたいコード進行を説明",
+    "Run progression agent": "コード進行エージェントを実行",
+    Run: "実行",
+    "Building…": "作成中…",
+    "Need help?": "お困りですか？",
+    "Stuck?": "行き詰まりましたか？",
+    "Writer's block got you down?": "アイデアが浮かびませんか？",
+    "Phone a friend": "Hanzに相談",
+    "Checking…": "確認中…",
+    "API ready": "API準備完了",
+    "Service unavailable": "サービスを利用できません",
+    "Checking API status": "APIの状態を確認中",
+    "API is reachable and configured": "APIに接続でき、設定も完了しています",
+    "API is unreachable or missing required config": "APIに接続できないか、必要な設定がありません",
+    "⌘↵ to build": "⌘↵ で作成",
+    Retry: "再試行",
+    "Chord progression composer": "コード進行コンポーザー",
+    "Choose chords from the grid, or drag them here.": "グリッドからコードを選ぶか、ここへドラッグしてください。",
+    "Clear composed chords": "組み立てたコードをクリア",
+    Clear: "クリア",
+    "Run chord composer": "コード進行を確定",
+    Key: "キー",
+    Mode: "モード",
+    "Free Input harmony context": "フリー入力のハーモニー設定",
+    "Free Input key": "フリー入力のキー",
+    "Free Input mode": "フリー入力のモード",
+    "Suggestions follow the last chord in the composer.": "候補はコンポーザーの最後のコードに合わせて表示されます。",
+    "Loading Improv Insight…": "Improv Insightを読み込み中…",
+    "Progression key": "コード進行のキー",
+    "Progression tonality": "コード進行の調性",
+    "What is the Minor Blend?": "マイナー・ブレンドとは？",
+    "Close minor blend help": "マイナー・ブレンドの説明を閉じる",
+    "Mood lens": "ムード・レンズ",
+    "Optional · rankings only": "任意・順位だけに反映",
+    Feel: "雰囲気",
+    "Mood or genre lens": "ムード／ジャンル・レンズ",
+    "No key context": "キー指定なし",
+    "Any harmony": "指定なし",
+    Moods: "ムード",
+    "Genres & styles": "ジャンル／スタイル",
+    "Use the original key, next-chord, and compatible-scale scores.": "元のキー、次のコード、対応スケールの評価に使います。",
+    Bright: "明るい",
+    Dark: "暗い",
+    Ethereal: "幻想的",
+    Happy: "楽しい",
+    Melancholy: "物悲しい",
+    Heroic: "勇壮",
+    Ancient: "古風",
+    Lively: "活発",
+    Jazzy: "ジャジー",
+    Bluesy: "ブルージー",
+    Latin: "ラテン",
+    "Film Noir": "フィルム・ノワール",
+    "Fretboard Explorer": "フレットボード・エクスプローラー",
+    "See a scale across the whole instrument. Roots stay gold; interval roles keep the same color wherever they repeat.": "楽器全体でスケールを確認できます。ルートはゴールド、各音程はどの位置でも同じ色で表示されます。",
+    "Fretboard controls": "フレットボード設定",
+    "Fretboard learning controls and current map": "フレットボードの学習設定と現在のマップ",
+    frets: "フレット",
+    Instrument: "楽器",
+    Guitar: "ギター",
+    Piano: "ピアノ",
+    Bass: "ベース",
+    Tuning: "チューニング",
+    "Fretboard tuning": "フレットボードのチューニング",
+    "Fretboard root": "フレットボードのルート",
+    "Fretboard mode": "フレットボードのモード",
+    Standard: "標準",
+    "Drop D": "ドロップD",
+    "Open G": "オープンG",
+    Handedness: "利き手",
+    Root: "ルート",
+    Labels: "表示",
+    Intervals: "音程",
+    Notes: "音名",
+    "Right-handed": "右利き",
+    "Left-handed": "左利き",
+    Pattern: "パターン",
+    All: "すべて",
+    "CAGED form": "CAGEDフォーム",
+    "3NPS position": "3NPSポジション",
+    "Chord overlay": "コード・オーバーレイ",
+    "Choose a chord": "コードを選択",
+    "Search chord overlay": "オーバーレイするコードを検索",
+    "Chord overlay results": "コード検索結果",
+    "Try Cmaj7, G7#9, D/F#…": "例：Cmaj7、G7#9、D/F#…",
+    "Current map": "現在のマップ",
+    "All positions": "全ポジション",
+    "scale positions": "スケール・ポジション",
+    overlay: "オーバーレイ",
+    "Scale notes and intervals": "スケールの音名と音程",
+    "Interval color legend": "音程カラー凡例",
+    "Ring = chord tone": "リング＝コードトーン",
+    "Dashed = outside selected scale": "破線＝選択スケール外",
+    "Right-handed view runs from open strings through fret 15. Use arrow keys between highlighted notes.": "右利き表示は開放弦から15フレットまでです。ハイライトされた音は矢印キーで移動できます。",
+    "Left-handed view runs from fret 15 to open strings. Use arrow keys between highlighted notes.": "左利き表示は15フレットから開放弦までです。ハイライトされた音は矢印キーで移動できます。",
+    "Right-handed compact view runs from open strings through fret 12. Use arrow keys between highlighted notes.": "右利きのコンパクト表示は開放弦から12フレットまでです。ハイライトされた音は矢印キーで移動できます。",
+    "Left-handed compact view runs from fret 12 to open strings. Use arrow keys between highlighted notes.": "左利きのコンパクト表示は12フレットから開放弦までです。ハイライトされた音は矢印キーで移動できます。",
+    OPEN: "開放",
+    Major: "メジャー",
+    "Natural Minor": "ナチュラル・マイナー",
+    "Harmonic Minor": "ハーモニック・マイナー",
+    Dorian: "ドリアン",
+    Mixolydian: "ミクソリディアン",
+    Lydian: "リディアン",
+    Phrygian: "フリジアン",
+    "Major Pentatonic": "メジャー・ペンタトニック",
+    "Minor Pentatonic": "マイナー・ペンタトニック",
+    "Major Blues": "メジャー・ブルース",
+    "Minor Blues": "マイナー・ブルース",
+    "Minor second": "短2度",
+    "Flat second": "短2度",
+    "Major second": "長2度",
+    "Minor third": "短3度",
+    "Major third": "長3度",
+    "Perfect fourth": "完全4度",
+    "Raised fourth": "増4度",
+    "Flat fifth": "減5度",
+    "Flat fifth (blue note)": "減5度（ブルー・ノート）",
+    "Perfect fifth": "完全5度",
+    "Minor sixth": "短6度",
+    "Flat sixth": "短6度",
+    "Major sixth": "長6度",
+    "Raised sixth": "増6度",
+    "Minor seventh": "短7度",
+    "Flat seventh": "短7度",
+    "Major seventh": "長7度",
+    "Raised seventh": "導音（長7度）",
+    "Minor third (blue note)": "短3度（ブルー・ノート）",
+    "Major (Ionian)": "メジャー（アイオニアン）",
+    Locrian: "ロクリアン",
+    "Melodic Minor": "メロディック・マイナー",
+    "Locrian natural 6": "ロクリアン・ナチュラル6",
+    "Ionian sharp 5": "アイオニアン・シャープ5",
+    "Dorian sharp 4": "ドリアン・シャープ4",
+    "Phrygian Dominant": "フリジアン・ドミナント",
+    "Lydian sharp 2": "リディアン・シャープ2",
+    "Altered Diminished": "オルタード・ディミニッシュ",
+    "Dorian flat 2": "ドリアン・フラット2",
+    "Lydian Augmented": "リディアン・オーグメンテッド",
+    "Lydian Dominant": "リディアン・ドミナント",
+    "Mixolydian flat 6": "ミクソリディアン・フラット6",
+    "Locrian natural 2": "ロクリアン・ナチュラル2",
+    "Altered Scale": "オルタード・スケール",
+    "Hungarian Minor": "ハンガリアン・マイナー",
+    "Whole Tone": "ホールトーン",
+    "Diminished (whole–half)": "ディミニッシュ（全音–半音）",
+    "Major modes": "メジャー系モード",
+    "Harmonic minor modes": "ハーモニック・マイナー系モード",
+    "Melodic minor modes": "メロディック・マイナー系モード",
+    Pentatonic: "ペンタトニック",
+    Blues: "ブルース",
+    "Exotic and symmetrical": "エキゾチック／対称スケール",
+    "Circle of Fifths": "五度圏",
+    "Move by fifths to compare keys, relatives, and nearby modulation paths.": "五度ずつ移動しながら、キー、平行調、近い転調先を比較できます。",
+    "Major keys and relative minor keys around the Circle of Fifths": "五度圏上のメジャーキーと平行マイナーキー",
+    major: "メジャー",
+    minor: "マイナー",
+    "Diatonic chords": "ダイアトニック・コード",
+    "Nearby keys": "近いキー",
+    "Use arrow keys to move around the circle.": "矢印キーで五度圏を移動できます。",
+    Details: "詳細",
+    details: "詳細",
+    "No sharps or flats": "♯・♭なし",
+    "Note Neural Network": "ノート・ニューラル・ネットワーク",
+    "See how modes connect without losing the notes beneath your hands.": "押さえている音を見失わずに、モード同士のつながりを確認できます。",
+    "Mode network controls": "モード・ネットワーク設定",
+    Family: "系統",
+    Relationship: "関係",
+    Parallel: "同主調",
+    Relative: "平行調",
+    parallel: "同主調",
+    relative: "平行調",
+    "Relative: same seven notes, heard from a different tonal center.": "平行調：同じ7音を、別の主音を中心に捉えます。",
+    "Parallel: same root, different interval color and harmonic gravity.": "同主調：同じルートのまま、音程の色合いと和声の重心が変わります。",
+    "Characteristic interval": "特徴的な音程",
+    "Major seventh with a perfect fourth": "完全4度を含む長7度の響き",
+    "Natural sixth over a minor third": "短3度にナチュラル6度を重ねた響き",
+    "Flat second over a minor tonic": "短調の主音に短2度を加えた響き",
+    "Raised fourth over a major tonic": "長調の主音に増4度を加えた響き",
+    "Flat seventh over a major third": "長3度に短7度を重ねた響き",
+    "Flat sixth and flat seventh": "短6度と短7度",
+    "Flat fifth over a minor third": "短3度に減5度を重ねた響き",
+    "Raised seventh over a minor sixth": "短6度と導音（長7度）の対比",
+    "Natural sixth over a flat fifth": "減5度にナチュラル6度を加えた響き",
+    "Sharp fifth over a major third": "長3度に増5度を重ねた響き",
+    "Raised fourth over a minor third": "短3度に増4度を加えた響き",
+    "Major third over a flat second": "短2度と長3度の対比",
+    "Augmented second with a raised fourth": "増2度と増4度",
+    "Diminished seventh with a flat fifth": "減5度と減7度",
+    "Major sixth and seventh over a minor third": "短3度に長6度と長7度を重ねた響き",
+    "Flat second with a natural sixth": "短2度とナチュラル6度",
+    "Raised fourth and sharp fifth": "増4度と増5度",
+    "Raised fourth with a flat seventh": "増4度と短7度",
+    "Flat sixth over a dominant core": "ドミナントの核に短6度を加えた響き",
+    "Natural second over a flat fifth": "減5度に長2度を加えた響き",
+    "Flat fourth with altered fifths and ninths": "変化した4度・5度・9度",
+    "Distinctive scale-degree color": "特徴的なスケール音の色合い",
+    "Interval formula": "音程構成",
+    Steps: "音程間隔",
+    "Use it over": "合わせやすいコード",
+    "Hear it in": "使用例",
+    "major triads, major-seventh chords, and diatonic progressions": "メジャー・トライアド、メジャー7th、ダイアトニック進行",
+    "minor-seventh chords when the natural sixth is available": "ナチュラル6度を使えるマイナー7th",
+    "minor chords and suspended riffs that emphasize the flat second": "短2度を強調するマイナー・コードやサス系リフ",
+    "major-seventh sharp-eleven chords and tonic major drones": "メジャー7（#11）と主音上のメジャー・ドローン",
+    "dominant-seventh chords and major progressions with a flat seventh": "ドミナント7thと短7度を含むメジャー進行",
+    "minor triads, minor-seventh chords, and natural-minor progressions": "マイナー・トライアド、マイナー7th、ナチュラル・マイナー進行",
+    "half-diminished chords and unresolved diminished-tonic textures": "ハーフディミニッシュと未解決感のある減音程の響き",
+    "minor tonic chords and dominant-to-minor resolutions": "短調の主和音とドミナントからマイナーへの解決",
+    "half-diminished chords when a natural sixth supports the line": "ナチュラル6度が旋律を支えるハーフディミニッシュ",
+    "augmented-major chords and major tonal centers with a sharp fifth": "オーグメント・メジャーと増5度を持つ長調の中心",
+    "minor-sixth chords and minor vamps with a raised fourth": "増4度を含むマイナー6thやマイナー・ヴァンプ",
+    "dominant flat-nine chords, flamenco dominants, and V chords in minor": "ドミナント7（b9）、フラメンコのドミナント、短調のV",
+    "major-seventh sharp-eleven chords with an augmented second": "増2度を含むメジャー7（#11）",
+    "diminished-seventh chords and altered leading-tone resolutions": "ディミニッシュ7thと変化した導音の解決",
+    "minor-major-seventh and minor-sixth tonic chords": "マイナー・メジャー7thとマイナー6thの主和音",
+    "minor-seventh chords with a flat ninth and natural sixth": "b9とナチュラル6度を含むマイナー7th",
+    "major-seventh sharp-five chords and augmented tonic colors": "メジャー7（#5）とオーグメント主和音の色合い",
+    "dominant-seventh sharp-eleven chords and tritone substitutions": "ドミナント7（#11）とトライトーン・サブ",
+    "dominant-seventh chords that resolve into minor harmony": "マイナーへ解決するドミナント7th",
+    "half-diminished chords in minor ii–V progressions": "短調ii–Vのハーフディミニッシュ",
+    "altered dominant chords carrying flat and sharp fifth or ninth tensions": "b5／#5／b9／#9を含むオルタード・ドミナント",
+    "major and dominant chords when a consonant five-note palette is wanted": "協和的な5音で弾きたいメジャー／ドミナント・コード",
+    "minor chords, power-chord riffs, and dominant blues harmony": "マイナー・コード、パワーコードのリフ、ドミナント・ブルース",
+    "major-key blues and dominant chords with passing blue-note color": "長調ブルースとブルー・ノートを経過音に使うドミナント",
+    "minor blues, dominant blues, and rock progressions": "マイナー・ブルース、ドミナント・ブルース、ロック進行",
+    "minor chords and pedal tones that support raised-fourth and leading-tone tension": "増4度と導音の緊張感を支えるマイナー・コードとペダル音",
+    "augmented triads and dominant chords suspended from tonal resolution": "解決を曖昧にするオーグメント・トライアドとドミナント",
+    "diminished-seventh chords and symmetrical passing movement": "ディミニッシュ7thと対称的な経過進行",
+    "Open in Scale Synthesia": "Scale Synthesiaで開く",
+    "Scale Synthesia": "スケール・シンセシア",
+    "See the scale, hear the sound, and feel the pattern—one step at a time.": "スケールを見て、聴いて、パターンを一音ずつ体感できます。",
+    "Scale practice controls": "スケール練習設定",
+    "Scale or mode": "スケール／モード",
+    Direction: "方向",
+    Ascending: "上行",
+    Descending: "下行",
+    Material: "練習素材",
+    Scale: "スケール",
+    Arpeggio: "アルペジオ",
+    "Arpeggio type": "アルペジオの種類",
+    Triad: "トライアド",
+    Seventh: "セブンス",
+    "Play scale": "スケールを再生",
+    "Stop scale": "再生を停止",
+    "Stop scale playback": "スケール再生を停止",
+    "Scale learning guide": "スケール学習ガイド",
+    "Playback sequence": "再生順",
+    "Whole and half step formula": "全音・半音の並び",
+    "Named scale degrees": "各音の役割",
+    "Scale notes": "スケール音",
+    "Named degrees": "各音の役割",
+    "Use it for": "向いている用途",
+    "clear tonal melodies · familiar cadences · bright resolution": "明快な調性の旋律・馴染みあるカデンツ・明るい解決",
+    "minor grooves · jazz-funk · modal vamps": "マイナー・グルーヴ・ジャズファンク・モーダル・ヴァンプ",
+    "dark riffs · flamenco color · flat-second tension": "ダークなリフ・フラメンコの色彩・短2度の緊張感",
+    "bright cinematic lift · floating major harmony": "明るく映画的な高揚感・浮遊するメジャー・ハーモニー",
+    "dominant grooves · rock · folk melodies": "ドミナント・グルーヴ・ロック・フォークの旋律",
+    "melancholy pop · rock · minor-key songs": "哀愁のあるポップ／ロック・短調の楽曲",
+    "unstable diminished harmony · tension studies": "不安定なディミニッシュ・ハーモニー・緊張感の研究",
+    "neoclassical metal · flamenco · dramatic minor-key tension": "ネオクラシカル・メタル・フラメンコ・劇的な短調の緊張感",
+    "half-diminished chords · dark modal movement": "ハーフディミニッシュ・暗いモーダル進行",
+    "augmented-major harmony · cinematic suspense": "オーグメント・メジャー・映画的なサスペンス",
+    "minor vamps · raised-fourth tension · fusion": "マイナー・ヴァンプ・増4度の緊張感・フュージョン",
+    "flamenco · surf rock · dominant flat-nine color": "フラメンコ・サーフロック・ドミナントb9の色彩",
+    "bright altered harmony · exotic major color": "明るいオルタード・ハーモニー・エキゾチックな長調の色彩",
+    "diminished tension · altered resolution · modern jazz": "ディミニッシュの緊張感・オルタード解決・モダンジャズ",
+    "jazz minor harmony · ascending minor melodies": "ジャズのマイナー・ハーモニー・上行する短調の旋律",
+    "minor-sus harmony · dark jazz vamps": "マイナー・サス・暗いジャズ・ヴァンプ",
+    "augmented-major chords · luminous tension": "オーグメント・メジャー・明るく張りつめた響き",
+    "dominant sharp-eleven chords · fusion · jazz": "ドミナント#11・フュージョン・ジャズ",
+    "dominant chords with minor-sixth color · film noir": "短6度の色彩を持つドミナント・フィルム・ノワール",
+    "half-diminished chords · minor ii–V movement": "ハーフディミニッシュ・短調ii–V",
+    "altered dominants · maximum tension before resolution": "オルタード・ドミナント・解決直前の最大の緊張感",
+    "country · soul · bright melodic fills": "カントリー・ソウル・明るいメロディック・フィル",
+    "rock riffs · blues solos · minor vamps": "ロック・リフ・ブルース・ソロ・マイナー・ヴァンプ",
+    "rock-and-roll · country blues · upbeat fills": "ロックンロール・カントリー・ブルース・快活なフィル",
+    "electric blues · rock leads · blue-note tension": "エレクトリック・ブルース・ロック・リード・ブルー・ノートの緊張感",
+    "dramatic folk color · metal · two augmented seconds": "劇的なフォークの色彩・メタル・2つの増2度",
+    "dreamlike ambiguity · augmented chords · impressionism": "夢のような曖昧さ・オーグメント・コード・印象主義",
+    "diminished-seventh chords · symmetrical tension": "ディミニッシュ7th・対称的な緊張感",
+    "Root color stays gold in both instrument views. Every other degree keeps its interval color.": "どちらの楽器表示でもルートはゴールド、その他の音は音程ごとの色で表示されます。",
+    "Current practice": "現在の練習",
+    "Practice summary": "練習内容",
+    "Improv Insight": "Improv Insight",
+    "Also known as": "別名",
+    "Play over this": "この進行で演奏",
+    "Ranked scale paths from the chord tones already on your timeline—not a guessed key.": "タイムライン上のコードトーンを基に、相性のよいスケールを順位付けします。推測したキーではありません。",
+    "Whole progression": "進行全体",
+    "Per chord": "コード別",
+    "Improv Insight scope": "Improv Insightの分析範囲",
+    "Chord to analyze": "分析するコード",
+    Match: "適合度",
+    Motion: "動き",
+    Tension: "テンション",
+    Palette: "音使い",
+    Style: "スタイル",
+    smooth: "滑らか",
+    jumpy: "跳躍的",
+    rises: "上昇",
+    static: "一定",
+    falls: "下降",
+    diatonic: "ダイアトニック",
+    chromatic: "クロマチック",
+    tonal: "調性的",
+    modal: "モーダル",
+    blues: "ブルース",
+    "Share this progression": "このコード進行を共有",
+    "Share progression": "コード進行を共有",
+    "A snapshot of these chords and the selected instrument view. Hanz conversations and prompts stay private.": "現在のコードと選択中の楽器表示をリンクに保存します。Hanzとの会話や入力内容は共有されません。",
+    "Close share progression": "共有パネルを閉じる",
+    "Progression link": "共有リンク",
+    "Shareable progression link": "共有用コード進行リンク",
+    "Copy link": "リンクをコピー",
+    Copied: "コピー済み",
+    "Link copied.": "リンクをコピーしました。",
+    "Copy wasn’t confirmed. The link is selected—copy it manually.": "コピーを確認できませんでした。選択中のリンクを手動でコピーしてください。",
+    Suggest: "候補",
+    "Hide grid ↑": "グリッドを閉じる ↑",
+    "Browse chords ↓": "コードを探す ↓",
+    undo: "元に戻す",
+    Off: "オフ",
+    Next: "次",
+    Jazz: "ジャズ",
+    Modal: "モーダル",
+    Basic: "基本",
+    Sus: "サス",
+    Alt: "オルタード",
+    "Chord suggestions": "コード候補",
+    "Modal root legend": "モーダル・ルートの凡例",
+    "Outside roots keep the low-fit cue.": "スケール外のルートは低適合の表示を保ちます。",
+    "Fit score legend": "適合度の凡例",
+    strong: "高適合",
+    good: "良好",
+    color: "彩り",
+    outside: "スケール外",
+    "Quick changes": "クイック変更",
+    "Quick chord changes": "クイック・コード変更",
+    Matches: "一致する候補",
+    "All chord alternatives": "すべてのコード候補",
+    "Close chord modifier": "コード変更パネルを閉じる",
+    "No matching catalog chord.": "一致するコードがカタログにありません。",
+    Fingering: "運指",
+    Modify: "変更",
+    "Previous guitar variant": "前のギター・バリエーション",
+    "Next guitar variant": "次のギター・バリエーション",
+    "Lock chord card": "コードカードをロック",
+    "Unlock chord card": "コードカードのロックを解除",
+    Lock: "ロック",
+    Unlock: "ロック解除",
+    "Hanz focus": "Hanzが注目中",
+    "Compare voicings": "ボイシングを比較",
+    "Hear the shape before you choose": "選ぶ前に響きを確認",
+    "One chord, different shapes": "同じコードを異なる形で",
+    "Color follows interval; note names confirm every choice.": "音程ごとの色と音名で各候補を確認できます。",
+    Current: "選択中",
+    Use: "使用",
+    "Hanz Hasher": "Hanz Hasher",
+    "Close Hanz Hasher": "Hanz Hasherを閉じる",
+    "Needs attention": "確認が必要",
+    Listening: "聞き取り中",
+    Connecting: "接続中",
+    Offline: "オフライン",
+    "Connecting…": "接続中…",
+    "Hanz, Help!": "Hanz、助けて！",
+    "End conversation": "会話を終了",
+    "The voice session ran into a problem.": "音声セッションで問題が発生しました。",
+    "Couldn't start the voice session — please try again.": "音声セッションを開始できませんでした。もう一度お試しください。",
+    "Could not start the voice session": "音声セッションを開始できませんでした",
+    "Could not end the session cleanly": "音声セッションを正常に終了できませんでした",
+    "Talk through a chord progression, or get the theory behind the one on your timeline.": "コード進行を一緒に考えたり、タイムライン上の進行について理論を聞いたりできます。",
+    "Ask for a progression, or have me explain the theory — keep it simple or go deep.": "進行を頼んだり、理論の説明を聞いたりできます。シンプルにも詳しくも対応します。",
+    You: "あなた",
+    "Loading voice tools…": "音声ツールを読み込み中…",
+    "Voice tools couldn’t load. Reload Harmony Hash to try again.": "音声ツールを読み込めませんでした。Harmony Hashを再読み込みしてください。",
+    "Reload Harmony Hash": "Harmony Hashを再読み込み",
   },
 };
+
+function translateDynamicJapanese(value: string): string | undefined {
+  let match = value.match(/^(\d+) characters left$/);
+  if (match) return `残り${match[1]}文字`;
+  match = value.match(/^(\d+) over the (\d+)-character limit$/);
+  if (match) return `${match[2]}文字の上限を${match[1]}文字超えています`;
+  match = value.match(/^Use (.+) in Hasher$/);
+  if (match) return `${match[1]}をハッシャーで使う`;
+  match = value.match(/^(.+) major$/);
+  if (match) return `${match[1]}メジャー`;
+  match = value.match(/^(.+) minor$/);
+  if (match) return `${match[1]}マイナー`;
+  match = value.match(/^(\d+) sharps?$/);
+  if (match) return `♯${match[1]}個`;
+  match = value.match(/^(\d+) flats?$/);
+  if (match) return `♭${match[1]}個`;
+  match = value.match(/^([A-G](?:#|b)?) (.+)$/);
+  if (match) {
+    const translatedScale = translations.ja[match[2]];
+    if (translatedScale !== undefined) return `${match[1]} ${translatedScale}`;
+  }
+  match = value.match(/^Loading (.+)…$/);
+  if (match) return `${translate("ja", match[1])}を読み込み中…`;
+  match = value.match(/^Modify (.+) chord$/);
+  if (match) return `${match[1]}のコードを変更`;
+  match = value.match(/^Modify (.+)$/);
+  if (match) return `${match[1]}を変更`;
+  match = value.match(/^Change (.+) to (.+)$/);
+  if (match) return `${match[1]}を${match[2]}に変更`;
+  match = value.match(/^Change (.+)$/);
+  if (match) return `${match[1]}を変更`;
+  match = value.match(/^Search (.+) chord alternatives$/);
+  if (match) return `${match[1]}のコード候補を検索`;
+  match = value.match(/^Search (.+) chords$/);
+  if (match) return `${match[1]}のコードを検索`;
+  match = value.match(/^(\d+) catalog choices$/);
+  if (match) return `カタログに${match[1]}件`;
+  match = value.match(/^More (.+) chords$/);
+  if (match) return `その他の${match[1]}コード`;
+  match = value.match(/^(\d+) shapes$/);
+  if (match) return `${match[1]}種類`;
+  match = value.match(/^Compare voicings for (.+)$/);
+  if (match) return `${match[1]}のボイシングを比較`;
+  match = value.match(/^Compare (.+) piano voicings$/);
+  if (match) return `${match[1]}のピアノ・ボイシングを比較`;
+  match = value.match(/^(Current|Use) (.+) voicing for (.+)$/);
+  if (match) return `${match[3]}で${match[2]}ボイシングを${match[1] === "Current" ? "選択中" : "使用"}`;
+  match = value.match(/^Hanz is focusing on (.+)$/);
+  if (match) return `Hanzが${match[1]}に注目しています`;
+  match = value.match(/^Clear (.+) chord overlay$/);
+  if (match) return `${match[1]}のコード・オーバーレイを解除`;
+  match = value.match(/^Overlay: (.+)$/);
+  if (match) return `オーバーレイ：${match[1]}`;
+  match = value.match(/^(\d+) dictionary results? · Enter submits the exact text$/);
+  if (match) return `辞書の候補${match[1]}件・Enterで入力内容を確定`;
+  match = value.match(/^(.+) notes$/);
+  if (match) return `${translate("ja", match[1])}の構成音`;
+  match = value.match(/^(.+) match$/);
+  if (match) return `${translate("ja", match[1])}の適合度`;
+  match = value.match(/^(\d+)\/(\d+) unique progression tones covered$/);
+  if (match) return `コード進行の固有音${match[2]}音中${match[1]}音をカバー`;
+  match = value.match(/^(\d+) progression tones outside the scale$/);
+  if (match) return `スケール外のコード進行音：${match[1]}音`;
+  match = value.match(/^(\d+) scale tones unused by the progression$/);
+  if (match) return `コード進行で未使用のスケール音：${match[1]}音`;
+  match = value.match(/^(.+) lens · showing (\d+) preferred scale families$/);
+  if (match) return `ムード・レンズ：${translate("ja", match[1])}・優先スケール系統を${match[2]}種類表示`;
+  match = value.match(/^(.+) lens · showing (\d+) matching scales from the shared mood vocabulary\.$/);
+  if (match) return `ムード・レンズ：${translate("ja", match[1])}・共通のムード分類から該当する${match[2]}スケールを表示しています。`;
+  match = value.match(/^(.+) lens$/);
+  if (match) return `ムード・レンズ：${translate("ja", match[1])}`;
+  match = value.match(/^Modal roots across (.+) · fill maps root modes; % tracks chord-tone fit\.$/);
+  if (match) return `${match[1]}の各モードのルートを表示・塗りはルートのモード、%はコードトーンとの適合度です。`;
+  match = value.match(/^Jazz movement after (.+) in (.+)$/);
+  if (match) return `${match[2]}で${match[1]}に続くジャズの動き`;
+  match = value.match(/^Jazz vocabulary in (.+)\. Add a chord to reveal cadence paths\.$/);
+  if (match) return `${match[1]}のジャズ語法・コードを追加するとカデンツの流れを表示します。`;
+  match = value.match(/^Ranking what follows (.+) in (.+)$/);
+  if (match) return `${match[2]}で${match[1]}に続くコードを順位付け`;
+  match = value.match(/^Key fit in (.+)\. Add a chord to rank what follows\.$/);
+  if (match) return `${match[1]}への適合度・コードを追加すると次の候補を順位付けします。`;
+  match = value.match(/^Key fit in (.+)$/);
+  if (match) return `${match[1]}への適合度`;
+  match = value.match(/^(.+) chord suggestions$/);
+  if (match) return `${translate("ja", match[1])}のコード候補`;
+  match = value.match(/^Scale degree (.+): (.+)$/);
+  if (match) return `スケールの${match[1]}度：${match[2]}`;
+  match = value.match(/^(.+) scale summary$/);
+  if (match) return `${match[1]}スケールの概要`;
+  match = value.match(/^(.+) practice map$/);
+  if (match) return `${match[1]}の練習マップ`;
+  match = value.match(/^(\d+): (.+), degree (.+)$/);
+  if (match) return `${match[1]}番：${match[2]}、${match[3]}度`;
+  match = value.match(/^(.+) mode relationships$/);
+  if (match) return `${match[1]}のモード関係図`;
+  match = value.match(/^(.+) details$/);
+  if (match) return `${translate("ja", match[1])}の詳細`;
+  return undefined;
+}
+
+export function translate(locale: Locale, key: string): string {
+  const direct = translations[locale][key] ?? translations.en[key];
+  if (direct !== undefined) return direct;
+  if (locale === "ja") return translateDynamicJapanese(key) ?? key;
+  return key;
+}

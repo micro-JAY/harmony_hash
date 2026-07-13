@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useT } from "../i18n/I18nContext";
 
 interface WorkspaceHeaderProps {
   titleId: string;
@@ -13,11 +14,12 @@ export function WorkspaceHeader({
   description,
   trailing,
 }: WorkspaceHeaderProps) {
+  const t = useT();
   return (
     <header className="hh-workspace-header">
       <div className="min-w-0">
-        <h1 id={titleId} className="hh-workspace-title">{title}</h1>
-        <p className="hh-workspace-copy">{description}</p>
+        <h1 id={titleId} className="hh-workspace-title">{t(title)}</h1>
+        <p className="hh-workspace-copy">{t(description)}</p>
       </div>
       {trailing ? <div className="hh-workspace-header__aside">{trailing}</div> : null}
     </header>
@@ -47,12 +49,13 @@ export function WorkspaceSelectControl({
   className = "w-44",
   ariaLabel,
 }: WorkspaceSelectControlProps) {
+  const t = useT();
   return (
     <label htmlFor={id} className={`hh-control-group min-w-0 ${className}`}>
-      <WorkspaceControlLabel>{label}</WorkspaceControlLabel>
+      <WorkspaceControlLabel>{t(label)}</WorkspaceControlLabel>
       <select
         id={id}
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ? t(ariaLabel) : undefined}
         value={value}
         onChange={(event) => onChange(event.currentTarget.value)}
         className="hh-select w-full"
@@ -86,12 +89,13 @@ export function WorkspaceSegmentedControl<T extends string>({
   reducedMotion,
   tone = "accent",
 }: WorkspaceSegmentedControlProps<T>) {
+  const t = useT();
   return (
     <div className="hh-control-group">
-      <WorkspaceControlLabel>{label}</WorkspaceControlLabel>
+      <WorkspaceControlLabel>{t(label)}</WorkspaceControlLabel>
       <div
         role="group"
-        aria-label={label}
+        aria-label={t(label)}
         className="hh-segmented"
         data-tone={tone}
         data-reduced-motion={reducedMotion ? "true" : "false"}
@@ -107,7 +111,7 @@ export function WorkspaceSegmentedControl<T extends string>({
               className="hh-segmented__option"
             >
               {option.icon}
-              {option.label}
+              {t(option.label)}
             </button>
           );
         })}

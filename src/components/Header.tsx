@@ -36,7 +36,7 @@ export default function Header({
       </div>
 
       <nav
-        aria-label="Workspace"
+        aria-label={t("Workspace")}
         data-reduced-motion={reduceMotion ? "true" : "false"}
         className="order-3 flex w-full justify-center gap-1 rounded-full p-1 lg:order-none lg:w-auto"
         style={{ backgroundColor: "var(--surface-overlay)" }}
@@ -49,7 +49,9 @@ export default function Header({
               type="button"
               onClick={() => onWorkspaceChange(item)}
               aria-pressed={active}
-              className="min-w-0 flex-1 rounded-full px-1.5 text-xs transition-all sm:min-w-20 sm:flex-none sm:px-3 sm:text-sm lg:min-w-24 lg:px-4"
+              className={locale === "ja"
+                ? "min-w-0 flex-1 whitespace-nowrap rounded-full px-1.5 text-[0.6875rem] transition-all sm:min-w-20 sm:flex-none sm:px-3 sm:text-sm lg:min-w-24 lg:px-4"
+                : "min-w-0 flex-1 rounded-full px-1.5 text-xs transition-all sm:min-w-20 sm:flex-none sm:px-3 sm:text-sm lg:min-w-24 lg:px-4"}
               style={{
                 minHeight: "var(--control-min-height)",
                 backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",

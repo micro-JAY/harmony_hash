@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useLocale } from "../i18n/I18nContext";
+import { useLocale, useT } from "../i18n/I18nContext";
 
 interface MinorBlendModalProps {
   onClose: () => void;
@@ -432,6 +432,7 @@ function JaContent() {
 
 export default function MinorBlendModal({ onClose }: MinorBlendModalProps) {
   const { locale } = useLocale();
+  const t = useT();
   const reduceMotion = useReducedMotion();
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -530,7 +531,7 @@ export default function MinorBlendModal({ onClose }: MinorBlendModalProps) {
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close minor blend help"
+          aria-label={t("Close minor blend help")}
           style={{
             position: "absolute",
             top: "var(--space-4)",

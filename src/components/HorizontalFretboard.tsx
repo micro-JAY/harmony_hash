@@ -10,6 +10,7 @@ import type {
   DecoratedFretboardPosition,
 } from "../lib/theory";
 import { fretboardIntervalColor } from "./fretboardVisuals";
+import { useLocale, useT } from "../i18n/I18nContext";
 
 export type FretboardLabelMode = "intervals" | "notes";
 export type FretboardHandedness = "right" | "left";
@@ -35,8 +36,6 @@ interface ActivePosition {
 }
 
 const MARKER_FRETS = new Set([3, 5, 7, 9, 12, 15]);
-const BOARD_COLUMNS = "64px repeat(16, 64px)";
-const BOARD_WIDTH = "1088px";
 const RIGHT_HANDED_FRETS = Object.freeze(Array.from({ length: 16 }, (_, fret) => fret));
 const LEFT_HANDED_FRETS = Object.freeze([...RIGHT_HANDED_FRETS].reverse());
 
@@ -79,6 +78,8 @@ export default function HorizontalFretboard({
   modeLabel,
   overlayLabel,
 }: HorizontalFretboardProps) {
+  const t = useT();
+  const { locale } = useLocale();
   const reduceMotion = useReducedMotion();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const noteRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -164,6 +165,12 @@ export default function HorizontalFretboard({
 
   const instrumentName = instrument === "guitar" ? "Guitar" : "Bass";
   const handednessLabel = handedness === "right" ? "Right-handed" : "Left-handed";
+  const viewHint = handedness === "right"
+    ? "Right-handed view runs from open strings through fret 15. Use arrow keys between highlighted notes."
+    : "Left-handed view runs from fret 15 to open strings. Use arrow keys between highlighted notes.";
+  const compactViewHint = handedness === "right"
+    ? "Right-handed compact view runs from open strings through fret 12. Use arrow keys between highlighted notes."
+    : "Left-handed compact view runs from fret 12 to open strings. Use arrow keys between highlighted notes.";
 
   return (
     <div>
@@ -172,14 +179,17 @@ export default function HorizontalFretboard({
         style={{ color: "var(--text-muted)" }}
         id="fretboard-scroll-hint"
       >
-        {handednessLabel} view runs {handedness === "right" ? "from open strings through fret 15" : "from fret 15 to open strings"}. Use arrow keys between highlighted notes.
+        <span className="hh-fretboard-hint-full">{t(viewHint)}</span>
+        <span className="hh-fretboard-hint-compact">{t(compactViewHint)}</span>
       </p>
       <div
         ref={scrollerRef}
         role="region"
-        aria-label={`${handednessLabel} ${instrumentName.toLowerCase()} fretboard in ${tuning.label} tuning`}
+        aria-label={locale === "ja"
+          ? `${t(handednessLabel)}${t(instrumentName)}のフレットボード（${t(tuning.label)}チューニング）`
+          : `${handednessLabel} ${instrumentName.toLowerCase()} fretboard in ${tuning.label} tuning`}
         aria-describedby="fretboard-scroll-hint"
-        className="w-full overflow-x-auto rounded-xl"
+        className="hh-fretboard-scroller w-full overflow-x-auto rounded-xl"
         data-testid="fretboard-scroller"
         data-reduced-motion={reduceMotion ? "true" : "false"}
         data-handedness={handedness}
@@ -203,23 +213,24 @@ export default function HorizontalFretboard({
       >
         <div
           role="grid"
-          aria-label={`${handednessLabel} ${instrumentName} scale positions in ${tuning.label} tuning`}
-          className="p-3"
+          aria-label={locale === "ja"
+            ? `${t(handednessLabel)}${t(instrumentName)}のスケール・ポジション（${t(tuning.label)}チューニング）`
+            : `${handednessLabel} ${instrumentName} scale positions in ${tuning.label} tuning`}
+          className="hh-fretboard-grid p-3"
           data-testid="fretboard-grid"
-          style={{ minWidth: "100%", width: "max-content" }}
         >
           <div
             role="row"
-            className="grid items-end"
+            className="hh-fretboard-row grid items-end"
             data-testid="fretboard-column-headers"
-            style={{ gridTemplateColumns: BOARD_COLUMNS, marginInline: "auto", width: BOARD_WIDTH }}
           >
             <span role="columnheader" />
             {visualFrets.map((fret) => (
               <span
                 key={fret}
                 role="columnheader"
-                className="pb-2 text-center"
+                aria-label={fret === 0 ? t("OPEN") : String(fret)}
+                className="hh-fretboard-header pb-2 text-center"
                 data-fret-column={fret}
                 data-open-column={fret === 0 ? "true" : undefined}
                 style={{
@@ -230,7 +241,9 @@ export default function HorizontalFretboard({
                   fontSize: "var(--text-xs)",
                 }}
               >
-                {fret === 0 ? "OPEN" : fret}
+                {fret === 0 ? (
+                  <span className="hh-fretboard-open-label" aria-hidden="true">{t("OPEN")}</span>
+                ) : fret}
               </span>
             ))}
           </div>
@@ -239,12 +252,11 @@ export default function HorizontalFretboard({
             <div
               key={`${row.string.number}-${row.string.registerLabel}`}
               role="row"
-              className="grid items-center"
-              style={{ gridTemplateColumns: BOARD_COLUMNS, marginInline: "auto", width: BOARD_WIDTH }}
+              className="hh-fretboard-row grid items-center"
             >
               <span
                 role="rowheader"
-                className="pr-3 text-right"
+                className="hh-fretboard-row-label pr-3 text-right"
                 style={{
                   color: "var(--text-secondary)",
                   fontFamily: "var(--font-mono)",
@@ -276,11 +288,19 @@ export default function HorizontalFretboard({
                   : pattern.effectiveFamily === "all"
                     ? ", visible across All positions"
                     : `, chord tone inside ${pattern.label} envelope`;
+                const japaneseChordSemantics = active?.decoration.chordTone
+                  ? `、コードトーン${active.decoration.chordTone.degree}、${active.decoration.isInScale ? "スケール内" : `${keyName}${modeLabel}スケール外`}`
+                  : "";
+                const japanesePatternSemantics = active?.decoration.isPatternTone
+                  ? `、${t(pattern.label)}のパターン音`
+                  : pattern.effectiveFamily === "all"
+                    ? `、${t("All positions")}に表示`
+                    : `、${t(pattern.label)}の範囲内のコードトーン`;
                 return (
                   <span
                     key={key}
                     role="gridcell"
-                    className="relative flex h-14 items-center justify-center"
+                    className="hh-fretboard-cell relative flex h-14 items-center justify-center"
                     data-fret={position.fret}
                     data-open-column={position.fret === 0 ? "true" : undefined}
                     style={{
@@ -319,7 +339,9 @@ export default function HorizontalFretboard({
                         tabIndex={resolvedFocusKey === key ? 0 : -1}
                         onFocus={() => setActiveFocusKey(key)}
                         onKeyDown={(event) => handleKeyDown(event, active)}
-                        aria-label={`${handednessLabel} ${instrumentName} string ${position.stringNumber} (${position.stringLabel}), ${tuning.label} tuning, fret ${position.fret}, ${position.noteLabel}${position.intervalLabel ? `, interval ${position.intervalLabel}` : ""}${patternSemantics}${chordSemantics}`}
+                        aria-label={locale === "ja"
+                          ? `${t(handednessLabel)}${t(instrumentName)}、${position.stringNumber}弦（${position.stringLabel}）、${t(tuning.label)}チューニング、${position.fret}フレット、${position.noteLabel}${position.intervalLabel ? `、音程${position.intervalLabel}` : ""}${japanesePatternSemantics}${japaneseChordSemantics}`
+                          : `${handednessLabel} ${instrumentName} string ${position.stringNumber} (${position.stringLabel}), ${tuning.label} tuning, fret ${position.fret}, ${position.noteLabel}${position.intervalLabel ? `, interval ${position.intervalLabel}` : ""}${patternSemantics}${chordSemantics}`}
                         data-string={position.stringNumber}
                         data-fret={position.fret}
                         data-note={position.noteLabel}
@@ -328,7 +350,7 @@ export default function HorizontalFretboard({
                         data-pattern-tone={active.decoration.isPatternTone ? "true" : "false"}
                         data-chord-tone={active.decoration.isChordTone ? active.decoration.chordTone?.degree : undefined}
                         data-scale-fit={active.decoration.isChordTone ? (active.decoration.isInScale ? "in" : "outside") : undefined}
-                        className="relative z-10 flex h-9 w-9 items-center justify-center rounded-full"
+                        className="hh-fretboard-note relative z-10 flex items-center justify-center rounded-full"
                         style={{
                           ...visual,
                           borderWidth: outsideScale ? "2px" : "1px",
@@ -343,7 +365,9 @@ export default function HorizontalFretboard({
                           transitionDuration: reduceMotion ? "0ms" : "var(--duration-fast)",
                         }}
                       >
-                        {outsideScale || labelMode === "notes" ? position.noteLabel : position.intervalLabel}
+                        <span className="hh-fretboard-note-label">
+                          {outsideScale || labelMode === "notes" ? position.noteLabel : position.intervalLabel}
+                        </span>
                       </button>
                     )}
                   </span>
@@ -354,14 +378,14 @@ export default function HorizontalFretboard({
 
           <div
             aria-hidden="true"
-            className="grid"
-            style={{ gridTemplateColumns: BOARD_COLUMNS, marginInline: "auto", width: BOARD_WIDTH }}
+            className="hh-fretboard-row grid"
           >
             <span />
             {visualFrets.map((fret) => (
               <span
                 key={fret}
-                className="flex h-6 items-center justify-center gap-1"
+                className="hh-fretboard-marker flex h-6 items-center justify-center gap-1"
+                data-fret={fret}
                 data-fret-marker={MARKER_FRETS.has(fret) ? fret : undefined}
                 data-double-marker={fret === 12 ? "true" : undefined}
                 data-open-column={fret === 0 ? "true" : undefined}

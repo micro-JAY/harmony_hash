@@ -110,6 +110,9 @@ test.describe("375px Hasher layout", () => {
   test("stacks the prompt and composer and keeps the Hanz popup in bounds", async ({
     page,
   }) => {
+    await page.addInitScript(() => {
+      Math.random = () => 0.99;
+    });
     await mockReadyHealth(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
 

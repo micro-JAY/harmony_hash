@@ -601,4 +601,18 @@ Rendered in-app Browser QA found and fixed a React shorthand/longhand border war
 
 **Verification:** production build and lint pass; Vitest is 1,044/1,044; full Playwright is 87/87. Desktop, tablet, 375px mobile, keyboard, pointer-hover, reduced-motion, console, and performance paths are covered. Context7 returned current React purity and Playwright locator/assertion guidance before implementation; OpenSpec was intentionally not used per the user's post-archive workflow direction. The existing large-chunk build warning remains unchanged.
 
-**Current state:** implementation commit `46be187` is pushed; after [#46](https://github.com/micro-JAY/harmony_hash/pull/46) merged, draft [#47](https://github.com/micro-JAY/harmony_hash/pull/47) was retargeted cleanly to `main`. PR #28 was closed as superseded by the merged OpenAI migration rather than conflict-resolved.
+**Current state:** Jazz merged to `main` as `b415fe5` via [#47](https://github.com/micro-JAY/harmony_hash/pull/47) after exact-head CI completed. PR #28 was closed as superseded by the merged OpenAI migration rather than conflict-resolved.
+
+---
+
+## 2026-07-13 16:20 JST — Modal Suggestion Overlay
+
+Completed the bounded Modal suggestion slice on `feat/suggestion-overlay-modal`, stacked on the green Jazz draft. Every root inside the selected Free Input context maps to its relative mode through the shared mode-family and scale-learning catalogs. Mode identity owns a stable high-contrast palette across rotations—Dorian keeps the same color when it moves from degree 2 in C Major to degree 1 in D Dorian—while intensity and percentage retain the exact chord-tone fit. Harmonic Minor exposes all seven family names; the existing selectable `ScaleType` contract remains intentionally bounded and does not add Melodic Minor to this slice.
+
+The grid adds Modal beside Off, Key, Next, and Jazz, with a dynamic legend plus visible `M1`–`M7` / `OUT` markers so users do not have to infer mode identity from color. Roots outside the selected scale keep honest fit percentages and a separate outside cue. Mood adjustment preserves modal identity or outside status, and insertion, keyboard order, reduced motion, internal mobile scrolling, and existing suggestion modes remain unchanged.
+
+The first independent review found four Medium issues: context-relative colors, an ambiguous Melodic Minor scope, an artificial outside-root score cap, and color-only cell mapping. Stable palette intervals, an exhaustive supported-context family switch, uncapped scoring, and visible markers resolved all four; the post-fix re-review found no remaining Critical, High, or Medium issue. Context7 was attempted once and stalled, so the user-authorized official React and Playwright guidance plus established repository patterns were used without repeated lookups. The in-app Browser refused localhost under its URL policy; real Chromium Playwright remained the authoritative rendered validation.
+
+**Verification:** production build and lint pass; Vitest is 1,057/1,057; full Playwright is 89/89; the focused suggestion suite is 11/11. Desktop, 820px tablet, 375px mobile, pointer, keyboard, reduced-motion, console, stable-color, mode-rotation, harmonic-minor, mood-preservation, overflow, and sub-500ms recomputation paths are covered. The initial bundle increases by about 1.7 kB gzip from consuming the existing shared mode/learning catalogs; the pre-existing large-chunk warning remains.
+
+**Current state:** implementation commit `2a2dc58` is pushed to `origin/feat/suggestion-overlay-modal`; after #47 merged, draft [#48](https://github.com/micro-JAY/harmony_hash/pull/48) was retargeted to `main` and refreshed with the exact `main` merge ancestry. Keep #48 unmerged until its refreshed exact-head CI completes.

@@ -83,9 +83,12 @@ export type {
 export {
   findLastResolvedChord,
   harmonicFitTier,
+  modalRootIdentityFor,
+  modalRootLegend,
   scoreChordKeyFit,
   scoreJazzChordFit,
   scoreJazzVocabularyFit,
+  scoreModalChordFit,
   scoreNextChordFit,
   scoreRootMotionFit,
   scoreVoiceLeadingFit,
@@ -97,6 +100,8 @@ export type {
   HarmonyContext,
   JazzHarmonicFitComponents,
   JazzHarmonicFitResult,
+  ModalHarmonicFitResult,
+  ModalRootIdentity,
 } from "./harmonicSuggestions";
 
 export {

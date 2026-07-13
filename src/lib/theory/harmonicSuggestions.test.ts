@@ -4,9 +4,12 @@ import type { IndexedChord } from "../types";
 import {
   findLastResolvedChord,
   harmonicFitTier,
+  modalRootIdentityFor,
+  modalRootLegend,
   scoreChordKeyFit,
   scoreJazzChordFit,
   scoreJazzVocabularyFit,
+  scoreModalChordFit,
   scoreNextChordFit,
   scoreRootMotionFit,
   scoreVoiceLeadingFit,
@@ -197,6 +200,106 @@ describe("scoreJazzChordFit", () => {
 
     expect(second).toEqual(first);
     expect(history.map((item) => item.displayName)).toEqual(["Dm7", "G7"]);
+  });
+});
+
+describe("scoreModalChordFit", () => {
+  it("maps each C-major scale degree to its relative major-mode identity", () => {
+    expect(modalRootLegend(C_MAJOR).map(({ degree, scaleId, label }) => ({
+      degree,
+      scaleId,
+      label,
+    }))).toEqual([
+      { degree: 1, scaleId: "major", label: "Major (Ionian)" },
+      { degree: 2, scaleId: "dorian", label: "Dorian" },
+      { degree: 3, scaleId: "phrygian", label: "Phrygian" },
+      { degree: 4, scaleId: "lydian", label: "Lydian" },
+      { degree: 5, scaleId: "mixolydian", label: "Mixolydian" },
+      { degree: 6, scaleId: "natural_minor", label: "Natural Minor (Aeolian)" },
+      { degree: 7, scaleId: "locrian", label: "Locrian" },
+    ]);
+  });
+
+  it("rotates modal identities with the selected mode", () => {
+    const context = { key: "D", scaleType: "dorian" } as const;
+
+    expect(modalRootIdentityFor("D", context)).toMatchObject({
+      degree: 1,
+      rootInterval: 0,
+      paletteInterval: 2,
+      scaleId: "dorian",
+      label: "Dorian",
+    });
+    expect(modalRootIdentityFor("G", context)).toMatchObject({
+      degree: 4,
+      scaleId: "mixolydian",
+      label: "Mixolydian",
+    });
+    expect(modalRootIdentityFor("C#", context)).toBeNull();
+    expect(modalRootIdentityFor("D", C_MAJOR)).toMatchObject({
+      degree: 2,
+      rootInterval: 2,
+      paletteInterval: 2,
+      scaleId: "dorian",
+    });
+  });
+
+  it("uses the complete harmonic-minor mode family", () => {
+    const context = { key: "A", scaleType: "harmonic_minor" } as const;
+
+    expect(modalRootIdentityFor("B", context)).toMatchObject({
+      degree: 2,
+      scaleId: "locrian_natural_6",
+      label: "Locrian natural 6",
+    });
+    expect(modalRootIdentityFor("E", context)).toMatchObject({
+      degree: 5,
+      scaleId: "phrygian_dominant",
+      label: "Phrygian Dominant",
+    });
+    expect(modalRootIdentityFor("G#", context)).toMatchObject({
+      degree: 7,
+      scaleId: "altered_diminished",
+      label: "Altered Diminished",
+    });
+  });
+
+  it("keeps exact chord-tone fit while marking roots outside the selected mode", () => {
+    const tonic = scoreModalChordFit(chord("Cmaj7"), C_MAJOR);
+    const outsideChord = chord("C#dim");
+    const outsideKeyFit = scoreChordKeyFit(outsideChord, C_MAJOR);
+    const outside = scoreModalChordFit(outsideChord, C_MAJOR);
+
+    expect(tonic).toMatchObject({
+      basis: "modal",
+      score: 100,
+      tier: "strong",
+      modal: { degree: 1, rootInterval: 0, paletteInterval: 0, scaleId: "major" },
+    });
+    expect(tonic.reasons).toContain("Major (Ionian) mode on scale degree 1");
+    expect(outside.basis).toBe("modal");
+    expect(outside.score).toBe(outsideKeyFit.score);
+    expect(outside.tier).toBe(outsideKeyFit.tier);
+    expect(outside.modal).toBeNull();
+    expect(outside.reasons).toContain("root falls outside C major");
+  });
+
+  it("is deterministic and returns immutable legend records", () => {
+    const first = scoreModalChordFit(chord("Dm7"), C_MAJOR);
+    const second = scoreModalChordFit(chord("Dm7"), C_MAJOR);
+    const legend = modalRootLegend(C_MAJOR);
+
+    expect(second).toEqual(first);
+    expect(Object.isFrozen(legend)).toBe(true);
+    expect(legend.every((item) => Object.isFrozen(item))).toBe(true);
+    expect(modalRootLegend({ key: "G", scaleType: "major" })).toBe(legend);
+  });
+
+  it.each([
+    "major", "natural_minor", "harmonic_minor", "dorian",
+    "mixolydian", "lydian", "phrygian",
+  ] as const)("publishes all seven identities for supported %s context", (scaleType) => {
+    expect(modalRootLegend({ key: "C", scaleType })).toHaveLength(7);
   });
 });
 

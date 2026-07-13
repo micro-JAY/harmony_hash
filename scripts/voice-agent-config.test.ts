@@ -416,6 +416,18 @@ describe("voice agent verification", () => {
     });
   });
 
+  it("ignores null built-in placeholders while retaining configured tools", () => {
+    const parsed = readAgentConfiguration(livePayload({
+      built_in_tools: {
+        end_call: null,
+        language_detection: null,
+        transfer_to_number: {},
+      },
+    }));
+
+    expect(parsed.builtInToolNames).toEqual(["transfer_to_number"]);
+  });
+
   it("rejects an altered legacy client mirror when the provider returns it", () => {
     const parsed = readAgentConfiguration(livePayload({
       tools: TOOL_SCHEMAS.map((_, index) =>

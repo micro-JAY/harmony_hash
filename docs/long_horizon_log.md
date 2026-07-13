@@ -683,4 +683,4 @@ The first live provisioning retry exposed provider-added defaults across the cur
 
 The live source update then succeeded, and an immediate verify-only readback independently confirmed Hanz Hasher has signed authentication, an empty hostname allowlist, exactly the nine source-owned client tools, no built-ins, no MCP servers, no workflow nodes or edges, and no unknown capability fields. No API key or signed URL was read or printed. Production build and lint pass; Vitest is 1,095/1,095; full exact-head Playwright is 102/102. PR #28 remains closed, unmerged, and superseded; GitHub retains it as historical record, so no deletion or conflict resolution is needed.
 
-**Current state:** S.5 product and provider compatibility changes are merged to `main` at `3cf1246`. Next: merge this docs-only ledger reconciliation after its independent accuracy review and green exact-head CI.
+**Current state:** S.5 product and provider compatibility changes are merged to `main` at `3cf1246`. The independently reviewed docs-only reconciliation is [#64](https://github.com/micro-JAY/harmony_hash/pull/64); next is its green exact-head merge.

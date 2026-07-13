@@ -63,9 +63,9 @@ On 2026-07-13 the production app loaded successfully in a real browser and repor
 
 Later that day, the source-owned provisioning workflow updated the existing Hanz Hasher agent and a separate verify-only readback confirmed signed authentication, an empty hostname allowlist, exactly nine linked client tools, no built-ins or MCP servers, no active workflow graph, and no unknown capability fields. The guard accepts only exact inert provider defaults; nonempty parameter bindings, omissions, constraints, and tool behavior remain fail-closed. No credential or signed URL was read or printed.
 
-## Complete run PR ledger
+## Product-baseline PR ledger
 
-This ledger covers every pull request from the start of the documented long-horizon run through its final milestone reconciliation. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
+This ledger covers every pull request from the start of the documented long-horizon run through the latest merged product baseline, [#63](https://github.com/micro-JAY/harmony_hash/pull/63). The docs-only projection PR is recorded in the dated log rather than assigning itself a merged status. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
 
 | PR | Status | Contribution |
 |---|---|---|

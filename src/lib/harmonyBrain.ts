@@ -5,6 +5,8 @@ import type {
   VoicedChord,
   VoicedNote,
   VoicingStyle,
+  ExplicitVoicingStyle,
+  VoicingComparison,
   ScaleType,
 } from "./types";
 import { lookupChord, normalizeRoot, NOTE_NAMES } from "./chordData";
@@ -218,7 +220,10 @@ function enumerateVoicingCandidates(noteNames: string[]): VoicedChord[] {
  * single-semitone step contributes 1. Empty prior or candidate → 0
  * so the metric stays well-defined for the first chord and edge cases.
  */
-function voicingDistance(prior: VoicedNote[], candidate: VoicedNote[]): number {
+function voicingDistance(
+  prior: ReadonlyArray<VoicedNote>,
+  candidate: ReadonlyArray<VoicedNote>,
+): number {
   if (prior.length === 0 || candidate.length === 0) return 0;
   let total = 0;
   for (const c of candidate) {
@@ -232,7 +237,7 @@ function voicingDistance(prior: VoicedNote[], candidate: VoicedNote[]): number {
   return total;
 }
 
-function averageMidi(notes: VoicedNote[]): number {
+function averageMidi(notes: ReadonlyArray<VoicedNote>): number {
   if (notes.length === 0) return 0;
   let sum = 0;
   for (const n of notes) sum += n.midi;
@@ -245,7 +250,7 @@ function averageMidi(notes: VoicedNote[]): number {
  * `computeVoicing`'s existing preference for the lower register and
  * keeps the result deterministic.
  */
-function pickBestCandidate(prior: VoicedNote[], candidates: VoicedChord[]): VoicedChord {
+function pickBestCandidate(prior: ReadonlyArray<VoicedNote>, candidates: VoicedChord[]): VoicedChord {
   let best = candidates[0];
   let bestDistance = voicingDistance(prior, best.notes);
   let bestAvgMidi = averageMidi(best.notes);
@@ -291,7 +296,10 @@ export function computeVoiceLedProgression(
 
   const result: VoicedChord[] = [first];
   for (let i = 1; i < progressionNotes.length; i++) {
-    const candidates = enumerateVoicingCandidatesForStyle(progressionNotes[i], styleAt(i));
+    const styledCandidates = enumerateVoicingCandidatesForStyle(progressionNotes[i], styleAt(i));
+    const candidates = styledCandidates.length > 0
+      ? styledCandidates
+      : enumerateVoicingCandidates(progressionNotes[i]);
     const best = pickBestCandidate(result[i - 1].notes, candidates);
     result.push(best);
   }
@@ -299,6 +307,16 @@ export function computeVoiceLedProgression(
 }
 
 // ─── 3.8: Extended Voicing Styles (v3) ──────────────────────────────
+
+/** Canonical order shared by randomization and the comparison UI. */
+export const EXPLICIT_VOICING_STYLES: ReadonlyArray<ExplicitVoicingStyle> = [
+  "drop2",
+  "drop3",
+  "rootless",
+  "shell",
+  "spread",
+  "two-hand",
+];
 
 /**
  * Whether the chord notes (canonical order: root, 3rd, 5th, 7th, ...)
@@ -577,6 +595,12 @@ export function enumerateVoicingCandidatesForStyle(
   return [];
 }
 
+/** Whether a style has at least one C3-B5 candidate, not just the required chord tones. */
+export function isVoicingStyleAvailable(noteNames: string[], style: VoicingStyle): boolean {
+  if (!isStyleApplicable(noteNames, style)) return false;
+  return enumerateVoicingCandidatesForStyle(noteNames, style).length > 0;
+}
+
 /**
  * Compute a single voiced chord for the given style. Returns the
  * first deterministic candidate — root inversion at the lowest
@@ -590,6 +614,25 @@ export function computeVoicingForStyle(noteNames: string[], style: VoicingStyle)
   }
   const candidates = enumerateVoicingCandidatesForStyle(noteNames, style);
   return candidates[0] ?? computeVoicing(noteNames);
+}
+
+/** Return the exact selectable voicing for every available explicit style. */
+export function computeVoicingComparisons(
+  noteNames: string[],
+  priorNotes: ReadonlyArray<VoicedNote> = [],
+): VoicingComparison[] {
+  if (noteNames.length === 0) return [];
+
+  return EXPLICIT_VOICING_STYLES.flatMap((style) => {
+    const candidates = enumerateVoicingCandidatesForStyle(noteNames, style);
+    if (candidates.length === 0) return [];
+    return [{
+      style,
+      voicing: priorNotes.length > 0
+        ? pickBestCandidate(priorNotes, candidates)
+        : candidates[0],
+    }];
+  });
 }
 
 // ─── 3.3 / 3.4: Roman Numeral Parser & Transposition ────────────────

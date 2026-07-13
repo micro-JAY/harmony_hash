@@ -1,10 +1,14 @@
 import type { PianoDisplayMode, VoicedNote } from "../lib/types";
+import { formatNoteForDisplay } from "../lib/chordData";
+import { fretboardIntervalColor } from "./fretboardVisuals";
 
 interface PianoKeyboardProps {
   voicedNotes: VoicedNote[];
   displayMode: PianoDisplayMode;
   preferFlats: boolean;
   rootNote: string;
+  size?: "standard" | "compact";
+  colorMode?: "hand" | "interval";
 }
 
 // 3-octave keyboard: C3 to B5
@@ -108,7 +112,10 @@ function getBlackKeyOffset(note: string, octave: number, whiteKeyWidth: number):
 export default function PianoKeyboard({
   voicedNotes,
   displayMode,
+  preferFlats,
   rootNote,
+  size = "standard",
+  colorMode = "hand",
 }: PianoKeyboardProps) {
   const activeSet = new Map<number, VoicedNote>();
   for (const note of voicedNotes) {
@@ -118,6 +125,11 @@ export default function PianoKeyboard({
   const rootCanonical = normalizeNoteName(rootNote);
   const rootPitchClass = NOTE_TO_PITCH_CLASS[rootCanonical];
   const rootMidi = voicedNotes.find((note) => normalizeNoteName(note.name) === rootCanonical)?.midi;
+  const sortedNotes = [...voicedNotes].sort((a, b) => a.midi - b.midi);
+  const activeMidis = sortedNotes.map((note) => note.midi);
+  const voicedNoteLabel = sortedNotes
+    .map((note) => `${formatNoteForDisplay(note.name, preferFlats)}${note.octave}`)
+    .join(", ");
 
   const fingeringByMidi = new Map<number, string>();
   if (displayMode === "fingering") {
@@ -142,15 +154,31 @@ export default function PianoKeyboard({
     return displayMode === "fingering" && rootMidi !== undefined && active.midi === rootMidi;
   }
 
-  const whiteKeyW = 30;
-  const whiteKeyH = 100;
-  const blackKeyW = 18;
-  const blackKeyH = 60;
+  function activeKeyColor(active: VoicedNote, rootFingerKey: boolean, isBlack: boolean): string {
+    if (colorMode === "interval" && rootPitchClass !== undefined) {
+      const interval = ((active.pitchClass - rootPitchClass) % 12 + 12) % 12;
+      return fretboardIntervalColor(interval);
+    }
+    if (rootFingerKey) return "var(--text-accent)";
+    if (active.hand === "left") return "var(--palette-apricot)";
+    return isBlack ? "var(--text-accent)" : "var(--palette-gold)";
+  }
+
+  const compact = size === "compact";
+  const whiteKeyW = compact ? 12 : 30;
+  const whiteKeyH = compact ? 64 : 100;
+  const blackKeyW = compact ? 8 : 18;
+  const blackKeyH = compact ? 40 : 60;
   const totalWidth = WHITE_KEYS.length * whiteKeyW;
 
   return (
     <div
       data-testid="piano-keyboard"
+      data-size={size}
+      data-color-mode={colorMode}
+      data-active-midis={activeMidis.join(",")}
+      role="img"
+      aria-label={`Piano voicing: ${voicedNoteLabel || "no notes"}`}
       className="relative mx-auto"
       style={{ width: totalWidth, height: whiteKeyH }}
     >
@@ -172,11 +200,7 @@ export default function PianoKeyboard({
               width: whiteKeyW - 1,
               height: whiteKeyH,
               backgroundColor: active
-                ? rootFingerKey
-                  ? "var(--text-accent)"
-                  : active.hand === "left"
-                    ? "var(--palette-apricot)"
-                    : "var(--palette-gold)"
+                ? activeKeyColor(active, rootFingerKey, false)
                 : "var(--palette-white)",
               border: "1px solid var(--border-default)",
               borderRadius: "0 0 var(--radius-sm) var(--radius-sm)",
@@ -225,11 +249,7 @@ export default function PianoKeyboard({
               width: blackKeyW,
               height: blackKeyH,
               backgroundColor: active
-                ? rootFingerKey
-                  ? "var(--text-accent)"
-                  : active.hand === "left"
-                    ? "var(--palette-apricot)"
-                    : "var(--text-accent)"
+                ? activeKeyColor(active, rootFingerKey, true)
                 : "var(--palette-black)",
               border: "1px solid var(--border-strong)",
               borderRadius: "0 0 var(--radius-sm) var(--radius-sm)",

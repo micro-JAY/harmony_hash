@@ -64,6 +64,13 @@ export type VoicingStyle =
   | "spread"
   | "two-hand";
 
+export type ExplicitVoicingStyle = Exclude<VoicingStyle, "auto">;
+
+export interface VoicingComparison {
+  style: ExplicitVoicingStyle;
+  voicing: VoicedChord;
+}
+
 export type ScaleType = "major" | "natural_minor" | "harmonic_minor" | "dorian" | "mixolydian" | "lydian" | "phrygian";
 
 export interface PresetProgression {

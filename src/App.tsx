@@ -6,7 +6,11 @@ import type { NoteNeuralNetworkState } from "./components/NoteNeuralNetwork";
 import ProgressionInput from "./components/ProgressionInput";
 import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
-import { computeVoiceLedProgression, isStyleApplicable } from "./lib/harmonyBrain";
+import {
+  computeVoiceLedProgression,
+  EXPLICIT_VOICING_STYLES,
+  isVoicingStyleAvailable,
+} from "./lib/harmonyBrain";
 import { lookupChord, parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
 import type { ChordModifierOption } from "./lib/chordModifiers";
@@ -22,17 +26,6 @@ const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 const CircleOfFifths = lazy(() => import("./components/CircleOfFifths"));
 const ScaleSynthesia = lazy(() => import("./components/ScaleSynthesia"));
 const NoteNeuralNetwork = lazy(() => import("./components/NoteNeuralNetwork"));
-
-// Explicit (non-Auto) styles randomize cycles through. Auto is omitted
-// because it would defeat the "shake it up" intent of the button.
-const RANDOM_PIANO_STYLES: ReadonlyArray<VoicingStyle> = [
-  "drop2",
-  "drop3",
-  "rootless",
-  "shell",
-  "spread",
-  "two-hand",
-];
 
 const PLAYBACK_BPM = 80;
 
@@ -244,8 +237,8 @@ function App() {
       chords.forEach((chordResult, index) => {
         if (lockedCards.has(index)) return;
         const notes = parseNotes(chordResult.chord.entry);
-        const applicable = RANDOM_PIANO_STYLES.filter((style) =>
-          isStyleApplicable(notes, style),
+        const applicable = EXPLICIT_VOICING_STYLES.filter((style) =>
+          isVoicingStyleAvailable(notes, style),
         );
         if (applicable.length === 0) {
           next[index] = "auto";
@@ -287,7 +280,7 @@ function App() {
     }));
     setPianoStyles((prev) => {
       const currentStyle = prev[index];
-      if (!currentStyle || isStyleApplicable(parseNotes(option.chord.entry), currentStyle)) {
+      if (!currentStyle || isVoicingStyleAvailable(parseNotes(option.chord.entry), currentStyle)) {
         return prev;
       }
       return { ...prev, [index]: "auto" };
@@ -482,6 +475,7 @@ function App() {
                     isLocked={lockedCards.has(index)}
                     onToggleLock={() => handleToggleLock(index)}
                     voicing={pianoVoicings[index]}
+                    priorVoicing={pianoVoicings[index - 1]}
                     pianoStyle={getPianoStyle(index)}
                     onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
                     onChordChange={(option) => replaceChordAt(index, option)}

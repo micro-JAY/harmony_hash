@@ -103,7 +103,7 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
   {
     name: "play_progression",
     description:
-      "Play the current progression so the user can hear it. Playback is available in the piano view only; if the guitar view is active the tool reports that, so tell the user to switch to piano.",
+      "Play the current progression so the user can hear it. Read the returned status exactly: started means playback began, already_playing means a start is already underway or playback was left running without a restart, requires_piano means the user must switch from guitar to piano, empty means the timeline has no chords, cancelled means a user or timeline change stopped the pending start, and unavailable means this browser cannot start audio.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },

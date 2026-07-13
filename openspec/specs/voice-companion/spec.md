@@ -79,7 +79,32 @@ the agent rather than being silently dropped.
 #### Scenario: Playback constraint
 - **WHEN** the agent calls `play_progression` while the guitar view is active
 - **THEN** playback SHALL NOT start
-- **AND** the agent SHALL be told that playback requires the piano view
+- **AND** the tool SHALL return a `requires_piano` status
+
+#### Scenario: Empty timeline
+- **WHEN** the agent calls `play_progression` in the piano view with no timeline chords
+- **THEN** playback SHALL NOT start
+- **AND** the tool SHALL return an `empty` status
+
+#### Scenario: Playback starts
+- **WHEN** the agent calls `play_progression` with chords in the piano view and playback is idle
+- **THEN** playback SHALL start once
+- **AND** the tool SHALL return a `started` status
+
+#### Scenario: Playback is already active
+- **WHEN** the agent calls `play_progression` while progression playback is starting or already running
+- **THEN** playback SHALL NOT restart or overlap
+- **AND** the tool SHALL return an `already_playing` status
+
+#### Scenario: Audio cannot start
+- **WHEN** the browser cannot create, resume, or schedule a running audio context
+- **THEN** the tool SHALL return an `unavailable` status
+- **AND** SHALL NOT claim playback started
+
+#### Scenario: Pending playback is cancelled
+- **WHEN** a user action or timeline mutation cancels playback while audio is still starting
+- **THEN** the tool SHALL return a `cancelled` status
+- **AND** SHALL NOT describe the browser as incapable of audio playback
 
 ### Requirement: Live agent configuration matches the signed-URL client
 The provisioned ElevenLabs agent SHALL have signed-URL authentication enabled and SHALL expose exactly the nine client-tool contracts defined by the app through the modern toolbox and `tool_ids` API. Updating the source-owned prompt, tools, or auth SHALL preserve live identity and the complete TTS configuration.
@@ -105,4 +130,3 @@ The provisioned ElevenLabs agent SHALL have signed-URL authentication enabled an
 #### Scenario: Existing identity preserved
 - **WHEN** an existing agent is updated in place
 - **THEN** the update SHALL NOT overwrite its live name, voice id, or TTS model unless those fields were explicitly requested
-

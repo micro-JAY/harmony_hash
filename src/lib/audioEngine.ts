@@ -50,6 +50,32 @@ export interface PlaybackHandle {
   stop: () => void;
 }
 
+interface PlaybackAudioParam {
+  value: number;
+  setValueAtTime(value: number, startTime: number): AudioParam;
+  linearRampToValueAtTime(value: number, endTime: number): AudioParam;
+}
+
+interface PlaybackGainNode<Destination> {
+  gain: PlaybackAudioParam;
+  connect(destination: Destination): unknown;
+}
+
+interface PlaybackOscillatorNode<Gain> {
+  type: OscillatorType;
+  frequency: { value: number };
+  connect(gain: Gain): unknown;
+  start(when?: number): void;
+  stop(when?: number): void;
+}
+
+interface PlaybackAudioContext<Destination, Gain, Oscillator> {
+  currentTime: number;
+  destination: Destination;
+  createGain(): Gain;
+  createOscillator(): Oscillator;
+}
+
 /**
  * Play a schedule using the provided AudioContext. Returns a handle
  * with `stop()` that interrupts playback. The `onChordChange` callback
@@ -59,66 +85,74 @@ export interface PlaybackHandle {
  * Each note is a triangle wave with a simple ADSR envelope — soft
  * enough to layer chord tones without the harshness of pure sines.
  */
-export function playSchedule(
+export function playSchedule<
+  Destination,
+  Gain extends PlaybackGainNode<Destination>,
+  Oscillator extends PlaybackOscillatorNode<Gain>,
+>(
   schedule: ReadonlyArray<PlaybackEvent>,
-  context: AudioContext,
+  context: PlaybackAudioContext<Destination, Gain, Oscillator>,
   onChordChange?: (chordIndex: number | null) => void,
 ): PlaybackHandle {
   const startedAt = context.currentTime;
-  const oscillators: OscillatorNode[] = [];
-  const gains: GainNode[] = [];
+  const oscillators: Oscillator[] = [];
   const timeouts: ReturnType<typeof setTimeout>[] = [];
-
-  for (const event of schedule) {
-    const eventStart = startedAt + event.startTime;
-    const eventEnd = eventStart + event.duration;
-
-    const msToStart = Math.max(0, event.startTime * 1000);
-    timeouts.push(setTimeout(() => onChordChange?.(event.chordIndex), msToStart));
-
-    for (const midi of event.notes) {
-      const osc = context.createOscillator();
-      osc.type = "triangle";
-      osc.frequency.value = midiToFrequency(midi);
-
-      const gain = context.createGain();
-      const peak = 0.12 / Math.max(1, event.notes.length / 3);
-
-      gain.gain.setValueAtTime(0, eventStart);
-      gain.gain.linearRampToValueAtTime(peak, eventStart + 0.02);
-      gain.gain.linearRampToValueAtTime(peak * 0.7, eventStart + 0.15);
-      gain.gain.setValueAtTime(peak * 0.7, Math.max(eventStart + 0.16, eventEnd - 0.08));
-      gain.gain.linearRampToValueAtTime(0, eventEnd);
-
-      osc.connect(gain).connect(context.destination);
-      osc.start(eventStart);
-      osc.stop(eventEnd + 0.05);
-      oscillators.push(osc);
-      gains.push(gain);
-    }
-  }
-
-  // Clear the active-chord callback once playback ends.
-  const lastEvent = schedule[schedule.length - 1];
-  if (lastEvent) {
-    const endMs = (lastEvent.startTime + lastEvent.duration) * 1000 + 50;
-    timeouts.push(setTimeout(() => onChordChange?.(null), endMs));
-  }
-
   let stopped = false;
-  return {
-    stop: () => {
-      if (stopped) return;
-      stopped = true;
-      timeouts.forEach((t) => clearTimeout(t));
-      for (const osc of oscillators) {
-        try {
-          osc.stop();
-        } catch {
-          // Already stopped or never started — ignore.
-        }
+
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    timeouts.forEach((timeout) => clearTimeout(timeout));
+    for (const oscillator of oscillators) {
+      try {
+        oscillator.stop();
+      } catch {
+        // Already stopped or never started — cleanup is still complete.
       }
-      onChordChange?.(null);
-    },
+    }
+    onChordChange?.(null);
   };
+
+  try {
+    for (const event of schedule) {
+      const eventStart = startedAt + event.startTime;
+      const eventEnd = eventStart + event.duration;
+
+      const msToStart = Math.max(0, event.startTime * 1000);
+      timeouts.push(setTimeout(() => onChordChange?.(event.chordIndex), msToStart));
+
+      for (const midi of event.notes) {
+        const osc = context.createOscillator();
+        oscillators.push(osc);
+        osc.type = "triangle";
+        osc.frequency.value = midiToFrequency(midi);
+
+        const gain = context.createGain();
+        const peak = 0.12 / Math.max(1, event.notes.length / 3);
+
+        gain.gain.setValueAtTime(0, eventStart);
+        gain.gain.linearRampToValueAtTime(peak, eventStart + 0.02);
+        gain.gain.linearRampToValueAtTime(peak * 0.7, eventStart + 0.15);
+        gain.gain.setValueAtTime(peak * 0.7, Math.max(eventStart + 0.16, eventEnd - 0.08));
+        gain.gain.linearRampToValueAtTime(0, eventEnd);
+
+        osc.connect(gain);
+        gain.connect(context.destination);
+        osc.start(eventStart);
+        osc.stop(eventEnd + 0.05);
+      }
+    }
+
+    // Clear the active-chord callback once playback ends.
+    const lastEvent = schedule[schedule.length - 1];
+    if (lastEvent) {
+      const endMs = (lastEvent.startTime + lastEvent.duration) * 1000 + 50;
+      timeouts.push(setTimeout(() => onChordChange?.(null), endMs));
+    }
+  } catch (error) {
+    stop();
+    throw error;
+  }
+
+  return { stop };
 }

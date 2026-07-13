@@ -150,6 +150,34 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     await expect(page.getByRole("button", { name: "Stop playback" })).toBeVisible();
   });
 
+  test("shows a truthful disabled state while browser audio is starting", async ({ page }) => {
+    await page.addInitScript(() => {
+      class SuspendedAudioContext {
+        state = "suspended";
+
+        resume(): Promise<void> {
+          return new Promise<void>(() => undefined);
+        }
+      }
+
+      Object.defineProperty(window, "AudioContext", {
+        configurable: true,
+        value: SuspendedAudioContext,
+      });
+    });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await composeProgression(page, ["Dm7", "G7", "Cmaj7"]);
+    await page.getByRole("button", { name: "Piano" }).click();
+
+    await page.getByRole("button", { name: "Play progression" }).click();
+
+    const starting = page.getByRole("button", { name: "Starting playback" });
+    await expect(starting).toBeVisible();
+    await expect(starting).toBeDisabled();
+    await expect(starting).toHaveText(/Starting…/);
+    await expect(starting).toHaveAttribute("aria-busy", "true");
+  });
+
   test("piano style selector applies Shell to a chord and re-voices the keyboard", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 

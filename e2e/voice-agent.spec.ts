@@ -3,10 +3,64 @@ import { expect, test } from "@playwright/test";
 const HELP_LABEL = /Need help\?|Stuck\?|Writer's block got you down\?|Phone a friend/;
 
 test.describe("Hanz Hasher voice sessions", () => {
+  test("loads the voice runtime on help intent and reuses it after closing", async ({
+    page,
+  }) => {
+    const voiceRuntimeRequests: string[] = [];
+    page.on("request", (request) => {
+      if (/\/assets\/VoiceAgentRuntime-[^/]+\.js$/.test(new URL(request.url()).pathname)) {
+        voiceRuntimeRequests.push(request.url());
+      }
+    });
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    expect(voiceRuntimeRequests).toHaveLength(0);
+
+    await page
+      .getByRole("textbox", { name: "Describe the progression you want" })
+      .fill("preload Hanz when I show intent");
+    const help = page.getByRole("button", { name: HELP_LABEL });
+    await help.focus();
+    await expect.poll(() => voiceRuntimeRequests.length).toBe(1);
+    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+
+    await help.click();
+    const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+    await expect(dialog).toBeVisible();
+    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await expect(dialog).toHaveCount(0);
+
+    await help.click();
+    await expect(dialog).toBeVisible();
+    expect(voiceRuntimeRequests).toHaveLength(1);
+  });
+
+  test("contains a voice-runtime payload failure and offers a clean reload", async ({
+    page,
+  }) => {
+    await page.route("**/assets/VoiceAgentRuntime-*.js", async (route) => {
+      await route.abort("failed");
+    });
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page
+      .getByRole("textbox", { name: "Describe the progression you want" })
+      .fill("recover Hanz without losing the Hasher");
+    await page.getByRole("button", { name: HELP_LABEL }).click();
+
+    await expect(page.getByRole("alert")).toHaveText(
+      "Voice tools couldn’t load. Reload Harmony Hash to try again.",
+    );
+    await expect(page.getByText("HARMONY HASH", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Reload Harmony Hash" })).toBeVisible();
+  });
+
   test("surfaces a signed-URL failure and restores the connect action", async ({
     page,
   }) => {
+    let signedUrlRequests = 0;
     await page.route("**/api/voice/signed-url", async (route) => {
+      signedUrlRequests += 1;
       await route.fulfill({
         status: 502,
         contentType: "application/json",
@@ -28,6 +82,11 @@ test.describe("Hanz Hasher voice sessions", () => {
       page.getByRole("button", { name: "Hanz, Help!" }),
     ).toBeEnabled();
     await expect(page.getByText("Needs attention", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: HELP_LABEL }).click();
+    await expect(page.getByRole("alert")).toHaveText("Could not start a voice session");
+    expect(signedUrlRequests).toBe(1);
   });
 
   test("does not request microphone access on mount and restores help focus on Escape", async ({
@@ -88,6 +147,7 @@ test.describe("Hanz Hasher voice sessions", () => {
       }
       Object.defineProperty(mediaDevices, "getUserMedia", {
         configurable: true,
+        writable: true,
         value: async () => {
           (window as unknown as { __micRequests: number }).__micRequests += 1;
           return new MediaStream();
@@ -117,6 +177,7 @@ test.describe("Hanz Hasher voice sessions", () => {
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("help in landscape");
     await page.getByRole("button", { name: HELP_LABEL }).click();
+    await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
 
     const bounds = await page.getByRole("dialog", { name: "Hanz Hasher" }).evaluate((element) => {
       const rect = element.getBoundingClientRect();

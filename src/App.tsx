@@ -113,6 +113,18 @@ function App() {
   // the playback cursor (isPlaying derives from it), so the agent highlighting a
   // chord must not look like playback or block the Play button / play tool.
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (import.meta.env.VITE_HH_E2E !== "true") return;
+
+    const testWindow = window as Window & {
+      __hhSetHanzFocus?: (index: number | null) => void;
+    };
+    testWindow.__hhSetHanzFocus = setHighlightedChordIndex;
+    return () => {
+      delete testWindow.__hhSetHanzFocus;
+    };
+  }, []);
   const [hanzOpen, setHanzOpen] = useState(false);
   const [voiceRuntimeRequested, setVoiceRuntimeRequested] = useState(false);
   const [VoiceAgentRuntime, setVoiceAgentRuntime] = useState<ComponentType<VoiceAgentRuntimeProps> | null>(null);
@@ -135,9 +147,14 @@ function App() {
   const timelineVersionRef = useRef(0);
   const [timelineVersion, setTimelineVersion] = useState(0);
 
+  const handleCloseHanz = useCallback(() => {
+    setHanzOpen(false);
+    setHighlightedChordIndex(null);
+  }, []);
+
   useEffect(() => {
-    if (workspace !== "builder") setHanzOpen(false);
-  }, [workspace]);
+    if (workspace !== "builder") handleCloseHanz();
+  }, [handleCloseHanz, workspace]);
 
   const ensureVoiceRuntime = useCallback(() => {
     setVoiceRuntimeFailed(false);
@@ -520,7 +537,8 @@ function App() {
                     pianoStyle={getPianoStyle(index)}
                     onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
                     onChordChange={(option) => replaceChordAt(index, option)}
-                    isPlaying={activeChordIndex === index || highlightedChordIndex === index}
+                    isPlaying={activeChordIndex === index}
+                    isAgentHighlighted={highlightedChordIndex === index}
                   />
                 );
               })}
@@ -550,12 +568,12 @@ function App() {
             agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
             signedUrlEndpoint="/api/voice/signed-url"
             open={hanzOpen}
-            onClose={() => setHanzOpen(false)}
+            onClose={handleCloseHanz}
           />
         ) : hanzOpen ? (
           <VoiceRuntimeFallback
             failed={voiceRuntimeFailed}
-            onClose={() => setHanzOpen(false)}
+            onClose={handleCloseHanz}
             onReload={() => window.location.reload()}
           />
         ) : null

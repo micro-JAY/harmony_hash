@@ -3,6 +3,7 @@ import { useConversationControls, useConversationStatus } from "@elevenlabs/reac
 import { X } from "lucide-react";
 import { useVoiceAgent } from "./voiceAgentContext";
 import { useProgressionAgentTools } from "./useProgressionAgentTools";
+import { endVoiceSession } from "./sessionLifecycle";
 
 /**
  * The voice companion panel. Render it inside <VoiceAgentProvider/> wherever
@@ -91,11 +92,11 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
 
   const handleStop = useCallback(async () => {
     try {
-      await endSession();
+      await endVoiceSession(endSession, bridge);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not end the session cleanly");
     }
-  }, [endSession]);
+  }, [bridge, endSession]);
 
   const handleClose = useCallback(async () => {
     connectionAttemptRef.current?.abort();

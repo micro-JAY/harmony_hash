@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Guitar, Keyboard, Pause, Play } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
@@ -30,6 +30,11 @@ import {
 import HorizontalFretboard from "./HorizontalFretboard";
 import { fretboardIntervalColor } from "./fretboardVisuals";
 import ScalePianoKeyboard from "./ScalePianoKeyboard";
+import {
+  WorkspaceHeader,
+  WorkspaceSegmentedControl,
+  WorkspaceSelectControl,
+} from "./WorkspaceChrome";
 
 interface ScaleSynthesiaProps {
   moodId: MoodId | null;
@@ -60,94 +65,6 @@ function rowsForPracticeMaterial(
       });
     })),
   })));
-}
-
-function ControlLabel({ children }: { children: ReactNode }) {
-  return (
-    <span className="mb-2 block label-caps" style={{ color: "var(--text-secondary)" }}>
-      {children}
-    </span>
-  );
-}
-
-function SelectControl({
-  id,
-  label,
-  value,
-  onChange,
-  children,
-  className = "w-44",
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <label htmlFor={id} className={`block min-w-0 ${className}`}>
-      <ControlLabel>{label}</ControlLabel>
-      <select
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.currentTarget.value)}
-        className="w-full rounded-lg px-3 py-2 text-sm"
-        style={{
-          backgroundColor: "var(--surface-overlay)",
-          border: "1px solid var(--border-default)",
-          color: "var(--text-primary)",
-          fontFamily: "var(--font-mono)",
-        }}
-      >
-        {children}
-      </select>
-    </label>
-  );
-}
-
-function SegmentedControl<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-  reducedMotion,
-}: {
-  label: string;
-  value: T;
-  options: ReadonlyArray<{ value: T; label: string; icon?: ReactNode }>;
-  onChange: (value: T) => void;
-  reducedMotion: boolean;
-}) {
-  return (
-    <div>
-      <ControlLabel>{label}</ControlLabel>
-      <div role="group" aria-label={label} className="inline-flex rounded-lg p-1" style={{ backgroundColor: "var(--surface-overlay)" }}>
-        {options.map((option) => {
-          const active = option.value === value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onChange(option.value)}
-              className="flex min-h-9 items-center gap-2 rounded-md px-3 text-sm"
-              style={{
-                backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
-                border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
-                color: active ? "var(--interactive-accent-text)" : "var(--text-secondary)",
-                fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
-                transitionDuration: reducedMotion ? "0ms" : "var(--duration-normal)",
-              }}
-            >
-              {option.icon}
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 export default function ScaleSynthesia({
@@ -262,25 +179,23 @@ export default function ScaleSynthesia({
 
   return (
     <section
-      className="flex-1 px-4 py-7 md:py-10"
+      className="hh-workspace"
       data-testid="scale-synthesia"
       data-reduced-motion={reduceMotion ? "true" : "false"}
       aria-labelledby="scale-synthesia-title"
     >
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-7">
-          <h1 id="scale-synthesia-title" style={{ fontSize: "var(--text-3xl)" }}>Scale Synthesia</h1>
-          <p className="mt-2 max-w-3xl" style={{ color: "var(--text-secondary)", fontSize: "var(--text-md)" }}>
-            See the scale, hear the sound, and feel the pattern—one step at a time.
-          </p>
-        </header>
+      <div className="hh-workspace__inner">
+        <WorkspaceHeader
+          titleId="scale-synthesia-title"
+          title="Scale Synthesia"
+          description="See the scale, hear the sound, and feel the pattern—one step at a time."
+        />
 
         <section
           aria-label="Scale practice controls"
-          className="mb-6 flex flex-wrap items-end gap-x-3 gap-y-4 rounded-xl p-4 md:p-5"
-          style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)" }}
+          className="hh-control-rail"
         >
-          <SegmentedControl
+          <WorkspaceSegmentedControl
             label="Instrument"
             value={instrument}
             onChange={setInstrument}
@@ -290,15 +205,15 @@ export default function ScaleSynthesia({
               { value: "guitar", label: "Guitar", icon: <Guitar size={15} aria-hidden="true" /> },
             ]}
           />
-          <SelectControl id="scale-root" label="Root" value={root} onChange={setRoot} className="w-32">
+          <WorkspaceSelectControl id="scale-root" label="Root" value={root} onChange={setRoot} className="w-32">
             {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
-          </SelectControl>
-          <SelectControl id="scale-family" label="Family" value={resolvedFamily} onChange={handleFamilyChange} className="w-52">
+          </WorkspaceSelectControl>
+          <WorkspaceSelectControl id="scale-family" label="Family" value={resolvedFamily} onChange={handleFamilyChange} className="w-52">
             {availableFamilies.map((candidate) => (
               <option key={candidate.id} value={candidate.id}>{candidate.label}</option>
             ))}
-          </SelectControl>
-          <SelectControl
+          </WorkspaceSelectControl>
+          <WorkspaceSelectControl
             id="scale-mode"
             label="Scale or mode"
             value={resolvedScaleId}
@@ -308,8 +223,8 @@ export default function ScaleSynthesia({
             {familyDefinitions.map((candidate) => (
               <option key={candidate.id} value={candidate.id}>{candidate.label}</option>
             ))}
-          </SelectControl>
-          <SelectControl
+          </WorkspaceSelectControl>
+          <WorkspaceSelectControl
             id="scale-mood"
             label="Mood lens"
             value={moodId ?? ""}
@@ -318,8 +233,8 @@ export default function ScaleSynthesia({
           >
             <option value="">Any harmony</option>
             {MOODS.map((mood) => <option key={mood.id} value={mood.id}>{mood.label}</option>)}
-          </SelectControl>
-          <SegmentedControl
+          </WorkspaceSelectControl>
+          <WorkspaceSegmentedControl
             label="Direction"
             value={direction}
             onChange={setDirection}
@@ -329,7 +244,7 @@ export default function ScaleSynthesia({
               { value: "descending", label: "Descending" },
             ]}
           />
-          <SegmentedControl
+          <WorkspaceSegmentedControl
             label="Material"
             value={material}
             onChange={setMaterial}
@@ -340,7 +255,7 @@ export default function ScaleSynthesia({
             ]}
           />
           {material === "arpeggio" ? (
-            <SelectControl
+            <WorkspaceSelectControl
               id="arpeggio-type"
               label="Arpeggio type"
               value={arpeggioType}
@@ -349,12 +264,12 @@ export default function ScaleSynthesia({
             >
               <option value="triad">Triad (1 3 5)</option>
               <option value="seventh">Seventh (1 3 5 7)</option>
-            </SelectControl>
+            </WorkspaceSelectControl>
           ) : null}
           <button
             type="button"
             onClick={() => void handlePlayback()}
-            className="ml-auto flex min-h-11 items-center gap-2 rounded-lg px-5 font-medium"
+            className="hh-action ml-auto"
             aria-label={isPlaying ? "Stop scale playback" : "Play scale"}
             style={{
               backgroundColor: "var(--interactive-accent-bg)",
@@ -375,8 +290,8 @@ export default function ScaleSynthesia({
 
         <section
           aria-label={`${root} ${definition.label} ${instrument} practice map`}
-          className="overflow-hidden rounded-xl"
-          style={{ backgroundColor: "var(--surface-sunken)", border: "1px solid var(--border-default)" }}
+          className="hh-panel overflow-hidden"
+          style={{ backgroundColor: "var(--surface-sunken)" }}
         >
           <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3" style={{ borderColor: "var(--border-default)" }}>
             <p style={{ color: "var(--text-primary)", fontWeight: "var(--weight-semibold)" }}>
@@ -463,7 +378,7 @@ export default function ScaleSynthesia({
             </div>
           </div>
 
-          <aside className="rounded-xl p-5" style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)" }} aria-label="Practice summary">
+          <aside className="hh-panel p-5" aria-label="Practice summary">
             <span className="label-caps" style={{ color: "var(--text-secondary)" }}>Current practice</span>
             <p className="mt-3" style={{ fontSize: "var(--text-xl)", fontWeight: "var(--weight-semibold)" }}>
               {material === "scale" ? definition.label : `${definition.label} ${arpeggioType}`}

@@ -45,7 +45,7 @@ export default function MoodFilter({ value, onChange }: MoodFilterProps) {
           aria-describedby="mood-filter-description"
           value={value ?? ""}
           onChange={(event) => onChange(parseMoodSelection(event.target.value))}
-          className="min-w-0 max-w-full rounded-lg px-3 py-2 sm:min-w-40"
+          className="hh-select min-w-0 max-w-full sm:min-w-40"
           style={{
             backgroundColor: "var(--surface-overlay)",
             border: "1px solid var(--border-default)",

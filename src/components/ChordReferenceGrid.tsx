@@ -285,7 +285,7 @@ export default function ChordReferenceGrid({
   const colCount = visibleQualities.length;
 
   return (
-    <div style={{ marginTop: "12px" }}>
+    <div className="mt-3">
       {/* Toggle + Undo Row */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <button
@@ -293,15 +293,12 @@ export default function ChordReferenceGrid({
           onClick={handleToggle}
           aria-expanded={isOpen}
           aria-controls={GRID_PANEL_ID}
-          style={{
+        className="hh-disclosure-toggle"
+        style={{
             color: "var(--text-muted)",
             border: "1px solid var(--border-subtle)",
             background: "var(--surface-raised)",
-            borderRadius: "var(--radius-sm)",
             fontSize: "var(--text-xs)",
-            padding: "4px 10px",
-            cursor: "pointer",
-            fontFamily: "inherit",
             lineHeight: 1.4,
           }}
         >
@@ -355,7 +352,12 @@ export default function ChordReferenceGrid({
             transition={shouldReduceMotion
               ? { duration: 0 }
               : { duration: 0.2, ease: "easeInOut" }}
-            style={{ overflow: "hidden" }}
+            className="hh-chord-grid-panel mt-3 rounded-xl p-3 md:p-4"
+            style={{
+              overflow: "hidden",
+              background: "var(--surface-raised)",
+              border: "1px solid var(--border-subtle)",
+            }}
           >
             {/* Suggestion mode + context summary. */}
             <div
@@ -363,8 +365,8 @@ export default function ChordReferenceGrid({
                 display: "flex",
                 alignItems: "center",
                 flexWrap: "wrap",
-                gap: "6px",
-                padding: "10px 0 2px",
+                gap: "var(--space-2)",
+                padding: "var(--space-1) 0 var(--space-2)",
               }}
             >
               <span
@@ -381,8 +383,8 @@ export default function ChordReferenceGrid({
               <div
                 style={{
                   display: "inline-flex",
-                  borderRadius: "999px",
-                  padding: "2px",
+                  borderRadius: "var(--radius-full)",
+                  padding: "var(--space-1)",
                   background: "var(--surface-overlay)",
                   border: "1px solid var(--border-subtle)",
                 }}
@@ -399,8 +401,9 @@ export default function ChordReferenceGrid({
                       aria-pressed={active}
                       aria-label={`${opt.label} chord suggestions`}
                       style={{
-                        padding: "3px 10px",
-                        borderRadius: "999px",
+                        minHeight: "2rem",
+                        padding: "var(--space-1) var(--space-3)",
+                        borderRadius: "var(--radius-full)",
                         border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
                         background: active ? "var(--interactive-accent-bg)" : "transparent",
                         color: disabled
@@ -442,8 +445,8 @@ export default function ChordReferenceGrid({
                   display: "flex",
                   flexWrap: "wrap",
                   alignItems: "center",
-                  gap: "6px 12px",
-                  padding: "6px 0 2px",
+                gap: "var(--space-2) var(--space-3)",
+                padding: "var(--space-2) 0 var(--space-1)",
                   color: "var(--text-muted)",
                   fontSize: "var(--text-xs)",
                 }}
@@ -472,8 +475,8 @@ export default function ChordReferenceGrid({
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: "6px 12px",
-                  padding: "6px 0 2px",
+                  gap: "var(--space-2) var(--space-3)",
+                  padding: "var(--space-2) 0 var(--space-1)",
                   color: "var(--text-muted)",
                   fontSize: "var(--text-xs)",
                 }}
@@ -490,8 +493,8 @@ export default function ChordReferenceGrid({
               style={{
                 display: "flex",
                 flexWrap: "wrap",
-                gap: "6px",
-                padding: "10px 0 8px",
+                gap: "var(--space-2)",
+                padding: "var(--space-3) 0 var(--space-2)",
               }}
             >
               {GROUP_LABELS.map((g) => {
@@ -504,8 +507,9 @@ export default function ChordReferenceGrid({
                     aria-pressed={active}
                     style={{
                       fontSize: "var(--text-xs)",
-                      padding: "3px 8px",
-                      borderRadius: "999px",
+                      minHeight: "2rem",
+                      padding: "var(--space-1) var(--space-2)",
+                      borderRadius: "var(--radius-full)",
                       border: active
                         ? "1px solid var(--border-default)"
                         : "1px solid var(--border-subtle)",
@@ -526,13 +530,13 @@ export default function ChordReferenceGrid({
             {/* Grid */}
             <div
               data-testid="chord-grid-scroll"
-              style={{ overflowX: "auto", paddingBottom: "4px" }}
+              style={{ overflowX: "auto", paddingBottom: "var(--space-1)" }}
             >
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `20px repeat(${colCount}, minmax(44px, 1fr))`,
-                  gap: "3px",
+                  gridTemplateColumns: `28px repeat(${colCount}, minmax(48px, 1fr))`,
+                  gap: "var(--space-1)",
                 }}
               >
                 {/* Header Row: empty corner + quality labels */}
@@ -541,13 +545,13 @@ export default function ChordReferenceGrid({
                   <div
                     key={q.label}
                     style={{
-                      fontSize: "9px",
-                      padding: "2px 4px",
-                      borderRadius: "4px",
+                      fontSize: "var(--text-xs)",
+                      padding: "var(--space-1) var(--space-2)",
+                      borderRadius: "var(--radius-sm)",
                       border: "1px solid var(--border-default)",
                       background: "var(--surface-raised)",
                       color: "var(--text-muted)",
-                      fontFamily: "monospace",
+                      fontFamily: "var(--font-mono)",
                       letterSpacing: "0.02em",
                       textAlign: "center",
                       userSelect: "none",
@@ -565,8 +569,8 @@ export default function ChordReferenceGrid({
                       {/* Root label */}
                       <span
                         style={{
-                          fontSize: "11px",
-                          fontWeight: 700,
+                          fontSize: "var(--text-xs)",
+                          fontWeight: "var(--weight-bold)",
                           textAlign: "right",
                           paddingRight: "2px",
                           color: rootColor,
@@ -651,13 +655,15 @@ export default function ChordReferenceGrid({
                               alignItems: "center",
                               justifyContent: "center",
                               gap: fitResult ? "1px" : 0,
-                              padding: fitResult ? "3px 7px" : "4px 7px",
-                              minWidth: "42px",
-                              minHeight: fitResult ? "38px" : "30px",
-                              borderRadius: "6px",
-                              fontSize: "12px",
+                              padding: fitResult
+                                ? "var(--space-1) var(--space-2)"
+                                : "var(--space-2)",
+                              minWidth: "48px",
+                              minHeight: "44px",
+                              borderRadius: "var(--radius-md)",
+                              fontSize: "var(--text-sm)",
                               fontFamily: "var(--font-mono)",
-                              fontWeight: 700,
+                              fontWeight: "var(--weight-bold)",
                               letterSpacing: "0.03em",
                               lineHeight: 1.05,
                               cursor: "pointer",
@@ -700,7 +706,7 @@ export default function ChordReferenceGrid({
                                 aria-hidden="true"
                                 style={{
                                   color: baseBadge,
-                                  fontSize: "10px",
+                                  fontSize: "var(--text-xs)",
                                   fontWeight: "var(--weight-semibold)",
                                   letterSpacing: "0.02em",
                                 }}

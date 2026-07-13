@@ -193,7 +193,7 @@ export default function ProgressionAgent({
           onChange={(e) => handlePromptChange(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder={placeholder ?? "Describe the mood, style, or feel — e.g. “melancholic with a jazz feel in minor”"}
+          placeholder={placeholder ?? "Describe a progression…"}
           disabled={loading}
           className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
           style={{

@@ -79,7 +79,7 @@ test.describe("Fretboard Explorer", () => {
       return { family: style.fontFamily, size: Number.parseFloat(style.fontSize), weight: Number(style.fontWeight) };
     });
     expect(toolTitleStyle.family).toContain("Zalando Sans");
-    expect(toolTitleStyle.size).toBeGreaterThanOrEqual(40);
+    expect(toolTitleStyle.size).toBe(32);
     expect(toolTitleStyle.weight).toBeGreaterThanOrEqual(700);
 
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(true);

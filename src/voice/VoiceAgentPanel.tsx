@@ -156,7 +156,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
       role="dialog"
       aria-modal="false"
       aria-labelledby="hanz-hasher-title"
-      className="hhv hhv-popup flex w-full max-w-md flex-col gap-4 rounded-xl"
+      className="hhv hhv-popup hh-panel flex w-full max-w-md flex-col gap-4"
       style={{
         position: "fixed",
         zIndex: 50,

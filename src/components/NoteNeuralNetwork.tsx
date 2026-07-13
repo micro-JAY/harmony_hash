@@ -12,6 +12,11 @@ import {
   type ScaleFormulaType,
 } from "../lib/theory";
 import { fretboardIntervalColor } from "./fretboardVisuals";
+import {
+  WorkspaceHeader,
+  WorkspaceSegmentedControl,
+  WorkspaceSelectControl,
+} from "./WorkspaceChrome";
 
 export interface NoteNeuralNetworkState {
   readonly root: string;
@@ -161,74 +166,52 @@ export default function NoteNeuralNetwork({
 
   return (
     <section
-      className="flex-1 px-4 py-7 md:py-10"
+      className="hh-workspace"
       data-testid="note-neural-network"
       data-reduced-motion={reduceMotion ? "true" : "false"}
       aria-labelledby="note-network-title"
     >
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-6">
-          <h1 id="note-network-title" style={{ fontSize: "var(--text-3xl)" }}>Note Neural Network</h1>
-          <p className="mt-2 max-w-3xl" style={{ color: "var(--text-secondary)", fontSize: "var(--text-md)" }}>
-            See how modes connect without losing the notes beneath your hands.
-          </p>
-        </header>
+      <div className="hh-workspace__inner">
+        <WorkspaceHeader
+          titleId="note-network-title"
+          title="Note Neural Network"
+          description="See how modes connect without losing the notes beneath your hands."
+        />
 
-        <section className="mb-5 flex flex-wrap items-end gap-3" aria-label="Mode network controls">
-          <label htmlFor="mode-network-root" className="block w-36">
-            <span className="mb-2 block label-caps" style={{ color: "var(--text-secondary)" }}>Root</span>
-            <select
-              id="mode-network-root"
-              value={root}
-              onChange={(event) => onStateChange({ ...state, root: event.currentTarget.value })}
-              className="w-full rounded-lg px-3 py-2"
-              style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-default)", color: "var(--text-primary)", fontFamily: "var(--font-mono)" }}
-            >
-              {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
-            </select>
-          </label>
+        <section className="hh-control-rail" aria-label="Mode network controls">
+          <WorkspaceSelectControl
+            id="mode-network-root"
+            label="Root"
+            value={root}
+            onChange={(value) => onStateChange({ ...state, root: value })}
+            className="w-36"
+          >
+            {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
+          </WorkspaceSelectControl>
 
-          <label htmlFor="mode-network-family" className="block w-56">
-            <span className="mb-2 block label-caps" style={{ color: "var(--text-secondary)" }}>Family</span>
-            <select
-              id="mode-network-family"
-              value={familyId}
-              onChange={(event) => handleFamilyChange(event.currentTarget.value as ModeFamilyId)}
-              className="w-full rounded-lg px-3 py-2"
-              style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-default)", color: "var(--text-primary)", fontFamily: "var(--font-mono)" }}
-            >
-              {MODE_FAMILIES.map((family) => <option key={family.id} value={family.id}>{family.label}</option>)}
-            </select>
-          </label>
+          <WorkspaceSelectControl
+            id="mode-network-family"
+            label="Family"
+            value={familyId}
+            onChange={(value) => handleFamilyChange(value as ModeFamilyId)}
+            className="w-56"
+          >
+            {MODE_FAMILIES.map((family) => <option key={family.id} value={family.id}>{family.label}</option>)}
+          </WorkspaceSelectControl>
 
-          <div>
-            <span className="mb-2 block label-caps" style={{ color: "var(--text-secondary)" }}>Relationship</span>
-            <div role="group" aria-label="Mode relationship" className="inline-flex rounded-lg p-1" style={{ backgroundColor: "var(--surface-overlay)" }}>
-              {(["parallel", "relative"] as const).map((option) => {
-                const active = relationship === option;
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => onStateChange({ ...state, relationship: option })}
-                    className="rounded-md px-5 py-2 capitalize"
-                    style={{
-                      backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
-                      border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
-                      color: active ? "var(--interactive-accent-text)" : "var(--text-secondary)",
-                      transitionDuration: reduceMotion ? "0ms" : "var(--duration-normal)",
-                    }}
-                  >
-                    {option}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <WorkspaceSegmentedControl
+            label="Relationship"
+            value={relationship}
+            onChange={(value) => onStateChange({ ...state, relationship: value })}
+            reducedMotion={Boolean(reduceMotion)}
+            options={[
+              { value: "parallel", label: "Parallel" },
+              { value: "relative", label: "Relative" },
+            ]}
+          />
         </section>
 
-        <div className="grid overflow-hidden rounded-xl lg:grid-cols-[minmax(0,1.55fr)_minmax(20rem,0.75fr)]" style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-default)" }}>
+        <div className="hh-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.55fr)_minmax(20rem,0.75fr)]">
           <div
             className="min-w-0 overflow-x-auto p-2 sm:p-5 lg:p-7"
             data-testid="mode-network-graph-scroller"
@@ -267,7 +250,7 @@ export default function NoteNeuralNetwork({
           <aside className="flex flex-col border-t p-6 lg:border-l lg:border-t-0 lg:p-8" style={{ borderColor: "var(--border-default)" }} aria-label={`${selectedNode.label} details`}>
             <div className="flex items-start gap-3">
               <Network size={23} aria-hidden="true" style={{ color: "var(--interactive-academy-text)", marginTop: "0.35rem" }} />
-              <h2 style={{ color: "var(--interactive-academy-text)", fontSize: "var(--text-2xl)" }}>{selectedNode.label}</h2>
+              <h2 className="hh-panel-title" style={{ color: "var(--interactive-academy-text)" }}>{selectedNode.label}</h2>
             </div>
 
             <dl className="mt-6 divide-y" style={{ borderColor: "var(--border-default)" }}>
@@ -310,7 +293,7 @@ export default function NoteNeuralNetwork({
             <button
               type="button"
               onClick={() => onOpenScale(selectedNode.root, selectedNode.scaleId)}
-              className="mt-6 flex items-center justify-center gap-2 rounded-lg px-5 py-3 font-medium"
+              className="hh-action mt-6"
               style={{ backgroundColor: "var(--interactive-academy-bg)", border: "1px solid var(--interactive-academy-border)", color: "var(--interactive-academy-text)" }}
             >
               Open in Scale Synthesia

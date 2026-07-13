@@ -177,6 +177,7 @@ test.describe("Hanz Hasher voice sessions", () => {
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("help in landscape");
     await page.getByRole("button", { name: HELP_LABEL }).click();
+    await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
 
     const bounds = await page.getByRole("dialog", { name: "Hanz Hasher" }).evaluate((element) => {
       const rect = element.getBoundingClientRect();

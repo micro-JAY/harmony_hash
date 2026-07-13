@@ -22,6 +22,7 @@ interface ProgressionInputProps {
   onMoodChange: (moodId: MoodId | null) => void;
   chords: ReadonlyArray<{ input: string; chord: IndexedChord }>;
   onRequestVoice: () => void;
+  onVoiceIntent: () => void;
 }
 
 interface SelectedProgression {
@@ -50,6 +51,7 @@ export default function ProgressionInput({
   onMoodChange,
   chords,
   onRequestVoice,
+  onVoiceIntent,
 }: ProgressionInputProps) {
   const t = useT();
   const [composedChords, setComposedChords] = useState<string[]>([]);
@@ -174,6 +176,7 @@ export default function ProgressionInput({
         cancellationVersionRef={cancellationVersionRef}
         placeholder={t("agentPromptPlaceholder")}
         onRequestHelp={onRequestVoice}
+        onHelpIntent={onVoiceIntent}
       />
 
       <MoodFilter value={moodId} onChange={onMoodChange} />

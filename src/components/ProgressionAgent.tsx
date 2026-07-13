@@ -18,6 +18,7 @@ interface ProgressionAgentProps {
   cancellationVersionRef: MutableRefObject<number>;
   placeholder?: string;
   onRequestHelp?: () => void;
+  onHelpIntent?: () => void;
 }
 
 const MAX_PROMPT = 500;
@@ -36,6 +37,7 @@ export default function ProgressionAgent({
   cancellationVersionRef,
   placeholder,
   onRequestHelp,
+  onHelpIntent,
 }: ProgressionAgentProps) {
   const [prompt, setPrompt] = useState("");
   const [helpLabel, setHelpLabel] = useState<(typeof HELP_LABELS)[number] | null>(null);
@@ -278,6 +280,8 @@ export default function ProgressionAgent({
               id="hanz-help-trigger"
               type="button"
               onClick={onRequestHelp}
+              onPointerEnter={onHelpIntent}
+              onFocus={onHelpIntent}
               className="rounded-full px-3 py-1 text-xs"
               style={{
                 backgroundColor: "var(--interactive-warm-bg)",

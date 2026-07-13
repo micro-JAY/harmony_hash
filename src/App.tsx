@@ -1,4 +1,13 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import { Play, Square } from "lucide-react";
 import type { Instrument, IndexedChord, ParseError, VoicingStyle, Workspace } from "./lib/types";
 import Header from "./components/Header";
@@ -14,18 +23,32 @@ import {
 import { lookupChord, parseNotes } from "./lib/chordData";
 import { buildPlaybackSchedule, playSchedule, type PlaybackHandle } from "./lib/audioEngine";
 import type { ChordModifierOption } from "./lib/chordModifiers";
+import type { VoiceAgentRuntimeProps } from "./voice/VoiceAgentRuntime";
+import VoiceRuntimeFallback from "./voice/VoiceRuntimeFallback";
 import {
   builderProgressionFor,
   type CircleKey,
   type MoodId,
   type ScaleFormulaType,
 } from "./lib/theory";
-import { VoiceAgentProvider, VoiceAgentPanel, createProgressionBridge } from "./voice";
+import { createProgressionBridge } from "./voice/progressionBridge";
 
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 const CircleOfFifths = lazy(() => import("./components/CircleOfFifths"));
 const ScaleSynthesia = lazy(() => import("./components/ScaleSynthesia"));
 const NoteNeuralNetwork = lazy(() => import("./components/NoteNeuralNetwork"));
+
+let voiceRuntimePromise: Promise<typeof import("./voice/VoiceAgentRuntime")> | null = null;
+
+function loadVoiceAgentRuntime() {
+  if (!voiceRuntimePromise) {
+    voiceRuntimePromise = import("./voice/VoiceAgentRuntime").catch((error: unknown) => {
+      voiceRuntimePromise = null;
+      throw error;
+    });
+  }
+  return voiceRuntimePromise;
+}
 
 const PLAYBACK_BPM = 80;
 
@@ -91,6 +114,9 @@ function App() {
   // chord must not look like playback or block the Play button / play tool.
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const [hanzOpen, setHanzOpen] = useState(false);
+  const [voiceRuntimeRequested, setVoiceRuntimeRequested] = useState(false);
+  const [VoiceAgentRuntime, setVoiceAgentRuntime] = useState<ComponentType<VoiceAgentRuntimeProps> | null>(null);
+  const [voiceRuntimeFailed, setVoiceRuntimeFailed] = useState(false);
   const [moodId, setMoodId] = useState<MoodId | null>(null);
   const [scaleLaunch, setScaleLaunch] = useState<{
     root: string;
@@ -112,6 +138,25 @@ function App() {
   useEffect(() => {
     if (workspace !== "builder") setHanzOpen(false);
   }, [workspace]);
+
+  const ensureVoiceRuntime = useCallback(() => {
+    setVoiceRuntimeFailed(false);
+    void loadVoiceAgentRuntime()
+      .then((module) => {
+        setVoiceAgentRuntime(() => module.default);
+      })
+      .catch((error: unknown) => {
+        const detail = error instanceof Error ? error.message : "Unknown dynamic import error";
+        console.error("[harmony-hash-voice-runtime] Voice tools failed to load", detail);
+        setVoiceRuntimeFailed(true);
+      });
+  }, []);
+
+  const handleRequestVoice = useCallback(() => {
+    setVoiceRuntimeRequested(true);
+    setHanzOpen(true);
+    ensureVoiceRuntime();
+  }, [ensureVoiceRuntime]);
 
   const markTimelineMutation = useCallback(() => {
     const nextVersion = timelineVersionRef.current + 1;
@@ -344,17 +389,12 @@ function App() {
         onWorkspaceChange={setWorkspace}
       />
 
-      <VoiceAgentProvider
-        bridge={voiceBridge}
-        agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
-        signedUrlEndpoint="/api/voice/signed-url"
+      <main
+        className={workspace === "builder"
+          ? "flex-1 flex flex-col gap-5 py-5 md:gap-8 md:py-8"
+          : "flex-1 flex flex-col gap-5 pb-6"
+        }
       >
-        <main
-          className={workspace === "builder"
-            ? "flex-1 flex flex-col gap-5 py-5 md:gap-8 md:py-8"
-            : "flex-1 flex flex-col gap-5 pb-6"
-          }
-        >
           {workspace === "builder" ? (
             <ProgressionInput
               onResult={handleResult}
@@ -363,7 +403,8 @@ function App() {
               moodId={moodId}
               onMoodChange={setMoodId}
               chords={chords}
-              onRequestVoice={() => setHanzOpen(true)}
+              onRequestVoice={handleRequestVoice}
+              onVoiceIntent={ensureVoiceRuntime}
             />
           ) : (
             <Suspense
@@ -501,10 +542,25 @@ function App() {
             </p>
           </div>
           )}
-        </main>
-        <VoiceAgentPanel open={hanzOpen} onClose={() => setHanzOpen(false)} />
-      </VoiceAgentProvider>
-    </div>
+      </main>
+      {voiceRuntimeRequested ? (
+        VoiceAgentRuntime ? (
+          <VoiceAgentRuntime
+            bridge={voiceBridge}
+            agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
+            signedUrlEndpoint="/api/voice/signed-url"
+            open={hanzOpen}
+            onClose={() => setHanzOpen(false)}
+          />
+        ) : hanzOpen ? (
+          <VoiceRuntimeFallback
+            failed={voiceRuntimeFailed}
+            onClose={() => setHanzOpen(false)}
+            onReload={() => window.location.reload()}
+          />
+        ) : null
+      ) : null}
+      </div>
   );
 }
 

@@ -68,7 +68,7 @@ Later that day, the source-owned provisioning workflow updated the existing Hanz
 
 ## Product-baseline PR ledger
 
-This ledger covers every pull request from the start of the documented long-horizon run through the latest merged product baseline, [#69](https://github.com/micro-JAY/harmony_hash/pull/69). The docs-only projection PR is recorded in the dated log rather than assigning itself a merged status. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
+This ledger covers every pull request from the start of the documented long-horizon run through the latest merged product baseline, [#69](https://github.com/micro-JAY/harmony_hash/pull/69). The final closure projection PR is recorded in the dated log rather than assigning itself a merged status. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
 
 | PR | Status | Contribution |
 |---|---|---|

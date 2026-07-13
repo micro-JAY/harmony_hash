@@ -672,3 +672,15 @@ The independent review found and drove fixes for incomplete popup/workspace tear
 **Verification:** production build and lint pass; Vitest is 1,075/1,075; full Playwright is 101/101. Desktop, tablet, 375px mobile, pointer, keyboard, Hanz-only, playback-only, simultaneous focus, popup close, workspace exit, bridge validation, provider disconnect/error, accessibility status, and production-bundle exclusion paths are covered. The first CI Playwright attempt hit an inherited transient `boundingBox()` null in the mobile popup test after visibility succeeded; both the separate exact-head retry and the in-place rerun then passed all 101 tests, leaving every check green. The pre-existing large-chunk warning remains unchanged.
 
 **Current state:** Hanz Chord Focus merged to `main` as `c93440b` via [#55](https://github.com/micro-JAY/harmony_hash/pull/55) after exact-head build/test, two passing full Playwright jobs, and the Worker build. PR #28 remains closed and superseded; no conflict resolution or deletion is needed.
+
+---
+
+## 2026-07-13 21:46 JST — Truthful Hanz Playback and Live Provisioning
+
+Completed side-track S.5 through [#57](https://github.com/micro-JAY/harmony_hash/pull/57). `play_progression` now reports `started`, `already_playing`, `requires_piano`, `empty`, `cancelled`, or `unavailable` from a generation-safe playback controller with bounded audio-context resume. The Hasher exposes the pending start honestly, playback/highlight behavior remains independent from Hanz focus, and teardown cancels stale async starts without leaking audio resources.
+
+The first live provisioning retry exposed provider-added defaults across the current ElevenLabs agent, workflow, legacy-tool, and toolbox schemas. Six bounded fail-closed compatibility fixes shipped through [#58](https://github.com/micro-JAY/harmony_hash/pull/58)–[#63](https://github.com/micro-JAY/harmony_hash/pull/63). Each accepts only an exact inert provider shape while continuing to reject active built-ins, workflows, LLM/RAG/knowledge-base overrides, non-client legacy tools, nonempty parameter bindings, omission authority, schema constraints, mocks, task support, and unknown fields. Independent review found no remaining P0–P2 issue in the final slices.
+
+The live source update then succeeded, and an immediate verify-only readback independently confirmed Hanz Hasher has signed authentication, an empty hostname allowlist, exactly the nine source-owned client tools, no built-ins, no MCP servers, no workflow nodes or edges, and no unknown capability fields. No API key or signed URL was read or printed. Production build and lint pass; Vitest is 1,095/1,095; full exact-head Playwright is 102/102. PR #28 remains closed, unmerged, and superseded; GitHub retains it as historical record, so no deletion or conflict resolution is needed.
+
+**Current state:** S.5 product and provider compatibility changes are merged to `main` at `3cf1246`. Next: merge this docs-only ledger reconciliation after its independent accuracy review and green exact-head CI.

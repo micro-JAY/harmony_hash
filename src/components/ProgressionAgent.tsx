@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { IndexedChord, ParseError } from "../lib/types";
 import { lookupChord } from "../lib/chordData";
 import { checkHealth, generateProgression } from "../lib/progressionClient";
+import { useT } from "../i18n/I18nContext";
 
 type HealthStatus = "checking" | "ready" | "unavailable";
 
@@ -39,6 +40,7 @@ export default function ProgressionAgent({
   onRequestHelp,
   onHelpIntent,
 }: ProgressionAgentProps) {
+  const t = useT();
   const [prompt, setPrompt] = useState("");
   const [helpLabel, setHelpLabel] = useState<(typeof HELP_LABELS)[number] | null>(null);
   const [loadingRequest, setLoadingRequest] = useState<{
@@ -193,7 +195,7 @@ export default function ProgressionAgent({
           onChange={(e) => handlePromptChange(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder={placeholder ?? "Describe a progression…"}
+          placeholder={placeholder ?? t("Describe a progression…")}
           disabled={loading}
           className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
           style={{
@@ -208,11 +210,11 @@ export default function ProgressionAgent({
             transitionDuration: "var(--duration-normal)",
             opacity: loading ? 0.6 : 1,
           }}
-          aria-label="Describe the progression you want"
+          aria-label={t("Describe the progression you want")}
         />
         <button
           onClick={handleSubmit}
-          aria-label="Run progression agent"
+          aria-label={t("Run progression agent")}
           disabled={!canSubmit}
           className="w-full px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2 sm:w-auto sm:min-w-[7rem]"
           style={{
@@ -254,10 +256,10 @@ export default function ProgressionAgent({
                   animation: "progression-agent-spin 0.8s linear infinite",
                 }}
               />
-              <span>Building…</span>
+              <span>{t("Building…")}</span>
             </>
           ) : (
-            <span>Run</span>
+            <span>{t("Run")}</span>
           )}
         </button>
       </div>
@@ -272,8 +274,8 @@ export default function ProgressionAgent({
             }}
           >
             {overLength
-              ? `${Math.abs(remaining)} over the ${MAX_PROMPT}-character limit`
-              : `${remaining} characters left`}
+              ? t(`${Math.abs(remaining)} over the ${MAX_PROMPT}-character limit`)
+              : t(`${remaining} characters left`)}
           </span>
           {helpLabel && onRequestHelp ? (
             <button
@@ -282,16 +284,22 @@ export default function ProgressionAgent({
               onClick={onRequestHelp}
               onPointerEnter={onHelpIntent}
               onFocus={onHelpIntent}
-              className="rounded-full px-3 py-1 text-xs"
+              className="whitespace-nowrap rounded-full px-3 py-1 text-xs"
               style={{
                 backgroundColor: "var(--interactive-warm-bg)",
                 border: "1px solid var(--interactive-warm-border)",
                 color: "var(--interactive-warm-text)",
                 fontFamily: "var(--font-body)",
                 fontWeight: "var(--weight-medium)",
+                ...(helpLabel === "Writer's block got you down?"
+                  ? {
+                      fontSize: "0.625rem",
+                      paddingInline: "var(--space-2)",
+                    }
+                  : {}),
               }}
             >
-              {helpLabel}
+              {t(helpLabel)}
             </button>
           ) : null}
         </div>
@@ -301,7 +309,7 @@ export default function ProgressionAgent({
             className="hidden text-xs sm:inline"
             style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
           >
-            ⌘↵ to build
+            {t("⌘↵ to build")}
           </span>
         </div>
       </div>
@@ -331,7 +339,7 @@ export default function ProgressionAgent({
               transitionDuration: "var(--duration-fast)",
             }}
           >
-            Retry
+            {t("Retry")}
           </button>
         </div>
       )}
@@ -381,21 +389,22 @@ export default function ProgressionAgent({
 }
 
 function HealthPill({ status }: { status: HealthStatus }) {
+  const t = useT();
   const { dot, label, title } = {
     checking: {
       dot: "var(--text-muted)",
-      label: "Checking…",
-      title: "Checking API status",
+      label: t("Checking…"),
+      title: t("Checking API status"),
     },
     ready: {
       dot: "var(--status-success-text, #4ade80)",
-      label: "API ready",
-      title: "API is reachable and configured",
+      label: t("API ready"),
+      title: t("API is reachable and configured"),
     },
     unavailable: {
       dot: "var(--status-error-text, #f87171)",
-      label: "Service unavailable",
-      title: "API is unreachable or missing required config",
+      label: t("Service unavailable"),
+      title: t("API is unreachable or missing required config"),
     },
   }[status];
 

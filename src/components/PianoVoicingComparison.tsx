@@ -4,6 +4,7 @@ import type { VoicedNote, VoicingStyle } from "../lib/types";
 import { formatNoteForDisplay } from "../lib/chordData";
 import { computeVoicingComparisons } from "../lib/harmonyBrain";
 import PianoKeyboard from "./PianoKeyboard";
+import { useT } from "../i18n/I18nContext";
 
 interface PianoVoicingComparisonProps {
   displayName: string;
@@ -40,6 +41,7 @@ export default function PianoVoicingComparison({
   onExpandedChange,
   onStyleChange,
 }: PianoVoicingComparisonProps) {
+  const t = useT();
   const panelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const comparisons = useMemo(
@@ -59,7 +61,7 @@ export default function PianoVoicingComparison({
         type="button"
         aria-expanded={expanded}
         aria-controls={panelId}
-        aria-label={`Compare voicings for ${displayName}`}
+        aria-label={t(`Compare voicings for ${displayName}`)}
         onClick={() => (expanded ? closeAndRestoreFocus() : onExpandedChange(true))}
         className="piano-voicing-comparison-motion flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition-all"
         style={{
@@ -76,12 +78,12 @@ export default function PianoVoicingComparison({
         }}
       >
         <span>
-          Compare voicings
+          {t("Compare voicings")}
           <span
             className="ml-2 font-normal"
             style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)" }}
           >
-            Hear the shape before you choose
+            {t("Hear the shape before you choose")}
           </span>
         </span>
         <ChevronDown
@@ -101,7 +103,7 @@ export default function PianoVoicingComparison({
         <section
           id={panelId}
           role="region"
-          aria-label={`Compare ${displayName} piano voicings`}
+          aria-label={t(`Compare ${displayName} piano voicings`)}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.preventDefault();
@@ -124,7 +126,7 @@ export default function PianoVoicingComparison({
                   fontWeight: "var(--weight-semibold)",
                 }}
               >
-                One chord, different shapes
+                {t("One chord, different shapes")}
               </p>
               <p
                 style={{
@@ -133,11 +135,11 @@ export default function PianoVoicingComparison({
                   fontSize: "var(--text-xs)",
                 }}
               >
-                Color follows interval; note names confirm every choice.
+                {t("Color follows interval; note names confirm every choice.")}
               </p>
             </div>
             <span className="readout" style={{ color: "var(--text-muted)" }}>
-              {comparisons.length} shapes
+              {t(`${comparisons.length} shapes`)}
             </span>
           </div>
 
@@ -162,7 +164,7 @@ export default function PianoVoicingComparison({
                   data-style={style}
                   aria-pressed={active}
                   aria-describedby={`${panelId}-${style}-notes`}
-                  aria-label={`${active ? "Current" : "Use"} ${styleLabel} voicing for ${displayName}`}
+                  aria-label={t(`${active ? "Current" : "Use"} ${styleLabel} voicing for ${displayName}`)}
                   onClick={() => onStyleChange(style)}
                   className="piano-voicing-comparison-motion flex w-[278px] shrink-0 flex-col gap-3 rounded-lg p-3 text-left transition-all"
                   style={{
@@ -193,7 +195,7 @@ export default function PianoVoicingComparison({
                       }}
                     >
                       {active ? <Check size={13} aria-hidden="true" /> : null}
-                      {active ? "Current" : "Use"}
+                      {t(active ? "Current" : "Use")}
                     </span>
                   </span>
 

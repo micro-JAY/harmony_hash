@@ -191,7 +191,7 @@ export default function ProgressionInput({
   return (
     <section className="hh-builder w-full max-w-6xl mx-auto px-4">
       {/* Tab Switcher */}
-      <div className="hh-builder-tabs" role="group" aria-label="Hasher input mode">
+      <div className="hh-builder-tabs" role="group" aria-label={t("Hasher input mode")}>
         {(["free", "preset"] as const).map((tab) => (
           <button
             key={tab}
@@ -231,7 +231,7 @@ export default function ProgressionInput({
           <div className="flex flex-col gap-3 sm:flex-row">
             <div
               role="list"
-              aria-label="Chord progression composer"
+              aria-label={t("Chord progression composer")}
               data-testid="chord-composer"
               onDragOver={(event) => event.preventDefault()}
               onDrop={handleComposerDrop}
@@ -239,7 +239,7 @@ export default function ProgressionInput({
             >
               {composedChords.length === 0 ? (
                 <span style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
-                  Choose chords from the grid, or drag them here.
+                  {t("Choose chords from the grid, or drag them here.")}
                 </span>
               ) : composedChords.map((chordName, index) => (
                 <span
@@ -270,7 +270,7 @@ export default function ProgressionInput({
               {composedChords.length > 0 ? (
                 <button
                   type="button"
-                  aria-label="Clear composed chords"
+                  aria-label={t("Clear composed chords")}
                   onClick={() => updateComposerDraft(() => [])}
                   className="ml-auto rounded-md px-2 py-1 text-xs"
                   style={{
@@ -280,13 +280,13 @@ export default function ProgressionInput({
                     fontFamily: "var(--font-body)",
                   }}
                 >
-                  Clear
+                  {t("Clear")}
                 </button>
               ) : null}
             </div>
             <button
               onClick={handleComposerSubmit}
-              aria-label="Run chord composer"
+              aria-label={t("Run chord composer")}
               disabled={composedChords.length === 0}
               className="hh-action w-full transition-all sm:w-auto"
               style={{
@@ -304,7 +304,7 @@ export default function ProgressionInput({
                 e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg)";
               }}
             >
-              Run
+              {t("Run")}
             </button>
           </div>
 
@@ -326,16 +326,16 @@ export default function ProgressionInput({
           <div
             className="hh-harmony-context flex flex-wrap items-end gap-x-4 gap-y-3"
             role="group"
-            aria-label="Free Input harmony context"
+            aria-label={t("Free Input harmony context")}
           >
             <label
               htmlFor="free-input-key"
               className="hh-control-group min-w-28"
             >
-              <span className="hh-control-label">Key</span>
+              <span className="hh-control-label">{t("Key")}</span>
               <select
                 id="free-input-key"
-                aria-label="Free Input key"
+                aria-label={t("Free Input key")}
                 value={freeKey}
                 onChange={(event) => setFreeKey(event.target.value)}
                 className="hh-select w-full"
@@ -352,24 +352,24 @@ export default function ProgressionInput({
               htmlFor="free-input-mode"
               className="hh-control-group min-w-40"
             >
-              <span className="hh-control-label">Mode</span>
+              <span className="hh-control-label">{t("Mode")}</span>
               <select
                 id="free-input-mode"
-                aria-label="Free Input mode"
+                aria-label={t("Free Input mode")}
                 value={freeScaleType}
                 onChange={(event) => setFreeScaleType(event.target.value as ScaleType)}
                 className="hh-select w-full"
               >
                 {FREE_MODE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.label)}
                   </option>
                 ))}
               </select>
             </label>
 
             <span style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)" }}>
-              Suggestions follow the last chord in the composer.
+              {t("Suggestions follow the last chord in the composer.")}
             </span>
           </div>
         </div>
@@ -428,7 +428,7 @@ export default function ProgressionInput({
               <label className="hh-control-group min-w-28">
                 <span className="hh-control-label">{t("key")}</span>
                 <select
-                  aria-label="Progression key"
+                  aria-label={t("Progression key")}
                   value={selectedKey}
                   onChange={(e) => handleKeyChange(e.target.value)}
                   className="hh-select w-full"
@@ -445,7 +445,7 @@ export default function ProgressionInput({
               <label className="hh-control-group min-w-40">
                 <span className="hh-control-label">{t("tonality")}</span>
                 <select
-                  aria-label="Progression tonality"
+                  aria-label={t("Progression tonality")}
                   value={activeTonality}
                   onChange={(e) => handleTonalityChange(e.target.value as TonalityId)}
                   className="hh-select w-full"
@@ -461,8 +461,8 @@ export default function ProgressionInput({
                 <button
                   className="minor-help-btn"
                   onClick={() => setMinorHelpOpen(true)}
-                  aria-label="What is the Minor Blend?"
-                  title="What is the Minor Blend?"
+                  aria-label={t("What is the Minor Blend?")}
+                  title={t("What is the Minor Blend?")}
                   style={{
                     width: "var(--control-min-height)",
                     height: "var(--control-min-height)",
@@ -544,7 +544,7 @@ export default function ProgressionInput({
           </details>
 
           {chords.length > 0 ? (
-            <Suspense fallback={<span className="readout">Loading Improv Insight…</span>}>
+            <Suspense fallback={<span className="readout">{t("Loading Improv Insight…")}</span>}>
               <ImprovInsight chords={chords} moodId={moodId} />
             </Suspense>
           ) : null}

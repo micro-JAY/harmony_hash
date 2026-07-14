@@ -96,6 +96,102 @@ body {
   margin-inline: auto;
 }
 
+.hh-fretboard-scroller {
+  container-type: inline-size;
+}
+
+.hh-fretboard-grid {
+  min-width: 0;
+  width: 100%;
+}
+
+.hh-fretboard-row {
+  grid-template-columns: clamp(1.75rem, 7cqw, 4rem) repeat(16, minmax(0, 1fr));
+  width: min(100%, 68rem);
+  margin-inline: auto;
+}
+
+.hh-fretboard-note {
+  width: clamp(1.5rem, 4cqw, 2.25rem);
+  height: clamp(1.5rem, 4cqw, 2.25rem);
+}
+
+.hh-fretboard-hint-compact {
+  display: none;
+}
+
+@container (max-width: 40rem) {
+  .hh-fretboard-header {
+    font-size: 0.625rem !important;
+  }
+
+  .hh-fretboard-row-label {
+    padding-right: var(--space-1);
+    font-size: var(--text-xs) !important;
+  }
+
+  .hh-fretboard-note {
+    font-size: 0.625rem !important;
+  }
+
+  .hh-fretboard-cell {
+    border-inline-width: 0 !important;
+  }
+}
+
+@container (max-width: 28rem) {
+  .hh-fretboard-grid {
+    padding: 0 !important;
+  }
+
+  .hh-fretboard-row {
+    grid-template-columns: 0 repeat(13, minmax(24px, 1fr));
+  }
+
+  .hh-fretboard-row-label {
+    visibility: hidden;
+    padding: 0;
+  }
+
+  .hh-fretboard-header:is([data-fret-column="13"], [data-fret-column="14"], [data-fret-column="15"]),
+  .hh-fretboard-cell:is([data-fret="13"], [data-fret="14"], [data-fret="15"]),
+  .hh-fretboard-marker:is([data-fret="13"], [data-fret="14"], [data-fret="15"]) {
+    display: none;
+  }
+
+  .hh-fretboard-note {
+    width: max(24px, 4cqw);
+    height: max(24px, 4cqw);
+    font-size: 0.5rem !important;
+  }
+
+  .hh-fretboard-open-label {
+    font-size: 0.5rem;
+    letter-spacing: -0.08em;
+  }
+
+  .hh-fretboard-note[data-root="true"] {
+    width: max(24px, 4.5cqw);
+    height: max(24px, 4.5cqw);
+  }
+}
+
+@media (max-width: 28rem) {
+  .hh-fretboard-scroller {
+    width: calc(100% + (2 * var(--space-4)));
+    margin-inline: calc(-1 * var(--space-4));
+    overflow-x: hidden;
+  }
+
+  .hh-fretboard-hint-full {
+    display: none;
+  }
+
+  .hh-fretboard-hint-compact {
+    display: inline;
+  }
+}
+
 .hh-workspace-header {
   display: flex;
   align-items: flex-end;

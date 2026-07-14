@@ -19,6 +19,7 @@ import type {
 } from "../lib/theory";
 import type { ScaleType } from "../lib/types";
 import { fretboardIntervalColor } from "./fretboardVisuals";
+import { useT } from "../i18n/I18nContext";
 
 export type SuggestionMode = "off" | "key" | "next" | "jazz" | "modal";
 
@@ -178,6 +179,7 @@ export default function ChordReferenceGrid({
   keyContext,
   moodId,
 }: ChordReferenceGridProps) {
+  const t = useT();
   const shouldReduceMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
   const [flashCell, setFlashCell] = useState<string | null>(null);
@@ -230,10 +232,10 @@ export default function ChordReferenceGrid({
     return scores;
   }, [chordHistory, contextKey, contextScaleType, moodId, previousChord, suggestionMode]);
   const overlayActive = suggestionMode !== "off" && !!contextKey && !!contextScaleType;
-  const contextLabel = contextKey && contextScaleType
+  const contextLabel = t(contextKey && contextScaleType
     ? `${contextKey} ${SCALE_TYPE_LABELS[contextScaleType]}`
-    : "No key context";
-  const baseModeSummary = suggestionMode === "modal"
+    : "No key context");
+  const baseModeSummary = t(suggestionMode === "modal"
     ? `Modal roots across ${contextLabel} · fill maps root modes; % tracks chord-tone fit.`
     : suggestionMode === "jazz"
     ? previousChord
@@ -243,9 +245,9 @@ export default function ChordReferenceGrid({
       ? previousChord
         ? `Ranking what follows ${previousChord.displayName} in ${contextLabel}`
         : `Key fit in ${contextLabel}. Add a chord to rank what follows.`
-      : `Key fit in ${contextLabel}`;
+      : `Key fit in ${contextLabel}`);
   const modeSummary = moodId
-    ? `${baseModeSummary} · ${moodDefinitionFor(moodId).label} lens`
+    ? `${baseModeSummary} · ${t(`${moodDefinitionFor(moodId).label} lens`)}`
     : baseModeSummary;
 
   // Reset filter and history when grid collapses
@@ -302,7 +304,7 @@ export default function ChordReferenceGrid({
             lineHeight: 1.4,
           }}
         >
-          {isOpen ? "Hide grid \u2191" : "Browse chords \u2193"}
+          {t(isOpen ? "Hide grid ↑" : "Browse chords ↓")}
         </button>
 
         <AnimatePresence>
@@ -330,7 +332,7 @@ export default function ChordReferenceGrid({
                 e.currentTarget.style.color = "var(--text-muted)";
               }}
             >
-              &#8617; undo
+              &#8617; {t("undo")}
             </motion.button>
           )}
         </AnimatePresence>
@@ -342,7 +344,7 @@ export default function ChordReferenceGrid({
           <motion.div
             id={GRID_PANEL_ID}
             role="region"
-            aria-label="Chord suggestions"
+            aria-label={t("Chord suggestions")}
             data-testid="chord-grid-panel"
             data-mood-id={moodId ?? "none"}
             data-reduced-motion={shouldReduceMotion ? "true" : "false"}
@@ -378,7 +380,7 @@ export default function ChordReferenceGrid({
                   textTransform: "uppercase",
                 }}
               >
-                Suggest
+                {t("Suggest")}
               </span>
               <div
                 style={{
@@ -399,7 +401,7 @@ export default function ChordReferenceGrid({
                       disabled={disabled}
                       onClick={() => setSuggestionMode(opt.value)}
                       aria-pressed={active}
-                      aria-label={`${opt.label} chord suggestions`}
+                      aria-label={t(`${opt.label} chord suggestions`)}
                       style={{
                         minHeight: "2rem",
                         padding: "var(--space-1) var(--space-3)",
@@ -417,7 +419,7 @@ export default function ChordReferenceGrid({
                         cursor: disabled ? "not-allowed" : "pointer",
                       }}
                     >
-                      {opt.label}
+                      {t(opt.label)}
                     </button>
                   );
                 })}
@@ -440,7 +442,7 @@ export default function ChordReferenceGrid({
             {overlayActive && suggestionMode === "modal" ? (
               <div
                 role="group"
-                aria-label="Modal root legend"
+                aria-label={t("Modal root legend")}
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
@@ -454,7 +456,7 @@ export default function ChordReferenceGrid({
                 {modalLegend.map((item) => (
                   <span
                     key={item.degree}
-                    aria-label={`Scale degree ${item.degree}: ${item.label}`}
+                    aria-label={t(`Scale degree ${item.degree}: ${item.label}`)}
                     data-modal-legend-id={item.scaleId}
                     className="flex items-center gap-1.5"
                   >
@@ -466,12 +468,12 @@ export default function ChordReferenceGrid({
                     M{item.degree} · {item.label}
                   </span>
                 ))}
-                <span>Outside roots keep the low-fit cue.</span>
+                <span>{t("Outside roots keep the low-fit cue.")}</span>
               </div>
             ) : overlayActive && (
               <div
                 role="group"
-                aria-label="Fit score legend"
+                aria-label={t("Fit score legend")}
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
@@ -481,10 +483,10 @@ export default function ChordReferenceGrid({
                   fontSize: "var(--text-xs)",
                 }}
               >
-                <span style={{ color: "var(--music-match-high)" }}>85–100 strong</span>
-                <span style={{ color: "var(--music-match-good)" }}>70–84 good</span>
-                <span style={{ color: "var(--music-match-mid)" }}>50–69 color</span>
-                <span style={{ color: "var(--music-match-low)" }}>0–49 outside</span>
+                <span style={{ color: "var(--music-match-high)" }}>85–100 {t("strong")}</span>
+                <span style={{ color: "var(--music-match-good)" }}>70–84 {t("good")}</span>
+                <span style={{ color: "var(--music-match-mid)" }}>50–69 {t("color")}</span>
+                <span style={{ color: "var(--music-match-low)" }}>0–49 {t("outside")}</span>
               </div>
             )}
 
@@ -521,7 +523,7 @@ export default function ChordReferenceGrid({
                       lineHeight: 1.4,
                     }}
                   >
-                    {g.label}
+                    {t(g.label)}
                   </button>
                 );
               })}

@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { lookupChord } from "../lib/chordData";
+import { I18nProvider } from "../i18n/I18nProvider";
 import ChordCard from "./ChordCard";
 
 function renderChordCard({
@@ -14,21 +15,23 @@ function renderChordCard({
   if (!chord) throw new Error("Cmaj7 fixture is missing from the chord dictionary");
 
   return renderToStaticMarkup(
-    <ChordCard
-      chord={chord}
-      instrument="guitar"
-      displayName="Cmaj7"
-      variant={1}
-      onVariantChange={() => undefined}
-      isLocked={false}
-      onToggleLock={() => undefined}
-      voicing={{ notes: [], voicingType: "root" }}
-      pianoStyle="auto"
-      onPianoStyleChange={() => undefined}
-      onChordChange={() => undefined}
-      isPlaying={isPlaying}
-      isAgentHighlighted={isAgentHighlighted}
-    />,
+    <I18nProvider>
+      <ChordCard
+        chord={chord}
+        instrument="guitar"
+        displayName="Cmaj7"
+        variant={1}
+        onVariantChange={() => undefined}
+        isLocked={false}
+        onToggleLock={() => undefined}
+        voicing={{ notes: [], voicingType: "root" }}
+        pianoStyle="auto"
+        onPianoStyleChange={() => undefined}
+        onChordChange={() => undefined}
+        isPlaying={isPlaying}
+        isAgentHighlighted={isAgentHighlighted}
+      />
+    </I18nProvider>,
   );
 }
 

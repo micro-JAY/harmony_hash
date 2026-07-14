@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AudioLines, Lock, Unlock } from "lucide-react";
 import type { Instrument } from "../lib/types";
+import { useT } from "../i18n/I18nContext";
 
 interface ChordCardFrameProps {
   instrument: Instrument;
@@ -25,6 +26,7 @@ export default function ChordCardFrame({
   isAgentHighlighted,
   children,
 }: ChordCardFrameProps) {
+  const t = useT();
   return (
     <div
       data-testid="chord-card"
@@ -58,8 +60,8 @@ export default function ChordCardFrame({
     >
       <button
         type="button"
-        aria-label={isLocked ? "Unlock chord card" : "Lock chord card"}
-        title={isLocked ? "Unlock" : "Lock"}
+        aria-label={t(isLocked ? "Unlock chord card" : "Lock chord card")}
+        title={t(isLocked ? "Unlock" : "Lock")}
         onClick={onToggleLock}
         className="absolute top-2 right-2 rounded-md p-1 transition-colors"
         style={{
@@ -89,7 +91,7 @@ export default function ChordCardFrame({
         {isAgentHighlighted && (
           <span
             role="status"
-            aria-label={`Hanz is focusing on ${displayName}`}
+            aria-label={t(`Hanz is focusing on ${displayName}`)}
             className="mx-auto mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5"
             style={{
               backgroundColor: "var(--status-academy-bg)",
@@ -103,7 +105,7 @@ export default function ChordCardFrame({
             }}
           >
             <AudioLines size={12} aria-hidden="true" />
-            Hanz focus
+            {t("Hanz focus")}
           </span>
         )}
         {usageNotes && (

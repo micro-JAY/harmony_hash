@@ -433,7 +433,7 @@ function App() {
         }
       >
           {workspace === "builder" && initialShare.status === "invalid" ? (
-            <section className="w-full px-4" aria-label="Shared progression status">
+            <section className="w-full px-4" aria-label={t("Shared progression status")}>
               <p
                 role="alert"
                 className="mx-auto max-w-3xl rounded-lg"
@@ -448,7 +448,7 @@ function App() {
                   lineHeight: "var(--leading-normal)",
                 }}
               >
-                {initialShare.message} Start a new progression below.
+                {initialShare.message} {t("Start a new progression below.")}
               </p>
             </section>
           ) : null}
@@ -468,7 +468,7 @@ function App() {
             <Suspense
               fallback={(
                 <section className="flex flex-1 items-center justify-center px-4 py-16" role="status">
-                  <span className="readout">Loading {workspace}…</span>
+                  <span className="readout">{t(`Loading ${workspace}…`)}</span>
                 </section>
               )}
             >
@@ -497,7 +497,7 @@ function App() {
           {/* Progression playback and voicing actions. */}
           <section
             className="w-full px-4"
-            aria-label="Progression actions"
+            aria-label={t("Progression actions")}
           >
             <div className="w-full flex flex-col items-stretch justify-center gap-3 md:flex-row md:flex-wrap md:items-start">
               {workspace === "builder" && (
@@ -521,7 +521,7 @@ function App() {
                       e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg)";
                     }}
                   >
-                    {instrument === "guitar" ? "Randomize All Variants" : "Randomize All Voicings"}
+                    {t(instrument === "guitar" ? "Randomize All Variants" : "Randomize All Voicings")}
                   </button>
 
                   {instrument === "piano" && (
@@ -530,10 +530,10 @@ function App() {
                       onClick={handleTogglePlayback}
                       aria-label={
                         isPlaybackStarting
-                          ? "Starting playback"
+                          ? t("Starting playback")
                           : isPlaying
-                            ? "Stop playback"
-                            : "Play progression"
+                            ? t("Stop playback")
+                            : t("Play progression")
                       }
                       aria-busy={isPlaybackStarting}
                       disabled={isPlaybackStarting}
@@ -552,7 +552,7 @@ function App() {
                       }}
                     >
                       {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-                      {isPlaybackStarting ? "Starting…" : isPlaying ? "Stop" : "Play progression"}
+                      {t(isPlaybackStarting ? "Starting…" : isPlaying ? "Stop" : "Play progression")}
                     </button>
                   )}
 
@@ -565,7 +565,7 @@ function App() {
           {workspace === "builder" && chords.length > 0 && (
           <section
             className="w-full max-w-7xl mx-auto px-4"
-            aria-label="Chord cards output"
+            aria-label={t("Chord cards output")}
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:flex lg:flex-wrap lg:justify-center">
               {chords.map((chordResult, index) => {
@@ -605,7 +605,7 @@ function App() {
               {t("emptyStateHint")}
               <br />
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)" }}>
-                Try: Cmaj7 Am9 Dm7 G7
+                {t("Try: Cmaj7 Am9 Dm7 G7")}
               </span>
             </p>
           </div>

@@ -2,6 +2,7 @@ import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { lookupChord, searchChordCatalog } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
+import { useLocale, useT } from "../i18n/I18nContext";
 
 interface ChordOverlayPickerProps {
   selectedLabel?: string;
@@ -16,6 +17,8 @@ export default function ChordOverlayPicker({
   onSelect,
   onClear,
 }: ChordOverlayPickerProps) {
+  const { locale } = useLocale();
+  const t = useT();
   const panelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -45,7 +48,9 @@ export default function ChordOverlayPicker({
   const commitLabel = (label: string) => {
     const chord = lookupChord(label.trim());
     if (!chord) {
-      setError(`“${label.trim() || "That chord"}” is not in the Harmony Hash dictionary.`);
+      setError(locale === "ja"
+        ? `「${label.trim() || "そのコード"}」はHarmony Hashの辞書にありません。`
+        : `“${label.trim() || "That chord"}” is not in the Harmony Hash dictionary.`);
       return;
     }
     onSelect({ chord, displayName: label.trim() || chord.displayName });
@@ -60,7 +65,7 @@ export default function ChordOverlayPicker({
         closeAndRestoreFocus();
       }
     }}>
-      <span className="hh-control-label">Chord overlay</span>
+      <span className="hh-control-label">{t("Chord overlay")}</span>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <button
           ref={triggerRef}
@@ -80,12 +85,12 @@ export default function ChordOverlayPicker({
             transitionDuration: reducedMotion ? "0ms" : "var(--duration-fast)",
           }}
         >
-          {selectedLabel ? `Overlay: ${selectedLabel}` : "Choose a chord"}
+          {t(selectedLabel ? `Overlay: ${selectedLabel}` : "Choose a chord")}
         </button>
         {selectedLabel ? (
           <button
             type="button"
-            aria-label={`Clear ${selectedLabel} chord overlay`}
+            aria-label={t(`Clear ${selectedLabel} chord overlay`)}
             onClick={clearAndRestoreFocus}
             className="flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm"
             style={{
@@ -94,7 +99,7 @@ export default function ChordOverlayPicker({
               transitionDuration: reducedMotion ? "0ms" : "var(--duration-fast)",
             }}
           >
-            <X size={14} aria-hidden="true" /> Clear
+            <X size={14} aria-hidden="true" /> {t("Clear")}
           </button>
         ) : null}
       </div>
@@ -114,7 +119,7 @@ export default function ChordOverlayPicker({
             commitLabel(query);
           }}>
             <label className="block" htmlFor={`${panelId}-search`}>
-              <span className="sr-only">Search chord overlay</span>
+              <span className="sr-only">{t("Search chord overlay")}</span>
               <span className="relative block">
                 <Search
                   size={15}
@@ -131,7 +136,7 @@ export default function ChordOverlayPicker({
                     setQuery(event.currentTarget.value);
                     setError("");
                   }}
-                  placeholder="Try Cmaj7, G7#9, D/F#…"
+                  placeholder={t("Try Cmaj7, G7#9, D/F#…")}
                   className="min-h-11 w-full rounded-lg py-2 pl-9 pr-3 text-sm"
                   style={{
                     backgroundColor: "var(--surface-sunken)",
@@ -149,10 +154,10 @@ export default function ChordOverlayPicker({
             </p>
           ) : null}
           <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
-            {results.length} dictionary result{results.length === 1 ? "" : "s"} · Enter submits the exact text
+            {t(`${results.length} dictionary result${results.length === 1 ? "" : "s"} · Enter submits the exact text`)}
           </p>
           <ul
-            aria-label="Chord overlay results"
+            aria-label={t("Chord overlay results")}
             className="mt-2 grid max-h-56 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2"
           >
             {results.map((item) => (

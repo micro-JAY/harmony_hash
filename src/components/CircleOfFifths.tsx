@@ -9,6 +9,7 @@ import {
   diatonicChordsFor,
   type CircleKey,
 } from "../lib/theory";
+import { useLocale, useT } from "../i18n/I18nContext";
 
 interface CircleOfFifthsProps {
   onUseKey: (key: CircleKey) => void;
@@ -67,6 +68,8 @@ function displayMinorRoot(key: CircleKey): string {
 }
 
 export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
+  const t = useT();
+  const { locale } = useLocale();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const sectorRefs = useRef<Array<SVGGElement | null>>([]);
   const reduceMotion = useReducedMotion();
@@ -113,7 +116,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
             viewBox="0 0 720 720"
             className="mx-auto block aspect-square w-full max-w-[46rem]"
             role="listbox"
-            aria-label="Major keys and relative minor keys around the Circle of Fifths"
+            aria-label={t("Major keys and relative minor keys around the Circle of Fifths")}
             aria-activedescendant={`circle-key-${selectedIndex}`}
             data-reduced-motion={reduceMotion ? "true" : "false"}
           >
@@ -145,7 +148,9 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
                   ref={(element) => { sectorRefs.current[index] = element; }}
                   role="option"
                   aria-selected={selected}
-                  aria-label={`${key.major}, relative ${key.relativeMinor}, ${key.signature}`}
+                  aria-label={locale === "ja"
+                    ? `${t(key.major)}、${t("Relative")}：${t(key.relativeMinor)}、${t(key.signature)}`
+                    : `${key.major}, relative ${key.relativeMinor}, ${key.signature}`}
                   tabIndex={selected ? 0 : -1}
                   className="circle-key-sector"
                   onClick={() => setSelectedIndex(index)}
@@ -188,7 +193,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
                     fontSize="12"
                     pointerEvents="none"
                   >
-                    major
+                    {t("major")}
                   </text>
                   <text
                     x={minorPoint.x}
@@ -213,7 +218,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
                     fontSize="10"
                     pointerEvents="none"
                   >
-                    minor
+                    {t("minor")}
                   </text>
                 </g>
               );
@@ -224,7 +229,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
               {displayRoot(selectedKey)}
             </text>
             <text x={CENTER} y={CENTER + 27} textAnchor="middle" fill="var(--text-secondary)" fontFamily="var(--font-mono)" fontSize="13">
-              {selectedKey.signature}
+              {t(selectedKey.signature)}
             </text>
           </svg>
         </div>
@@ -232,22 +237,22 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
         <aside
           className="flex flex-col border-t p-6 lg:border-l lg:border-t-0 lg:p-8"
           style={{ borderColor: "var(--border-default)" }}
-          aria-label={`${selectedKey.major} details`}
+          aria-label={`${t(selectedKey.major)} ${t("details")}`}
         >
           <div>
-            <h2 className="hh-panel-title">{selectedKey.major}</h2>
+            <h2 className="hh-panel-title">{t(selectedKey.major)}</h2>
             <p className="mt-2 readout" style={{ color: "var(--text-accent)", fontSize: "var(--text-xl)" }}>
-              {selectedKey.relativeMinor}
+              {t(selectedKey.relativeMinor)}
             </p>
           </div>
 
           <p className="my-7 border-y py-5 readout" style={{ borderColor: "var(--border-default)", color: "var(--text-primary)" }}>
-            {selectedKey.signature}
+            {t(selectedKey.signature)}
           </p>
 
           <section aria-labelledby="circle-diatonic-heading">
-            <h3 id="circle-diatonic-heading" style={{ fontSize: "var(--text-lg)" }}>Diatonic chords</h3>
-            <ol className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7 lg:grid-cols-4 xl:grid-cols-7" aria-label={`${selectedKey.major} diatonic chords`}>
+            <h3 id="circle-diatonic-heading" style={{ fontSize: "var(--text-lg)" }}>{t("Diatonic chords")}</h3>
+            <ol className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7 lg:grid-cols-4 xl:grid-cols-7" aria-label={`${t(selectedKey.major)} ${t("Diatonic chords")}`}>
               {diatonicChords.map((chord) => (
                 <li
                   key={chord}
@@ -261,7 +266,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
           </section>
 
           <section className="mt-7" aria-labelledby="circle-nearby-heading">
-            <h3 id="circle-nearby-heading" style={{ fontSize: "var(--text-lg)" }}>Nearby keys</h3>
+            <h3 id="circle-nearby-heading" style={{ fontSize: "var(--text-lg)" }}>{t("Nearby keys")}</h3>
             <div className="mt-3 grid gap-2">
               {[clockwiseKey, counterClockwiseKey].map((key, index) => (
                 <button
@@ -276,7 +281,7 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
                   }}
                 >
                   <ArrowRight size={17} aria-hidden="true" />
-                  <span>{key.major}</span>
+                  <span>{t(key.major)}</span>
                 </button>
               ))}
             </div>
@@ -292,11 +297,11 @@ export default function CircleOfFifths({ onUseKey }: CircleOfFifthsProps) {
               color: "var(--interactive-accent-text)",
             }}
           >
-            Use {displayRoot(selectedKey)} in Hasher
+            {t(`Use ${displayRoot(selectedKey)} in Hasher`)}
           </button>
 
           <p className="mt-auto pt-6 text-sm" style={{ color: "var(--text-secondary)" }}>
-            Use arrow keys to move around the circle.
+            {t("Use arrow keys to move around the circle.")}
           </p>
         </aside>
       </div>

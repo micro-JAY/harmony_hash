@@ -5,6 +5,7 @@ import {
   ProgressionShareError,
 } from "../lib/progressionShare";
 import type { Instrument } from "../lib/types";
+import { useT } from "../i18n/I18nContext";
 
 interface ShareableChord {
   input: string;
@@ -69,6 +70,7 @@ function writeClipboardWithTimeout(link: string): Promise<void> {
 }
 
 export default function ShareProgression({ instrument, chords }: ShareProgressionProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [copyState, setCopyState] = useState<CopyState | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -161,7 +163,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
         }}
       >
         <Link2 size={15} aria-hidden="true" />
-        Share progression
+        {t("Share progression")}
       </button>
 
       {open ? (
@@ -194,7 +196,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
                   lineHeight: "var(--leading-tight)",
                 }}
               >
-                Share this progression
+                {t("Share this progression")}
               </h2>
               <p
                 className="mt-2"
@@ -204,14 +206,13 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
                   lineHeight: "var(--leading-normal)",
                 }}
               >
-                A snapshot of these chords and the {instrument === "piano" ? "Piano" : "Guitar"} view.
-                Hanz conversations and prompts stay private.
+                {t("A snapshot of these chords and the selected instrument view. Hanz conversations and prompts stay private.")}
               </p>
             </div>
             <button
               type="button"
               onClick={handleClose}
-              aria-label="Close share progression"
+              aria-label={t("Close share progression")}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--interactive-focus-ring)]"
               style={{
                 color: "var(--text-secondary)",
@@ -236,7 +237,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
                   textTransform: "uppercase",
                 }}
               >
-                Progression link
+                {t("Progression link")}
               </label>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
@@ -255,7 +256,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
                     fontFamily: "var(--font-mono)",
                     fontSize: "var(--text-sm)",
                   }}
-                  aria-label="Shareable progression link"
+                  aria-label={t("Shareable progression link")}
                 />
                 <button
                   type="button"
@@ -275,7 +276,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
                   ) : (
                     <Copy size={15} aria-hidden="true" />
                   )}
-                  {currentCopyStatus === "copied" ? "Copied" : "Copy link"}
+                  {t(currentCopyStatus === "copied" ? "Copied" : "Copy link")}
                 </button>
               </div>
               {currentCopyStatus === "copied" ? (
@@ -284,14 +285,14 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
                   aria-live="polite"
                   style={{ margin: 0, color: "var(--status-success-text)", fontSize: "var(--text-sm)" }}
                 >
-                  Link copied.
+                  {t("Link copied.")}
                 </p>
               ) : currentCopyStatus === "error" ? (
                 <p
                   role="alert"
                   style={{ margin: 0, color: "var(--status-error-text)", fontSize: "var(--text-sm)" }}
                 >
-                  Copy wasn’t confirmed. The link is selected—copy it manually.
+                  {t("Copy wasn’t confirmed. The link is selected—copy it manually.")}
                 </p>
               ) : null}
             </div>

@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { IndexedChord } from "../lib/types";
+import { useT } from "../i18n/I18nContext";
 import {
   getChordModifierOptions,
   type ChordModifierOption,
@@ -17,6 +18,7 @@ export default function ChordModifier({
   displayName,
   onSelect,
 }: ChordModifierProps) {
+  const t = useT();
   const panelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -69,7 +71,7 @@ export default function ChordModifier({
         type="button"
         aria-expanded={isOpen}
         aria-controls={panelId}
-        aria-label={`Modify ${displayName}`}
+        aria-label={t(`Modify ${displayName}`)}
         onClick={handleTrigger}
         className="flex min-h-9 items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all"
         style={{
@@ -87,14 +89,14 @@ export default function ChordModifier({
         }}
       >
         <SlidersHorizontal size={13} aria-hidden="true" />
-        Modify
+        {t("Modify")}
       </button>
 
       {isOpen ? (
         <div
           id={panelId}
           role="region"
-          aria-label={`Modify ${displayName} chord`}
+          aria-label={t(`Modify ${displayName} chord`)}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.preventDefault();
@@ -116,7 +118,7 @@ export default function ChordModifier({
                   fontWeight: "var(--weight-semibold)",
                 }}
               >
-                Change {options.rootLabel}
+                {t(`Change ${options.rootLabel}`)}
               </p>
               <p
                 style={{
@@ -125,12 +127,12 @@ export default function ChordModifier({
                   fontSize: "var(--text-xs)",
                 }}
               >
-                {options.all.length} catalog choices
+                {t(`${options.all.length} catalog choices`)}
               </p>
             </div>
             <button
               type="button"
-              aria-label="Close chord modifier"
+              aria-label={t("Close chord modifier")}
               onClick={closeAndRestoreFocus}
               className="rounded-md p-1.5"
               style={{
@@ -151,13 +153,13 @@ export default function ChordModifier({
             }}
           >
             <Search size={14} aria-hidden="true" />
-            <span className="sr-only">Search {options.rootLabel} chord alternatives</span>
+            <span className="sr-only">{t(`Search ${options.rootLabel} chord alternatives`)}</span>
             <input
               ref={searchRef}
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder={`Search ${options.rootLabel} chords`}
+              placeholder={t(`Search ${options.rootLabel} chords`)}
               className="min-w-0 flex-1 bg-transparent py-2 outline-none"
               style={{
                 color: "var(--text-primary)",
@@ -178,14 +180,14 @@ export default function ChordModifier({
                   fontWeight: "var(--weight-semibold)",
                 }}
               >
-                Quick changes
+                {t("Quick changes")}
               </p>
-              <div className="flex flex-wrap gap-1.5" aria-label="Quick chord changes">
+              <div className="flex flex-wrap gap-1.5" aria-label={t("Quick chord changes")}>
                 {options.quick.map((option) => (
                   <button
                     key={option.label}
                     type="button"
-                    aria-label={`Change ${displayName} to ${option.label}`}
+                    aria-label={t(`Change ${displayName} to ${option.label}`)}
                     onClick={() => handleSelect(option)}
                     className="rounded-md px-2.5 py-1.5 transition-all"
                     style={{
@@ -213,18 +215,18 @@ export default function ChordModifier({
                 fontWeight: "var(--weight-semibold)",
               }}
             >
-              {query ? "Matches" : `More ${options.rootLabel} chords`}
+              {t(query ? "Matches" : `More ${options.rootLabel} chords`)}
             </p>
             {visibleOptions.length > 0 ? (
               <div
                 className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto pr-1"
-                aria-label="All chord alternatives"
+                aria-label={t("All chord alternatives")}
               >
                 {visibleOptions.map((option) => (
                   <button
                     key={option.label}
                     type="button"
-                    aria-label={`Change ${displayName} to ${option.label}`}
+                    aria-label={t(`Change ${displayName} to ${option.label}`)}
                     onClick={() => handleSelect(option)}
                     className="rounded-md px-2 py-1.5 transition-all"
                     style={{
@@ -248,7 +250,7 @@ export default function ChordModifier({
                   fontSize: "var(--text-xs)",
                 }}
               >
-                No matching catalog chord.
+                {t("No matching catalog chord.")}
               </p>
             )}
           </div>

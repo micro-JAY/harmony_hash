@@ -3,20 +3,30 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { IndexedChord } from "../lib/types";
 import { useT } from "../i18n/I18nContext";
 import {
-  getChordModifierOptions,
   type ChordModifierOption,
 } from "../lib/chordModifiers";
+import {
+  rankContextualChordModifiers,
+  type ContextualChordModifierOption,
+  type HasherModifierContext,
+} from "../lib/theory/modifierScoring";
 
 interface ChordModifierProps {
   chord: IndexedChord;
   displayName: string;
   onSelect: (option: ChordModifierOption) => void;
+  context?: HasherModifierContext;
+  selectedIndex: number;
+  timeline: ReadonlyArray<IndexedChord>;
 }
 
 export default function ChordModifier({
   chord,
   displayName,
   onSelect,
+  context,
+  selectedIndex,
+  timeline,
 }: ChordModifierProps) {
   const t = useT();
   const panelId = useId();
@@ -25,8 +35,14 @@ export default function ChordModifier({
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const options = useMemo(
-    () => getChordModifierOptions(chord, displayName),
-    [chord, displayName],
+    () => rankContextualChordModifiers({
+      selectedChord: chord,
+      selectedIndex,
+      timeline,
+      context,
+      displayName,
+    }),
+    [chord, context, displayName, selectedIndex, timeline],
   );
   const visibleOptions = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
@@ -62,6 +78,18 @@ export default function ChordModifier({
     setIsOpen(false);
     setQuery("");
     triggerRef.current?.focus();
+  }
+
+  function fitReason(option: ContextualChordModifierOption): string | null {
+    const fit = option.fit;
+    if (!fit) return null;
+    const coverage = fit.reasons.find((reason) => reason.key === "modifier.reason.scaleCoverage");
+    const matching = coverage?.data.matching;
+    const total = coverage?.data.total;
+    const functionLabel = t(`${fit.function} function`);
+    return typeof matching === "number" && typeof total === "number"
+      ? `${functionLabel} · ${t(`${matching}/${total} chord tones in scale`)}`
+      : functionLabel;
   }
 
   return (
@@ -183,11 +211,15 @@ export default function ChordModifier({
                 {t("Quick changes")}
               </p>
               <div className="flex flex-wrap gap-1.5" aria-label={t("Quick chord changes")}>
-                {options.quick.map((option) => (
+                {options.quick.map((option, quickIndex) => {
+                  const reason = fitReason(option);
+                  const fitId = `${panelId}-fit-${quickIndex}`;
+                  return (
                   <button
                     key={option.label}
                     type="button"
                     aria-label={t(`Change ${displayName} to ${option.label}`)}
+                    aria-describedby={option.fit ? fitId : undefined}
                     onClick={() => handleSelect(option)}
                     className="rounded-md px-2.5 py-1.5 transition-all"
                     style={{
@@ -198,9 +230,15 @@ export default function ChordModifier({
                       fontSize: "var(--text-xs)",
                     }}
                   >
-                    {option.label}
+                    <span className="block">{option.label}</span>
+                    {option.fit ? (
+                      <span id={fitId} className="mt-0.5 block text-left" style={{ fontFamily: "var(--font-body)" }}>
+                        <strong>{option.fit.score}%</strong>{reason ? ` · ${reason}` : ""}
+                      </span>
+                    ) : null}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : null}

@@ -27,6 +27,10 @@ export interface ClientToolSchema {
   expectsResponse: boolean;
 }
 
+/** Shared provider/runtime limits for voice-authored progression mutations. */
+export const MAX_VOICE_PROGRESSION_CHORDS = 24;
+export const MAX_VOICE_CHORD_SYMBOL_LENGTH = 48;
+
 const chordRefProps = {
   index: {
     type: "number",
@@ -49,7 +53,7 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
   {
     name: "analyze_progression",
     description:
-      "Get what the voice bridge computes for the current progression: the chord symbols, each chord's tones (the note names in the chord), and the smooth piano voicing the app renders. Use this for accurate, app-grounded facts about the notes. You may add general music-theory explanation yourself, but never claim this tool detected a key, roman numerals or scales — it does not receive the Free Input harmony context.",
+      "Get what the voice bridge computes for the current progression: the chord symbols, each chord's tones (the note names in the chord), and a smooth reference voicing. Use this for accurate, app-grounded facts about the notes. You may add general music-theory explanation yourself, but never claim this tool detected a key, roman numerals or scales — it does not receive the Free Input harmony context.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },
@@ -62,8 +66,12 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
       properties: {
         chords: {
           type: "array",
-          items: { type: "string", description: "A chord symbol, e.g. 'Am7'." },
-          description: "Chord symbols to append, in order, e.g. ['Am','F','C','G'].",
+          items: {
+            type: "string",
+            description: "A chord symbol, e.g. 'Am7'.",
+          },
+          description:
+            "Chord symbols to append, in order, e.g. ['Am','F','C','G']. Send at most 24 symbols, each at most 48 characters.",
         },
       },
       required: ["chords"],
@@ -79,8 +87,12 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
       properties: {
         chords: {
           type: "array",
-          items: { type: "string", description: "A chord symbol, e.g. 'Cmaj7'." },
-          description: "The full new progression, in order.",
+          items: {
+            type: "string",
+            description: "A chord symbol, e.g. 'Cmaj7'.",
+          },
+          description:
+            "The full new progression, in order. Send at most 24 symbols, each at most 48 characters.",
         },
       },
       required: ["chords"],
@@ -103,7 +115,7 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
   {
     name: "play_progression",
     description:
-      "Play the current progression so the user can hear it. Read the returned status exactly: started means playback began, already_playing means a start is already underway or playback was left running without a restart, requires_piano means the user must switch from guitar to piano, empty means the timeline has no chords, cancelled means a user or timeline change stopped the pending start, and unavailable means this browser cannot start audio.",
+      "Play the current progression with the instrument active in the app. Read the returned status exactly: started means playback began, already_playing means a start is already underway or playback was left running without a restart, empty means the timeline has no chords, cancelled means a user or timeline change stopped the pending start, and unavailable means this browser cannot start audio.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },

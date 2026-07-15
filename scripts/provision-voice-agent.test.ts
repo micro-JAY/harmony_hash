@@ -7,6 +7,7 @@ import {
 } from "./provision-voice-agent";
 
 const AGENT_ID = "agent_test";
+const SYSTEM_PROMPT = "Ground every answer in the current progression.";
 const AGENTS_API = "https://api.elevenlabs.io/v1/convai/agents";
 const TOOLS_API = "https://api.elevenlabs.io/v1/convai/tools";
 const TOOL_IDS = TOOL_SCHEMAS.map((tool) => `tool_${tool.name}`);
@@ -53,6 +54,7 @@ function providerNormalizedToolRecord(index: number, id: string) {
 
 function agentPayload(options: {
   toolIds?: string[];
+  systemPrompt?: string;
   builtInTools?: Record<string, unknown>;
   promptDefaults?: Record<string, unknown>;
   tts?: Record<string, unknown>;
@@ -66,6 +68,7 @@ function agentPayload(options: {
     conversation_config: {
       agent: {
         prompt: {
+          prompt: options.systemPrompt ?? SYSTEM_PROMPT,
           tool_ids: options.toolIds ?? [...TOOL_IDS],
           built_in_tools: options.builtInTools ?? {},
           tools: TOOL_SCHEMAS.map((tool) =>
@@ -141,7 +144,7 @@ function provisionOptions(
 ): ProvisionVoiceAgentOptions {
   return {
     apiKey: "test-api-key",
-    systemPrompt: "Ground every answer in the current progression.",
+    systemPrompt: SYSTEM_PROMPT,
     existingAgentId: AGENT_ID,
     fetchImpl,
     log: () => undefined,
@@ -167,6 +170,25 @@ describe("voice agent provisioning orchestration", () => {
       provisionVoiceAgent(provisionOptions(fetchImpl, { verifyOnly: true })),
     ).resolves.toEqual({ action: "verified", agentId: AGENT_ID });
     expect(requests).toHaveLength(1 + TOOL_SCHEMAS.length);
+    expect(requests.every((request) => request.method === "GET")).toBe(true);
+  });
+
+  it("fails verify-only provisioning when the live system prompt drifted", async () => {
+    const { fetchImpl, requests } = createMockFetch((request) => {
+      if (request.method !== "GET") {
+        throw new Error(`Unexpected write: ${request.method} ${request.url}`);
+      }
+      if (request.url === `${AGENTS_API}/${AGENT_ID}`) {
+        return jsonResponse(agentPayload({ systemPrompt: "Drifted provider prompt" }));
+      }
+      const index = toolIndexFromUrl(request.url);
+      if (index >= 0) return jsonResponse(toolRecord(index));
+      throw new Error(`Unexpected request: ${request.method} ${request.url}`);
+    });
+
+    await expect(
+      provisionVoiceAgent(provisionOptions(fetchImpl, { verifyOnly: true })),
+    ).rejects.toThrow("system prompt does not match source");
     expect(requests.every((request) => request.method === "GET")).toBe(true);
   });
 

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatNoteForDisplay, lookupChord, prefersFlatNotation } from "./chordData";
+import {
+  formatNoteForDisplay,
+  lookupChord,
+  normalizeRoot,
+  prefersFlatNotation,
+} from "./chordData";
 
 describe("formatNoteForDisplay", () => {
   it("formats sharp-encoded notes to # notation", () => {
@@ -33,6 +38,14 @@ describe("prefersFlatNotation", () => {
   it("returns false for natural and sharp roots", () => {
     expect(prefersFlatNotation("C")).toBe(false);
     expect(prefersFlatNotation("F#")).toBe(false);
+  });
+});
+
+describe("normalizeRoot", () => {
+  it("does not resolve inherited object property names as notes", () => {
+    expect(normalizeRoot("toString")).toBeUndefined();
+    expect(normalizeRoot("constructor")).toBeUndefined();
+    expect(lookupChord("C/toString")).toBeUndefined();
   });
 });
 

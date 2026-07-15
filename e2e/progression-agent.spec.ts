@@ -156,7 +156,9 @@ test.describe("OpenAI progression builder", () => {
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "D/F#" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "E7#9" })).toBeVisible();
-    await expect(page.getByText("C major", { exact: true })).toBeVisible();
+    await expect(
+      page.locator("#hasher-free-panel").getByText("C major", { exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByText("The slash chord and altered dominant pull smoothly into A minor."),
     ).toBeVisible();
@@ -312,7 +314,7 @@ test.describe("OpenAI progression builder", () => {
       page
         .getByRole("list", { name: "Chord progression composer" })
         .getByRole("listitem"),
-    ).toHaveText(["Cmaj7×"]);
+    ).toHaveText(["Cmaj7"]);
     await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);
   });
 

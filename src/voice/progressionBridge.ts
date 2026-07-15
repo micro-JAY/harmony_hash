@@ -10,7 +10,7 @@
  * This adapter is the structural successor to the package's exampleAdapter.ts,
  * rewritten against the real builder: chords are resolved through the shipped
  * `lookupChord`, analysis is computed from `parseNotes` + the voice-leading
- * engine, and playback honors the app's piano-only constraint.
+ * engine, and playback honors whichever instrument is active in the app.
  */
 import type { IndexedChord, Instrument, VoicedChord } from "../lib/types";
 import {
@@ -29,6 +29,8 @@ import type {
   ProgressionBridge,
   ProgressionSnapshot,
 } from "./types";
+import { MAX_VOICE_PROGRESSION_CHORDS } from "./toolSchemas";
+import { requireChordSymbols } from "./toolValidation";
 
 /** One chord on the builder timeline. Structurally matches App.tsx's DisplayChord. */
 export interface BridgeChord {
@@ -136,13 +138,20 @@ export function createProgressionBridge(deps: ProgressionBridgeDeps): Progressio
     analyze,
 
     addChords: (incoming) => {
+      const boundedIncoming = requireChordSymbols(incoming, "chords");
+      const nextCount = deps.getChords().length + boundedIncoming.length;
+      if (nextCount > MAX_VOICE_PROGRESSION_CHORDS) {
+        throw new Error(
+          `The timeline can contain at most ${MAX_VOICE_PROGRESSION_CHORDS} chords.`,
+        );
+      }
       // Resolve every name BEFORE mutating, so a bad name throws and the
       // timeline is left untouched (the agent retries on the thrown error).
-      const resolved = incoming.map(resolveChord);
+      const resolved = boundedIncoming.map(resolveChord);
       deps.appendChords(resolved);
     },
     replaceProgression: (incoming) => {
-      const resolved = incoming.map(resolveChord);
+      const resolved = requireChordSymbols(incoming, "chords").map(resolveChord);
       deps.setProgression(resolved);
     },
     clear: () => deps.setProgression([]),
@@ -152,14 +161,6 @@ export function createProgressionBridge(deps: ProgressionBridgeDeps): Progressio
     },
 
     play: async (): Promise<PlaybackResult> => {
-      if (deps.getInstrument() !== "piano") {
-        return {
-          ok: false,
-          status: "requires_piano",
-          message:
-            "Playback works in the piano view. Ask the user to switch to piano, then try again.",
-        };
-      }
       if (deps.getChords().length === 0) {
         return {
           ok: false,

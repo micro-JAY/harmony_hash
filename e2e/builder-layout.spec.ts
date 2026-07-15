@@ -20,7 +20,7 @@ async function expectStacked(first: Locator, second: Locator): Promise<void> {
   expect(Math.abs(secondBox!.width - firstBox!.width)).toBeLessThanOrEqual(1);
 }
 
-async function expectTwoCardColumns(cards: Locator): Promise<void> {
+async function expectCardColumns(cards: Locator, columnCount: 2 | 3): Promise<void> {
   await expect(cards).toHaveCount(4);
   const boxes = await cards.evaluateAll((elements) =>
     elements.map((element) => {
@@ -28,12 +28,16 @@ async function expectTwoCardColumns(cards: Locator): Promise<void> {
       return { x: box.x, y: box.y, width: box.width };
     }),
   );
-  expect(Math.abs(boxes[0].y - boxes[1].y)).toBeLessThanOrEqual(1);
-  expect(boxes[1].x).toBeGreaterThan(boxes[0].x + boxes[0].width - 1);
-  expect(Math.abs(boxes[2].x - boxes[0].x)).toBeLessThanOrEqual(1);
-  expect(boxes[2].y).toBeGreaterThan(boxes[0].y);
-  expect(Math.abs(boxes[2].y - boxes[3].y)).toBeLessThanOrEqual(1);
-  expect(Math.abs(boxes[3].x - boxes[1].x)).toBeLessThanOrEqual(1);
+  for (let index = 1; index < columnCount; index += 1) {
+    expect(Math.abs(boxes[0].y - boxes[index].y)).toBeLessThanOrEqual(1);
+    expect(boxes[index].x).toBeGreaterThan(boxes[index - 1].x + boxes[index - 1].width - 1);
+  }
+  expect(Math.abs(boxes[columnCount].x - boxes[0].x)).toBeLessThanOrEqual(1);
+  expect(boxes[columnCount].y).toBeGreaterThan(boxes[0].y);
+  if (columnCount === 2) {
+    expect(Math.abs(boxes[2].y - boxes[3].y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(boxes[3].x - boxes[1].x)).toBeLessThanOrEqual(1);
+  }
 }
 
 async function mockReadyHealth(page: Page): Promise<void> {
@@ -86,7 +90,7 @@ test("compact action toolbar keeps cards adjacent and opens Hanz from prompt hel
 test.describe("800px tablet layout", () => {
   test.use({ viewport: { width: 800, height: 900 } });
 
-  test("renders guitar and piano cards in two columns without overflow", async ({
+  test("renders dense guitar cards and two-column piano cards without overflow", async ({
     page,
   }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -95,11 +99,11 @@ test.describe("800px tablet layout", () => {
     const cards = page
       .getByRole("region", { name: "Chord cards output" })
       .getByTestId("chord-card");
-    await expectTwoCardColumns(cards);
+    await expectCardColumns(cards, 3);
     await expectNoDocumentOverflow(page);
 
     await page.getByRole("button", { name: "Piano" }).click();
-    await expectTwoCardColumns(cards);
+    await expectCardColumns(cards, 2);
     await expectNoDocumentOverflow(page);
   });
 });

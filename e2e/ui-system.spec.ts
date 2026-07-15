@@ -8,10 +8,8 @@ const VIEWPORTS = [
 ] as const;
 
 const WORKSPACES = [
-  { button: "Fretboard", title: "Fretboard Explorer" },
-  { button: "Circle", title: "Circle of Fifths" },
-  { button: "Scales", title: "Scale Synthesia" },
-  { button: "Network", title: "Note Neural Network" },
+  { button: "Tune Toolbox", title: "Tune Toolbox" },
+  { button: "Fret Finder", title: "Fretboard Explorer" },
 ] as const;
 
 async function expectNoDocumentOverflow(page: Page): Promise<void> {
@@ -19,6 +17,18 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
+}
+
+async function expectHeaderChromeContained(page: Page, viewportWidth: number): Promise<void> {
+  const chrome = page.locator(".tonari-brand, nav[aria-label='Workspace'] button");
+  const boxes = await chrome.evaluateAll((elements) => elements.map((element) => {
+    const box = element.getBoundingClientRect();
+    return { left: box.left, right: box.right };
+  }));
+  for (const box of boxes) {
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(viewportWidth);
+  }
 }
 
 test.describe("Tonari UI system", () => {
@@ -46,6 +56,7 @@ test.describe("Tonari UI system", () => {
       expect(panelBox!.x).toBeGreaterThanOrEqual(15);
       expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(viewport.width - 15);
       await expectNoDocumentOverflow(page);
+      await expectHeaderChromeContained(page, viewport.width);
       await expect(page.getByText("Service unavailable", { exact: true })).toBeVisible();
       await page.evaluate(() => document.fonts.ready);
       await expect(page).toHaveScreenshot(`ui-hasher-${viewport.name}.png`);
@@ -66,15 +77,16 @@ test.describe("Tonari UI system", () => {
         expect(style.size).toBe(viewport.titleSize);
         expect(style.weight).toBe("700");
 
-        const controlRail = page.locator(".hh-control-rail");
+        const controlRail = page.locator(".hh-control-rail:visible").first();
         if (await controlRail.count()) {
-          const heights = await controlRail.locator("select, .hh-segmented").evaluateAll((elements) =>
+          const heights = await controlRail.locator("select:visible, .hh-segmented:visible").evaluateAll((elements) =>
             elements.map((element) => element.getBoundingClientRect().height),
           );
           expect(heights.length).toBeGreaterThan(0);
           for (const height of heights) expect(height).toBeGreaterThanOrEqual(43);
         }
         await expectNoDocumentOverflow(page);
+        await expectHeaderChromeContained(page, viewport.width);
         await expect(page).toHaveScreenshot(
           `ui-${workspace.button.toLowerCase()}-${viewport.name}.png`,
         );

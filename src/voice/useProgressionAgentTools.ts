@@ -1,5 +1,6 @@
 import { useConversationClientTool } from "@elevenlabs/react";
 import type { ChordRef, ProgressionBridge } from "./types";
+import { requireChordSymbols } from "./toolValidation";
 
 /* --- input guards: client-tool params arrive untyped from the agent --- */
 
@@ -8,13 +9,6 @@ function asRecord(value: unknown): Record<string, unknown> {
     throw new Error("Tool parameters are missing or malformed");
   }
   return value as Record<string, unknown>;
-}
-
-function requireStringArray(value: unknown, field: string): string[] {
-  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
-    throw new Error(`'${field}' must be an array of chord symbols`);
-  }
-  return value as string[];
 }
 
 function readChordRef(params: Record<string, unknown>): ChordRef {
@@ -58,13 +52,13 @@ export function useProgressionAgentTools(bridge: ProgressionBridge): void {
 
   useConversationClientTool("add_chords", async (params: unknown) => {
     const p = asRecord(params);
-    await bridge.addChords(requireStringArray(p.chords, "chords"));
+    await bridge.addChords(requireChordSymbols(p.chords, "chords"));
     return reply({ ok: true, progression: await snapshot() });
   });
 
   useConversationClientTool("replace_progression", async (params: unknown) => {
     const p = asRecord(params);
-    await bridge.replaceProgression(requireStringArray(p.chords, "chords"));
+    await bridge.replaceProgression(requireChordSymbols(p.chords, "chords"));
     return reply({ ok: true, progression: await snapshot() });
   });
 
@@ -79,8 +73,8 @@ export function useProgressionAgentTools(bridge: ProgressionBridge): void {
   });
 
   useConversationClientTool("play_progression", async () => {
-    // bridge.play() reports a constraint (e.g. needs piano view) rather than
-    // throwing or silently switching — surface it so the agent can relay it.
+    // Surface the exact transport result so the agent never describes a
+    // cancelled or unavailable start as audible playback.
     return reply(await bridge.play());
   });
 

@@ -1,18 +1,41 @@
-import { useRef, type KeyboardEvent } from "react";
-import { ArrowRight, Network } from "lucide-react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  Network,
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
 import {
   buildModeNetwork,
+  buildNoteNetworkLayout,
+  buildTheoryRelationshipCatalog,
+  calculateNoteNetworkPanBounds,
+  clampNoteNetworkPan,
+  clampNoteNetworkZoom,
+  createTheoryContext,
   MODE_FAMILIES,
+  NOTE_NETWORK_ZOOM_BOUNDS,
   scaleIntervalFormulaFor,
+  spellScaleNotes,
+  wrapNoteNetworkLabel,
   type ModeFamilyId,
-  type ModeNetworkNode,
   type ModeRelationship,
   type ScaleFormulaType,
+  type TheoryRelationshipNode,
 } from "../lib/theory";
-import { fretboardIntervalColor } from "./fretboardVisuals";
-import { useLocale, useT } from "../i18n/I18nContext";
+import { useT } from "../i18n/I18nContext";
 import {
   WorkspaceHeader,
   WorkspaceSegmentedControl,
@@ -30,73 +53,142 @@ interface NoteNeuralNetworkProps {
   onOpenScale: (root: string, scaleId: ScaleFormulaType) => void;
   state: NoteNeuralNetworkState;
   onStateChange: (state: NoteNeuralNetworkState) => void;
+  embedded?: boolean;
+  active?: boolean;
 }
 
-interface Point {
+interface PanOffset {
   readonly x: number;
   readonly y: number;
 }
 
-const CENTER: Point = Object.freeze({ x: 350, y: 340 });
-const SATELLITE_RADIUS = 238;
-const NODE_INTERVAL_COLORS = Object.freeze([0, 2, 4, 5, 7, 9, 11]);
+interface GraphViewportSize {
+  readonly width: number;
+  readonly height: number;
+}
 
-function satellitePoint(index: number): Point {
-  const radians = ((-90 + (index - 1) * 60) * Math.PI) / 180;
+interface GraphViewportState {
+  readonly zoom: number;
+  readonly pan: PanOffset;
+}
+
+interface NodeSelection {
+  readonly catalogId: string;
+  readonly nodeId: string;
+}
+
+const DEFAULT_LAYOUT_WIDTH = 760;
+const DEFAULT_VIEWPORT_HEIGHT = 544;
+
+function edgeColor(kind: string): string {
+  if (kind === "fifths" || kind === "relative_major_minor") return "var(--text-accent)";
+  if (kind === "modal_family") return "var(--text-academy)";
+  if (kind === "diatonic_function" || kind === "secondary_dominant") {
+    return "var(--interactive-warm-text)";
+  }
+  return "var(--text-muted)";
+}
+
+function nodeTone(node: TheoryRelationshipNode): {
+  background: string;
+  border: string;
+  text: string;
+} {
+  if (node.selected) {
+    return {
+      background: "var(--interactive-academy-bg)",
+      border: "var(--interactive-academy-border)",
+      text: "var(--interactive-academy-text)",
+    };
+  }
+  if (node.cluster === "modes") {
+    return {
+      background: "var(--interactive-academy-bg)",
+      border: "var(--interactive-academy-border)",
+      text: "var(--interactive-academy-text)",
+    };
+  }
+  if (node.cluster === "chords") {
+    return {
+      background: "var(--interactive-warm-bg)",
+      border: "var(--interactive-warm-border)",
+      text: "var(--interactive-warm-text)",
+    };
+  }
   return {
-    x: CENTER.x + Math.cos(radians) * SATELLITE_RADIUS,
-    y: CENTER.y + Math.sin(radians) * SATELLITE_RADIUS,
+    background: "var(--interactive-secondary-bg)",
+    border: "var(--interactive-secondary-border)",
+    text: "var(--interactive-secondary-text)",
   };
-}
-
-function pointForNode(index: number, selectedIndex: number): Point {
-  if (index === selectedIndex) return CENTER;
-  return satellitePoint(index < selectedIndex ? index + 1 : index);
-}
-
-function modeLabelLines(label: string): ReadonlyArray<string> {
-  const words = label.split(" ");
-  if (words.length <= 2) return Object.freeze([label]);
-  const midpoint = Math.ceil(words.length / 2);
-  return Object.freeze([words.slice(0, midpoint).join(" "), words.slice(midpoint).join(" ")]);
 }
 
 export default function NoteNeuralNetwork({
   onOpenScale,
   state,
   onStateChange,
+  embedded = false,
+  active = true,
 }: NoteNeuralNetworkProps) {
   const t = useT();
-  const { locale } = useLocale();
   const reduceMotion = Boolean(useReducedMotion());
   const { root, familyId, relationship, selectedScaleId } = state;
-  const nodeRefs = useRef<Array<SVGGElement | null>>([]);
-  const network = buildModeNetwork(root, familyId, relationship);
-  const selectedIndex = network.nodes.findIndex((node) => node.scaleId === selectedScaleId);
-  const resolvedSelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
-  const selectedNode = network.nodes[resolvedSelectedIndex];
+  const graphContainerRef = useRef<HTMLDivElement>(null);
+  const semanticNodeRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const [graphViewportSize, setGraphViewportSize] = useState<GraphViewportSize>({
+    width: DEFAULT_LAYOUT_WIDTH,
+    height: DEFAULT_VIEWPORT_HEIGHT,
+  });
+  const [graphViewport, setGraphViewport] = useState<GraphViewportState>({
+    zoom: NOTE_NETWORK_ZOOM_BOUNDS.default,
+    pan: { x: 0, y: 0 },
+  });
+  const context = useMemo(
+    () => createTheoryContext({
+      root,
+      scaleId: selectedScaleId,
+      selectedRelationshipId: relationship,
+    }),
+    [relationship, root, selectedScaleId],
+  );
+  const catalog = useMemo(() => buildTheoryRelationshipCatalog(context), [context]);
+  const [nodeSelection, setNodeSelection] = useState<NodeSelection | null>(null);
+  const selectedNodeId = nodeSelection?.catalogId === catalog.selectedNodeId
+    ? nodeSelection.nodeId
+    : catalog.selectedNodeId;
+  const layout = useMemo(() => buildNoteNetworkLayout(catalog, {
+    width: Math.max(280, graphViewportSize.width),
+    reducedMotion: reduceMotion,
+  }), [catalog, graphViewportSize.width, reduceMotion]);
+  const panBounds = calculateNoteNetworkPanBounds(
+    layout.width,
+    layout.height,
+    graphViewportSize.width,
+    graphViewportSize.height,
+    graphViewport.zoom,
+  );
+  const visiblePan = clampNoteNetworkPan(graphViewport.pan, panBounds);
+  const selectedNode = catalog.nodes.find((node) => node.id === selectedNodeId)
+    ?? catalog.nodes.find((node) => node.id === catalog.selectedNodeId)
+    ?? catalog.nodes[0];
+  const relatedEdges = catalog.edges.filter((edge) => (
+    edge.sourceId === selectedNode.id || edge.targetId === selectedNode.id
+  ));
 
-  function selectAndFocus(index: number): void {
-    const normalized = ((index % network.nodes.length) + network.nodes.length) % network.nodes.length;
-    onStateChange({ ...state, selectedScaleId: network.nodes[normalized].scaleId });
-    requestAnimationFrame(() => nodeRefs.current[normalized]?.focus());
-  }
-
-  function handleNodeKeyDown(event: KeyboardEvent<SVGGElement>, index: number): void {
-    if (event.key === "Home") {
-      event.preventDefault();
-      selectAndFocus(0);
-      return;
-    }
-    if (event.key === "End") {
-      event.preventDefault();
-      selectAndFocus(network.nodes.length - 1);
-      return;
-    }
-    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
-    event.preventDefault();
-    selectAndFocus(index + (event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1));
-  }
+  useEffect(() => {
+    if (!active) return;
+    const container = graphContainerRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (width < 280 || height <= 0) return;
+      setGraphViewportSize((current) => {
+        const next = { width: Math.min(900, width), height };
+        return current.width === next.width && current.height === next.height ? current : next;
+      });
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [active]);
 
   function handleFamilyChange(nextFamily: ModeFamilyId): void {
     const nextNetwork = buildModeNetwork(root, nextFamily, relationship);
@@ -107,91 +199,106 @@ export default function NoteNeuralNetwork({
     });
   }
 
-  function renderNode(node: ModeNetworkNode, index: number) {
-    const point = pointForNode(index, resolvedSelectedIndex);
-    const selected = index === resolvedSelectedIndex;
-    const central = selected;
-    const color = fretboardIntervalColor(NODE_INTERVAL_COLORS[index]);
-    const lines = modeLabelLines(t(node.learning.label));
-    return (
-      <g
-        key={node.id}
-        ref={(element) => { nodeRefs.current[index] = element; }}
-        id={`mode-network-node-${index}`}
-        role="option"
-        aria-label={`${t(node.label)}${locale === "ja" ? "。" : ". "}${t(node.characteristicInterval)}`}
-        aria-selected={selected}
-        tabIndex={selected ? 0 : -1}
-        className="mode-network-node"
-        data-reduced-motion={reduceMotion ? "true" : "false"}
-        onClick={() => onStateChange({ ...state, selectedScaleId: node.scaleId })}
-        onKeyDown={(event) => handleNodeKeyDown(event, index)}
-      >
-        <circle
-          cx={point.x}
-          cy={point.y}
-          r={central ? 84 : 66}
-          fill={selected
-            ? "var(--interactive-academy-bg)"
-            : central ? "var(--interactive-accent-bg)" : "var(--surface-overlay)"}
-          stroke={selected ? "var(--interactive-academy-text)" : color}
-          strokeWidth={selected ? 4 : central ? 3 : 2}
-        />
-        <text
-          x={point.x}
-          y={point.y - (lines.length > 1 ? 18 : 11)}
-          textAnchor="middle"
-          fill={selected ? "var(--interactive-academy-text)" : color}
-          fontFamily="var(--font-display)"
-          fontSize={central ? 31 : 25}
-          fontWeight="700"
-          pointerEvents="none"
-        >
-          {node.root}
-        </text>
-        {lines.map((line, lineIndex) => (
-          <text
-            key={line}
-            x={point.x}
-            y={point.y + 17 + lineIndex * 18}
-            textAnchor="middle"
-            fill={selected ? "var(--interactive-academy-text)" : color}
-            fontFamily="var(--font-mono)"
-            fontSize={central ? 15 : 12}
-            pointerEvents="none"
-          >
-            {line}
-          </text>
-        ))}
-      </g>
-    );
+  function handleRelationshipChange(nextRelationship: ModeRelationship): void {
+    setNodeSelection(null);
+    onStateChange({ ...state, relationship: nextRelationship });
+  }
+
+  function selectNode(node: TheoryRelationshipNode): void {
+    setNodeSelection({ catalogId: catalog.selectedNodeId, nodeId: node.id });
+    if (node.root && node.scaleId) {
+      onStateChange({ ...state, root: node.root, selectedScaleId: node.scaleId });
+    }
+  }
+
+  function selectSemanticNode(index: number): void {
+    const normalized = ((index % catalog.nodes.length) + catalog.nodes.length) % catalog.nodes.length;
+    selectNode(catalog.nodes[normalized]);
+    requestAnimationFrame(() => semanticNodeRefs.current[normalized]?.focus());
+  }
+
+  function handleSemanticKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
+    if (event.key === "Home") {
+      event.preventDefault();
+      selectSemanticNode(0);
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      selectSemanticNode(catalog.nodes.length - 1);
+      return;
+    }
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight"
+      && event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    event.preventDefault();
+    selectSemanticNode(index + (event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1));
+  }
+
+  function panBy(x: number, y: number): void {
+    setGraphViewport((current) => {
+      const bounds = calculateNoteNetworkPanBounds(
+        layout.width,
+        layout.height,
+        graphViewportSize.width,
+        graphViewportSize.height,
+        current.zoom,
+      );
+      const currentPan = clampNoteNetworkPan(current.pan, bounds);
+      return {
+        ...current,
+        pan: clampNoteNetworkPan({ x: currentPan.x + x, y: currentPan.y + y }, bounds),
+      };
+    });
+  }
+
+  function zoomBy(delta: number): void {
+    setGraphViewport((current) => {
+      const zoom = clampNoteNetworkZoom(current.zoom + delta);
+      const bounds = calculateNoteNetworkPanBounds(
+        layout.width,
+        layout.height,
+        graphViewportSize.width,
+        graphViewportSize.height,
+        zoom,
+      );
+      return { zoom, pan: clampNoteNetworkPan(current.pan, bounds) };
+    });
+  }
+
+  function resetViewport(): void {
+    setGraphViewport({ zoom: NOTE_NETWORK_ZOOM_BOUNDS.default, pan: { x: 0, y: 0 } });
   }
 
   return (
     <section
-      className="hh-workspace"
+      className={embedded ? "" : "hh-workspace"}
       data-testid="note-neural-network"
       data-reduced-motion={reduceMotion ? "true" : "false"}
-      aria-labelledby="note-network-title"
+      aria-label={embedded ? t("Note Neural Network") : undefined}
+      aria-labelledby={embedded ? undefined : "note-network-title"}
+      aria-hidden={active ? undefined : true}
     >
-      <div className="hh-workspace__inner">
-        <WorkspaceHeader
-          titleId="note-network-title"
-          title="Note Neural Network"
-          description="See how modes connect without losing the notes beneath your hands."
-        />
+      <div className={embedded ? "" : "hh-workspace__inner"}>
+        {embedded ? null : (
+          <WorkspaceHeader
+            titleId="note-network-title"
+            title="Note Neural Network"
+            description="See how modes connect without losing the notes beneath your hands."
+          />
+        )}
 
         <section className="hh-control-rail" aria-label={t("Mode network controls")}>
-          <WorkspaceSelectControl
-            id="mode-network-root"
-            label="Root"
-            value={root}
-            onChange={(value) => onStateChange({ ...state, root: value })}
-            className="w-36"
-          >
-            {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
-          </WorkspaceSelectControl>
-
+          {embedded ? null : (
+            <WorkspaceSelectControl
+              id="mode-network-root"
+              label="Root"
+              value={root}
+              onChange={(value) => onStateChange({ ...state, root: value })}
+              className="w-36"
+            >
+              {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
+            </WorkspaceSelectControl>
+          )}
           <WorkspaceSelectControl
             id="mode-network-family"
             label="Family"
@@ -199,14 +306,15 @@ export default function NoteNeuralNetwork({
             onChange={(value) => handleFamilyChange(value as ModeFamilyId)}
             className="w-56"
           >
-            {MODE_FAMILIES.map((family) => <option key={family.id} value={family.id}>{t(family.label)}</option>)}
+            {MODE_FAMILIES.map((family) => (
+              <option key={family.id} value={family.id}>{t(family.label)}</option>
+            ))}
           </WorkspaceSelectControl>
-
           <WorkspaceSegmentedControl
             label="Relationship"
             value={relationship}
-            onChange={(value) => onStateChange({ ...state, relationship: value })}
-            reducedMotion={Boolean(reduceMotion)}
+            onChange={handleRelationshipChange}
+            reducedMotion={reduceMotion}
             options={[
               { value: "parallel", label: "Parallel" },
               { value: "relative", label: "Relative" },
@@ -214,98 +322,194 @@ export default function NoteNeuralNetwork({
           />
         </section>
 
-        <div className="hh-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.55fr)_minmax(20rem,0.75fr)]">
-          <div
-            className="min-w-0 overflow-x-auto p-2 sm:p-5 lg:p-7"
-            data-testid="mode-network-graph-scroller"
-          >
-            <svg
-              viewBox="0 0 700 680"
-              className="mx-auto block aspect-square w-full min-w-[42rem] max-w-[44rem] sm:min-w-0"
-              role="listbox"
-              aria-label={t(`${root} ${t(network.familyLabel)} ${t(relationship)} mode relationships`)}
-            >
-              <circle cx={CENTER.x} cy={CENTER.y} r="286" fill="var(--surface-sunken)" stroke="var(--border-subtle)" />
-              {network.nodes.map((node, index) => {
-                if (index === resolvedSelectedIndex) return null;
-                const point = pointForNode(index, resolvedSelectedIndex);
-                return (
-                  <g key={`edge-${node.id}`} aria-hidden="true">
-                    <line
-                      x1={CENTER.x}
-                      y1={CENTER.y}
-                      x2={point.x}
-                      y2={point.y}
-                      className="mode-network-edge"
-                      data-reduced-motion={reduceMotion ? "true" : "false"}
-                      stroke={fretboardIntervalColor(NODE_INTERVAL_COLORS[index])}
-                      strokeWidth="2"
-                      strokeOpacity="0.72"
-                    />
-                    <circle cx={point.x * 0.2 + CENTER.x * 0.8} cy={point.y * 0.2 + CENTER.y * 0.8} r="4" fill={fretboardIntervalColor(NODE_INTERVAL_COLORS[index])} />
-                  </g>
-                );
-              })}
-              {network.nodes.map(renderNode)}
-            </svg>
-          </div>
-
-          <aside className="flex flex-col border-t p-6 lg:border-l lg:border-t-0 lg:p-8" style={{ borderColor: "var(--border-default)" }} aria-label={t(`${t(selectedNode.label)} details`)}>
-            <div className="flex items-start gap-3">
-              <Network size={23} aria-hidden="true" style={{ color: "var(--interactive-academy-text)", marginTop: "0.35rem" }} />
-              <h2 className="hh-panel-title" style={{ color: "var(--interactive-academy-text)" }}>{t(selectedNode.label)}</h2>
+        <div className="hh-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.65fr)]">
+          <div className="min-w-0 border-b lg:border-b-0 lg:border-r" style={{ borderColor: "var(--border-default)" }}>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
+              <div className="flex flex-wrap gap-1" role="group" aria-label={t("Network viewport controls")}>
+                <button type="button" className="hh-action" disabled={visiblePan.y >= panBounds.maxY} onClick={() => panBy(0, 28)} aria-label={t("Pan up")}><ArrowUp size={15} aria-hidden="true" /></button>
+                <button type="button" className="hh-action" disabled={visiblePan.x >= panBounds.maxX} onClick={() => panBy(28, 0)} aria-label={t("Pan left")}><ArrowLeft size={15} aria-hidden="true" /></button>
+                <button type="button" className="hh-action" disabled={visiblePan.x <= panBounds.minX} onClick={() => panBy(-28, 0)} aria-label={t("Pan right")}><ArrowRight size={15} aria-hidden="true" /></button>
+                <button type="button" className="hh-action" disabled={visiblePan.y <= panBounds.minY} onClick={() => panBy(0, -28)} aria-label={t("Pan down")}><ArrowDown size={15} aria-hidden="true" /></button>
+                <button type="button" className="hh-action" onClick={() => zoomBy(-NOTE_NETWORK_ZOOM_BOUNDS.step)} aria-label={t("Zoom out")}><ZoomOut size={15} aria-hidden="true" /></button>
+                <button type="button" className="hh-action" onClick={() => zoomBy(NOTE_NETWORK_ZOOM_BOUNDS.step)} aria-label={t("Zoom in")}><ZoomIn size={15} aria-hidden="true" /></button>
+                <button type="button" className="hh-action" onClick={resetViewport} aria-label={t("Reset network view")}><RotateCcw size={15} aria-hidden="true" /></button>
+              </div>
+              <span className="readout" aria-live="polite" style={{ color: "var(--text-secondary)" }}>
+                {Math.round(graphViewport.zoom * 100)}%
+              </span>
             </div>
 
-            <dl className="mt-6 divide-y" style={{ borderColor: "var(--border-default)" }}>
-              <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Notes")}</dt>
-                <dd className="mt-2 readout" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>{selectedNode.notes.join(" · ")}</dd>
+            <div
+              ref={graphContainerRef}
+              className="relative max-h-[34rem] min-h-72 overflow-hidden"
+              data-testid="mode-network-graph-scroller"
+              data-graph-height={layout.height}
+              data-layout-width={layout.width}
+              data-pan-min-y={panBounds.minY}
+              data-pan-y={visiblePan.y}
+              data-viewport-height={graphViewportSize.height}
+            >
+              <svg
+                viewBox={`0 0 ${layout.width} ${layout.height}`}
+                className="block h-auto w-full"
+                role="img"
+                aria-label={t(`${root} relationship network`)}
+              >
+                <title>{t(`${root} relationship network`)}</title>
+                <desc>{t("Keys, modes, and chords are grouped in stable clusters. Edge weight and line style show relationship strength.")}</desc>
+                <g transform={`translate(${visiblePan.x} ${visiblePan.y}) scale(${graphViewport.zoom})`} style={{ transformOrigin: "center" }}>
+                  {layout.edges.map(({ edge, path }) => (
+                    <path
+                      key={edge.id}
+                      d={path}
+                      fill="none"
+                      stroke={edgeColor(edge.kind)}
+                      strokeWidth={edge.strength}
+                      strokeDasharray={edge.strength === 1 ? "5 5" : undefined}
+                      strokeOpacity={edge.strength === 1 ? 0.58 : 0.82}
+                      aria-hidden="true"
+                    />
+                  ))}
+                  {layout.nodes.map((layoutNode) => {
+                    const tone = nodeTone(layoutNode.node);
+                    const locallySelected = layoutNode.node.id === selectedNode.id;
+                    const localizedLabel = wrapNoteNetworkLabel(
+                      t(layoutNode.label.fullLabel),
+                      Math.max(4, Math.floor((layoutNode.width - 18) / 7)),
+                    );
+                    return (
+                      <g
+                        key={layoutNode.node.id}
+                        transform={`translate(${layoutNode.bounds.x} ${layoutNode.bounds.y})`}
+                        role="button"
+                        tabIndex={-1}
+                        aria-label={`${localizedLabel.fullLabel}, ${t(layoutNode.node.cluster)}`}
+                        data-network-node={layoutNode.node.id}
+                        onClick={() => selectNode(layoutNode.node)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <title>{localizedLabel.fullLabel}</title>
+                        <rect
+                          width={layoutNode.width}
+                          height={layoutNode.height}
+                          rx="12"
+                          fill={tone.background}
+                          stroke={locallySelected ? "var(--text-accent)" : tone.border}
+                          strokeWidth={locallySelected ? 3 : 1.5}
+                        />
+                        <text
+                          x={layoutNode.width / 2}
+                          y={layoutNode.height / 2 - (localizedLabel.lines.length - 1) * 8}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill={tone.text}
+                          fontFamily="var(--font-mono)"
+                          fontSize="12"
+                          pointerEvents="none"
+                        >
+                          {localizedLabel.lines.map((line, lineIndex) => (
+                            <tspan key={`${line}-${lineIndex}`} x={layoutNode.width / 2} dy={lineIndex === 0 ? 0 : 16}>
+                              {line}
+                            </tspan>
+                          ))}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </g>
+              </svg>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-2 border-t px-3 py-2 text-xs" style={{ borderColor: "var(--border-default)", color: "var(--text-secondary)" }} aria-label={t("Relationship strength legend")}>
+              <span><span aria-hidden="true">━━━</span> {t("Strong relationship")}</span>
+              <span><span aria-hidden="true">━━</span> {t("Medium relationship")}</span>
+              <span><span aria-hidden="true">┄┄</span> {t("Weak relationship")}</span>
+            </div>
+
+            <ul className="grid grid-cols-2 gap-2 border-t p-3 sm:grid-cols-3" aria-label={t("Network nodes")} style={{ borderColor: "var(--border-default)" }}>
+              {catalog.nodes.map((node, index) => (
+                <li key={`semantic-${node.id}`} className="min-w-0">
+                  <button
+                    ref={(element) => { semanticNodeRefs.current[index] = element; }}
+                    type="button"
+                    aria-pressed={node.id === selectedNode.id}
+                    onClick={() => selectNode(node)}
+                    onKeyDown={(event) => handleSemanticKeyDown(event, index)}
+                    className="hh-action w-full min-w-0 justify-start"
+                    style={{
+                      backgroundColor: node.id === selectedNode.id
+                        ? "var(--interactive-academy-bg)"
+                        : "var(--interactive-secondary-bg)",
+                      border: `1px solid ${node.id === selectedNode.id
+                        ? "var(--interactive-academy-border)"
+                        : "var(--interactive-secondary-border)"}`,
+                      color: node.id === selectedNode.id
+                        ? "var(--interactive-academy-text)"
+                        : "var(--interactive-secondary-text)",
+                    }}
+                  >
+                    <span className="truncate">{t(node.label)}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <aside className="flex min-w-0 flex-col p-5 lg:p-7" aria-label={t(`${selectedNode.label} details`)}>
+            <div className="flex items-start gap-3">
+              <Network size={22} aria-hidden="true" style={{ color: "var(--interactive-academy-text)", marginTop: "0.25rem" }} />
+              <div className="min-w-0">
+                <h2 className="hh-panel-title break-words" style={{ color: "var(--interactive-academy-text)" }}>{t(selectedNode.label)}</h2>
+                <p className="mt-1 label-caps" style={{ color: "var(--text-secondary)" }}>{t(selectedNode.kind)}</p>
               </div>
-              <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Characteristic interval")}</dt>
-                <dd className="mt-2" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>{t(selectedNode.characteristicInterval)}</dd>
-              </div>
-              <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Interval formula")}</dt>
-                <dd className="mt-2 readout" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>
-                  {scaleIntervalFormulaFor(selectedNode.scaleId).join(" · ")}
+            </div>
+
+            <dl className="mt-5 divide-y" style={{ borderColor: "var(--border-default)" }}>
+              {selectedNode.root && selectedNode.scaleId ? (
+                <>
+                  <div className="py-3">
+                    <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Notes")}</dt>
+                    <dd className="mt-2 break-words readout">{spellScaleNotes(selectedNode.root, selectedNode.scaleId).join(" · ")}</dd>
+                  </div>
+                  <div className="py-3">
+                    <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Interval formula")}</dt>
+                    <dd className="mt-2 readout">{scaleIntervalFormulaFor(selectedNode.scaleId).join(" · ")}</dd>
+                  </div>
+                </>
+              ) : null}
+              <div className="py-3">
+                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Relationships")}</dt>
+                <dd className="mt-2 grid gap-2">
+                  {relatedEdges.map((edge) => (
+                    <span key={edge.id} className="text-sm">
+                      {t(edge.kind)} · {t(`${edge.strengthLabel} relationship`)}
+                    </span>
+                  ))}
                 </dd>
               </div>
-              <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Steps")}</dt>
-                <dd className="mt-2 readout" style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)" }}>{selectedNode.steps.join(" · ")}</dd>
-              </div>
-              <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Use it over")}</dt>
-                <dd className="mt-2" style={{ color: "var(--interactive-accent-text)" }}>{t(selectedNode.learning.useItOver)}</dd>
-              </div>
-              <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Hear it in")}</dt>
-                <dd className="mt-2" style={{ color: "var(--interactive-academy-text)" }}>{t(selectedNode.learning.hearItIn)}</dd>
-              </div>
-              <div className="py-4">
-                <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Relationship")}</dt>
-                <dd className="mt-2" style={{ color: "var(--text-primary)" }}>
-                  {relationship === "relative"
-                    ? locale === "ja"
-                      ? t("Relative: same seven notes, heard from a different tonal center.")
-                      : "Relative: same seven notes, new tonal center"
-                    : locale === "ja"
-                      ? t("Parallel: same root, different interval color and harmonic gravity.")
-                      : `Parallel: same ${root} root, new interval formula`}
-                </dd>
-              </div>
+              {selectedNode.functionKey ? (
+                <div className="py-3">
+                  <dt className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Function")}</dt>
+                  <dd className="mt-2">{t(selectedNode.functionKey)}</dd>
+                </div>
+              ) : null}
             </dl>
 
-            <button
-              type="button"
-              onClick={() => onOpenScale(selectedNode.root, selectedNode.scaleId)}
-              className="hh-action mt-6"
-              style={{ backgroundColor: "var(--interactive-academy-bg)", border: "1px solid var(--interactive-academy-border)", color: "var(--interactive-academy-text)" }}
-            >
-              {t("Open in Scale Synthesia")}
-              <ArrowRight size={17} aria-hidden="true" />
-            </button>
+            {selectedNode.root && selectedNode.scaleId ? (
+              <button
+                type="button"
+                onClick={() => onOpenScale(selectedNode.root!, selectedNode.scaleId!)}
+                className="hh-action mt-5"
+                style={{
+                  backgroundColor: "var(--interactive-academy-bg)",
+                  border: "1px solid var(--interactive-academy-border)",
+                  color: "var(--interactive-academy-text)",
+                }}
+              >
+                {t("Open in Scale Synthesia")}
+                <ArrowRight size={17} aria-hidden="true" />
+              </button>
+            ) : null}
           </aside>
         </div>
       </div>

@@ -193,11 +193,12 @@ test("ignores a stale clipboard failure after the panel is reopened", async ({ p
   await trigger.click();
   await page.getByRole("button", { name: "Copy link" }).click();
 
+  const panel = page.getByRole("dialog", { name: "Share this progression" });
   const copiedButton = page.getByRole("button", { name: "Copied" });
-  await expect(page.getByRole("status")).toHaveText("Link copied.");
+  await expect(panel.getByRole("status")).toHaveText("Link copied.");
   await expect(copiedButton).toBeFocused();
   await page.waitForTimeout(800);
-  await expect(page.getByRole("status")).toHaveText("Link copied.");
+  await expect(panel.getByRole("status")).toHaveText("Link copied.");
   await expect(copiedButton).toBeFocused();
   await expect(page.getByText("Copy wasn’t confirmed.")).toHaveCount(0);
 });

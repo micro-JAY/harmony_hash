@@ -16,6 +16,8 @@ import ChordModifier from "./ChordModifier";
 import ChordCardFrame from "./ChordCardFrame";
 import PianoVoicingComparison, { PIANO_STYLE_OPTIONS } from "./PianoVoicingComparison";
 import { useT } from "../i18n/I18nContext";
+import type { GuitarMidiVoicing } from "../lib/guitarPlayback";
+import type { HarmonyContext } from "../lib/theory";
 
 interface ChordCardProps {
   chord: IndexedChord;
@@ -30,6 +32,10 @@ interface ChordCardProps {
   pianoStyle: VoicingStyle;
   onPianoStyleChange: (style: VoicingStyle) => void;
   onChordChange: (option: ChordModifierOption) => void;
+  onGuitarPlaybackVoicingChange?: (voicing: GuitarMidiVoicing | null) => void;
+  harmonyContext?: HarmonyContext;
+  timelineIndex?: number;
+  timelineChords?: ReadonlyArray<IndexedChord>;
   /** True when this card is the currently-sounding chord during playback. */
   isPlaying?: boolean;
   /** True when Hanz is calling attention to this chord during a voice session. */
@@ -65,6 +71,10 @@ export default function ChordCard({
   pianoStyle,
   onPianoStyleChange,
   onChordChange,
+  onGuitarPlaybackVoicingChange,
+  harmonyContext,
+  timelineIndex,
+  timelineChords,
   isPlaying = false,
   isAgentHighlighted = false,
 }: ChordCardProps) {
@@ -108,6 +118,9 @@ export default function ChordCard({
           chord={chord}
           displayName={displayName}
           onSelect={onChordChange}
+          context={harmonyContext}
+          selectedIndex={timelineIndex ?? 0}
+          timeline={timelineChords ?? [chord]}
         />
         {instrument === "guitar" ? (
           <>
@@ -156,6 +169,7 @@ export default function ChordCard({
                 variant={boundedVariant}
                 displayMode={guitarDisplay}
                 preferFlats={preferFlats}
+                onPlaybackVoicingChange={onGuitarPlaybackVoicingChange}
               />
             ) : (
               <div

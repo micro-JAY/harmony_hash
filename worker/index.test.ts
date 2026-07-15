@@ -23,6 +23,12 @@ vi.mock("openai", () => ({
 function env(overrides: Partial<Env> = {}): Env {
   return {
     OPENAI_API_KEY: "sk-worker-test-key",
+    PROGRESSION_RATE_LIMITER: {
+      limit: vi.fn().mockResolvedValue({ success: true }),
+    },
+    VOICE_RATE_LIMITER: {
+      limit: vi.fn().mockResolvedValue({ success: true }),
+    },
     ASSETS: {
       fetch: async () => new Response("asset fallback", { status: 200 }),
     },
@@ -35,6 +41,7 @@ function progressionRequest(
   origin?: string,
 ): Request {
   const headers = new Headers({ "Content-Type": "application/json" });
+  headers.set("CF-Connecting-IP", "203.0.113.10");
   if (origin) headers.set("Origin", origin);
   return new Request("https://harmony.tonari.ai/api/progression", {
     method: "POST",
@@ -152,6 +159,7 @@ describe("POST /api/progression", () => {
     const malformed = await worker.fetch(
       new Request("https://harmony.tonari.ai/api/progression", {
         method: "POST",
+        headers: { "CF-Connecting-IP": "203.0.113.10" },
         body: "not json",
       }),
       env(),
@@ -194,6 +202,81 @@ describe("POST /api/progression", () => {
     expect(allowed.headers.get("Access-Control-Allow-Origin")).toBe(
       "https://harmony.tonari.ai",
     );
+  });
+
+  it("rate limits on a hashed edge caller key before calling OpenAI", async () => {
+    const limit = vi.fn().mockResolvedValue({ success: false });
+    const response = await worker.fetch(
+      progressionRequest(),
+      env({ PROGRESSION_RATE_LIMITER: { limit } }),
+    );
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("60");
+    expect(openaiMock.create).not.toHaveBeenCalled();
+    expect(limit).toHaveBeenCalledTimes(1);
+    const key = limit.mock.calls[0]?.[0].key;
+    expect(key).toMatch(/^progression:[a-f0-9]{64}$/);
+    expect(key).not.toContain("203.0.113.10");
+  });
+
+  it("fails closed when rate-limit infrastructure or edge identity is missing", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const missingBinding = await worker.fetch(
+      progressionRequest(),
+      env({ PROGRESSION_RATE_LIMITER: undefined }),
+    );
+    expect(missingBinding.status).toBe(503);
+
+    const missingIdentity = await worker.fetch(
+      new Request("https://harmony.tonari.ai/api/progression", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "test" }),
+      }),
+      env(),
+    );
+    expect(missingIdentity.status).toBe(503);
+    expect(openaiMock.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects declared and streamed oversized JSON bodies before parsing or OpenAI", async () => {
+    const declared = await worker.fetch(
+      new Request("https://harmony.tonari.ai/api/progression", {
+        method: "POST",
+        headers: {
+          "CF-Connecting-IP": "203.0.113.10",
+          "Content-Length": "4097",
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      }),
+      env(),
+    );
+    expect(declared.status).toBe(413);
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(3_000));
+        controller.enqueue(new Uint8Array(3_000));
+        controller.close();
+      },
+    });
+    const init: RequestInit & { duplex: "half" } = {
+      method: "POST",
+      headers: {
+        "CF-Connecting-IP": "203.0.113.10",
+        "Content-Type": "application/json",
+      },
+      body: stream,
+      duplex: "half",
+    };
+    const streamed = await worker.fetch(
+      new Request("https://harmony.tonari.ai/api/progression", init),
+      env(),
+    );
+    expect(streamed.status).toBe(413);
+    expect(openaiMock.create).not.toHaveBeenCalled();
   });
 
   it("maps SDK timeouts and deadline aborts to 504", async () => {
@@ -269,10 +352,12 @@ describe("POST /api/progression", () => {
   });
 });
 
-function voiceRequest(origin = "https://harmony.tonari.ai"): Request {
+function voiceRequest(origin: string | null = "https://harmony.tonari.ai"): Request {
+  const headers = new Headers({ "CF-Connecting-IP": "203.0.113.10" });
+  if (origin) headers.set("Origin", origin);
   return new Request("https://harmony.tonari.ai/api/voice/signed-url", {
     method: "POST",
-    headers: { Origin: origin },
+    headers,
   });
 }
 
@@ -305,6 +390,39 @@ describe("POST /api/voice/signed-url", () => {
     );
 
     expect(response.status).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("requires an allowed Origin and admits the voice route independently", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+    const voiceLimit = vi.fn().mockResolvedValue({ success: false });
+    const progressionLimit = vi.fn().mockResolvedValue({ success: true });
+
+    const missingOrigin = await worker.fetch(
+      voiceRequest(null),
+      env({
+        ELEVENLABS_API_KEY: "xi-test-key",
+        HH_VOICE_AGENT_ID: "agent_test",
+        VOICE_RATE_LIMITER: { limit: voiceLimit },
+      }),
+    );
+    expect(missingOrigin.status).toBe(403);
+    expect(voiceLimit).not.toHaveBeenCalled();
+
+    const rateLimited = await worker.fetch(
+      voiceRequest(),
+      env({
+        ELEVENLABS_API_KEY: "xi-test-key",
+        HH_VOICE_AGENT_ID: "agent_test",
+        PROGRESSION_RATE_LIMITER: { limit: progressionLimit },
+        VOICE_RATE_LIMITER: { limit: voiceLimit },
+      }),
+    );
+    expect(rateLimited.status).toBe(429);
+    expect(rateLimited.headers.get("Retry-After")).toBe("60");
+    expect(voiceLimit).toHaveBeenCalledTimes(1);
+    expect(progressionLimit).not.toHaveBeenCalled();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

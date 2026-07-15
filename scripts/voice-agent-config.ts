@@ -150,6 +150,7 @@ export interface LinkedToolSnapshot {
 export interface AgentConfigurationSnapshot {
   agentId: string;
   name: string;
+  systemPrompt: string;
   voiceId: string;
   ttsModelId: string;
   ttsConfig: Record<string, unknown>;
@@ -701,6 +702,10 @@ export function readAgentConfiguration(
   return {
     agentId: stringAt(root.agent_id, "agent_id"),
     name: stringAt(root.name, "name"),
+    systemPrompt: stringAt(
+      prompt.prompt,
+      "conversation_config.agent.prompt.prompt",
+    ),
     voiceId: stringAt(tts.voice_id, "conversation_config.tts.voice_id"),
     ttsModelId: stringAt(tts.model_id, "conversation_config.tts.model_id"),
     ttsConfig: tts,
@@ -930,10 +935,14 @@ export function assertAgentCanBeNarrowlyUpdated(
 export function assertLiveAgentConfiguration(
   snapshot: AgentConfigurationSnapshot,
   expectedAgentId: string,
+  expectedSystemPrompt: string,
   linkedTools: readonly LinkedToolSnapshot[],
 ): void {
   if (snapshot.agentId !== expectedAgentId) {
     throw new Error(`Expected agent ${expectedAgentId}, received ${snapshot.agentId}`);
+  }
+  if (snapshot.systemPrompt !== expectedSystemPrompt) {
+    throw new Error("Agent system prompt does not match source");
   }
   if (!snapshot.authEnabled) {
     throw new Error("Agent signed authentication is disabled");
@@ -959,9 +968,15 @@ export function assertPreservedAgentUpdate(
   before: AgentConfigurationSnapshot,
   after: AgentConfigurationSnapshot,
   expectedAgentId: string,
+  expectedSystemPrompt: string,
   linkedTools: readonly LinkedToolSnapshot[],
 ): void {
-  assertLiveAgentConfiguration(after, expectedAgentId, linkedTools);
+  assertLiveAgentConfiguration(
+    after,
+    expectedAgentId,
+    expectedSystemPrompt,
+    linkedTools,
+  );
 
   const preserved = [
     ["name", before.name, after.name],

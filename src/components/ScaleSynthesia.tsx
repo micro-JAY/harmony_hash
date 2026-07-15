@@ -42,6 +42,13 @@ interface ScaleSynthesiaProps {
   onMoodChange: (moodId: MoodId | null) => void;
   initialRoot?: string;
   initialScaleId?: ScaleFormulaType;
+  root?: string;
+  scaleId?: ScaleFormulaType;
+  onRootChange?: (root: string) => void;
+  onScaleChange?: (scaleId: ScaleFormulaType) => void;
+  onUseInHasher?: (root: string, scaleId: ScaleFormulaType) => void;
+  embedded?: boolean;
+  active?: boolean;
 }
 
 type PracticeInstrument = "piano" | "guitar";
@@ -73,20 +80,35 @@ export default function ScaleSynthesia({
   onMoodChange,
   initialRoot = "F#",
   initialScaleId = "harmonic_minor",
+  root: controlledRoot,
+  scaleId: controlledScaleId,
+  onRootChange,
+  onScaleChange,
+  onUseInHasher,
+  embedded = false,
+  active = true,
 }: ScaleSynthesiaProps) {
   const t = useT();
   const reduceMotion = Boolean(useReducedMotion());
   const initialDefinition = scaleLearningDefinitionFor(initialScaleId);
   const [instrument, setInstrument] = useState<PracticeInstrument>("piano");
-  const [root, setRoot] = useState(initialRoot);
+  const [localRoot, setLocalRoot] = useState(initialRoot);
   const [family, setFamily] = useState<ScaleFamilyId>(initialDefinition.family);
-  const [scaleId, setScaleId] = useState<ScaleFormulaType>(initialScaleId);
+  const [localScaleId, setLocalScaleId] = useState<ScaleFormulaType>(initialScaleId);
+  const root = controlledRoot ?? localRoot;
+  const scaleId = controlledScaleId ?? localScaleId;
   const [direction, setDirection] = useState<PracticeDirection>("ascending");
   const [material, setMaterial] = useState<PracticeMaterial>("scale");
   const [arpeggioType, setArpeggioType] = useState<ArpeggioType>("triad");
   const [activeSequenceIndex, setActiveSequenceIndex] = useState<number | null>(null);
+  const [previousActive, setPreviousActive] = useState(active);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackRef = useRef<PlaybackHandle | null>(null);
+
+  if (previousActive !== active) {
+    setPreviousActive(active);
+    if (!active && activeSequenceIndex !== null) setActiveSequenceIndex(null);
+  }
 
   const moodScaleIds = useMemo(
     () => moodId ? new Set<ScaleFormulaType>(moodDefinitionFor(moodId).scales) : null,
@@ -94,17 +116,24 @@ export default function ScaleSynthesia({
   );
   const availableDefinitions = useMemo(
     () => moodScaleIds
-      ? SCALE_LEARNING.filter((definition) => moodScaleIds.has(definition.id))
+      ? SCALE_LEARNING.filter((definition) => moodScaleIds.has(definition.id) || definition.id === scaleId)
       : SCALE_LEARNING,
-    [moodScaleIds],
+    [moodScaleIds, scaleId],
   );
+  const matchingDefinitionCount = moodScaleIds
+    ? SCALE_LEARNING.filter((definition) => moodScaleIds.has(definition.id)).length
+    : SCALE_LEARNING.length;
+  const selectedScaleOutsideMood = moodScaleIds !== null && !moodScaleIds.has(scaleId);
   const availableFamilies = useMemo(
     () => SCALE_FAMILIES.filter((candidate) =>
       availableDefinitions.some((definition) => definition.family === candidate.id)),
     [availableDefinitions],
   );
-  const resolvedFamily = availableFamilies.some((candidate) => candidate.id === family)
-    ? family
+  const requestedFamily = controlledScaleId
+    ? scaleLearningDefinitionFor(controlledScaleId).family
+    : family;
+  const resolvedFamily = availableFamilies.some((candidate) => candidate.id === requestedFamily)
+    ? requestedFamily
     : availableFamilies[0].id;
   const familyDefinitions = availableDefinitions.filter(
     (definition) => definition.family === resolvedFamily,
@@ -150,6 +179,22 @@ export default function ScaleSynthesia({
     playbackRef.current?.stop();
   }, []);
 
+  useEffect(() => {
+    if (active) return;
+    playbackRef.current?.stop();
+    playbackRef.current = null;
+  }, [active]);
+
+  function updateRoot(nextRoot: string): void {
+    setLocalRoot(nextRoot);
+    onRootChange?.(nextRoot);
+  }
+
+  function updateScale(nextScaleId: ScaleFormulaType): void {
+    setLocalScaleId(nextScaleId);
+    onScaleChange?.(nextScaleId);
+  }
+
   async function handlePlayback(): Promise<void> {
     if (isPlaying) {
       playbackRef.current?.stop();
@@ -176,22 +221,24 @@ export default function ScaleSynthesia({
     const first = availableDefinitions.find((candidate) => candidate.family === typedFamily);
     if (!first) throw new RangeError(`No scales available for family ${typedFamily}`);
     setFamily(typedFamily);
-    setScaleId(first.id);
+    updateScale(first.id);
   }
 
   return (
     <section
-      className="hh-workspace"
+      className={embedded ? "" : "hh-workspace"}
       data-testid="scale-synthesia"
       data-reduced-motion={reduceMotion ? "true" : "false"}
-      aria-labelledby="scale-synthesia-title"
+      aria-labelledby={embedded ? "theory-tool-scales-heading" : "scale-synthesia-title"}
     >
-      <div className="hh-workspace__inner">
-        <WorkspaceHeader
-          titleId="scale-synthesia-title"
-          title="Scale Synthesia"
-          description="See the scale, hear the sound, and feel the pattern—one step at a time."
-        />
+      <div className={embedded ? "" : "hh-workspace__inner"}>
+        {embedded ? null : (
+          <WorkspaceHeader
+            titleId="scale-synthesia-title"
+            title="Scale Synthesia"
+            description="See the scale, hear the sound, and feel the pattern—one step at a time."
+          />
+        )}
 
         <section
           aria-label={t("Scale practice controls")}
@@ -207,35 +254,39 @@ export default function ScaleSynthesia({
               { value: "guitar", label: "Guitar", icon: <Guitar size={15} aria-hidden="true" /> },
             ]}
           />
-          <WorkspaceSelectControl id="scale-root" label="Root" value={root} onChange={setRoot} className="w-32">
-            {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
-          </WorkspaceSelectControl>
-          <WorkspaceSelectControl id="scale-family" label="Family" value={resolvedFamily} onChange={handleFamilyChange} className="w-52">
-            {availableFamilies.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>{t(candidate.label)}</option>
-            ))}
-          </WorkspaceSelectControl>
-          <WorkspaceSelectControl
-            id="scale-mode"
-            label="Scale or mode"
-            value={resolvedScaleId}
-            onChange={(value) => setScaleId(value as ScaleFormulaType)}
-            className="w-56"
-          >
-            {familyDefinitions.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>{t(candidate.label)}</option>
-            ))}
-          </WorkspaceSelectControl>
-          <WorkspaceSelectControl
-            id="scale-mood"
-            label="Mood lens"
-            value={moodId ?? ""}
-            onChange={(value) => onMoodChange(value === "" ? null : value as MoodId)}
-            className="w-44"
-          >
-            <option value="">{t("Any harmony")}</option>
-            {MOODS.map((mood) => <option key={mood.id} value={mood.id}>{t(mood.label)}</option>)}
-          </WorkspaceSelectControl>
+          {embedded ? null : (
+            <>
+              <WorkspaceSelectControl id="scale-root" label="Root" value={root} onChange={updateRoot} className="w-32">
+                {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
+              </WorkspaceSelectControl>
+              <WorkspaceSelectControl id="scale-family" label="Family" value={resolvedFamily} onChange={handleFamilyChange} className="w-52">
+                {availableFamilies.map((candidate) => (
+                  <option key={candidate.id} value={candidate.id}>{t(candidate.label)}</option>
+                ))}
+              </WorkspaceSelectControl>
+              <WorkspaceSelectControl
+                id="scale-mode"
+                label="Scale or mode"
+                value={resolvedScaleId}
+                onChange={(value) => updateScale(value as ScaleFormulaType)}
+                className="w-56"
+              >
+                {familyDefinitions.map((candidate) => (
+                  <option key={candidate.id} value={candidate.id}>{t(candidate.label)}</option>
+                ))}
+              </WorkspaceSelectControl>
+              <WorkspaceSelectControl
+                id="scale-mood"
+                label="Mood lens"
+                value={moodId ?? ""}
+                onChange={(value) => onMoodChange(value === "" ? null : value as MoodId)}
+                className="w-44"
+              >
+                <option value="">{t("Any harmony")}</option>
+                {MOODS.map((mood) => <option key={mood.id} value={mood.id}>{t(mood.label)}</option>)}
+              </WorkspaceSelectControl>
+            </>
+          )}
           <WorkspaceSegmentedControl
             label="Direction"
             value={direction}
@@ -282,11 +333,26 @@ export default function ScaleSynthesia({
             {isPlaying ? <Pause size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}
             {t(isPlaying ? "Stop scale" : "Play scale")}
           </button>
+          {onUseInHasher ? (
+            <button
+              type="button"
+              onClick={() => onUseInHasher(root, resolvedScaleId)}
+              className="hh-action"
+              style={{
+                backgroundColor: "var(--interactive-accent-bg)",
+                border: "1px solid var(--interactive-accent-border)",
+                color: "var(--interactive-accent-text)",
+              }}
+            >
+              {t("Use this in Hasher")}
+            </button>
+          ) : null}
         </section>
 
         {moodId ? (
           <p className="mb-4 text-sm" role="status" style={{ color: "var(--status-academy-text)" }}>
-            {t(`${moodDefinitionFor(moodId).label} lens · showing ${availableDefinitions.length} matching scales from the shared mood vocabulary.`)}
+            {t(`${moodDefinitionFor(moodId).label} lens · showing ${matchingDefinitionCount} matching scales from the shared mood vocabulary.`)}
+            {selectedScaleOutsideMood ? ` ${t("Current selection remains available for comparison.")}` : null}
           </p>
         ) : null}
 

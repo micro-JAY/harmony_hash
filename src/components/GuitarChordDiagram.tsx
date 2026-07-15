@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { IndexedChord, GuitarDisplayMode } from "../lib/types";
-import { parseGuitarSvg, type ParsedDot } from "../lib/guitarSvgParser";
+import {
+  parseGuitarSvg,
+  sanitizeGuitarSvg,
+  type ParsedGuitarSvg,
+} from "../lib/guitarSvgParser";
+import { deriveGuitarMidiVoicing, type GuitarMidiVoicing } from "../lib/guitarPlayback";
 import { noteToPitchClass } from "../lib/harmonyBrain";
 import { formatNoteForDisplay, parseNotes, getSvgPath } from "../lib/chordData";
 
@@ -9,6 +14,7 @@ interface GuitarChordDiagramProps {
   variant: number;
   displayMode: GuitarDisplayMode;
   preferFlats: boolean;
+  onPlaybackVoicingChange?: (voicing: GuitarMidiVoicing | null) => void;
 }
 
 function buildIntervalMap(entry: { Steps: string; Notes: string }): Map<number, string> {
@@ -35,50 +41,48 @@ function buildNoteNameMap(
   return map;
 }
 
-interface CachedSvg {
-  originalText: string;
-  dots: ParsedDot[];
-  fretOffset: number;
-}
-
-/**
- * Sanitize SVG text by removing script tags and event handler attributes.
- * SVGs are local static files we control, but this is a defense-in-depth measure.
- */
-function sanitizeSvgText(svgText: string): string {
-  return svgText
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/\son\w+="[^"]*"/gi, "");
-}
-
 export default function GuitarChordDiagram({
   chord,
   variant,
   displayMode,
   preferFlats,
+  onPlaybackVoicingChange,
 }: GuitarChordDiagramProps) {
-  const cacheRef = useRef<Map<string, CachedSvg>>(new Map());
+  const cacheRef = useRef<Map<string, ParsedGuitarSvg>>(new Map());
+  const playbackCallbackRef = useRef(onPlaybackVoicingChange);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [svgData, setSvgData] = useState<CachedSvg | null>(null);
+  const [svgData, setSvgData] = useState<ParsedGuitarSvg | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
 
   const svgUrl = getSvgPath(chord, variant);
 
   useEffect(() => {
+    playbackCallbackRef.current = onPlaybackVoicingChange;
+  }, [onPlaybackVoicingChange]);
+
+  useEffect(() => {
     // Render handles `!svgUrl` via the `failed || !svgUrl` early-return branch,
     // so no state change is needed here — bail out before any setState fires.
-    if (!svgUrl) return;
+    if (!svgUrl) {
+      playbackCallbackRef.current?.(null);
+      return;
+    }
+
+    playbackCallbackRef.current?.(null);
 
     const cached = cacheRef.current.get(svgUrl);
     if (cached) {
+      playbackCallbackRef.current?.(deriveGuitarMidiVoicing(cached, svgUrl));
       setSvgData(cached);
+      setFailed(false);
       setLoading(false);
       return;
     }
 
     setLoading(true);
     setFailed(false);
+    setSvgData(null);
 
     const controller = new AbortController();
 
@@ -88,37 +92,43 @@ export default function GuitarChordDiagram({
         return res.text();
       })
       .then((text) => {
-        const sanitized = sanitizeSvgText(text);
+        const sanitized = sanitizeGuitarSvg(text);
+        if (!sanitized) {
+          setFailed(true);
+          setLoading(false);
+          return;
+        }
         const parsed = parseGuitarSvg(sanitized);
         if (!parsed) {
           setFailed(true);
           setLoading(false);
           return;
         }
-        const entry: CachedSvg = {
-          originalText: parsed.svgText,
-          dots: parsed.dots,
-          fretOffset: parsed.fretOffset,
-        };
-        cacheRef.current.set(svgUrl, entry);
-        setSvgData(entry);
+        const voicing = deriveGuitarMidiVoicing(parsed, svgUrl);
+        cacheRef.current.set(svgUrl, parsed);
+        setSvgData(parsed);
+        playbackCallbackRef.current?.(voicing);
         setLoading(false);
       })
       .catch((err) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         console.error("[GuitarChordDiagram] SVG fetch failed:", err);
+        playbackCallbackRef.current?.(null);
         setFailed(true);
         setLoading(false);
       });
 
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      playbackCallbackRef.current?.(null);
+    };
   }, [svgUrl]);
 
   const applyOverlays = useCallback(() => {
     if (!svgData || !containerRef.current) return;
 
     const parser = new DOMParser();
-    const doc = parser.parseFromString(svgData.originalText, "image/svg+xml");
+    const doc = parser.parseFromString(svgData.svgText, "image/svg+xml");
     const svgEl = doc.querySelector("svg");
     if (!svgEl) return;
 
@@ -246,11 +256,7 @@ export default function GuitarChordDiagram({
     svgEl.removeAttribute("height");
     svgEl.style.height = "auto";
 
-    const serializer = new XMLSerializer();
-    const html = serializer.serializeToString(svgEl);
-    // Safe: SVG sourced from local static files with script tags stripped
-    containerRef.current.replaceChildren();
-    containerRef.current.insertAdjacentHTML("afterbegin", html);
+    containerRef.current.replaceChildren(svgEl);
   }, [svgData, displayMode, preferFlats, chord.entry]);
 
   useEffect(() => {

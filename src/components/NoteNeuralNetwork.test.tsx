@@ -31,7 +31,7 @@ describe("NoteNeuralNetwork", () => {
     expect(markup).toContain('aria-label="Relationship strength legend"');
     expect(markup).toContain("E Harmonic Minor");
     expect(markup).toContain("1 · 2 · b3 · 4 · 5 · b6 · 7");
-    expect(markup).toContain("Open in Scale Synthesia");
+    expect(markup).toContain("Open in SCALE SYNTHESIA");
   });
 
   it("keeps Family and Relationship exploration available when embedded", () => {
@@ -46,7 +46,7 @@ describe("NoteNeuralNetwork", () => {
       </I18nProvider>,
     );
 
-    expect(markup).toContain('aria-label="Note Neural Network"');
+    expect(markup).toContain('aria-label="NOTE NEURAL NETWORK"');
     expect(markup).not.toContain('aria-labelledby="note-network-title"');
     expect(markup).toContain('id="mode-network-family"');
     expect(markup).toContain('aria-label="Relationship"');

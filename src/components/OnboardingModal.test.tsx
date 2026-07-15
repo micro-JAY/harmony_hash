@@ -6,13 +6,15 @@ describe("OnboardingModal", () => {
   it("renders a named modal with an explicit dismissal action and scroll boundary", () => {
     const markup = renderToStaticMarkup(
       <OnboardingModal
-        title="Find your harmony faster"
-        description="Three connected workspaces for writing and learning."
+        brandLabel="HARMONY HASH — TONARI LABS"
+        title="Find your harmony."
+        description="Interactive chord explorer. Discover harmony across keys and modes."
         closeLabel="Close Harmony Hash introduction"
-        primaryActionLabel="Start hashing"
+        primaryActionLabel="START HASHING"
         onRequestClose={() => undefined}
+        visual={<img src="/hh_logo.png" alt="" />}
       >
-        <p>Hasher, Tune Toolbox, and Fret Finder work together.</p>
+        <p>HASHER, TUNE TOOLBOX, and FRET FINDER work together.</p>
       </OnboardingModal>,
     );
 
@@ -23,24 +25,27 @@ describe("OnboardingModal", () => {
     expect(markup).toContain('aria-label="Close Harmony Hash introduction"');
     expect(markup).toContain('data-onboarding-scroll-region="true"');
     expect(markup).toContain("max-height:calc(100dvh - (2 * var(--space-4)))");
-    expect(markup).toContain("Start hashing");
+    expect(markup).toContain("START HASHING");
+    expect(markup).toContain('/hh_logo.png');
   });
 
-  it("uses only Tonari semantic tokens for modal surfaces and controls", () => {
+  it("exposes the token-backed surface and control hooks", () => {
     const markup = renderToStaticMarkup(
       <OnboardingModal
+        brandLabel=""
         title="Harmony Hash"
         closeLabel="Close"
         primaryActionLabel="Continue"
         onRequestClose={() => undefined}
+        visual={<span />}
       >
         <p>Welcome.</p>
       </OnboardingModal>,
     );
 
-    expect(markup).toContain("var(--surface-raised)");
-    expect(markup).toContain("var(--border-subtle)");
-    expect(markup).toContain("var(--interactive-primary-bg)");
+    expect(markup).toContain("hh-onboarding-shell");
+    expect(markup).toContain("hh-onboarding-close");
+    expect(markup).toContain("hh-onboarding-primary");
     expect(markup).toContain('data-reduced-motion="false"');
     expect(markup).not.toContain("aria-describedby");
   });

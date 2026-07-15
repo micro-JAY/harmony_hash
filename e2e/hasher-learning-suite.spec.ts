@@ -28,19 +28,19 @@ async function firstRowCardCount(page: Page): Promise<number> {
   return boxes.filter((box) => Math.abs(box.y - firstY) <= 2).length;
 }
 
-test.describe("Hasher learning suite", () => {
+test.describe("HASHER learning suite", () => {
   test.describe.configure({ timeout: 120_000 });
 
-  test("uses the three alliterative destinations and the rebuilt Hasher hierarchy", async ({ page }) => {
+  test("uses the three alliterative destinations and the rebuilt HASHER hierarchy", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const nav = page.getByRole("navigation", { name: "Workspace" });
     await expect(nav.getByRole("button")).toHaveCount(3);
-    await expect(nav.getByRole("button", { name: "Hasher", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await expect(nav.getByRole("button", { name: "Tune Toolbox", exact: true })).toBeVisible();
-    await expect(nav.getByRole("button", { name: "Fret Finder", exact: true })).toBeVisible();
+    await expect(nav.getByRole("button", { name: "HASHER", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(nav.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toBeVisible();
+    await expect(nav.getByRole("button", { name: "FRET FINDER", exact: true })).toBeVisible();
     await expect(nav.getByRole("button", { name: "Circle", exact: true })).toHaveCount(0);
 
-    const modeTabs = page.getByRole("group", { name: "Hasher input mode" });
+    const modeTabs = page.getByRole("group", { name: "HASHER input mode" });
     const browse = page.getByRole("button", { name: "Browse chords ↓" });
     const freeKey = page.getByRole("combobox", { name: "Free Input key" });
     const primary = page.locator(".hh-builder-primary");
@@ -62,7 +62,7 @@ test.describe("Hasher learning suite", () => {
 
     await composeProgression(page, "C Dm G7 C");
     await expect(page.getByRole("button", { name: "Share progression" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Improv Insight" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "IMPROV INSIGHT" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Hanz" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Play progression" })).toBeVisible();
 
@@ -94,7 +94,7 @@ test.describe("Hasher learning suite", () => {
     await page.getByRole("textbox", { name: "Describe the progression you want" }).fill("smoky turnaround");
     await expect(page.getByRole("button", { name: "Browse chords ↓" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Share progression" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Improv Insight" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "IMPROV INSIGHT" })).toBeVisible();
 
     await page.getByRole("button", { name: "Piano", exact: true }).click();
     await expect(page.getByRole("button", { name: "Play progression" })).toBeVisible();
@@ -304,15 +304,15 @@ test.describe("Hasher learning suite", () => {
     await expectNoDocumentOverflow(page);
   });
 
-  test("shares one Tune Toolbox context and hands supported and unsupported scales to Hasher", async ({ page }) => {
+  test("shares one TUNE TOOLBOX context and hands supported and unsupported scales to HASHER", async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Tune Toolbox" })).toBeVisible();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "TUNE TOOLBOX" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Circle of Fifths/ }).first()).toHaveAttribute("aria-expanded", "true");
-    await expect(page.getByRole("button", { name: /Scale Synthesia/ }).first()).toHaveAttribute("aria-expanded", "false");
-    await expect(page.getByRole("button", { name: /Note Neural Network/ }).first()).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first()).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first()).toHaveAttribute("aria-expanded", "false");
 
     const root = page.locator("#theory-root");
     const scale = page.locator("#theory-scale");
@@ -322,33 +322,33 @@ test.describe("Hasher learning suite", () => {
     await expect(mood).toHaveValue("");
     await root.selectOption("D");
     await scale.selectOption("dorian");
-    await page.getByRole("button", { name: /Scale Synthesia/ }).first().click();
+    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
     const synth = page.getByTestId("scale-synthesia");
     await expect(synth).toBeVisible();
     await expect(synth).toContainText("D Dorian");
 
-    await page.getByRole("button", { name: "Use this in Hasher" }).first().click();
-    await expect(page.getByRole("button", { name: "Hasher", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "Use this in HASHER" }).first().click();
+    await expect(page.getByRole("button", { name: "HASHER", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("combobox", { name: "Free Input key" })).toHaveValue("D");
     await expect(page.getByRole("combobox", { name: "Free Input mode" })).toHaveValue("dorian");
 
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await root.selectOption("C");
     await page.waitForTimeout(100);
     expect(pageErrors).toEqual([]);
     await expect(scale).toBeVisible({ timeout: 3_000 });
     await scale.selectOption("whole_tone");
-    await page.getByRole("button", { name: "Use this in Hasher" }).first().click();
+    await page.getByRole("button", { name: "Use this in HASHER" }).first().click();
     await expect(page.getByRole("combobox", { name: "Free Input key" })).toHaveValue("C");
     await expect(page.getByRole("combobox", { name: "Free Input mode" })).toHaveValue("dorian");
     const unsupportedNotice = page.getByRole("status").filter({ hasText: "Whole Tone" });
-    await expect(unsupportedNotice).toContainText("Whole Tone is not a Hasher preset mode");
+    await expect(unsupportedNotice).toContainText("Whole Tone is not a HASHER preset mode");
     await expect(unsupportedNotice).toContainText("formula");
   });
 
   test("filters the shared scale selector by mood while retaining the current selection", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     const scale = page.locator("#theory-scale");
     const mood = page.locator("#theory-mood");
 
@@ -364,17 +364,17 @@ test.describe("Hasher learning suite", () => {
     await mood.selectOption("");
     await expect(scale.locator("option")).toHaveCount(28);
 
-    await page.getByRole("button", { name: /Scale Synthesia/ }).first().click();
+    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
     const synth = page.getByTestId("scale-synthesia");
     await expect(synth).toHaveAttribute("aria-labelledby", "theory-tool-scales-heading");
-    await expect(page.locator("#theory-tool-scales-heading")).toHaveText("Scale Synthesia");
+    await expect(page.locator("#theory-tool-scales-heading")).toHaveText("SCALE SYNTHESIA");
   });
 
   test("opens Circle context in Improv without mutating an empty timeline and restores focus", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Guitar", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await page.locator("#theory-root").selectOption("D");
     await page.locator("#theory-scale").selectOption("dorian");
     const trigger = page.locator("#theory-circle-improv-trigger");
@@ -383,12 +383,12 @@ test.describe("Hasher learning suite", () => {
     const insight = page.getByTestId("improv-insight");
     await expect(insight).toBeVisible();
     await expect(insight.getByTestId("improv-theory-context")).toContainText("Circle context: D Dorian");
-    await expect(insight.getByRole("status")).toContainText("Add chords in Hasher");
+    await expect(insight.getByRole("status")).toContainText("Add chords in HASHER");
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Guitar", exact: true })).toHaveAttribute("aria-pressed", "true");
 
-    await insight.getByRole("button", { name: "Close Improv Insight" }).click();
-    await expect(page.getByRole("button", { name: "Tune Toolbox", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await insight.getByRole("button", { name: "Close IMPROV INSIGHT" }).click();
+    await expect(page.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(trigger).toBeFocused();
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
   });
@@ -407,11 +407,11 @@ test.describe("Hasher learning suite", () => {
     await expectNoDocumentOverflow(page);
   });
 
-  test("renders a bounded, semantic relationship network and cleaned-up Fret Finder", async ({ page }) => {
+  test("renders a bounded, semantic relationship network and cleaned-up FRET FINDER", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 780 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
-    await page.getByRole("button", { name: /Note Neural Network/ }).first().click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
+    await page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first().click();
     const network = page.getByTestId("note-neural-network");
     await expect(network).toBeVisible();
     await expect(network.getByRole("img", { name: "C relationship network" })).toBeVisible();
@@ -423,7 +423,7 @@ test.describe("Hasher learning suite", () => {
     await expect(network.getByText("100%", { exact: true })).toBeVisible();
     await expectNoDocumentOverflow(page);
 
-    await page.getByRole("button", { name: "Fret Finder", exact: true }).click();
+    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
     await expect(page.getByTestId("fretboard-tuning-readout")).toHaveCount(0);
     await expect(page.getByRole("combobox", { name: "Fretboard tuning" })).toBeVisible();

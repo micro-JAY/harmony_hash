@@ -932,30 +932,45 @@ function App() {
       ) : null}
       {onboardingOpen ? (
         <OnboardingModal
-          title={t("Find your harmony faster")}
-          description={t("Three connected spaces for writing, learning, and finding the notes under your hands.")}
+          brandLabel={t("HARMONY HASH — TONARI LABS")}
+          title={t("Find your harmony.")}
+          description={t("Interactive chord explorer. Discover harmony across keys and modes.")}
           closeLabel={t("Close Harmony Hash introduction")}
-          primaryActionLabel={t("Start hashing")}
+          primaryActionLabel={t("START HASHING")}
           onRequestClose={handleOnboardingClose}
           returnFocusRef={helpButtonRef}
+          visual={(
+            <img
+              src="/hh_logo.png"
+              alt=""
+              aria-hidden="true"
+              className="hh-onboarding-logo"
+              width="1000"
+              height="1000"
+            />
+          )}
         >
-          <div className="grid gap-5 sm:grid-cols-3">
-            <section>
-              <h2 className="hh-panel-title">{t("Hasher")}</h2>
-              <p className="mt-2">{t("Describe a feeling or enter chords directly, then arrange, hear, share, and refine the progression.")}</p>
-            </section>
-            <section>
-              <h2 className="hh-panel-title">{t("Tune Toolbox")}</h2>
-              <p className="mt-2">{t("Connect Circle of Fifths, Scale Synthesia, and Note Neural Network with one shared theory context.")}</p>
-            </section>
-            <section>
-              <h2 className="hh-panel-title">{t("Fret Finder")}</h2>
-              <p className="mt-2">{t("Map scales, patterns, intervals, and chord overlays across the fretboard.")}</p>
-            </section>
-          </div>
-          <p className="mt-6 border-t pt-4" style={{ borderColor: "var(--border-default)" }}>
-            {t("Switch between guitar and piano in Hasher, use Play to hear the full progression, and send a scale back from Tune Toolbox whenever inspiration strikes.")}
-          </p>
+          <section className="hh-onboarding-destination hh-onboarding-destination--hasher">
+            <span aria-hidden="true" className="hh-onboarding-destination-mark">#</span>
+            <div>
+              <h2>{t("Hasher")}</h2>
+              <p>{t("Build progressions")}</p>
+            </div>
+          </section>
+          <section className="hh-onboarding-destination hh-onboarding-destination--toolbox">
+            <span aria-hidden="true" className="hh-onboarding-destination-mark">◎</span>
+            <div>
+              <h2>{t("Tune Toolbox")}</h2>
+              <p>{t("Connect theory")}</p>
+            </div>
+          </section>
+          <section className="hh-onboarding-destination hh-onboarding-destination--fret">
+            <span aria-hidden="true" className="hh-onboarding-destination-mark">▦</span>
+            <div>
+              <h2>{t("Fret Finder")}</h2>
+              <p>{t("Map the neck")}</p>
+            </div>
+          </section>
         </OnboardingModal>
       ) : null}
       </div>

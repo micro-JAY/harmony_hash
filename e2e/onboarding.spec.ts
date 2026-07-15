@@ -2,22 +2,28 @@ import { expect, test } from "@playwright/test";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("first visit explains the three spaces, persists explicit dismissal, and reopens from Help", async ({ page }) => {
+test("first visit welcomes people with the logo and three destinations, persists dismissal, and reopens from Help", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "Find your harmony faster" });
+  const dialog = page.getByRole("dialog", { name: "Find your harmony." });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("heading", { name: "Hasher" })).toBeVisible();
-  await expect(dialog.getByRole("heading", { name: "Tune Toolbox" })).toBeVisible();
-  await expect(dialog.getByRole("heading", { name: "Fret Finder" })).toBeVisible();
-  await expect(dialog).toContainText("guitar and piano");
-  await expect(dialog).toContainText("Play");
-  await expect(dialog).toContainText("send a scale back");
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/favicon.png");
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/apple-touch-icon.png");
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    "Interactive chord explorer. Discover harmony across keys and modes.",
+  );
+  await expect(dialog.locator('img[src="/hh_logo.png"]')).toBeVisible();
+  await expect(dialog).toContainText("Interactive chord explorer. Discover harmony across keys and modes.");
+  await expect(dialog.getByRole("heading", { name: "HASHER" })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "TUNE TOOLBOX" })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
+  await expect(dialog).not.toContainText("send a scale back");
 
-  await dialog.getByRole("button", { name: "Start hashing" }).click();
+  await dialog.getByRole("button", { name: "START HASHING" }).click();
   await expect(dialog).toBeHidden();
   await expect.poll(() => page.evaluate(() => (
-    localStorage.getItem("hh:onboarding:v1:dismissed")
+    localStorage.getItem("hh:onboarding:v2:dismissed")
   ))).toBe("true");
 
   await page.reload({ waitUntil: "domcontentloaded" });
@@ -47,9 +53,9 @@ test("blocked storage remains usable and dismissal lasts for the page session", 
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "Find your harmony faster" });
+  const dialog = page.getByRole("dialog", { name: "Find your harmony." });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Start hashing" }).click();
+  await dialog.getByRole("button", { name: "START HASHING" }).click();
   await expect(dialog).toBeHidden();
   await page.getByRole("button", { name: "Help / About" }).click();
   await expect(dialog).toBeVisible();
@@ -63,7 +69,7 @@ test("onboarding is contained in a short mobile viewport and honors reduced moti
   await page.setViewportSize({ width: 375, height: 430 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "Find your harmony faster" });
+  const dialog = page.getByRole("dialog", { name: "Find your harmony." });
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveAttribute("data-reduced-motion", "true");
   const box = await dialog.boundingBox();
@@ -73,4 +79,11 @@ test("onboarding is contained in a short mobile viewport and honors reduced moti
   expect(box!.y).toBeGreaterThanOrEqual(0);
   expect(box!.y + box!.height).toBeLessThanOrEqual(430);
   await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 375);
+
+  const primaryAction = dialog.getByRole("button", { name: "START HASHING" });
+  const finalDestination = dialog.getByRole("heading", { name: "FRET FINDER" });
+  await primaryAction.scrollIntoViewIfNeeded();
+  await expect(primaryAction).toBeVisible();
+  await finalDestination.scrollIntoViewIfNeeded();
+  await expect(finalDestination).toBeVisible();
 });

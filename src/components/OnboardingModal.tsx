@@ -21,10 +21,12 @@ const FOCUSABLE_SELECTOR = [
 ].join(",");
 
 interface OnboardingModalProps {
+  brandLabel: string;
   title: string;
   description?: string;
   closeLabel: string;
   primaryActionLabel: string;
+  visual: ReactNode;
   children: ReactNode;
   onRequestClose: (reason: OnboardingCloseReason) => void;
   returnFocusRef?: RefObject<HTMLElement | null>;
@@ -60,10 +62,12 @@ function setBackgroundInert(portalNode: HTMLElement): () => void {
 }
 
 export default function OnboardingModal({
+  brandLabel,
   title,
   description,
   closeLabel,
   primaryActionLabel,
+  visual,
   children,
   onRequestClose,
   returnFocusRef,
@@ -173,118 +177,50 @@ export default function OnboardingModal({
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         data-reduced-motion={reduceMotion ? "true" : "false"}
-        className="hh-panel"
+        className="hh-panel hh-onboarding-shell"
         initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={reduceMotion ? undefined : { opacity: 0, scale: 0.97 }}
         transition={{ duration: reduceMotion ? 0 : 0.18 }}
         style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "min(42rem, calc(100vw - (2 * var(--space-4))))",
-          maxWidth: "100%",
           maxHeight: "calc(100dvh - (2 * var(--space-4)))",
-          overflow: "hidden",
-          backgroundColor: "var(--surface-raised)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: "var(--radius-xl)",
-          boxShadow: "var(--shadow-lg)",
         }}
       >
-        <header
-          className="flex items-start justify-between gap-4"
-          style={{ padding: "var(--space-5) var(--space-5) var(--space-3)" }}
+        <button
+          type="button"
+          onClick={() => onRequestClose("close-button")}
+          aria-label={closeLabel}
+          className="hh-onboarding-close"
         >
-          <div className="min-w-0">
-            <h1
-              id={titleId}
-              style={{
-                margin: 0,
-                color: "var(--text-primary)",
-                fontFamily: "var(--font-display)",
-                fontSize: "var(--text-xl)",
-                fontWeight: "var(--weight-bold)",
-                letterSpacing: "var(--tracking-tight)",
-                lineHeight: "var(--leading-tight)",
-              }}
-            >
-              {title}
-            </h1>
-            {description ? (
-              <p
-                id={descriptionId}
-                style={{
-                  margin: "var(--space-2) 0 0",
-                  color: "var(--text-secondary)",
-                  fontSize: "var(--text-base)",
-                  lineHeight: "var(--leading-normal)",
-                }}
-              >
-                {description}
-              </p>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            onClick={() => onRequestClose("close-button")}
-            aria-label={closeLabel}
-            className="grid shrink-0 place-items-center"
-            style={{
-              width: "var(--control-min-height)",
-              height: "var(--control-min-height)",
-              borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--border-subtle)",
-              backgroundColor: "var(--surface-overlay)",
-              color: "var(--text-secondary)",
-              cursor: "pointer",
-            }}
-          >
-            <X size={16} aria-hidden="true" />
-          </button>
-        </header>
+          <X size={18} aria-hidden="true" />
+        </button>
 
         <div
           data-onboarding-scroll-region="true"
-          style={{
-            minHeight: 0,
-            overflowX: "hidden",
-            overflowY: "auto",
-            overscrollBehavior: "contain",
-            padding: "var(--space-3) var(--space-5) var(--space-5)",
-            color: "var(--text-secondary)",
-            fontSize: "var(--text-base)",
-            lineHeight: "var(--leading-normal)",
-          }}
+          className="hh-onboarding-scroll-region"
         >
-          {children}
+          <div className="hh-onboarding-hero">
+            <div className="hh-onboarding-visual">{visual}</div>
+            <header className="hh-onboarding-copy">
+              <p className="hh-onboarding-brand">{brandLabel}</p>
+              <h1 id={titleId} className="hh-onboarding-title">{title}</h1>
+              {description ? (
+                <p id={descriptionId} className="hh-onboarding-description">
+                  {description}
+                </p>
+              ) : null}
+              <button
+                ref={primaryActionRef}
+                type="button"
+                onClick={() => onRequestClose("primary-action")}
+                className="hh-action hh-onboarding-primary"
+              >
+                {primaryActionLabel}
+              </button>
+            </header>
+          </div>
+          <div className="hh-onboarding-destinations">{children}</div>
         </div>
-
-        <footer
-          className="flex justify-end"
-          style={{
-            padding: "var(--space-4) var(--space-5) var(--space-5)",
-            borderTop: "1px solid var(--border-subtle)",
-          }}
-        >
-          <button
-            ref={primaryActionRef}
-            type="button"
-            onClick={() => onRequestClose("primary-action")}
-            className="hh-action"
-            style={{
-              minHeight: "var(--control-min-height)",
-              paddingInline: "var(--space-6)",
-              backgroundColor: "var(--interactive-primary-bg)",
-              color: "var(--interactive-primary-text)",
-              border: "1px solid var(--interactive-primary-bg)",
-              fontFamily: "var(--font-body)",
-              fontWeight: "var(--weight-semibold)",
-              cursor: "pointer",
-            }}
-          >
-            {primaryActionLabel}
-          </button>
-        </footer>
       </motion.section>
     </div>
   );

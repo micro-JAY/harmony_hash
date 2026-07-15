@@ -22,10 +22,10 @@ async function openNetwork(
   context: { root?: string; scale?: string } = {},
 ): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+  await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
   if (context.root) await page.locator("#theory-root").selectOption(context.root);
   if (context.scale) await page.locator("#theory-scale").selectOption(context.scale);
-  const disclosure = page.getByRole("button", { name: /Note Neural Network/ }).first();
+  const disclosure = page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first();
   if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
   const network = page.getByTestId("note-neural-network");
   await expect(network).toBeVisible();
@@ -40,7 +40,7 @@ async function openNetwork(
   }));
 }
 
-test.describe("Note Neural Network in Tune Toolbox", () => {
+test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
   test.describe.configure({ timeout: 90_000 });
 
   test("renders a stable clustered graph with redundant relationship cues", async ({ page }) => {
@@ -49,7 +49,7 @@ test.describe("Note Neural Network in Tune Toolbox", () => {
     await openNetwork(page, { root: "E", scale: "harmonic_minor" });
 
     const network = page.getByTestId("note-neural-network");
-    await expect(network).toHaveAccessibleName("Note Neural Network");
+    await expect(network).toHaveAccessibleName("NOTE NEURAL NETWORK");
     await expect(network.getByRole("img", { name: "E relationship network" })).toBeVisible();
     const semanticList = network.getByRole("list", { name: "Network nodes" });
     const listItems = semanticList.getByRole("listitem");
@@ -124,10 +124,10 @@ test.describe("Note Neural Network in Tune Toolbox", () => {
     const selected = network.getByRole("list", { name: "Network nodes" })
       .getByRole("button").filter({ hasText: "D Dorian" });
     await selected.click();
-    await network.getByRole("button", { name: "Open in Scale Synthesia" }).click();
+    await network.getByRole("button", { name: "Open in SCALE SYNTHESIA" }).click();
 
-    await expect(page.getByRole("button", { name: "Tune Toolbox", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("button", { name: /Scale Synthesia/ }).first()).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first()).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByTestId("scale-synthesia")).toBeVisible();
     await expect(page.getByText("D Dorian · Ascending", { exact: true })).toBeVisible();
     await expect(page.locator("#theory-root")).toHaveValue("D");
@@ -135,18 +135,18 @@ test.describe("Note Neural Network in Tune Toolbox", () => {
     expect(issues).toEqual([]);
   });
 
-  test("preserves graph selection and the Hasher timeline across workspace round trips", async ({ page }) => {
+  test("preserves graph selection and the HASHER timeline across workspace round trips", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
     await page.getByRole("button", { name: "Hanz", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
     await page.locator("#theory-root").selectOption("D");
     await page.locator("#theory-scale").selectOption("lydian_dominant");
-    const disclosure = page.getByRole("button", { name: /Note Neural Network/ }).first();
+    const disclosure = page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first();
     await disclosure.click();
     const network = page.getByTestId("note-neural-network");
     await expect(network.getByRole("img", { name: "D relationship network" })).toBeVisible();
@@ -156,9 +156,9 @@ test.describe("Note Neural Network in Tune Toolbox", () => {
       .locator('li > button[aria-pressed="true"]').first().innerText()).trim();
     const selectedRoot = await page.locator("#theory-root").inputValue();
 
-    await page.getByRole("button", { name: "Hasher", exact: true }).click();
+    await page.getByRole("button", { name: "HASHER", exact: true }).click();
     await expect(page.getByTestId("chord-card")).toHaveCount(4);
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await expect(disclosure).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator("#theory-root")).toHaveValue(selectedRoot);
     await expect(network).toBeVisible();

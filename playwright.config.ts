@@ -23,7 +23,7 @@ export default defineConfig({
       cookies: [],
       origins: [{
         origin: "http://localhost:4173",
-        localStorage: [{ name: "hh:onboarding:v1:dismissed", value: "true" }],
+        localStorage: [{ name: "hh:onboarding:v2:dismissed", value: "true" }],
       }],
     },
     trace: "only-on-failure",

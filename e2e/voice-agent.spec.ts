@@ -45,7 +45,7 @@ test.describe("Hanz Hasher voice sessions", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
-      .fill("recover Hanz without losing the Hasher");
+      .fill("recover Hanz without losing the HASHER");
     await page.getByRole("button", { name: HELP_LABEL }).click();
 
     await expect(page.getByRole("alert")).toHaveText(

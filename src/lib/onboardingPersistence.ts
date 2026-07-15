@@ -1,4 +1,4 @@
-export const ONBOARDING_DISMISSAL_VERSION = 1;
+export const ONBOARDING_DISMISSAL_VERSION = 2;
 export const ONBOARDING_DISMISSAL_KEY = `hh:onboarding:v${ONBOARDING_DISMISSAL_VERSION}:dismissed`;
 
 const DISMISSED_VALUE = "true";

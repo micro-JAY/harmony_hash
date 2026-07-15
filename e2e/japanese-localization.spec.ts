@@ -9,7 +9,7 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 }
 
-test("offers Hasher, Tune Toolbox, and Fret Finder completely in Japanese", async ({ page }) => {
+test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await composeProgression(page, ["Cmaj7"]);
@@ -24,6 +24,12 @@ test("offers Hasher, Tune Toolbox, and Fret Finder completely in Japanese", asyn
   await expect(page.getByRole("group", { name: "ハッシャーの入力モード" })).toBeVisible();
   await expect(page.getByRole("button", { name: "コード進行を共有" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: /ムード/ })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "ヘルプ／概要" }).click();
+  const introduction = page.getByRole("dialog", { name: "自分だけのハーモニーを見つけよう。" });
+  await expect(introduction).toContainText("コードを自由に探りながら、キーやモードを越えてハーモニーを発見できます。");
+  await expect(introduction.getByRole("button", { name: "ハッシュを始める" })).toBeVisible();
+  await introduction.getByRole("button", { name: "Harmony Hashの紹介を閉じる" }).click();
 
   await page.getByRole("button", { name: "コード進行を共有" }).click();
   await expect(page.getByRole("dialog", { name: "このコード進行を共有" })).toBeVisible();

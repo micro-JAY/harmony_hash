@@ -7,11 +7,17 @@ export const translations: Record<Locale, Record<string, string>> = {
     piano: "Piano",
     guitar: "Guitar",
     bass: "Bass",
-    builder: "Hasher",
+    builder: "HASHER",
     fretboard: "Fretboard",
     circle: "Circle",
     scales: "Scales",
     network: "Network",
+    Hasher: "HASHER",
+    "Tune Toolbox": "TUNE TOOLBOX",
+    "Fret Finder": "FRET FINDER",
+    "Note Neural Network": "NOTE NEURAL NETWORK",
+    "Scale Synthesia": "SCALE SYNTHESIA",
+    "Improv Insight": "IMPROV INSIGHT",
     freeInput: "Free Input",
     freeInputHint: "Cmaj7 Dm7 G7 C ...",
     progressions: "Progressions",
@@ -52,9 +58,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Fret Finder": "フレット・ファインダー",
     "Help / About": "ヘルプ／概要",
     "Find your harmony faster": "ハーモニーをもっと速く見つけよう",
+    "Find your harmony.": "自分だけのハーモニーを見つけよう。",
+    "Interactive chord explorer. Discover harmony across keys and modes.": "コードを自由に探りながら、キーやモードを越えてハーモニーを発見できます。",
+    "HARMONY HASH — TONARI LABS": "HARMONY HASH — TONARI LABS",
     "Three connected spaces for writing, learning, and finding the notes under your hands.": "作曲、学習、指板上の音探しをつなぐ3つのスペースです。",
     "Close Harmony Hash introduction": "Harmony Hashの紹介を閉じる",
     "Start hashing": "ハッシュを始める",
+    "START HASHING": "ハッシュを始める",
+    "Build progressions": "コード進行をつくる",
+    "Connect theory": "理論をつなぐ",
+    "Map the neck": "指板を見渡す",
     "Describe a feeling or enter chords directly, then arrange, hear, share, and refine the progression.": "雰囲気を言葉で伝えるかコードを直接入力し、並べ替え、再生、共有、調整できます。",
     "Connect Circle of Fifths, Scale Synthesia, and Note Neural Network with one shared theory context.": "五度圏、Scale Synthesia、Note Neural Networkを共通の理論設定でつなぎます。",
     "Map scales, patterns, intervals, and chord overlays across the fretboard.": "スケール、パターン、音程、コードの重ね表示を指板全体にマップします。",
@@ -649,7 +662,30 @@ function translateDynamicJapanese(value: string): string | undefined {
   return undefined;
 }
 
+const ENGLISH_TOOL_NAME_REPLACEMENTS = [
+  ["Tune Toolbox", "TUNE TOOLBOX"],
+  ["Fret Finder", "FRET FINDER"],
+  ["Note Neural Network", "NOTE NEURAL NETWORK"],
+  ["Scale Synthesia", "SCALE SYNTHESIA"],
+  ["Improv Insight", "IMPROV INSIGHT"],
+  ["Hasher", "HASHER"],
+] as const;
+
+function capitalizeEnglishToolNames(value: string): string {
+  const hanzHasherToken = "__HH_HANZ_PROPER_NAME__";
+  const protectedValue = value.split("Hanz Hasher").join(hanzHasherToken);
+  const normalized = ENGLISH_TOOL_NAME_REPLACEMENTS.reduce(
+    (normalized, [name, capitalized]) => normalized.split(name).join(capitalized),
+    protectedValue,
+  );
+  return normalized.split(hanzHasherToken).join("Hanz Hasher");
+}
+
 export function translate(locale: Locale, key: string): string {
+  if (locale === "en") {
+    return capitalizeEnglishToolNames(translations.en[key] ?? key);
+  }
+
   const direct = translations[locale][key] ?? translations.en[key];
   if (direct !== undefined) return direct;
   if (locale === "ja") return translateDynamicJapanese(key) ?? key;

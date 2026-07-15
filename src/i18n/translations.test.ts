@@ -23,6 +23,16 @@ describe("Japanese translations", () => {
     );
   });
 
+  it("capitalizes English tool names without changing Hanz Hasher's name", () => {
+    expect(translate("en", "Hasher")).toBe("HASHER");
+    expect(translate("en", "Open Improv Insight")).toBe("Open IMPROV INSIGHT");
+    expect(translate("en", "Open in Scale Synthesia")).toBe("Open in SCALE SYNTHESIA");
+    expect(translate("en", "Hanz Hasher")).toBe("Hanz Hasher");
+    expect(translate("en", "Ask Hanz Hasher about Improv Insight")).toBe(
+      "Ask Hanz Hasher about IMPROV INSIGHT",
+    );
+  });
+
   it("localizes mood-aware learning summaries", () => {
     expect(translate("ja", "Dark lens · showing 5 preferred scale families")).toBe(
       "ムード・レンズ：暗い・優先スケール系統を5種類表示",

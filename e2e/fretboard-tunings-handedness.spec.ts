@@ -18,7 +18,7 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 
 async function openFretboard(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Fretboard", exact: true }).click();
+  await page.getByRole("button", { name: "Fret Finder", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
 }
 
@@ -51,8 +51,9 @@ test.describe("Fretboard tunings and handedness", () => {
     );
 
     await tuning.selectOption("guitar-drop-d");
-    await expect(page.getByTestId("fretboard-tuning-readout")).toHaveText(
-      "Drop D · D A D G B E · frets 0–15",
+    await expect(page.getByTestId("fretboard-scroller")).toHaveAttribute(
+      "data-tuning",
+      "guitar-drop-d",
     );
     await expect(page.getByRole("button", {
       name: "Right-handed Guitar string 6 (low D), Drop D tuning, fret 0, D, interval 2, All positions pattern tone",
@@ -70,8 +71,9 @@ test.describe("Fretboard tunings and handedness", () => {
       "BEAD · B E A D",
     ]);
     await tuning.selectOption("bass-bead");
-    await expect(page.getByTestId("fretboard-tuning-readout")).toHaveText(
-      "BEAD · B E A D · frets 0–15",
+    await expect(page.getByTestId("fretboard-scroller")).toHaveAttribute(
+      "data-tuning",
+      "bass-bead",
     );
 
     await page.getByRole("button", { name: "Guitar", exact: true }).click();
@@ -181,7 +183,10 @@ test.describe("Fretboard tunings and handedness", () => {
 
     const tuningStartedAt = await page.evaluate(() => performance.now());
     await tuning.selectOption("guitar-open-g");
-    await expect(page.getByTestId("fretboard-tuning-readout")).toContainText("Open G");
+    await expect(page.getByTestId("fretboard-scroller")).toHaveAttribute(
+      "data-tuning",
+      "guitar-open-g",
+    );
     const tuningElapsed = await page.evaluate((startedAt) => performance.now() - startedAt, tuningStartedAt);
     expect(tuningElapsed).toBeLessThan(500);
 

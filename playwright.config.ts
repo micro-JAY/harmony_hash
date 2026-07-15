@@ -17,6 +17,15 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: "http://localhost:4173",
+    // Existing feature suites start from the returning-visitor state. The
+    // onboarding suite explicitly overrides this with an empty storage state.
+    storageState: {
+      cookies: [],
+      origins: [{
+        origin: "http://localhost:4173",
+        localStorage: [{ name: "hh:onboarding:v1:dismissed", value: "true" }],
+      }],
+    },
     trace: "only-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

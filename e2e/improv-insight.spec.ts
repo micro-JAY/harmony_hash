@@ -42,7 +42,8 @@ async function enterProgression(page: Page, value = "Cmaj7 Am7 Dm7 G7") {
 }
 
 async function openInsight(page: Page) {
-  await page.getByRole("button", { name: "Improv Insight" }).click();
+  const disclosure = page.getByRole("button", { name: "Improv Insight", exact: true });
+  if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
   await expect(page.getByRole("heading", { name: "Improv Insight" })).toBeVisible();
 }
 
@@ -65,7 +66,7 @@ test.describe("Improv Insight", () => {
     expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(false);
 
     await enterProgression(page);
-    expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(true);
+    expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(false);
     await openInsight(page);
     expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(true);
     await expect(page.getByRole("tab", { name: "Whole progression" })).toHaveAttribute("aria-selected", "true");
@@ -112,7 +113,7 @@ test.describe("Improv Insight", () => {
     await expect(page.locator('[data-scale-result="G Mixolydian"]')).toContainText("modal");
     const elapsed = await page.evaluate((start) => performance.now() - start, startedAt);
     expect(elapsed).toBeLessThan(500);
-    const disclosure = page.getByRole("button", { name: "Improv Insight" });
+    const disclosure = page.getByRole("button", { name: "Improv Insight", exact: true });
     await disclosure.click();
     await expect(disclosure).toBeFocused();
     await expect(page.getByRole("heading", { name: "Improv Insight" })).toBeHidden();

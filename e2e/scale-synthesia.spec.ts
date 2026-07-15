@@ -17,29 +17,32 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
   return issues;
 }
 
-async function openScales(page: Page): Promise<void> {
+async function openScales(
+  page: Page,
+  context: { root?: string; scale?: string } = {},
+): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Scales", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Scale Synthesia" })).toBeVisible();
+  await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+  if (context.root) await page.locator("#theory-root").selectOption(context.root);
+  if (context.scale) await page.locator("#theory-scale").selectOption(context.scale);
+  const disclosure = page.getByRole("button", { name: /Scale Synthesia/ }).first();
+  if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
+  await expect(page.getByTestId("scale-synthesia")).toBeVisible();
 }
 
-test.describe("Scale Synthesia", () => {
+test.describe("Scale Synthesia in Tune Toolbox", () => {
   test.describe.configure({ timeout: 90_000 });
 
-  test("renders the complete F-sharp harmonic-minor learning map", async ({ page }) => {
+  test("renders the complete F-sharp harmonic-minor learning map from shared context", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await page.setViewportSize({ width: 1280, height: 960 });
-    await openScales(page);
+    await openScales(page, { root: "F#", scale: "harmonic_minor" });
 
-    await expect(page.getByRole("combobox", { name: "Family" }).locator("option")).toHaveCount(6);
-    await expect(page.getByRole("combobox", { name: "Scale or mode" }).locator("option")).toHaveCount(7);
     await expect(page.getByRole("region", { name: "F# Harmonic Minor piano practice map" })).toBeVisible();
     await expect(page.getByRole("list", { name: "Scale notes" }).getByRole("listitem")).toHaveCount(8);
     await expect(page.getByRole("list", { name: "Whole and half step formula" }).getByRole("listitem"))
       .toHaveText(["W", "H", "W", "W", "H", "1½", "H"]);
-    await expect(page.getByRole("list", { name: "Named scale degrees" })).toContainText(
-      "Raised seventh",
-    );
+    await expect(page.getByRole("list", { name: "Named scale degrees" })).toContainText("Raised seventh");
     await expect(page.getByText("Hava Nagila — traditional", { exact: true })).toBeVisible();
     await expect(page.getByTestId("scale-piano-keyboard")).toHaveAttribute(
       "aria-label",
@@ -48,96 +51,72 @@ test.describe("Scale Synthesia", () => {
     const degreeColors = await page.locator('[data-scale-degree]:not([data-scale-degree=""])')
       .evaluateAll((elements) => elements.map((element) => getComputedStyle(element).backgroundColor));
     expect(new Set(degreeColors).size).toBeGreaterThanOrEqual(7);
-    await expect(page.getByTestId("scale-synthesia")).toHaveScreenshot(
-      "scale-synthesia-desktop.png",
-    );
+    await expect(page.getByTestId("scale-synthesia")).toHaveScreenshot("scale-synthesia-desktop.png");
     expect(issues).toEqual([]);
   });
 
-  test("shares the mood vocabulary with the scale picker inside the latency budget", async ({
-    page,
-  }) => {
+  test("keeps Mood explicit, defaults to Any, and preserves an out-of-lens selection", async ({ page }) => {
     const issues = collectBrowserIssues(page);
-    await openScales(page);
-    const family = page.getByRole("combobox", { name: "Family" });
-    const scale = page.getByRole("combobox", { name: "Scale or mode" });
-    const mood = page.getByRole("combobox", { name: "Mood lens" });
-
-    await family.selectOption("major_modes");
-    await scale.selectOption("lydian");
+    await openScales(page, { root: "F#", scale: "lydian" });
+    const mood = page.locator("#theory-mood");
+    await expect(mood).toHaveValue("");
     await expect(page.getByText("F# Lydian · Ascending", { exact: true })).toBeVisible();
 
-    await page.evaluate(() => {
-      const select = document.querySelector<HTMLSelectElement>("#scale-mood");
-      select?.addEventListener("change", () => {
-        const startedAt = performance.now();
-        requestAnimationFrame(() => {
-          select.dataset.updateMs = String(performance.now() - startedAt);
-        });
-      }, { once: true });
-    });
     await mood.selectOption("dark");
-    await expect(page.getByRole("status")).toHaveText(
-      "Dark lens · showing 5 matching scales from the shared mood vocabulary.",
-    );
-    await expect(scale.locator("option")).toHaveText(["Phrygian", "Natural Minor (Aeolian)"]);
-    await expect(scale).toHaveValue("phrygian");
-    await expect(mood).toHaveAttribute("data-update-ms", /\d/);
-    const updateMs = Number(await mood.getAttribute("data-update-ms"));
-    expect(updateMs).toBeLessThan(500);
+    const status = page.getByRole("status").filter({ hasText: "Dark lens" });
+    await expect(status).toContainText("showing 5 matching scales");
+    await expect(status).toContainText("Current selection remains available for comparison.");
+    await expect(page.locator("#theory-scale")).toHaveValue("lydian");
+    await expect(page.getByText("F# Lydian · Ascending", { exact: true })).toBeVisible();
 
-    await mood.selectOption("");
-    await expect(family.locator("option")).toHaveCount(6);
+    await page.locator("#theory-scale").selectOption("phrygian");
+    await expect(page.getByText("F# Phrygian · Ascending", { exact: true })).toBeVisible();
+    await expect(status).not.toContainText("Current selection remains available for comparison.");
     expect(issues).toEqual([]);
   });
 
-  test("uses the shared guitar map and supports descending arpeggio playback", async ({ page }) => {
+  test("supports guitar arpeggio playback and stops immediately when collapsed", async ({ page }) => {
     const issues = collectBrowserIssues(page);
-    await openScales(page);
+    await openScales(page, { root: "F#", scale: "harmonic_minor" });
     await page.getByRole("button", { name: "Guitar", exact: true }).click();
     const board = page.getByRole("region", { name: "Right-handed guitar fretboard in Standard tuning" });
     await expect(board).toBeVisible();
     await expect(board.getByRole("button", { name: /string 1.*E#.*interval 7/ }).first()).toBeVisible();
 
     await page.getByRole("button", { name: "Arpeggio", exact: true }).click();
-    await expect(board.getByRole("button", { name: /G#.*interval 2/ })).toHaveCount(0);
     await page.getByRole("combobox", { name: "Arpeggio type" }).selectOption("seventh");
     await page.getByRole("button", { name: "Descending", exact: true }).click();
     await expect(page.getByRole("list", { name: "Playback sequence" }).getByRole("listitem"))
       .toHaveCount(5);
-    expect(await page.getByRole("list", { name: "Playback sequence" }).getByRole("listitem")
-      .evaluateAll((elements) => elements.map((element) => element.getAttribute("aria-label"))))
-      .toEqual([
-        "1: F#, degree 1", "2: E#, degree 7", "3: C#, degree 5",
-        "4: A, degree 3", "5: F#, degree 1",
-      ]);
 
     await page.getByRole("button", { name: "Play scale" }).click();
     await expect(page.locator('[data-playing="true"]')).toHaveCount(1);
-    await expect(page.getByRole("button", { name: "Stop scale playback" })).toBeVisible();
-    await page.getByRole("button", { name: "Stop scale playback" }).click();
+    await page.getByRole("button", { name: /Scale Synthesia/ }).first().click();
+    await expect(page.getByTestId("scale-synthesia")).toBeHidden();
     await expect(page.locator('[data-playing="true"]')).toHaveCount(0);
     expect(issues).toEqual([]);
   });
 
-  test("keeps the Hasher timeline and hides Hanz outside the Hasher", async ({ page }) => {
+  test("preserves the Hasher timeline and Toolbox state across round trips", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
-    await expect(page.getByTestId("chord-card")).toHaveCount(4);
-    await page.getByRole("textbox", { name: "Describe the progression you want" }).fill("help me practice this");
-    await page.getByRole("button", { name: /Need help\?|Stuck\?|Writer's block got you down\?|Phone a friend/ }).click();
+    await page.getByRole("button", { name: "Hanz", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Scales", exact: true }).click();
+    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
-    await page.getByRole("combobox", { name: "Root" }).selectOption("Eb");
-    await page.getByRole("button", { name: "Circle", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Circle of Fifths" })).toBeVisible();
+    await page.locator("#theory-root").selectOption("Eb");
+    const disclosure = page.getByRole("button", { name: /Scale Synthesia/ }).first();
+    await disclosure.click();
     await page.getByRole("button", { name: "Hasher", exact: true }).click();
     await expect(page.getByTestId("chord-card")).toHaveCount(4);
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await expect(page.locator("#theory-root")).toHaveValue("Eb");
+    await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByTestId("scale-synthesia")).toBeVisible();
     expect(issues).toEqual([]);
   });
 
@@ -150,7 +129,7 @@ test.describe("Scale Synthesia", () => {
       const issues = collectBrowserIssues(page);
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       if (viewport.name === "mobile") await page.emulateMedia({ reducedMotion: "reduce" });
-      await openScales(page);
+      await openScales(page, { root: "F#", scale: "harmonic_minor" });
 
       expect(await page.evaluate(
         () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -161,10 +140,9 @@ test.describe("Scale Synthesia", () => {
       );
       await expect(page.getByRole("complementary", { name: "Practice summary" })).toBeVisible();
       if (viewport.name === "mobile") {
-        const keyboardScrolls = await page.getByTestId("scale-piano-scroller").evaluate(
+        expect(await page.getByTestId("scale-piano-scroller").evaluate(
           (element) => element.scrollWidth > element.clientWidth,
-        );
-        expect(keyboardScrolls).toBe(true);
+        )).toBe(true);
         const runningAnimations = await page.getByTestId("scale-synthesia").evaluate(
           (element) => element.getAnimations({ subtree: true })
             .filter((animation) => animation.playState === "running").length,

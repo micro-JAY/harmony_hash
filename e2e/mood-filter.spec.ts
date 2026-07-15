@@ -10,76 +10,44 @@ function collectPageIssues(page: Page): string[] {
   return issues;
 }
 
-async function openFreeInputGrid(page: Page): Promise<void> {
+async function openToolbox(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Browse chords" }).click();
-  await page.getByRole("button", { name: "Key chord suggestions" }).click();
+  await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
 }
 
-test.describe("Mood and genre lens", () => {
-  test("biases chord suggestions without changing the progression", async ({ page }) => {
+test.describe("Theory mood lens separation", () => {
+  test("removes every Hasher mood path while preserving chord suggestions", async ({ page }) => {
     const issues = collectPageIssues(page);
-    await openFreeInputGrid(page);
-    const moodSelect = page.getByRole("combobox", { name: "Mood or genre lens" });
-    await expect(moodSelect.locator("option")).toHaveCount(13);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.getByTestId("mood-filter")).toHaveCount(0);
+    await expect(page.getByRole("combobox", { name: /Mood/ })).toHaveCount(0);
+    await page.getByRole("button", { name: "Browse chords ↓" }).click();
+    await page.getByRole("button", { name: "Key chord suggestions" }).click();
+    await expect(page.locator('[data-chord-name="C"]')).toHaveAttribute("data-fit-score", "100");
 
-    const cMajor = page.locator('[data-chord-name="C"]');
-    await expect(cMajor).toHaveAttribute("data-fit-score", "100");
-    const baselineScore = Number(await cMajor.getAttribute("data-fit-score"));
-
-    await page.evaluate(() => {
-      const select = document.querySelector<HTMLSelectElement>('select[aria-label="Mood or genre lens"]');
-      const scoredChord = document.querySelector<HTMLElement>('[data-chord-name="C"]');
-      if (!select || !scoredChord) throw new Error("Mood performance targets are unavailable");
-      select.addEventListener("change", () => {
-        const started = performance.now();
-        const observer = new MutationObserver(() => {
-          observer.disconnect();
-          requestAnimationFrame(() => {
-            select.dataset.updateMs = String(performance.now() - started);
-          });
-        });
-        observer.observe(scoredChord, { attributes: true, attributeFilter: ["data-fit-score"] });
-      }, { once: true });
-    });
-    await moodSelect.selectOption("dark");
-    await expect(page.getByTestId("mood-filter")).toHaveAttribute("data-mood-id", "dark");
-    await expect(page.getByTestId("suggestion-summary")).toContainText("Dark lens");
-    await expect(cMajor).toHaveAttribute("aria-label", /Dark scale fit/);
-    await expect(moodSelect).toHaveAttribute("data-update-ms", /\d/);
-    const updateDuration = Number(await moodSelect.getAttribute("data-update-ms"));
-    expect(updateDuration).toBeLessThan(500);
-    expect(Number(await cMajor.getAttribute("data-fit-score"))).toBeLessThan(baselineScore);
-
-    await composeProgression(page, ["Cm7", "Fm7"]);
-    await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Cm7", "Fm7"]);
-    await moodSelect.selectOption("happy");
-    await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Cm7", "Fm7"]);
+    await page.getByRole("button", { name: "Progressions" }).click();
+    await expect(page.getByTestId("mood-filter")).toHaveCount(0);
+    await expect(page.getByRole("combobox", { name: /Mood/ })).toHaveCount(0);
     expect(issues).toEqual([]);
   });
 
-  test("filters Improv Insight to mood-preferred scale families", async ({ page }) => {
+  test("keeps Theory mood shared and does not mutate the Hasher timeline", async ({ page }) => {
     const issues = collectPageIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await composeProgression(page, ["C7", "F7", "G7"]);
-    await page.getByRole("combobox", { name: "Mood or genre lens" }).selectOption("bluesy");
-    await page.getByRole("button", { name: "Progressions" }).click();
+    await composeProgression(page, ["Cm7", "Fm7"]);
+    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    const mood = page.locator("#theory-mood");
+    await expect(mood).toHaveValue("");
+    await mood.selectOption("dark");
+    await expect(page.getByRole("status").filter({ hasText: "Dark" }).first()).toBeVisible();
+
+    const scaleDisclosure = page.getByRole("button", { name: /Scale Synthesia/ }).first();
+    await scaleDisclosure.click();
+    await expect(page.getByRole("status").filter({ hasText: "Dark lens" })).toContainText("5 matching scales");
+    await page.getByRole("button", { name: "Hasher", exact: true }).click();
+    await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Cm7", "Fm7"]);
+    await expect(page.getByTestId("mood-filter")).toHaveCount(0);
     await page.getByRole("button", { name: "Improv Insight" }).click();
-
-    await expect(page.getByTestId("improv-insight")).toHaveAttribute("data-mood-id", "bluesy");
-    await expect(page.getByTestId("improv-mood-summary")).toContainText("Bluesy lens");
-    const results = page.locator("[data-scale-result]");
-    await expect(results).toHaveCount(6);
-    const scaleTypes = await results.evaluateAll((elements) =>
-      elements.map((element) => element.getAttribute("data-scale-type")),
-    );
-    expect(scaleTypes.every((scaleType) =>
-      ["major_blues", "minor_blues", "mixolydian", "minor_pentatonic"].includes(scaleType ?? ""),
-    )).toBe(true);
-    expect(scaleTypes.some((scaleType) => scaleType === "major_blues" || scaleType === "minor_blues"))
-      .toBe(true);
-
-    await page.getByRole("combobox", { name: "Mood or genre lens" }).selectOption("");
     await expect(page.getByTestId("improv-insight")).toHaveAttribute("data-mood-id", "none");
     await expect(page.getByTestId("improv-mood-summary")).toHaveCount(0);
     expect(issues).toEqual([]);
@@ -88,16 +56,16 @@ test.describe("Mood and genre lens", () => {
   test.describe("375px mobile and reduced motion", () => {
     test.use({ viewport: { width: 375, height: 812 } });
 
-    test("keeps the optional lens contained and keyboard reachable", async ({ page }) => {
+    test("keeps the required Theory mood control contained and keyboard reachable", async ({ page }) => {
       const issues = collectPageIssues(page);
       await page.emulateMedia({ reducedMotion: "reduce" });
-      await openFreeInputGrid(page);
-      const moodSelect = page.getByRole("combobox", { name: "Mood or genre lens" });
-      await moodSelect.focus();
-      await expect(moodSelect).toBeFocused();
-      await moodSelect.selectOption("film_noir");
-      await expect(page.getByTestId("mood-filter-description")).toBeVisible();
-      await expect(page.getByTestId("chord-grid-panel")).toHaveAttribute("data-reduced-motion", "true");
+      await openToolbox(page);
+      const mood = page.locator("#theory-mood");
+      await mood.focus();
+      await expect(mood).toBeFocused();
+      await mood.selectOption("film_noir");
+      await expect(mood).toHaveValue("film_noir");
+      await expect(page.getByTestId("theory-workspace")).toBeVisible();
 
       const widths = await page.evaluate(() => ({
         client: document.documentElement.clientWidth,
@@ -105,9 +73,6 @@ test.describe("Mood and genre lens", () => {
       }));
       expect(widths.scroll).toBeLessThanOrEqual(widths.client);
       expect(issues).toEqual([]);
-      await expect(page.getByTestId("mood-filter")).toHaveScreenshot(
-        "mood-filter-mobile-film-noir.png",
-      );
     });
   });
 });

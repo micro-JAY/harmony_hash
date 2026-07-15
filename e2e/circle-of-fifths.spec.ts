@@ -18,7 +18,7 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 
 async function openCircle(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Circle" }).click();
+  await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Circle of Fifths" })).toBeVisible();
 }
 
@@ -38,10 +38,12 @@ test.describe("Circle of Fifths", () => {
       "aria-selected",
       "true",
     );
-    const details = page.getByRole("complementary", { name: "C major details" });
+    const details = page.getByRole("complementary", { name: "C Major (Ionian) details" });
     await expect(details).toContainText("A minor");
     await expect(
-      details.getByRole("list", { name: "C major diatonic chords" }).getByRole("listitem"),
+      details.getByRole("list", { name: "C Major (Ionian) Diatonic chords" })
+        .getByRole("listitem")
+        .locator(".readout"),
     ).toHaveText(["C", "Dm", "Em", "F", "G", "Am", "Bdim"]);
     await expect(page).toHaveScreenshot("circle-of-fifths-desktop.png", { fullPage: true });
     expect(issues).toEqual([]);
@@ -55,7 +57,7 @@ test.describe("Circle of Fifths", () => {
     const gMajor = circle.getByRole("option", { name: /G major, relative E minor/ });
     await gMajor.click();
     await expect(gMajor).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("complementary", { name: "G major details" })).toContainText(
+    await expect(page.getByRole("complementary", { name: "G Major (Ionian) details" })).toContainText(
       "1 sharp",
     );
 
@@ -68,6 +70,15 @@ test.describe("Circle of Fifths", () => {
     await expect(circle.getByRole("option", { name: /C major, relative A minor/ })).toBeFocused();
     await page.keyboard.press("End");
     await expect(circle.getByRole("option", { name: /F major, relative D minor/ })).toBeFocused();
+
+    const dbMajor = circle.getByRole("option", { name: /Db major, relative Bb minor/ });
+    await dbMajor.click();
+    await expect(dbMajor).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#theory-root")).toHaveValue("C#");
+    const cSharpDetails = page.getByRole("complementary", { name: "C# Major (Ionian) details" });
+    await expect(cSharpDetails).toContainText("A# minor");
+    await expect(cSharpDetails).toContainText("7 sharps");
+    await expect(cSharpDetails).not.toContainText("5 flats");
     expect(issues).toEqual([]);
   });
 
@@ -113,7 +124,7 @@ test.describe("Circle of Fifths", () => {
       )).toBe(false);
       const circle = page.getByRole("listbox");
       await expect(circle).toBeVisible();
-      await expect(page.getByRole("complementary", { name: "C major details" })).toBeVisible();
+      await expect(page.getByRole("complementary", { name: "C Major (Ionian) details" })).toBeVisible();
 
       if (viewport.name === "mobile") {
         await expect(circle).toHaveAttribute("data-reduced-motion", "true");
@@ -123,7 +134,7 @@ test.describe("Circle of Fifths", () => {
         );
         expect(runningAnimations).toBe(0);
         const headerTransition = await page.getByRole("navigation", { name: "Workspace" })
-          .getByRole("button", { name: "Circle" })
+          .getByRole("button", { name: "Tune Toolbox" })
           .evaluate((element) => getComputedStyle(element).transitionDuration);
         expect(headerTransition).toBe("0s");
       }
@@ -166,7 +177,7 @@ test.describe("Circle of Fifths", () => {
     await page.getByRole("button", { name: "Run progression agent" }).click();
     await started;
 
-    await page.getByRole("button", { name: "Circle" }).click();
+    await page.getByRole("button", { name: "Tune Toolbox" }).click();
     await page.getByRole("button", { name: "Use C in Hasher" }).click();
     releaseResponse();
     await expect(page.getByTestId("chord-card")).toHaveCount(3);
@@ -175,5 +186,32 @@ test.describe("Circle of Fifths", () => {
       name: "C",
       exact: true,
     })).toBeVisible();
+  });
+
+  test("renders modal notes, formulas, chord functions, and representative relationship kinds", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await openCircle(page);
+    await page.locator("#theory-root").selectOption("D");
+    await page.locator("#theory-scale").selectOption("dorian");
+
+    const details = page.getByRole("complementary", { name: "D Dorian details" });
+    await expect(details).toContainText("D · E · F · G · A · B · C");
+    await expect(details).toContainText("1 · 2 · b3 · 4 · 5 · 6 · b7");
+    await expect(
+      details.getByRole("list", { name: "D Dorian Diatonic chords" })
+        .getByRole("listitem")
+        .locator(".readout"),
+    ).toHaveText(["Dm", "Em", "F", "G", "Am", "Bdim", "C"]);
+    const relationships = page.getByTestId("circle-of-fifths")
+      .getByRole("heading", { name: "Relationships" })
+      .locator("..");
+    await expect(relationships).toContainText("Diatonic function");
+    await expect(relationships).toContainText("Distant relationship");
+    await expect(relationships).toContainText("weak");
+
+    const labelledBy = await page.getByTestId("circle-of-fifths").getAttribute("aria-labelledby");
+    expect(labelledBy).toBe("theory-tool-circle-heading");
+    await expect(page.locator(`#${labelledBy}`)).toHaveText("Circle of Fifths");
+    expect(issues).toEqual([]);
   });
 });

@@ -12,7 +12,7 @@ test.describe("composer and committed timeline continuity", () => {
     await fCell.focus();
     await fCell.press("Enter");
     const composer = page.getByRole("list", { name: "Chord progression composer" });
-    await expect(composer.getByRole("listitem")).toHaveText(["C×", "G7×", "F×"]);
+    await expect(composer.getByRole("listitem")).toHaveText(["C", "G7", "F"]);
 
     const secondCard = page.getByTestId("chord-card").nth(1);
     await secondCard.getByRole("button", { name: "Modify G7" }).focus();
@@ -26,7 +26,7 @@ test.describe("composer and committed timeline continuity", () => {
     });
     await expect(notice).toBeVisible();
     await expect(notice).toHaveAttribute("aria-live", "polite");
-    await expect(composer.getByRole("listitem")).toHaveText(["C×", "G7#9×"]);
+    await expect(composer.getByRole("listitem")).toHaveText(["C", "G7#9"]);
 
     await page.getByRole("button", { name: "Am", exact: true }).click();
     await page.getByRole("button", { name: "Run chord composer" }).click();
@@ -45,7 +45,7 @@ test.describe("composer and committed timeline continuity", () => {
 
     await page.getByRole("button", { name: "Free Input" }).click();
     const composer = page.getByRole("list", { name: "Chord progression composer" });
-    await expect(composer.getByRole("listitem")).toHaveText(["Dm×", "G×", "C×"]);
+    await expect(composer.getByRole("listitem")).toHaveText(["Dm", "G", "C"]);
 
     await page.getByRole("button", { name: "Browse chords ↓" }).click();
     await page.getByRole("button", { name: "Am", exact: true }).click();
@@ -62,15 +62,15 @@ test.describe("composer and committed timeline continuity", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
 
-    await page.getByRole("button", { name: "Fretboard" }).click();
+    await page.getByRole("button", { name: "Fret Finder" }).click();
     await page.getByRole("button", { name: "Hasher" }).click();
 
     const composer = page.getByRole("list", { name: "Chord progression composer" });
     await expect(composer.getByRole("listitem")).toHaveText([
-      "Cmaj7×",
-      "Am7×",
-      "Dm7×",
-      "G7×",
+      "Cmaj7",
+      "Am7",
+      "Dm7",
+      "G7",
     ]);
     await composer.getByRole("button", { name: "Remove Dm7 at position 3" }).click();
     await page.getByRole("button", { name: "Run chord composer" }).click();

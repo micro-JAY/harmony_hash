@@ -353,7 +353,10 @@ test.describe("Free Input harmonic suggestions", () => {
     const freeMode = page.getByRole("combobox", { name: "Free Input mode" });
     const browse = page.getByRole("button", { name: /Browse chords/ });
 
-    await freeKey.focus();
+    await browse.focus();
+    await expect(browse).toBeFocused();
+    await browse.press("Enter");
+    await page.keyboard.press("Tab");
     await expect(freeKey).toBeFocused();
     await expect
       .poll(async () =>
@@ -373,10 +376,6 @@ test.describe("Free Input harmonic suggestions", () => {
         }),
       )
       .toMatch(/^solid\|2px\|(?!rgba?\(0, 0, 0, 0\)|transparent).+$/);
-    await page.keyboard.press("Tab");
-    await expect(browse).toBeFocused();
-    await browse.press("Enter");
-
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "Off chord suggestions" })).toBeFocused();
     await page.keyboard.press("Tab");

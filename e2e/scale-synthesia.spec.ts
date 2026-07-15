@@ -22,15 +22,15 @@ async function openScales(
   context: { root?: string; scale?: string } = {},
 ): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+  await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
   if (context.root) await page.locator("#theory-root").selectOption(context.root);
   if (context.scale) await page.locator("#theory-scale").selectOption(context.scale);
-  const disclosure = page.getByRole("button", { name: /Scale Synthesia/ }).first();
+  const disclosure = page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first();
   if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
   await expect(page.getByTestId("scale-synthesia")).toBeVisible();
 }
 
-test.describe("Scale Synthesia in Tune Toolbox", () => {
+test.describe("SCALE SYNTHESIA in TUNE TOOLBOX", () => {
   test.describe.configure({ timeout: 90_000 });
 
   test("renders the complete F-sharp harmonic-minor learning map from shared context", async ({ page }) => {
@@ -91,29 +91,29 @@ test.describe("Scale Synthesia in Tune Toolbox", () => {
 
     await page.getByRole("button", { name: "Play scale" }).click();
     await expect(page.locator('[data-playing="true"]')).toHaveCount(1);
-    await page.getByRole("button", { name: /Scale Synthesia/ }).first().click();
+    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
     await expect(page.getByTestId("scale-synthesia")).toBeHidden();
     await expect(page.locator('[data-playing="true"]')).toHaveCount(0);
     expect(issues).toEqual([]);
   });
 
-  test("preserves the Hasher timeline and Toolbox state across round trips", async ({ page }) => {
+  test("preserves the HASHER timeline and Toolbox state across round trips", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
     await page.getByRole("button", { name: "Hanz", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
     await page.locator("#theory-root").selectOption("Eb");
-    const disclosure = page.getByRole("button", { name: /Scale Synthesia/ }).first();
+    const disclosure = page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first();
     await disclosure.click();
-    await page.getByRole("button", { name: "Hasher", exact: true }).click();
+    await page.getByRole("button", { name: "HASHER", exact: true }).click();
     await expect(page.getByTestId("chord-card")).toHaveCount(4);
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await expect(page.locator("#theory-root")).toHaveValue("Eb");
     await expect(disclosure).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByTestId("scale-synthesia")).toBeVisible();

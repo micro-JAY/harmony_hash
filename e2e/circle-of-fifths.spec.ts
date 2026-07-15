@@ -18,7 +18,7 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 
 async function openCircle(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+  await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Circle of Fifths" })).toBeVisible();
 }
 
@@ -89,9 +89,9 @@ test.describe("Circle of Fifths", () => {
     const gMajor = page.getByRole("option", { name: /G major, relative E minor/ });
     await gMajor.focus();
     await gMajor.press("ArrowRight");
-    await page.getByRole("button", { name: "Use D in Hasher" }).click();
+    await page.getByRole("button", { name: "Use D in HASHER" }).click();
 
-    await expect(page.getByRole("button", { name: "Hasher" })).toHaveAttribute(
+    await expect(page.getByRole("button", { name: "HASHER" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -134,7 +134,7 @@ test.describe("Circle of Fifths", () => {
         );
         expect(runningAnimations).toBe(0);
         const headerTransition = await page.getByRole("navigation", { name: "Workspace" })
-          .getByRole("button", { name: "Tune Toolbox" })
+          .getByRole("button", { name: "TUNE TOOLBOX" })
           .evaluate((element) => getComputedStyle(element).transitionDuration);
         expect(headerTransition).toBe("0s");
       }
@@ -177,8 +177,8 @@ test.describe("Circle of Fifths", () => {
     await page.getByRole("button", { name: "Run progression agent" }).click();
     await started;
 
-    await page.getByRole("button", { name: "Tune Toolbox" }).click();
-    await page.getByRole("button", { name: "Use C in Hasher" }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX" }).click();
+    await page.getByRole("button", { name: "Use C in HASHER" }).click();
     releaseResponse();
     await expect(page.getByTestId("chord-card")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);

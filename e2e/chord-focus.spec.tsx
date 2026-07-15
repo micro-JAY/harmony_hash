@@ -76,7 +76,7 @@ test.describe("Chord card focus states", () => {
     expect(style).toContain("inset 3px 0 0 var(--status-academy-text)");
   });
 
-  test("clears Hanz focus when the popup closes or the user leaves the Hasher", async ({ page }) => {
+  test("clears Hanz focus when the popup closes or the user leaves the HASHER", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7"]);
     await page
@@ -92,8 +92,8 @@ test.describe("Chord card focus states", () => {
 
     await setHanzFocus(page, 1);
     await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(1);
-    await page.getByRole("button", { name: "Fret Finder", exact: true }).click();
-    await page.getByRole("button", { name: "Hasher", exact: true }).click();
+    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+    await page.getByRole("button", { name: "HASHER", exact: true }).click();
     await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(0);
   });
 });

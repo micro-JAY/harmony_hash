@@ -12,11 +12,11 @@ function collectPageIssues(page: Page): string[] {
 
 async function openToolbox(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+  await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
 }
 
 test.describe("Theory mood lens separation", () => {
-  test("removes every Hasher mood path while preserving chord suggestions", async ({ page }) => {
+  test("removes every HASHER mood path while preserving chord suggestions", async ({ page }) => {
     const issues = collectPageIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByTestId("mood-filter")).toHaveCount(0);
@@ -31,23 +31,23 @@ test.describe("Theory mood lens separation", () => {
     expect(issues).toEqual([]);
   });
 
-  test("keeps Theory mood shared and does not mutate the Hasher timeline", async ({ page }) => {
+  test("keeps Theory mood shared and does not mutate the HASHER timeline", async ({ page }) => {
     const issues = collectPageIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cm7", "Fm7"]);
-    await page.getByRole("button", { name: "Tune Toolbox", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     const mood = page.locator("#theory-mood");
     await expect(mood).toHaveValue("");
     await mood.selectOption("dark");
     await expect(page.getByRole("status").filter({ hasText: "Dark" }).first()).toBeVisible();
 
-    const scaleDisclosure = page.getByRole("button", { name: /Scale Synthesia/ }).first();
+    const scaleDisclosure = page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first();
     await scaleDisclosure.click();
     await expect(page.getByRole("status").filter({ hasText: "Dark lens" })).toContainText("5 matching scales");
-    await page.getByRole("button", { name: "Hasher", exact: true }).click();
+    await page.getByRole("button", { name: "HASHER", exact: true }).click();
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Cm7", "Fm7"]);
     await expect(page.getByTestId("mood-filter")).toHaveCount(0);
-    await page.getByRole("button", { name: "Improv Insight" }).click();
+    await page.getByRole("button", { name: "IMPROV INSIGHT" }).click();
     await expect(page.getByTestId("improv-insight")).toHaveAttribute("data-mood-id", "none");
     await expect(page.getByTestId("improv-mood-summary")).toHaveCount(0);
     expect(issues).toEqual([]);

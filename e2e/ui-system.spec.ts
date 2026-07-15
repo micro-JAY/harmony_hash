@@ -8,8 +8,8 @@ const VIEWPORTS = [
 ] as const;
 
 const WORKSPACES = [
-  { button: "Tune Toolbox", title: "Tune Toolbox" },
-  { button: "Fret Finder", title: "Fretboard Explorer" },
+  { button: "TUNE TOOLBOX", title: "TUNE TOOLBOX" },
+  { button: "FRET FINDER", title: "Fretboard Explorer" },
 ] as const;
 
 async function expectNoDocumentOverflow(page: Page): Promise<void> {
@@ -38,12 +38,12 @@ test.describe("Tonari UI system", () => {
       if (viewport.name === "mobile") await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto("/", { waitUntil: "domcontentloaded" });
 
-      const inputMode = page.getByRole("group", { name: "Hasher input mode" });
+      const inputMode = page.getByRole("group", { name: "HASHER input mode" });
       const hasherPanel = page.locator(".hh-builder-primary");
       await expect(inputMode).toBeVisible();
       await expect(hasherPanel).toBeVisible();
       const primaryControlHeights = await Promise.all([
-        page.getByRole("button", { name: "Hasher", exact: true }).evaluate((element) => element.getBoundingClientRect().height),
+        page.getByRole("button", { name: "HASHER", exact: true }).evaluate((element) => element.getBoundingClientRect().height),
         page.getByRole("button", { name: "Guitar", exact: true }).evaluate((element) => element.getBoundingClientRect().height),
       ]);
       for (const height of primaryControlHeights) expect(height).toBeGreaterThanOrEqual(43);

@@ -18,7 +18,7 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 
 async function openFretboard(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Fret Finder", exact: true }).click();
+  await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
 }
 

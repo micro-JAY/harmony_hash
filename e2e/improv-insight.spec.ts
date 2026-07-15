@@ -38,13 +38,13 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 async function enterProgression(page: Page, value = "Cmaj7 Am7 Dm7 G7") {
   await composeProgression(page, value);
   await page.getByRole("button", { name: "Progressions" }).click();
-  await expect(page.getByRole("button", { name: "Improv Insight" })).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByRole("button", { name: "IMPROV INSIGHT" })).toHaveAttribute("aria-expanded", "false");
 }
 
 async function openInsight(page: Page) {
-  const disclosure = page.getByRole("button", { name: "Improv Insight", exact: true });
+  const disclosure = page.getByRole("button", { name: "IMPROV INSIGHT", exact: true });
   if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
-  await expect(page.getByRole("heading", { name: "Improv Insight" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "IMPROV INSIGHT" })).toBeVisible();
 }
 
 async function expectNoDocumentOverflow(page: Page) {
@@ -55,7 +55,7 @@ async function expectNoDocumentOverflow(page: Page) {
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 }
 
-test.describe("Improv Insight", () => {
+test.describe("IMPROV INSIGHT", () => {
   test.describe.configure({ timeout: 120_000 });
 
   test("lazy-loads whole-progression rankings and exposes scale metadata", async ({ page }) => {
@@ -113,10 +113,10 @@ test.describe("Improv Insight", () => {
     await expect(page.locator('[data-scale-result="G Mixolydian"]')).toContainText("modal");
     const elapsed = await page.evaluate((start) => performance.now() - start, startedAt);
     expect(elapsed).toBeLessThan(500);
-    const disclosure = page.getByRole("button", { name: "Improv Insight", exact: true });
+    const disclosure = page.getByRole("button", { name: "IMPROV INSIGHT", exact: true });
     await disclosure.click();
     await expect(disclosure).toBeFocused();
-    await expect(page.getByRole("heading", { name: "Improv Insight" })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "IMPROV INSIGHT" })).toBeHidden();
     expect(issues).toEqual([]);
   });
 

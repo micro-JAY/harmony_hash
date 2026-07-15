@@ -108,7 +108,7 @@ test.describe("800px tablet layout", () => {
   });
 });
 
-test.describe("375px Hasher layout", () => {
+test.describe("375px HASHER layout", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
   test("stacks the prompt and composer and keeps the Hanz popup in bounds", async ({

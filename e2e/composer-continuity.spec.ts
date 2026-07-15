@@ -58,12 +58,12 @@ test.describe("composer and committed timeline continuity", () => {
     ]);
   });
 
-  test("restores committed chords after leaving and returning to the Hasher", async ({ page }) => {
+  test("restores committed chords after leaving and returning to the HASHER", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
 
-    await page.getByRole("button", { name: "Fret Finder" }).click();
-    await page.getByRole("button", { name: "Hasher" }).click();
+    await page.getByRole("button", { name: "FRET FINDER" }).click();
+    await page.getByRole("button", { name: "HASHER" }).click();
 
     const composer = page.getByRole("list", { name: "Chord progression composer" });
     await expect(composer.getByRole("listitem")).toHaveText([

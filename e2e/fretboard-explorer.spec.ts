@@ -54,7 +54,7 @@ async function settleVisual(page: Page): Promise<void> {
 
 async function openFretboard(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Fret Finder", exact: true }).click();
+  await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
 }
 
@@ -72,7 +72,7 @@ test.describe("Fretboard Explorer", () => {
     expect(requestedUrls.some((url) => url.endsWith("/tokens.css"))).toBe(true);
     expect(requestedUrls.some((url) => url.includes("cdn.jsdelivr.net"))).toBe(false);
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(false);
-    await page.getByRole("button", { name: "Fret Finder", exact: true }).click();
+    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
     const toolTitleStyle = await page.getByRole("heading", { name: "Fretboard Explorer" }).evaluate((element) => {
       const style = getComputedStyle(element);
@@ -83,7 +83,7 @@ test.describe("Fretboard Explorer", () => {
     expect(toolTitleStyle.weight).toBeGreaterThanOrEqual(700);
 
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(true);
-    await expect(page.getByRole("button", { name: "Fret Finder", exact: true })).toHaveAttribute(
+    await expect(page.getByRole("button", { name: "FRET FINDER", exact: true })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -306,7 +306,7 @@ test.describe("Fretboard Explorer", () => {
         );
         await expect(scroller).toHaveAttribute("data-reduced-motion", "true");
         const workspaceTransition = await page
-          .getByRole("button", { name: "Fret Finder", exact: true })
+          .getByRole("button", { name: "FRET FINDER", exact: true })
           .evaluate((element) => getComputedStyle(element).transitionDuration);
         expect(workspaceTransition).toBe("0s");
 

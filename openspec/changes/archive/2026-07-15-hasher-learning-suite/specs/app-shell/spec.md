@@ -61,4 +61,5 @@ The application SHALL present Hasher, the unified Tune Toolbox workspace, or the
 #### Scenario: Active companion continuity
 - **WHEN** the user changes workspaces while the Harmony Companion provider is mounted
 - **THEN** the provider SHALL remain mounted instead of ending the session as a navigation side effect
-- **AND** a reachable companion panel SHALL remain available without merging Hanz focus with the playback cursor
+- **AND** leaving Hasher SHALL close the visible panel and clear Hanz focus without merging it with the playback cursor
+- **AND** the companion action SHALL remain available when the user returns to Hasher

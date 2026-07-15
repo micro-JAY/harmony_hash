@@ -34,4 +34,4 @@ Harmony Hash already has the underlying builder, playback, sharing, and music-le
 - Primary UI impact: `src/App.tsx` and the Hasher, chord-card, sharing, Circle of Fifths, Scale Synthesia, Note Neural Network, Improv Insight, Fretboard Explorer, and onboarding components.
 - Shared logic impact: progression state/reordering, `src/lib/audioEngine.ts`, piano/guitar playback scheduling, and pure helpers under `src/lib/theory/` for relationships and contextual recommendation scoring.
 - Test impact: focused Vitest coverage for new pure logic and state transitions plus Playwright coverage for desktop/mobile layout, pointer and keyboard reordering, playback, cross-tool handoff, persistence, focus restoration, reduced motion, and clean console/network behavior.
-- Deployment impact: SPA and existing Worker static-asset deployment only; no public API route, secret, provider, licensing, or paid-service change is planned.
+- Deployment impact: SPA and existing Worker static-asset deployment plus fail-closed route-specific Cloudflare rate-limit bindings; no public API route, secret, provider, licensing, or paid-service change.

@@ -119,16 +119,6 @@ export default function FretboardExplorer() {
           titleId="fretboard-title"
           title="Fretboard Explorer"
           description="See a scale across the whole instrument. Roots stay gold; interval roles keep the same color wherever they repeat."
-          trailing={(
-            <div
-              className="readout rounded-full px-3 py-1.5"
-              style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-subtle)" }}
-            >
-              <span data-testid="fretboard-tuning-readout">
-                {t(tuning.label)} · {tuning.pitchSequence} · {t("frets")} 0–15
-              </span>
-            </div>
-          )}
         />
 
         <section

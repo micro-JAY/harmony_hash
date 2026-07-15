@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { lookupChord } from "../lib/chordData";
 import {
@@ -168,6 +168,8 @@ interface ChordReferenceGridProps {
    */
   keyContext?: KeyContext;
   moodId?: MoodId | null;
+  /** Keeps the shared context rail between the leading Browse control and the grid body. */
+  leadingContent?: ReactNode;
 }
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -178,19 +180,13 @@ export default function ChordReferenceGrid({
   onUndo,
   keyContext,
   moodId,
+  leadingContent,
 }: ChordReferenceGridProps) {
   const t = useT();
   const shouldReduceMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
   const [flashCell, setFlashCell] = useState<string | null>(null);
-  const [activeGroup, setActiveGroup] = useState<QualityGroup | "all">(() => {
-    const visited = localStorage.getItem("harmony_visited");
-    if (!visited) {
-      localStorage.setItem("harmony_visited", "1");
-      return "basic";
-    }
-    return "basic";
-  });
+  const [activeGroup, setActiveGroup] = useState<QualityGroup | "all">("basic");
   const [suggestionMode, setSuggestionMode] = useState<SuggestionMode>("off");
   const chordHistory = useMemo(
     () => chords.flatMap((chordName) => {
@@ -297,9 +293,9 @@ export default function ChordReferenceGrid({
           aria-controls={GRID_PANEL_ID}
         className="hh-disclosure-toggle"
         style={{
-            color: "var(--text-muted)",
-            border: "1px solid var(--border-subtle)",
-            background: "var(--surface-raised)",
+            color: "var(--interactive-primary-text)",
+            border: "1px solid var(--interactive-primary-bg)",
+            background: "var(--interactive-primary-bg)",
             fontSize: "var(--text-xs)",
             lineHeight: 1.4,
           }}
@@ -337,6 +333,8 @@ export default function ChordReferenceGrid({
           )}
         </AnimatePresence>
       </div>
+
+      {leadingContent}
 
       {/* Grid Panel */}
       <AnimatePresence initial={false}>

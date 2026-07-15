@@ -1,5 +1,4 @@
-import type { PlaybackHandle } from "./audioEngine";
-import type { VoicedChord } from "./types";
+import type { PlaybackHandle, ProgressionPlaybackRequest } from "./audioEngine";
 
 export type PlaybackControllerState = "idle" | "starting" | "playing";
 export type PlaybackStartOutcome = "started" | "already_active" | "cancelled" | "unavailable";
@@ -14,7 +13,7 @@ export interface ResumableAudioContext {
 export interface ProgressionPlaybackControllerDeps<Context extends ResumableAudioContext> {
   createContext(): Context | null;
   schedule(
-    voicings: ReadonlyArray<VoicedChord>,
+    request: ProgressionPlaybackRequest,
     context: Context,
     onChordChange: (index: number | null) => void,
   ): PlaybackHandle;
@@ -26,7 +25,7 @@ export interface ProgressionPlaybackControllerDeps<Context extends ResumableAudi
 
 export interface ProgressionPlaybackController {
   getState(): PlaybackControllerState;
-  start(voicings: ReadonlyArray<VoicedChord>): Promise<PlaybackStartOutcome>;
+  start(request: ProgressionPlaybackRequest): Promise<PlaybackStartOutcome>;
   stop(): void;
 }
 
@@ -59,6 +58,27 @@ function resumeWithin<Context extends ResumableAudioContext>(
   });
 }
 
+function snapshotRequest(request: ProgressionPlaybackRequest): ProgressionPlaybackRequest {
+  if (request.timbre !== "piano" && request.timbre !== "guitar") {
+    throw new Error(`Unsupported playback timbre: ${String(request.timbre)}`);
+  }
+  const voicings = request.voicings.map((voicing) => {
+    const snapshot = [...voicing];
+    if (snapshot.length === 0 || snapshot.some((midi) => !Number.isInteger(midi) || midi < 0 || midi > 127)) {
+      throw new Error("Playback request contains an invalid MIDI voicing");
+    }
+    return Object.freeze(snapshot);
+  });
+  if (!Number.isFinite(request.bpm) || request.bpm <= 0) {
+    throw new Error("Playback request BPM must be positive and finite");
+  }
+  if (request.beatsPerChord !== undefined
+    && (!Number.isFinite(request.beatsPerChord) || request.beatsPerChord <= 0)) {
+    throw new Error("Playback request beats per chord must be positive and finite");
+  }
+  return Object.freeze({ ...request, voicings: Object.freeze(voicings) });
+}
+
 /** Owns one progression playback lifecycle across UI and voice-tool callers. */
 export function createProgressionPlaybackController<Context extends ResumableAudioContext>(
   deps: ProgressionPlaybackControllerDeps<Context>,
@@ -82,9 +102,17 @@ export function createProgressionPlaybackController<Context extends ResumableAud
   return {
     getState: () => state,
 
-    start: async (voicings) => {
+    start: async (request) => {
       if (state !== "idle") return "already_active";
-      if (voicings.length === 0) return "unavailable";
+      if (request.voicings.length === 0) return "unavailable";
+
+      let requestSnapshot: ProgressionPlaybackRequest;
+      try {
+        requestSnapshot = snapshotRequest(request);
+      } catch (error) {
+        deps.onError(error);
+        return "unavailable";
+      }
 
       setState("starting");
       const attempt = ++generation;
@@ -112,7 +140,7 @@ export function createProgressionPlaybackController<Context extends ResumableAud
           return "unavailable";
         }
 
-        const nextHandle = deps.schedule(voicings, context, (index) => {
+        const nextHandle = deps.schedule(requestSnapshot, context, (index) => {
           if (attempt !== generation) return;
           if (index === null) reset();
           else setState("playing");

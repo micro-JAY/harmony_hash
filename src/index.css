@@ -427,9 +427,118 @@ body {
   border-radius: var(--radius-md);
 }
 
+.hh-insertion-slot {
+  display: inline-flex;
+  width: 1.75rem;
+  min-width: 1.75rem;
+  min-height: var(--control-min-height);
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  transition: color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.hh-insertion-slot[aria-pressed="true"],
+.hh-insertion-slot:focus-visible {
+  color: var(--interactive-accent-text);
+  background: var(--interactive-accent-bg);
+  border-color: var(--interactive-accent-border);
+}
+
+.hh-timeline-chip {
+  display: inline-flex;
+  min-width: 0;
+  align-items: stretch;
+  overflow: hidden;
+  color: var(--interactive-accent-text);
+  background: var(--interactive-accent-bg);
+  border: 1px solid var(--interactive-accent-border);
+  border-radius: var(--radius-md);
+}
+
+.hh-timeline-chip__handle,
+.hh-timeline-chip__action {
+  display: inline-flex;
+  min-height: var(--control-min-height);
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font-family: var(--font-mono);
+}
+
+.hh-timeline-chip__handle {
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+}
+
+.hh-timeline-chip__action {
+  width: var(--control-min-height);
+  min-width: var(--control-min-height);
+  padding: 0;
+  border-left: 1px solid var(--interactive-accent-border);
+}
+
+.hh-timeline-chip__action:disabled {
+  color: var(--text-muted);
+  background: var(--interactive-disabled-bg);
+  cursor: not-allowed;
+}
+
 .hh-harmony-context {
   padding-top: var(--space-1);
   border-top: 1px solid var(--border-subtle);
+}
+
+.hh-context-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.hh-or-separator {
+  display: grid;
+  grid-template-columns: minmax(1rem, 1fr) auto minmax(1rem, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  width: min(100%, 22rem);
+  margin: 0 auto;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-style: italic;
+  letter-spacing: var(--tracking-wide);
+}
+
+.hh-or-separator > span {
+  height: 1px;
+  background: var(--border-default);
+}
+
+.hh-chord-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.hh-chord-card-grid[data-instrument="piano"] {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+@media (max-width: 31rem) {
+  .hh-context-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .hh-builder > [data-testid="chord-grid-panel"],

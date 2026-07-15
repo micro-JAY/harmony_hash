@@ -1,28 +1,54 @@
-import { lazy, Suspense, useState, useRef, type DragEvent, type MutableRefObject } from "react";
 import { AnimatePresence } from "framer-motion";
-import type { ParseResult, TonalityId, Progression, ScaleType } from "../lib/types";
-import { transposeNumeralString, ALL_KEYS } from "../lib/harmonyBrain";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MutableRefObject,
+} from "react";
+import type {
+  IndexedChord,
+  ParseResult,
+  Progression,
+  ScaleType,
+  TonalityId,
+} from "../lib/types";
+import { ALL_KEYS, transposeNumeralString } from "../lib/harmonyBrain";
 import { lookupChord } from "../lib/chordData";
-import type { IndexedChord } from "../lib/types";
+import type { HarmonyContext } from "../lib/theory";
+import {
+  transactTimeline,
+  type TimelineDraftItem,
+  type TimelineItem,
+} from "../lib/timelineTransactions";
 import { PROGRESSION_LIBRARY } from "../data/progressions";
-import MinorBlendModal from "./MinorBlendModal";
-import ChordReferenceGrid from "./ChordReferenceGrid";
-import ProgressionAgent from "./ProgressionAgent";
 import { useT } from "../i18n/I18nContext";
-import type { MoodId } from "../lib/theory";
-import MoodFilter from "./MoodFilter";
+import ChordReferenceGrid from "./ChordReferenceGrid";
+import MinorBlendModal from "./MinorBlendModal";
+import ProgressionAgent from "./ProgressionAgent";
+import ProgressionTimelineComposer from "./ProgressionTimelineComposer";
 
-const ImprovInsight = lazy(() => import("./ImprovInsight"));
+interface DisplayChord {
+  input: string;
+  chord: IndexedChord;
+}
 
 interface ProgressionInputProps {
-  onResult: (chords: Array<{ input: string; chord: IndexedChord }>, errors: ParseResult["errors"]) => void;
+  onResult: (chords: DisplayChord[], errors: ParseResult["errors"]) => void;
+  onApplyTimelineDraft: (
+    draft: readonly TimelineDraftItem<string>[],
+  ) => readonly TimelineItem<DisplayChord>[];
+  onContextChange: (context: HarmonyContext) => void;
+  timeline: readonly TimelineItem<DisplayChord>[];
   timelineVersion: number;
   timelineVersionRef: MutableRefObject<number>;
-  moodId: MoodId | null;
-  onMoodChange: (moodId: MoodId | null) => void;
-  chords: ReadonlyArray<{ input: string; chord: IndexedChord }>;
   onRequestVoice: () => void;
   onVoiceIntent: () => void;
+  contextLaunch?: {
+    readonly key: string;
+    readonly scaleType?: ScaleType;
+    readonly notice?: string;
+    readonly version: number;
+  };
 }
 
 interface SelectedProgression {
@@ -35,7 +61,8 @@ interface SelectedProgression {
 
 interface ComposerDraftState {
   baseTimelineVersion: number;
-  chordNames: string[];
+  items: TimelineDraftItem<string>[];
+  rawText: string;
   dirty: boolean;
 }
 
@@ -49,21 +76,53 @@ const FREE_MODE_OPTIONS: ReadonlyArray<{ value: ScaleType; label: string }> = [
   { value: "phrygian", label: "Phrygian" },
 ];
 
+function draftItemsFromTimeline(
+  timeline: readonly TimelineItem<DisplayChord>[],
+): TimelineDraftItem<string>[] {
+  return timeline.map((item) => ({ id: item.id, value: item.value.input }));
+}
+
+function itemsToText(items: readonly TimelineDraftItem<string>[]): string {
+  return items.map((item) => item.value).join(" ");
+}
+
+function draftItemsFromText(
+  rawText: string,
+  currentItems: readonly TimelineDraftItem<string>[],
+): TimelineDraftItem<string>[] {
+  const availableBySymbol = new Map<string, TimelineDraftItem<string>[]>();
+  for (const item of currentItems) {
+    const queue = availableBySymbol.get(item.value) ?? [];
+    queue.push(item);
+    availableBySymbol.set(item.value, queue);
+  }
+
+  return rawText
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .map((value) => {
+      const existing = availableBySymbol.get(value)?.shift();
+      return existing ?? { id: null, value };
+    });
+}
+
 export default function ProgressionInput({
   onResult,
+  onApplyTimelineDraft,
+  onContextChange,
+  timeline,
   timelineVersion,
   timelineVersionRef,
-  moodId,
-  onMoodChange,
-  chords,
   onRequestVoice,
   onVoiceIntent,
+  contextLaunch,
 }: ProgressionInputProps) {
   const t = useT();
-  const committedChordNames = chords.map((item) => item.input);
+  const committedItems = draftItemsFromTimeline(timeline);
   const [composerDraft, setComposerDraft] = useState<ComposerDraftState>(() => ({
     baseTimelineVersion: timelineVersion,
-    chordNames: committedChordNames,
+    items: committedItems,
+    rawText: itemsToText(committedItems),
     dirty: false,
   }));
   const [freeKey, setFreeKey] = useState("C");
@@ -74,86 +133,163 @@ export default function ProgressionInput({
   const [activeTab, setActiveTab] = useState<"free" | "preset">("free");
   const [activeTonality, setActiveTonality] = useState<TonalityId>("major");
   const [minorHelpOpen, setMinorHelpOpen] = useState(false);
+  const [insertionBoundary, setInsertionBoundary] = useState(committedItems.length);
   const cancellationVersionRef = useRef(0);
   const [agentCancellationVersion, setAgentCancellationVersion] = useState(0);
+  const [contextLaunchNotice, setContextLaunchNotice] = useState<string | null>(null);
+  const [appliedContextLaunchVersion, setAppliedContextLaunchVersion] = useState<number | null>(null);
+
+  if (contextLaunch && contextLaunch.version !== appliedContextLaunchVersion) {
+    setAppliedContextLaunchVersion(contextLaunch.version);
+    setActiveTab("free");
+    setFreeKey(contextLaunch.key);
+    if (contextLaunch.scaleType) setFreeScaleType(contextLaunch.scaleType);
+    setContextLaunchNotice(contextLaunch.notice ?? null);
+  }
+
+  useEffect(() => {
+    if (!contextLaunch || contextLaunch.version !== appliedContextLaunchVersion) return;
+    requestAnimationFrame(() => {
+      document.getElementById("hasher-free-key")?.focus();
+    });
+  }, [appliedContextLaunchVersion, contextLaunch]);
 
   const composerWasRebased = composerDraft.baseTimelineVersion !== timelineVersion;
-  const composedChords = composerWasRebased
-    ? committedChordNames
-    : composerDraft.chordNames;
-  const composerRebaseNotice = composerWasRebased && composerDraft.dirty
-    ? "Composer synced to the latest timeline; your uncommitted grid changes were replaced."
-    : null;
+  const composedItems = composerWasRebased ? committedItems : composerDraft.items;
+  const composedText = composerWasRebased
+    ? itemsToText(committedItems)
+    : composerDraft.rawText;
+  const composerIsDirty = composerWasRebased ? false : composerDraft.dirty;
+  const canRunComposer = composedItems.length > 0 || composerIsDirty;
+  const selectedInsertionBoundary = Math.min(insertionBoundary, composedItems.length);
+  const composedChordNames = composedItems.map((item) => item.value);
+  const activeGroup = PROGRESSION_LIBRARY.find((group) => group.id === activeTonality)!;
+  const presetScaleType = selected?.scaleType ?? activeGroup.scaleType;
+  const activeKey = activeTab === "free" ? freeKey : selectedKey;
+  const activeScaleType = activeTab === "free" ? freeScaleType : presetScaleType;
 
-  const activeGroup = PROGRESSION_LIBRARY.find((g) => g.id === activeTonality)!;
+  useEffect(() => {
+    onContextChange({ key: activeKey, scaleType: activeScaleType });
+  }, [activeKey, activeScaleType, onContextChange]);
 
-  function cancelPendingAgentForDraftEdit() {
+  function cancelPendingAgentForTimelineEdit() {
     const nextVersion = cancellationVersionRef.current + 1;
     cancellationVersionRef.current = nextVersion;
     setAgentCancellationVersion(nextVersion);
   }
 
-  function updateComposerDraft(update: (current: string[]) => string[]) {
-    cancelPendingAgentForDraftEdit();
-    setComposerDraft((current) => {
-      const currentChordNames = current.baseTimelineVersion === timelineVersion
-        ? current.chordNames
-        : committedChordNames;
-      return {
-        baseTimelineVersion: timelineVersion,
-        chordNames: update(currentChordNames),
-        dirty: true,
-      };
+  function effectiveDraft(): ComposerDraftState {
+    if (!composerWasRebased) return composerDraft;
+    return {
+      baseTimelineVersion: timelineVersion,
+      items: committedItems,
+      rawText: itemsToText(committedItems),
+      dirty: false,
+    };
+  }
+
+  function stageComposerItems(
+    items: TimelineDraftItem<string>[],
+    rawText = itemsToText(items),
+  ) {
+    cancelPendingAgentForTimelineEdit();
+    setComposerDraft({
+      baseTimelineVersion: timelineVersion,
+      items,
+      rawText,
+      dirty: true,
     });
   }
 
-  function addComposedChord(chordName: string) {
+  function acceptAppliedTimeline(applied: readonly TimelineItem<DisplayChord>[]) {
+    const appliedItems = draftItemsFromTimeline(applied);
+    setComposerDraft({
+      baseTimelineVersion: timelineVersionRef.current,
+      items: appliedItems,
+      rawText: itemsToText(appliedItems),
+      dirty: false,
+    });
+  }
+
+  function insertComposedChord(chordName: string, boundary: number) {
     if (!lookupChord(chordName)) return;
-    updateComposerDraft((current) => [...current, chordName]);
+    const current = effectiveDraft();
+    const safeBoundary = Math.min(Math.max(boundary, 0), current.items.length);
+    const nextItems = [...current.items];
+    nextItems.splice(safeBoundary, 0, { id: null, value: chordName });
+    stageComposerItems(nextItems);
+    setInsertionBoundary(safeBoundary + 1);
+  }
+
+  function handleComposerMove(from: number, to: number) {
+    const current = effectiveDraft();
+    const transaction = transactTimeline(current.items, { type: "move", from, to });
+    if (!transaction.changed) return;
+    const nextItems = [...transaction.items];
+    if (!composerIsDirty && nextItems.every((item) => item.id !== null)) {
+      cancelPendingAgentForTimelineEdit();
+      acceptAppliedTimeline(onApplyTimelineDraft(nextItems));
+      return;
+    }
+    stageComposerItems(nextItems);
+  }
+
+  function handleComposerTextChange(rawText: string) {
+    const current = effectiveDraft();
+    stageComposerItems(draftItemsFromText(rawText, current.items), rawText);
   }
 
   function handleComposerSubmit() {
-    if (composedChords.length === 0) return;
-    const resolved = composedChords.flatMap((input) => {
-      const chord = lookupChord(input);
-      return chord ? [{ input, chord }] : [];
+    if (composedItems.length === 0) {
+      if (!composerIsDirty) return;
+      setErrors([]);
+      cancelPendingAgentForTimelineEdit();
+      acceptAppliedTimeline(onApplyTimelineDraft([]));
+      return;
+    }
+    const nextErrors: ParseResult["errors"] = [];
+    composedItems.forEach((item, index) => {
+      if (!lookupChord(item.value)) {
+        nextErrors.push({
+          index,
+          input: item.value,
+          message: `Could not resolve: "${item.value}"`,
+        });
+      }
     });
-    setComposerDraft({
-      baseTimelineVersion: timelineVersion,
-      chordNames: composedChords,
-      dirty: false,
-    });
-    setErrors([]);
-    onResult(resolved, []);
+    setErrors(nextErrors);
+    if (nextErrors.length > 0) return;
+    cancelPendingAgentForTimelineEdit();
+    acceptAppliedTimeline(onApplyTimelineDraft(composedItems));
   }
 
-  function handleComposerDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    addComposedChord(event.dataTransfer.getData("text/plain"));
+  function handleResolvedResult(
+    resolved: DisplayChord[],
+    nextErrors: ParseResult["errors"],
+  ) {
+    onResult(resolved, nextErrors);
+    if (nextErrors.length === 0) setInsertionBoundary(resolved.length);
   }
 
   function handleProgressionSelect(
     subgroupIdx: number,
     progressionIdx: number,
     progression: Progression,
-    scaleType: ScaleType
+    scaleType: ScaleType,
   ) {
-    const sel: SelectedProgression = {
+    setSelected({
       tonalityId: activeTonality,
       subgroupIdx,
       progressionIdx,
       progression,
       scaleType,
-    };
-    setSelected(sel);
+    });
     applyProgression(progression, scaleType, selectedKey);
   }
 
   function handleKeyChange(key: string) {
     setSelectedKey(key);
-    if (selected) {
-      applyProgression(selected.progression, selected.scaleType, key);
-    }
+    if (selected) applyProgression(selected.progression, selected.scaleType, key);
   }
 
   function handleTonalityChange(tonalityId: TonalityId) {
@@ -163,34 +299,110 @@ export default function ProgressionInput({
 
   function applyProgression(progression: Progression, scaleType: ScaleType, key: string) {
     const chordNames = transposeNumeralString(progression.numerals, key, scaleType);
-    const resolved: Array<{ input: string; chord: IndexedChord }> = [];
-    const errs: ParseResult["errors"] = [];
+    const resolved: DisplayChord[] = [];
+    const nextErrors: ParseResult["errors"] = [];
 
-    chordNames.forEach((name, i) => {
+    chordNames.forEach((name, index) => {
       const chord = lookupChord(name);
-      if (chord) {
-        resolved.push({ input: name, chord });
-      } else {
-        errs.push({ index: i, input: name, message: `Could not resolve: "${name}"` });
-      }
+      if (chord) resolved.push({ input: name, chord });
+      else nextErrors.push({ index, input: name, message: `Could not resolve: "${name}"` });
     });
 
-    setErrors(errs);
-    onResult(resolved, errs);
+    cancelPendingAgentForTimelineEdit();
+    setErrors(nextErrors);
+    handleResolvedResult(resolved, nextErrors);
   }
 
   function isActive(subgroupIdx: number, progressionIdx: number): boolean {
-    return (
-      selected !== null &&
-      selected.tonalityId === activeTonality &&
-      selected.subgroupIdx === subgroupIdx &&
-      selected.progressionIdx === progressionIdx
-    );
+    return selected !== null
+      && selected.tonalityId === activeTonality
+      && selected.subgroupIdx === subgroupIdx
+      && selected.progressionIdx === progressionIdx;
   }
 
+  const contextRail = (
+    <div
+      className="hh-harmony-context hh-context-grid"
+      role="group"
+      aria-label={t(activeTab === "free" ? "Free Input harmony context" : "Progressions harmony context")}
+    >
+      <label htmlFor={`hasher-${activeTab}-key`} className="hh-control-group">
+        <span className="hh-control-label">{t("Key")}</span>
+        <select
+          id={`hasher-${activeTab}-key`}
+          aria-label={t(activeTab === "free" ? "Free Input key" : "Progression key")}
+          value={activeTab === "free" ? freeKey : selectedKey}
+          onChange={(event) => {
+            if (activeTab === "free") setFreeKey(event.target.value);
+            else handleKeyChange(event.target.value);
+          }}
+          className="hh-select w-full"
+        >
+          {ALL_KEYS.map((key) => (
+            <option key={key.value} value={key.value}>{key.label}</option>
+          ))}
+        </select>
+      </label>
+
+      {activeTab === "free" ? (
+        <label htmlFor="hasher-free-mode" className="hh-control-group">
+          <span className="hh-control-label">{t("Mode")}</span>
+          <select
+            id="hasher-free-mode"
+            aria-label={t("Free Input mode")}
+            value={freeScaleType}
+            onChange={(event) => setFreeScaleType(event.target.value as ScaleType)}
+            className="hh-select w-full"
+          >
+            {FREE_MODE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{t(option.label)}</option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <div className="flex min-w-0 items-end gap-2">
+          <label htmlFor="hasher-preset-mode" className="hh-control-group min-w-0 flex-1">
+            <span className="hh-control-label">{t("Mode")}</span>
+            <select
+              id="hasher-preset-mode"
+              aria-label={t("Progression tonality")}
+              value={activeTonality}
+              onChange={(event) => handleTonalityChange(event.target.value as TonalityId)}
+              className="hh-select w-full"
+            >
+              {PROGRESSION_LIBRARY.map((group) => (
+                <option key={group.id} value={group.id}>{t(group.label)}</option>
+              ))}
+            </select>
+          </label>
+          {activeTonality === "minor" ? (
+            <button
+              type="button"
+              className="minor-help-btn"
+              onClick={() => setMinorHelpOpen(true)}
+              aria-label={t("What is the Minor Blend?")}
+              title={t("What is the Minor Blend?")}
+              style={{
+                width: "var(--control-min-height)",
+                height: "var(--control-min-height)",
+                backgroundColor: "var(--surface-overlay)",
+                color: "var(--text-muted)",
+                border: "1px solid var(--border-subtle)",
+                borderRadius: "var(--radius-full)",
+                fontSize: "var(--text-xs)",
+                fontWeight: "var(--weight-semibold)",
+              }}
+            >
+              ?
+            </button>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <section className="hh-builder w-full max-w-6xl mx-auto px-4">
-      {/* Tab Switcher */}
+    <section className="hh-builder mx-auto w-full max-w-6xl px-4">
       <div className="hh-builder-tabs" role="group" aria-label={t("Hasher input mode")}>
         {(["free", "preset"] as const).map((tab) => (
           <button
@@ -198,6 +410,7 @@ export default function ProgressionInput({
             type="button"
             aria-pressed={activeTab === tab}
             onClick={() => {
+              cancelPendingAgentForTimelineEdit();
               setActiveTab(tab);
             }}
             className="hh-builder-tabs__tab"
@@ -207,371 +420,200 @@ export default function ProgressionInput({
         ))}
       </div>
 
-      <div
-        id={`hasher-${activeTab}-panel`}
-        className="hh-panel hh-builder-primary"
-      >
-      <ProgressionAgent
-        onResult={onResult}
-        timelineVersion={timelineVersion}
-        timelineVersionRef={timelineVersionRef}
-        cancellationVersion={agentCancellationVersion}
-        cancellationVersionRef={cancellationVersionRef}
-        placeholder={t("agentPromptPlaceholder")}
-        onRequestHelp={onRequestVoice}
-        onHelpIntent={onVoiceIntent}
+      <ChordReferenceGrid
+        chords={composedChordNames}
+        onChordAdd={(chordName) => insertComposedChord(chordName, selectedInsertionBoundary)}
+        onUndo={() => {
+          if (composedItems.length === 0) return;
+          stageComposerItems(composedItems.slice(0, -1));
+          setInsertionBoundary(Math.max(0, composedItems.length - 1));
+        }}
+        keyContext={{ key: activeKey, scaleType: activeScaleType }}
+        leadingContent={contextRail}
       />
 
-      <MoodFilter value={moodId} onChange={onMoodChange} />
+      {contextLaunchNotice ? (
+        <p
+          role="status"
+          className="mt-3 rounded-lg px-3 py-2 text-sm"
+          style={{
+            backgroundColor: "var(--status-warning-bg)",
+            border: "1px solid var(--status-warning-border)",
+            color: "var(--status-warning-text)",
+          }}
+        >
+          {t(contextLaunchNotice)}
+        </p>
+      ) : null}
 
-      {/* Dictionary-backed composer. Click is the primary keyboard/mobile path;
-          drag and drop is an additive pointer shortcut. */}
-      {activeTab === "free" && (
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div
-              role="list"
-              aria-label={t("Chord progression composer")}
-              data-testid="chord-composer"
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={handleComposerDrop}
-              className="hh-composer w-full min-w-0 flex-1 flex flex-wrap items-center gap-2"
-            >
-              {composedChords.length === 0 ? (
-                <span style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
-                  {t("Choose chords from the grid, or drag them here.")}
-                </span>
-              ) : composedChords.map((chordName, index) => (
-                <span
-                  key={`${chordName}-${index}`}
-                  role="listitem"
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1"
-                  style={{
-                    backgroundColor: "var(--interactive-accent-bg)",
-                    border: "1px solid var(--interactive-accent-border)",
-                    color: "var(--interactive-accent-text)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-sm)",
-                  }}
-                >
-                  {chordName}
-                  <button
-                    type="button"
-                    aria-label={`Remove ${chordName} at position ${index + 1}`}
-                    onClick={() => updateComposerDraft((current) =>
-                      current.filter((_, itemIndex) => itemIndex !== index)
-                    )}
-                    style={{ color: "inherit", background: "transparent", border: 0, cursor: "pointer" }}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {composedChords.length > 0 ? (
-                <button
-                  type="button"
-                  aria-label={t("Clear composed chords")}
-                  onClick={() => updateComposerDraft(() => [])}
-                  className="ml-auto rounded-md px-2 py-1 text-xs"
-                  style={{
-                    background: "transparent",
-                    border: "1px solid var(--border-subtle)",
-                    color: "var(--text-muted)",
-                    fontFamily: "var(--font-body)",
-                  }}
-                >
-                  {t("Clear")}
-                </button>
-              ) : null}
-            </div>
+      <div id={`hasher-${activeTab}-panel`} className="hh-panel hh-builder-primary mt-4">
+        <ProgressionAgent
+          onResult={handleResolvedResult}
+          timelineVersion={timelineVersion}
+          timelineVersionRef={timelineVersionRef}
+          cancellationVersion={agentCancellationVersion}
+          cancellationVersionRef={cancellationVersionRef}
+          placeholder={t("agentPromptPlaceholder")}
+          onRequestHelp={onRequestVoice}
+          onHelpIntent={onVoiceIntent}
+        />
+
+        <div className="hh-or-separator" aria-label={t("or")}>
+          <span aria-hidden="true" />
+          <strong>{t("or")}</strong>
+          <span aria-hidden="true" />
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <label htmlFor="hasher-chord-input" className="hh-control-group">
+            <span className="hh-control-label">{t("Enter or arrange chords")}</span>
+            <input
+              id="hasher-chord-input"
+              value={composedText}
+              onChange={(event) => handleComposerTextChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleComposerSubmit();
+                }
+              }}
+              placeholder={t("freeInputHint")}
+              aria-label={t("Chord progression input")}
+              className="hh-select w-full"
+              style={{ fontFamily: "var(--font-mono)" }}
+            />
+          </label>
+
+          <div className="flex flex-col items-stretch gap-3 sm:flex-row">
+            <ProgressionTimelineComposer
+              items={composedItems}
+              insertionBoundary={selectedInsertionBoundary}
+              onInsertionBoundaryChange={setInsertionBoundary}
+              onInsert={insertComposedChord}
+              onMove={handleComposerMove}
+              onRemove={(index) => {
+                const next = composedItems.filter((_, itemIndex) => itemIndex !== index);
+                stageComposerItems(next);
+                setInsertionBoundary(Math.min(selectedInsertionBoundary, next.length));
+              }}
+              onClear={() => {
+                stageComposerItems([]);
+                setInsertionBoundary(0);
+              }}
+            />
             <button
+              type="button"
               onClick={handleComposerSubmit}
               aria-label={t("Run chord composer")}
-              disabled={composedChords.length === 0}
+              disabled={!canRunComposer}
               className="hh-action w-full transition-all sm:w-auto"
               style={{
-                backgroundColor: composedChords.length > 0 ? "var(--interactive-accent-bg)" : "var(--interactive-disabled-bg)",
-                color: composedChords.length > 0 ? "var(--interactive-accent-text)" : "var(--interactive-disabled-text)",
-                border: `1px solid ${composedChords.length > 0 ? "var(--interactive-accent-border)" : "var(--interactive-disabled-border)"}`,
-                fontWeight: "var(--weight-semibold)",
-                transitionDuration: "var(--duration-normal)",
-                cursor: composedChords.length > 0 ? "pointer" : "not-allowed",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg-hover)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg)";
+                backgroundColor: canRunComposer
+                  ? "var(--interactive-accent-bg)"
+                  : "var(--interactive-disabled-bg)",
+                color: canRunComposer
+                  ? "var(--interactive-accent-text)"
+                  : "var(--interactive-disabled-text)",
+                border: `1px solid ${canRunComposer
+                  ? "var(--interactive-accent-border)"
+                  : "var(--interactive-disabled-border)"}`,
+                cursor: canRunComposer ? "pointer" : "not-allowed",
               }}
             >
               {t("Run")}
             </button>
           </div>
 
-          {composerRebaseNotice ? (
+          {composerWasRebased && composerDraft.dirty ? (
             <p
               role="status"
               aria-live="polite"
               className="m-0"
-              style={{
-                color: "var(--status-warning-text)",
-                fontFamily: "var(--font-body)",
-                fontSize: "var(--text-xs)",
-              }}
+              style={{ color: "var(--status-warning-text)", fontSize: "var(--text-xs)" }}
             >
-              {composerRebaseNotice}
+              {t("Composer synced to the latest timeline; your uncommitted grid changes were replaced.")}
             </p>
           ) : null}
-
-          <div
-            className="hh-harmony-context flex flex-wrap items-end gap-x-4 gap-y-3"
-            role="group"
-            aria-label={t("Free Input harmony context")}
-          >
-            <label
-              htmlFor="free-input-key"
-              className="hh-control-group min-w-28"
-            >
-              <span className="hh-control-label">{t("Key")}</span>
-              <select
-                id="free-input-key"
-                aria-label={t("Free Input key")}
-                value={freeKey}
-                onChange={(event) => setFreeKey(event.target.value)}
-                className="hh-select w-full"
-              >
-                {ALL_KEYS.map((key) => (
-                  <option key={key.value} value={key.value}>
-                    {key.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label
-              htmlFor="free-input-mode"
-              className="hh-control-group min-w-40"
-            >
-              <span className="hh-control-label">{t("Mode")}</span>
-              <select
-                id="free-input-mode"
-                aria-label={t("Free Input mode")}
-                value={freeScaleType}
-                onChange={(event) => setFreeScaleType(event.target.value as ScaleType)}
-                className="hh-select w-full"
-              >
-                {FREE_MODE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.label)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <span style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)" }}>
-              {t("Suggestions follow the last chord in the composer.")}
-            </span>
-          </div>
         </div>
-      )}
-      </div>
 
-      {/* Chord Reference Grid — stays available while extending a result. */}
-      {activeTab === "free" && (
-        <ChordReferenceGrid
-          chords={composedChords}
-          onChordAdd={addComposedChord}
-          onUndo={() => updateComposerDraft((current) => current.slice(0, -1))}
-          keyContext={{ key: freeKey, scaleType: freeScaleType }}
-          moodId={moodId}
-        />
-      )}
-
-      {/* Progression presets and analysis tools. */}
-      {activeTab === "preset" && (
-        <div
-          className="flex flex-col gap-4"
-        >
-          <details
-            className="hh-disclosure"
-          >
-            <summary
-              className="cursor-pointer select-none flex items-center gap-2"
-              style={{
-                color: "var(--text-secondary)",
-                fontWeight: "var(--weight-medium)",
-              }}
-            >
-              <span
-                aria-hidden
-                style={{
-                  display: "inline-block",
-                  width: "0.5rem",
-                  height: "0.5rem",
-                  borderRight: "2px solid currentColor",
-                  borderBottom: "2px solid currentColor",
-                  transform: "rotate(-45deg)",
-                  transition: "transform var(--duration-normal) var(--ease-out)",
-                }}
-                className="progression-agent-disclosure"
-              />
+        {activeTab === "preset" ? (
+          <details className="hh-disclosure">
+            <summary className="cursor-pointer select-none" style={{ color: "var(--text-secondary)" }}>
               {t("orPickPreset")}
             </summary>
-            <div
-              className="px-4 pb-4 pt-2 flex flex-col gap-4"
-              style={{
-                borderTop: "1px solid var(--border-subtle)",
-              }}
-            >
-          {/* Key + Tonality Selectors */}
-          <div className="flex items-end gap-4 flex-wrap">
-              <label className="hh-control-group min-w-28">
-                <span className="hh-control-label">{t("key")}</span>
-                <select
-                  aria-label={t("Progression key")}
-                  value={selectedKey}
-                  onChange={(e) => handleKeyChange(e.target.value)}
-                  className="hh-select w-full"
-                >
-                  {ALL_KEYS.map((k) => (
-                    <option key={k.value} value={k.value}>
-                      {k.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-            <div className="flex items-end gap-2">
-              <label className="hh-control-group min-w-40">
-                <span className="hh-control-label">{t("tonality")}</span>
-                <select
-                  aria-label={t("Progression tonality")}
-                  value={activeTonality}
-                  onChange={(e) => handleTonalityChange(e.target.value as TonalityId)}
-                  className="hh-select w-full"
-                >
-                  {PROGRESSION_LIBRARY.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {activeTonality === "minor" && (
-                <button
-                  className="minor-help-btn"
-                  onClick={() => setMinorHelpOpen(true)}
-                  aria-label={t("What is the Minor Blend?")}
-                  title={t("What is the Minor Blend?")}
-                  style={{
-                    width: "var(--control-min-height)",
-                    height: "var(--control-min-height)",
-                    backgroundColor: "var(--surface-overlay)",
-                    color: "var(--text-muted)",
-                    border: "1px solid var(--border-subtle)",
-                    borderRadius: "var(--radius-full)",
-                    fontSize: "var(--text-xs)",
-                    fontWeight: "var(--weight-semibold)",
-                    cursor: "help",
-                    transition: "all var(--duration-normal) var(--ease-out)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "var(--text-accent)";
-                    e.currentTarget.style.borderColor = "var(--interactive-accent-border)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "var(--text-muted)";
-                    e.currentTarget.style.borderColor = "var(--border-subtle)";
-                  }}
-                >
-                  ?
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Subgroups + Progression Buttons */}
-          <div className="flex flex-col gap-4">
-            {activeGroup.subgroups.map((subgroup, sIdx) => {
-              const scaleType = subgroup.scaleType ?? activeGroup.scaleType;
-              return (
-                <div key={sIdx}>
-                  <h3
-                    className="text-xs uppercase mb-2"
-                    style={{
-                      color: "var(--text-muted)",
-                      letterSpacing: "var(--tracking-caps)",
-                      fontWeight: "var(--weight-semibold)",
-                    }}
-                  >
-                    {subgroup.label}
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {subgroup.progressions.map((p, pIdx) => {
-                      const active = isActive(sIdx, pIdx);
-                      return (
-                        <button
-                          key={pIdx}
-                          aria-label={`${p.name}: ${p.numerals}`}
-                          onClick={() => handleProgressionSelect(sIdx, pIdx, p, scaleType)}
-                          title={p.name}
-                          className="px-3 py-1.5 rounded-lg text-sm transition-all"
-                          style={{
-                            backgroundColor: active
-                              ? "var(--interactive-accent-bg)"
-                              : "var(--surface-overlay)",
-                            color: active
-                              ? "var(--interactive-accent-text)"
-                              : "var(--text-secondary)",
-                            border: active
-                              ? "1px solid var(--interactive-accent-border)"
-                              : "1px solid var(--border-subtle)",
-                            fontFamily: "var(--font-mono)",
-                            fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
-                            transitionDuration: "var(--duration-normal)",
-                          }}
-                        >
-                          {p.numerals}
-                        </button>
-                      );
-                    })}
+            <div className="flex flex-col gap-4 px-4 pb-4 pt-3">
+              {activeGroup.subgroups.map((subgroup, subgroupIdx) => {
+                const scaleType = subgroup.scaleType ?? activeGroup.scaleType;
+                return (
+                  <div key={`${activeGroup.id}-${subgroupIdx}`}>
+                    <h3 className="hh-control-label mb-2">{t(subgroup.label)}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {subgroup.progressions.map((progression, progressionIdx) => {
+                        const active = isActive(subgroupIdx, progressionIdx);
+                        return (
+                          <button
+                            key={`${progression.numerals}-${progressionIdx}`}
+                            type="button"
+                            aria-label={`${progression.name}: ${progression.numerals}`}
+                            onClick={() => handleProgressionSelect(
+                              subgroupIdx,
+                              progressionIdx,
+                              progression,
+                              scaleType,
+                            )}
+                            title={progression.name}
+                            className="min-h-11 rounded-lg px-3 py-1.5 text-sm transition-all"
+                            style={{
+                              backgroundColor: active
+                                ? "var(--interactive-accent-bg)"
+                                : "var(--surface-overlay)",
+                              color: active
+                                ? "var(--interactive-accent-text)"
+                                : "var(--text-secondary)",
+                              border: active
+                                ? "1px solid var(--interactive-accent-border)"
+                                : "1px solid var(--border-subtle)",
+                              fontFamily: "var(--font-mono)",
+                              fontWeight: active
+                                ? "var(--weight-semibold)"
+                                : "var(--weight-regular)",
+                            }}
+                          >
+                            {progression.numerals}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
             </div>
           </details>
+        ) : null}
 
-          {chords.length > 0 ? (
-            <Suspense fallback={<span className="readout">{t("Loading Improv Insight…")}</span>}>
-              <ImprovInsight chords={chords} moodId={moodId} />
-            </Suspense>
-          ) : null}
-        </div>
-      )}
+      </div>
 
-      {/* Error Display */}
-      {errors.length > 0 && (
+      {errors.length > 0 ? (
         <div
-          className="mt-3 px-4 py-2 rounded-lg text-sm"
+          className="mt-3 rounded-lg px-4 py-2 text-sm"
           style={{
             backgroundColor: "var(--status-error-bg)",
             color: "var(--status-error-text)",
             border: "1px solid var(--status-error-border)",
           }}
         >
-          {errors.map((err, i) => (
-            <span key={i}>
-              {i > 0 && " · "}
-              <span style={{ fontFamily: "var(--font-mono)" }}>{err.input}</span> — {err.message}
+          {errors.map((error, index) => (
+            <span key={`${error.index}-${error.input}`}>
+              {index > 0 ? " · " : null}
+              <span style={{ fontFamily: "var(--font-mono)" }}>{error.input}</span>
+              {` — ${error.message}`}
             </span>
           ))}
         </div>
-      )}
+      ) : null}
 
       <AnimatePresence>
-        {minorHelpOpen && <MinorBlendModal onClose={() => setMinorHelpOpen(false)} />}
+        {minorHelpOpen ? <MinorBlendModal onClose={() => setMinorHelpOpen(false)} /> : null}
       </AnimatePresence>
     </section>
   );

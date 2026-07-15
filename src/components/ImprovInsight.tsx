@@ -1,12 +1,14 @@
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { prefersFlatNotation, splitRootAndQuality } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
 import {
   filterScaleSuggestionsByMood,
   moodDefinitionFor,
+  scaleLearningDefinitionFor,
   type MoodId,
+  type ScaleFormulaType,
 } from "../lib/theory";
 import {
   rankCompatibleScales,
@@ -24,6 +26,14 @@ interface ImprovInsightChord {
 interface ImprovInsightProps {
   chords: ReadonlyArray<ImprovInsightChord>;
   moodId: MoodId | null;
+  theoryContext?: {
+    readonly root: string;
+    readonly scaleId: ScaleFormulaType;
+  } | null;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  onClose?: () => void;
+  hideTrigger?: boolean;
 }
 
 type InsightMode = "progression" | "chord";
@@ -150,10 +160,24 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
   );
 }
 
-export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
+export default function ImprovInsight({
+  chords,
+  moodId,
+  theoryContext,
+  expanded: controlledExpanded,
+  onExpandedChange,
+  onClose,
+  hideTrigger = false,
+}: ImprovInsightProps) {
   const t = useT();
   const [mode, setMode] = useState<InsightMode>("progression");
-  const [expanded, setExpanded] = useState(false);
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const expanded = controlledExpanded ?? internalExpanded;
+
+  function setExpanded(next: boolean) {
+    if (controlledExpanded === undefined) setInternalExpanded(next);
+    onExpandedChange?.(next);
+  }
   const [requestedChordIndex, setRequestedChordIndex] = useState(0);
   const reduceMotion = useReducedMotion();
   const selectedChordIndex = Math.min(requestedChordIndex, Math.max(0, chords.length - 1));
@@ -195,11 +219,11 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
       data-reduced-motion={reduceMotion ? "true" : "false"}
       data-mood-id={moodId ?? "none"}
     >
-      <button
+      {!hideTrigger ? <button
         type="button"
         aria-expanded={expanded}
         aria-controls="improv-insight-panel"
-        onClick={() => setExpanded((current) => !current)}
+        onClick={() => setExpanded(!expanded)}
       className="hh-disclosure flex w-full items-center justify-between px-4 py-3 text-left"
         style={{
           color: "var(--text-primary)",
@@ -218,7 +242,7 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
             transition: reduceMotion ? "none" : "transform var(--duration-fast) var(--ease-out)",
           }}
         />
-      </button>
+      </button> : null}
 
       {expanded ? <div
         id="improv-insight-panel"
@@ -245,39 +269,51 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
                 {t(`${moodDefinition.label} lens · showing ${moodDefinition.scales.length} preferred scale families`)}
               </p>
             ) : null}
+            {theoryContext ? (
+              <p className="mt-2 text-sm" data-testid="improv-theory-context" style={{ color: "var(--text-academy)" }}>
+                {t("Circle context")}: {theoryContext.root} {t(scaleLearningDefinitionFor(theoryContext.scaleId).label)}
+              </p>
+            ) : null}
           </div>
-          <div
-            role="tablist"
-            aria-label={t("Improv Insight scope")}
-            className="inline-flex self-start rounded-full p-1 sm:self-auto"
-            style={{ backgroundColor: "var(--surface-sunken)", border: "1px solid var(--border-subtle)" }}
-          >
-            {MODES.map((item) => {
-              const active = item.id === mode;
-              return (
-                <button
-                  key={item.id}
-                  id={insightTabId(item.id)}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  aria-controls={insightPanelId(item.id)}
-                  tabIndex={active ? 0 : -1}
-                  onClick={() => setMode(item.id)}
-                  onKeyDown={(event) => handleTabKeyDown(event, item.id)}
-                  className="rounded-full px-4 py-2 text-sm"
-                  style={{
-                    backgroundColor: active ? "var(--interactive-academy-bg)" : "transparent",
-                    border: active ? "1px solid var(--interactive-academy-border)" : "1px solid transparent",
-                    color: active ? "var(--interactive-academy-text)" : "var(--text-secondary)",
-                    fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
-                    transition: reduceMotion ? "none" : "all var(--duration-normal) var(--ease-out)",
-                  }}
-                >
-                  {t(item.label)}
-                </button>
-              );
-            })}
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <div
+              role="tablist"
+              aria-label={t("Improv Insight scope")}
+              className="inline-flex self-start rounded-full p-1 sm:self-auto"
+              style={{ backgroundColor: "var(--surface-sunken)", border: "1px solid var(--border-subtle)" }}
+            >
+              {MODES.map((item) => {
+                const active = item.id === mode;
+                return (
+                  <button
+                    key={item.id}
+                    id={insightTabId(item.id)}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    aria-controls={insightPanelId(item.id)}
+                    tabIndex={active ? 0 : -1}
+                    onClick={() => setMode(item.id)}
+                    onKeyDown={(event) => handleTabKeyDown(event, item.id)}
+                    className="rounded-full px-4 py-2 text-sm"
+                    style={{
+                      backgroundColor: active ? "var(--interactive-academy-bg)" : "transparent",
+                      border: active ? "1px solid var(--interactive-academy-border)" : "1px solid transparent",
+                      color: active ? "var(--interactive-academy-text)" : "var(--text-secondary)",
+                      fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
+                      transition: reduceMotion ? "none" : "all var(--duration-normal) var(--ease-out)",
+                    }}
+                  >
+                    {t(item.label)}
+                  </button>
+                );
+              })}
+            </div>
+            {onClose ? (
+              <button type="button" className="hh-icon-button" aria-label={t("Close Improv Insight")} onClick={onClose}>
+                <X size={16} aria-hidden="true" />
+              </button>
+            ) : null}
           </div>
         </header>
 
@@ -315,6 +351,11 @@ export default function ImprovInsight({ chords, moodId }: ImprovInsightProps) {
           ) : null}
 
           <div className="grid gap-3" aria-live="polite">
+            {suggestions.length === 0 ? (
+              <p className="hh-empty-state" role="status">
+                {t("Add chords in Hasher to rank improvisation paths against the timeline.")}
+              </p>
+            ) : null}
             {suggestions.map((suggestion, index) => (
               <ScaleResult key={`${suggestion.key}-${suggestion.scaleType}`} suggestion={suggestion} rank={index + 1} />
             ))}

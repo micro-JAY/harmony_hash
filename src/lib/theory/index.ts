@@ -132,3 +132,60 @@ export {
   diatonicChordsFor,
 } from "./circleOfFifths";
 export type { CircleKey } from "./circleOfFifths";
+
+export {
+  canonicalTheoryRoot,
+  createTheoryContext,
+  DEFAULT_THEORY_CONTEXT,
+  scaleSynthesiaToHasherHandoff,
+  SUPPORTED_HASHER_SCALE_MAP,
+  THEORY_MOOD_ANY,
+} from "./theoryContext";
+export type {
+  HasherHandoff,
+  SupportedHasherHandoff,
+  TheoryContext,
+  TheoryMood,
+  TheoryRelationshipId,
+  UnsupportedHasherHandoff,
+} from "./theoryContext";
+
+export {
+  buildTheoryRelationshipCatalog,
+  selectCircleRelationshipEdges,
+} from "./theoryRelationships";
+export type {
+  RelationshipDirection,
+  RelationshipExplanationKey,
+  RelationshipStrength,
+  RelationshipStrengthLabel,
+  TheoryNodeCluster,
+  TheoryNodeKind,
+  TheoryRelationshipCatalog,
+  TheoryRelationshipEdge,
+  TheoryRelationshipKind,
+  TheoryRelationshipNode,
+} from "./theoryRelationships";
+
+export {
+  buildNoteNetworkLayout,
+  calculateNoteNetworkPanBounds,
+  clampNoteNetworkPan,
+  clampNoteNetworkZoom,
+  networkBoundsOverlap,
+  NOTE_NETWORK_ZOOM_BOUNDS,
+  terminateNetworkEdgeAtBounds,
+  wrapNoteNetworkLabel,
+} from "./noteNetworkLayout";
+export type {
+  NetworkBounds,
+  NetworkClusterBounds,
+  NetworkLabelMetadata,
+  NetworkPoint,
+  NetworkZoomBounds,
+  NoteNetworkPanBounds,
+  NoteNetworkLayout,
+  NoteNetworkLayoutEdge,
+  NoteNetworkLayoutNode,
+  NoteNetworkLayoutOptions,
+} from "./noteNetworkLayout";

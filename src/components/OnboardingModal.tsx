@@ -1,0 +1,293 @@
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { createPortal } from "react-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import { X } from "lucide-react";
+import type { OnboardingCloseReason } from "../lib/onboardingPersistence";
+
+const FOCUSABLE_SELECTOR = [
+  "button:not([disabled])",
+  "a[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+interface OnboardingModalProps {
+  title: string;
+  description?: string;
+  closeLabel: string;
+  primaryActionLabel: string;
+  children: ReactNode;
+  onRequestClose: (reason: OnboardingCloseReason) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
+}
+
+interface BackgroundState {
+  element: HTMLElement;
+  inert: boolean;
+  ariaHidden: string | null;
+}
+
+function setBackgroundInert(portalNode: HTMLElement): () => void {
+  const states: BackgroundState[] = [];
+
+  for (const child of Array.from(document.body.children)) {
+    if (!(child instanceof HTMLElement) || child === portalNode) continue;
+    states.push({
+      element: child,
+      inert: child.inert,
+      ariaHidden: child.getAttribute("aria-hidden"),
+    });
+    child.inert = true;
+    child.setAttribute("aria-hidden", "true");
+  }
+
+  return () => {
+    for (const { element, inert, ariaHidden } of states) {
+      element.inert = inert;
+      if (ariaHidden === null) element.removeAttribute("aria-hidden");
+      else element.setAttribute("aria-hidden", ariaHidden);
+    }
+  };
+}
+
+export default function OnboardingModal({
+  title,
+  description,
+  closeLabel,
+  primaryActionLabel,
+  children,
+  onRequestClose,
+  returnFocusRef,
+}: OnboardingModalProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const reduceMotion = Boolean(useReducedMotion());
+  const dialogRef = useRef<HTMLElement>(null);
+  const primaryActionRef = useRef<HTMLButtonElement>(null);
+  const onRequestCloseRef = useRef(onRequestClose);
+  const [portalNode] = useState(() => {
+    if (typeof document === "undefined") return null;
+    const node = document.createElement("div");
+    node.dataset.onboardingPortal = "true";
+    return node;
+  });
+
+  useEffect(() => {
+    onRequestCloseRef.current = onRequestClose;
+  }, [onRequestClose]);
+
+  useEffect(() => {
+    if (!portalNode) return;
+
+    document.body.append(portalNode);
+    const restoreBackground = setBackgroundInert(portalNode);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      restoreBackground();
+      document.body.style.overflow = previousOverflow;
+      portalNode.remove();
+    };
+  }, [portalNode]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const returnFocusTarget = returnFocusRef?.current ?? previouslyFocused;
+    const focusFrame = requestAnimationFrame(() => {
+      (primaryActionRef.current ?? dialog)?.focus();
+    });
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        onRequestCloseRef.current("escape");
+        return;
+      }
+
+      if (event.key !== "Tab" || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", handleKeyDown);
+      requestAnimationFrame(() => {
+        if (returnFocusTarget?.isConnected) returnFocusTarget.focus();
+      });
+    };
+  }, [returnFocusRef]);
+
+  const modal = (
+    <div
+      data-onboarding-backdrop="true"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        display: "grid",
+        placeItems: "center",
+        boxSizing: "border-box",
+        width: "100%",
+        maxWidth: "100vw",
+        padding: "var(--space-4)",
+        overflow: "hidden",
+        backgroundColor: "color-mix(in srgb, var(--surface-base) 82%, transparent)",
+        backdropFilter: "blur(var(--space-1))",
+      }}
+    >
+      <motion.section
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
+        tabIndex={-1}
+        data-reduced-motion={reduceMotion ? "true" : "false"}
+        className="hh-panel"
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={reduceMotion ? undefined : { opacity: 0, scale: 0.97 }}
+        transition={{ duration: reduceMotion ? 0 : 0.18 }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "min(42rem, calc(100vw - (2 * var(--space-4))))",
+          maxWidth: "100%",
+          maxHeight: "calc(100dvh - (2 * var(--space-4)))",
+          overflow: "hidden",
+          backgroundColor: "var(--surface-raised)",
+          border: "1px solid var(--border-subtle)",
+          borderRadius: "var(--radius-xl)",
+          boxShadow: "var(--shadow-lg)",
+        }}
+      >
+        <header
+          className="flex items-start justify-between gap-4"
+          style={{ padding: "var(--space-5) var(--space-5) var(--space-3)" }}
+        >
+          <div className="min-w-0">
+            <h1
+              id={titleId}
+              style={{
+                margin: 0,
+                color: "var(--text-primary)",
+                fontFamily: "var(--font-display)",
+                fontSize: "var(--text-xl)",
+                fontWeight: "var(--weight-bold)",
+                letterSpacing: "var(--tracking-tight)",
+                lineHeight: "var(--leading-tight)",
+              }}
+            >
+              {title}
+            </h1>
+            {description ? (
+              <p
+                id={descriptionId}
+                style={{
+                  margin: "var(--space-2) 0 0",
+                  color: "var(--text-secondary)",
+                  fontSize: "var(--text-base)",
+                  lineHeight: "var(--leading-normal)",
+                }}
+              >
+                {description}
+              </p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => onRequestClose("close-button")}
+            aria-label={closeLabel}
+            className="grid shrink-0 place-items-center"
+            style={{
+              width: "var(--control-min-height)",
+              height: "var(--control-min-height)",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--border-subtle)",
+              backgroundColor: "var(--surface-overlay)",
+              color: "var(--text-secondary)",
+              cursor: "pointer",
+            }}
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+        </header>
+
+        <div
+          data-onboarding-scroll-region="true"
+          style={{
+            minHeight: 0,
+            overflowX: "hidden",
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+            padding: "var(--space-3) var(--space-5) var(--space-5)",
+            color: "var(--text-secondary)",
+            fontSize: "var(--text-base)",
+            lineHeight: "var(--leading-normal)",
+          }}
+        >
+          {children}
+        </div>
+
+        <footer
+          className="flex justify-end"
+          style={{
+            padding: "var(--space-4) var(--space-5) var(--space-5)",
+            borderTop: "1px solid var(--border-subtle)",
+          }}
+        >
+          <button
+            ref={primaryActionRef}
+            type="button"
+            onClick={() => onRequestClose("primary-action")}
+            className="hh-action"
+            style={{
+              minHeight: "var(--control-min-height)",
+              paddingInline: "var(--space-6)",
+              backgroundColor: "var(--interactive-primary-bg)",
+              color: "var(--interactive-primary-text)",
+              border: "1px solid var(--interactive-primary-bg)",
+              fontFamily: "var(--font-body)",
+              fontWeight: "var(--weight-semibold)",
+              cursor: "pointer",
+            }}
+          >
+            {primaryActionLabel}
+          </button>
+        </footer>
+      </motion.section>
+    </div>
+  );
+
+  return portalNode ? createPortal(modal, portalNode) : modal;
+}

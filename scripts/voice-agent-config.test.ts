@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { TOOL_NAMES, TOOL_SCHEMAS } from "../src/voice/toolSchemas";
+import {
+  TOOL_NAMES,
+  TOOL_SCHEMAS,
+} from "../src/voice/toolSchemas";
 import {
   DEFAULT_TTS_MODEL_ID,
   assertAgentCanBeNarrowlyUpdated,
@@ -51,6 +54,7 @@ function livePayload(
     conversation_config: {
       agent: {
         prompt: {
+          prompt: PROMPT,
           tool_ids: [...TOOL_IDS],
           built_in_tools: {},
           // Some tenants still mirror migrated tools here. The linked toolbox
@@ -262,8 +266,19 @@ describe("voice agent response parsing", () => {
 describe("voice agent verification", () => {
   it("accepts exact auth, capability surfaces, ids, and client contracts", () => {
     expect(() =>
-      assertLiveAgentConfiguration(snapshot(), "agent_test", linkedTools()),
+      assertLiveAgentConfiguration(snapshot(), "agent_test", PROMPT, linkedTools()),
     ).not.toThrow();
+  });
+
+  it("rejects live system-prompt drift", () => {
+    expect(() =>
+      assertLiveAgentConfiguration(
+        snapshot({ systemPrompt: "Drifted provider prompt" }),
+        "agent_test",
+        PROMPT,
+        linkedTools(),
+      ),
+    ).toThrow("system prompt does not match source");
   });
 
   it("rejects auth, id, and allowlist drift", () => {
@@ -271,6 +286,7 @@ describe("voice agent verification", () => {
       assertLiveAgentConfiguration(
         snapshot({ agentId: "agent_other" }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("Expected agent");
@@ -278,6 +294,7 @@ describe("voice agent verification", () => {
       assertLiveAgentConfiguration(
         snapshot({ authEnabled: false }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("authentication is disabled");
@@ -285,6 +302,7 @@ describe("voice agent verification", () => {
       assertLiveAgentConfiguration(
         snapshot({ allowlist: ["harmony.tonari.ai"] }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("allowlist must be empty");
@@ -299,6 +317,7 @@ describe("voice agent verification", () => {
       assertLiveAgentConfiguration(
         snapshot({ toolIds: [...TOOL_IDS, webhook.id] }),
         "agent_test",
+        PROMPT,
         [...linkedTools(), webhook],
       ),
     ).toThrow("count does not match source");
@@ -306,6 +325,7 @@ describe("voice agent verification", () => {
       assertLiveAgentConfiguration(
         snapshot({ toolIds: [...TOOL_IDS, "tool_unresolved"] }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("Resolved linked tools do not match");
@@ -316,6 +336,7 @@ describe("voice agent verification", () => {
       assertLiveAgentConfiguration(
         snapshot({ toolIds: [...TOOL_IDS.slice(0, -1), TOOL_IDS[0]] }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("must not contain duplicates");
@@ -332,7 +353,7 @@ describe("voice agent verification", () => {
       expects_response: false,
     });
     expect(() =>
-      assertLiveAgentConfiguration(snapshot(), "agent_test", drifted),
+      assertLiveAgentConfiguration(snapshot(), "agent_test", PROMPT, drifted),
     ).toThrow("contract for replace_progression does not match source");
   });
 
@@ -368,7 +389,7 @@ describe("voice agent verification", () => {
       const current = linkedTools();
       current[0] = driftedTool;
       expect(() =>
-        assertLiveAgentConfiguration(snapshot(), "agent_test", current),
+        assertLiveAgentConfiguration(snapshot(), "agent_test", PROMPT, current),
       ).toThrow("contract for get_progression does not match source");
     });
   });
@@ -390,7 +411,7 @@ describe("voice agent verification", () => {
       const current = linkedTools();
       current[0] = driftedTool;
       expect(() =>
-        assertLiveAgentConfiguration(snapshot(), "agent_test", current),
+        assertLiveAgentConfiguration(snapshot(), "agent_test", PROMPT, current),
       ).toThrow("contract for get_progression does not match source");
     });
   });
@@ -410,6 +431,7 @@ describe("voice agent verification", () => {
         assertLiveAgentConfiguration(
           snapshot(overrides),
           "agent_test",
+          PROMPT,
           linkedTools(),
         ),
       ).toThrow(message);
@@ -595,14 +617,14 @@ describe("voice agent verification", () => {
       ),
     }));
     expect(() =>
-      assertLiveAgentConfiguration(parsed, "agent_test", linkedTools()),
+      assertLiveAgentConfiguration(parsed, "agent_test", PROMPT, linkedTools()),
     ).not.toThrow();
 
     const incomplete = readAgentConfiguration(livePayload({
       tools: TOOL_SCHEMAS.slice(1).map((_, index) => sourceToolConfig(index + 1)),
     }));
     expect(() =>
-      assertLiveAgentConfiguration(incomplete, "agent_test", linkedTools()),
+      assertLiveAgentConfiguration(incomplete, "agent_test", PROMPT, linkedTools()),
     ).toThrow("legacy client tools count does not match source");
   });
 
@@ -635,7 +657,8 @@ describe("voice agent verification", () => {
         properties: {
           chords: {
             type: "array",
-            description: "Chord symbols to append, in order, e.g. ['Am','F','C','G'].",
+            description:
+              "Chord symbols to append, in order, e.g. ['Am','F','C','G']. Send at most 24 symbols, each at most 48 characters.",
             items: {
               type: "string",
               description: "A chord symbol, e.g. 'Am7'.",
@@ -660,7 +683,8 @@ describe("voice agent verification", () => {
         properties: {
           chords: {
             type: "array",
-            description: "Chord symbols to append, in order, e.g. ['Am','F','C','G'].",
+            description:
+              "Chord symbols to append, in order, e.g. ['Am','F','C','G']. Send at most 24 symbols, each at most 48 characters.",
             items: { type: "string", description: "A chord symbol, e.g. 'Am7'." },
             dynamic_variable: "injected_chords",
           },
@@ -680,6 +704,7 @@ describe("voice agent verification", () => {
         before,
         snapshot(),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).not.toThrow();
@@ -688,6 +713,7 @@ describe("voice agent verification", () => {
         before,
         snapshot({ name: "Overwritten name" }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("name changed");
@@ -696,6 +722,7 @@ describe("voice agent verification", () => {
         before,
         snapshot({ voiceId: "voice_overwritten" }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("voice id changed");
@@ -704,6 +731,7 @@ describe("voice agent verification", () => {
         before,
         snapshot({ ttsModelId: "eleven_flash_v2" }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("TTS model changed");
@@ -717,8 +745,21 @@ describe("voice agent verification", () => {
           },
         }),
         "agent_test",
+        PROMPT,
         linkedTools(),
       ),
     ).toThrow("TTS configuration changed");
+  });
+
+  it("rejects post-update system-prompt drift", () => {
+    expect(() =>
+      assertPreservedAgentUpdate(
+        snapshot(),
+        snapshot({ systemPrompt: "Stale prompt after update" }),
+        "agent_test",
+        PROMPT,
+        linkedTools(),
+      ),
+    ).toThrow("system prompt does not match source");
   });
 });

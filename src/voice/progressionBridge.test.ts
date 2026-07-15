@@ -6,6 +6,10 @@ import {
   type BridgeChord,
   type ProgressionBridgeDeps,
 } from "./progressionBridge";
+import {
+  MAX_VOICE_CHORD_SYMBOL_LENGTH,
+  MAX_VOICE_PROGRESSION_CHORDS,
+} from "./toolSchemas";
 
 function timelineChord(symbol: string): BridgeChord {
   const chord = lookupChord(symbol);
@@ -24,24 +28,77 @@ function bridgeFixture({
 } = {}) {
   const setHighlight = vi.fn<(index: number | null) => void>();
   const startPlayback = vi.fn(async () => playbackOutcome);
+  const appendChords = vi.fn<(chords: BridgeChord[]) => void>();
+  const setProgression = vi.fn<(chords: BridgeChord[]) => void>();
   const noVoicings: VoicedChord[] = [];
   const deps: ProgressionBridgeDeps = {
     getChords: () => timeline,
     getInstrument: () => instrument,
     getVoicings: () => noVoicings,
-    setProgression: vi.fn(),
-    appendChords: vi.fn(),
+    setProgression,
+    appendChords,
     removeChordAt: vi.fn(),
     startPlayback,
     randomizeVoicings: vi.fn(),
     setHighlight,
   };
-  return { bridge: createProgressionBridge(deps), setHighlight, startPlayback };
+  return {
+    bridge: createProgressionBridge(deps),
+    appendChords,
+    setProgression,
+    setHighlight,
+    startPlayback,
+  };
 }
 
+describe("progression bridge mutation bounds", () => {
+  it("accepts additions up to the total timeline limit", async () => {
+    const timeline = [timelineChord("C")];
+    const { bridge, appendChords } = bridgeFixture({ timeline });
+
+    await bridge.addChords(
+      Array.from({ length: MAX_VOICE_PROGRESSION_CHORDS - timeline.length }, () => "C"),
+    );
+
+    expect(appendChords).toHaveBeenCalledOnce();
+    expect(appendChords.mock.calls[0]?.[0]).toHaveLength(
+      MAX_VOICE_PROGRESSION_CHORDS - timeline.length,
+    );
+  });
+
+  it("rejects additions whose resulting timeline exceeds the limit", () => {
+    const timeline = Array.from(
+      { length: MAX_VOICE_PROGRESSION_CHORDS },
+      () => timelineChord("C"),
+    );
+    const { bridge, appendChords } = bridgeFixture({ timeline });
+
+    expect(() => bridge.addChords(["G7"])).toThrow(
+      `at most ${MAX_VOICE_PROGRESSION_CHORDS} chords`,
+    );
+    expect(appendChords).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized replacements and symbols before mutation", () => {
+    const { bridge, setProgression } = bridgeFixture();
+
+    expect(() =>
+      bridge.replaceProgression(
+        Array.from({ length: MAX_VOICE_PROGRESSION_CHORDS + 1 }, () => "C"),
+      ),
+    ).toThrow(`more than ${MAX_VOICE_PROGRESSION_CHORDS}`);
+    expect(() =>
+      bridge.replaceProgression([
+        "C".repeat(MAX_VOICE_CHORD_SYMBOL_LENGTH + 1),
+      ]),
+    ).toThrow(`at most ${MAX_VOICE_CHORD_SYMBOL_LENGTH} characters`);
+    expect(setProgression).not.toHaveBeenCalled();
+  });
+});
+
 describe("progression bridge playback", () => {
-  it("starts idle piano playback and reports that exact outcome", async () => {
-    const { bridge, startPlayback } = bridgeFixture({ instrument: "piano" });
+  it("starts idle guitar playback and reports that exact outcome", async () => {
+    const { bridge, startPlayback } = bridgeFixture({ instrument: "guitar" });
 
     await expect(bridge.play()).resolves.toEqual({
       ok: true,
@@ -53,7 +110,7 @@ describe("progression bridge playback", () => {
 
   it("does not restart playback that is already running", async () => {
     const { bridge, startPlayback } = bridgeFixture({
-      instrument: "piano",
+      instrument: "guitar",
       playbackOutcome: "already_active",
     });
 
@@ -65,19 +122,8 @@ describe("progression bridge playback", () => {
     expect(startPlayback).toHaveBeenCalledTimes(1);
   });
 
-  it("reports the piano-view requirement without starting playback", async () => {
-    const { bridge, startPlayback } = bridgeFixture();
-
-    await expect(bridge.play()).resolves.toEqual({
-      ok: false,
-      status: "requires_piano",
-      message: "Playback works in the piano view. Ask the user to switch to piano, then try again.",
-    });
-    expect(startPlayback).not.toHaveBeenCalled();
-  });
-
-  it("reports an empty piano timeline without starting playback", async () => {
-    const { bridge, startPlayback } = bridgeFixture({ instrument: "piano", timeline: [] });
+  it("reports an empty guitar timeline without starting playback", async () => {
+    const { bridge, startPlayback } = bridgeFixture({ instrument: "guitar", timeline: [] });
 
     await expect(bridge.play()).resolves.toEqual({
       ok: false,
@@ -89,7 +135,7 @@ describe("progression bridge playback", () => {
 
   it("reports unavailable browser audio instead of claiming playback started", async () => {
     const { bridge, startPlayback } = bridgeFixture({
-      instrument: "piano",
+      instrument: "guitar",
       playbackOutcome: "unavailable",
     });
 
@@ -103,7 +149,7 @@ describe("progression bridge playback", () => {
 
   it("reports a cancelled start without blaming browser audio support", async () => {
     const { bridge } = bridgeFixture({
-      instrument: "piano",
+      instrument: "guitar",
       playbackOutcome: "cancelled",
     });
 
@@ -112,6 +158,13 @@ describe("progression bridge playback", () => {
       status: "cancelled",
       message: "Playback start was cancelled before audio began.",
     });
+  });
+
+  it("retains piano playback parity", async () => {
+    const { bridge, startPlayback } = bridgeFixture({ instrument: "piano" });
+
+    await expect(bridge.play()).resolves.toMatchObject({ ok: true, status: "started" });
+    expect(startPlayback).toHaveBeenCalledTimes(1);
   });
 });
 

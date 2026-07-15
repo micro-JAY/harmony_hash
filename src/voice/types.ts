@@ -35,7 +35,7 @@ export interface ProgressionAnalysis {
   chordCount: number;
   /** The chord tones (note names) of each chord, parallel to `chords`. */
   chordTones: string[][];
-  /** The voice-led piano voicing (note names with octave, low→high) of each chord, parallel to `chords`. */
+  /** The voice-led reference voicing (note names with octave, low→high) of each chord, parallel to `chords`. */
   voicing: string[][];
 }
 
@@ -54,7 +54,7 @@ export type PlaybackResult =
     }
   | {
       ok: false;
-      status: "requires_piano" | "empty" | "cancelled" | "unavailable";
+      status: "empty" | "cancelled" | "unavailable";
       message: string;
     };
 
@@ -76,7 +76,7 @@ export interface ProgressionBridge {
   replaceProgression(symbols: string[]): void | Promise<void>;
   /** Remove every chord from the timeline. */
   clear(): void | Promise<void>;
-  /** Play the current progression. Piano-only — reports a constraint rather than switching view. */
+  /** Play the current progression using the instrument currently active in the app. */
   play(): PlaybackResult | Promise<PlaybackResult>;
   /** Reshuffle the guitar variants / piano voicings of the current chords (does NOT generate chords). */
   randomize(): void | Promise<void>;

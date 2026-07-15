@@ -41,7 +41,7 @@ const FLAT_TO_SHARP_DISPLAY: Record<string, string> = {
 };
 
 /** Map every common spelling of a root note to the internal canonical form (e.g. "Eb" → "Ef") */
-const ROOT_NORMALIZE: Record<string, string> = {};
+const ROOT_NORMALIZE = new Map<string, string>();
 
 const CANONICAL_ROOTS = [
   { canon: "C",  alts: ["c"] },
@@ -59,14 +59,14 @@ const CANONICAL_ROOTS = [
 ];
 
 for (const { canon, alts } of CANONICAL_ROOTS) {
-  ROOT_NORMALIZE[canon] = canon;
-  ROOT_NORMALIZE[canon.toLowerCase()] = canon;
-  for (const alt of alts) ROOT_NORMALIZE[alt] = canon;
+  ROOT_NORMALIZE.set(canon, canon);
+  ROOT_NORMALIZE.set(canon.toLowerCase(), canon);
+  for (const alt of alts) ROOT_NORMALIZE.set(alt, canon);
 }
 
 /** Normalize any root spelling to canonical form. Returns undefined if unrecognized. */
 export function normalizeRoot(raw: string): string | undefined {
-  return ROOT_NORMALIZE[raw];
+  return ROOT_NORMALIZE.get(raw);
 }
 
 /**
@@ -83,13 +83,13 @@ export function splitRootAndQuality(input: string): [string, string] {
   // Try 2-char root first (e.g. "Eb", "F#", "Bb", "C#")
   if (input.length >= 2) {
     const two = input.slice(0, 2);
-    if (ROOT_NORMALIZE[two] !== undefined) {
+    if (ROOT_NORMALIZE.has(two)) {
       return [two, input.slice(2)];
     }
   }
   // Single-char root
   const one = input.slice(0, 1);
-  if (ROOT_NORMALIZE[one] !== undefined) {
+  if (ROOT_NORMALIZE.has(one)) {
     return [one, input.slice(1)];
   }
   return [input, ""];

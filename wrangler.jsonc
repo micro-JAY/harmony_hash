@@ -7,6 +7,24 @@
     // key is a secret set via `wrangler secret put ELEVENLABS_API_KEY` — never here.
     "HH_VOICE_AGENT_ID": "agent_2501ksecrah0epa92phh1fh5ymxp"
   },
+  "ratelimits": [
+    {
+      "name": "PROGRESSION_RATE_LIMITER",
+      "namespace_id": "81427001",
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
+    },
+    {
+      "name": "VOICE_RATE_LIMITER",
+      "namespace_id": "81427002",
+      "simple": {
+        "limit": 6,
+        "period": 60
+      }
+    }
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

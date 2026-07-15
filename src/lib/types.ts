@@ -103,6 +103,13 @@ export interface TonalityGroup {
 }
 
 export type Instrument = "guitar" | "piano";
-export type Workspace = "builder" | "fretboard" | "circle" | "scales" | "network";
+export type Workspace =
+  | "builder"
+  | "theory"
+  | "fretboard"
+  // Compatibility aliases retained for in-session handoffs created by the old IA.
+  | "circle"
+  | "scales"
+  | "network";
 export type PianoDisplayMode = "notes" | "fingering";
 export type GuitarDisplayMode = "fingering" | "intervals" | "notes";

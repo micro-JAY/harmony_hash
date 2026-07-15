@@ -30,12 +30,8 @@ export default function ChordCardFrame({
   return (
     <div
       data-testid="chord-card"
-      className={`relative flex max-w-full flex-col items-center overflow-hidden rounded-xl ${
-        instrument === "piano"
-          ? comparisonOpen
-            ? "w-full min-w-0 md:col-span-2 lg:basis-full"
-            : "w-full min-w-0 lg:w-auto lg:min-w-[440px]"
-          : "w-full min-w-0 lg:w-auto lg:min-w-[200px]"
+      className={`relative flex w-full min-w-0 max-w-full flex-col items-center overflow-hidden rounded-xl ${
+        instrument === "piano" && comparisonOpen ? "col-span-full" : ""
       }`}
       data-playing={isPlaying ? "true" : undefined}
       data-agent-highlighted={isAgentHighlighted ? "true" : undefined}

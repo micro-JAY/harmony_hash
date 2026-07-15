@@ -10,6 +10,10 @@ import {
   type OpenAIResponsesClient,
 } from "./progressionAgent";
 
+export interface RateLimit {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
+}
+
 export interface Env {
   OPENAI_API_KEY?: string;
   ALLOWED_ORIGIN?: string;
@@ -18,10 +22,14 @@ export interface Env {
   // misconfigured env fails closed with a 500 rather than a type error.
   ELEVENLABS_API_KEY?: string;
   HH_VOICE_AGENT_ID?: string;
+  PROGRESSION_RATE_LIMITER?: RateLimit;
+  VOICE_RATE_LIMITER?: RateLimit;
   ASSETS: { fetch: (request: Request) => Promise<Response> };
 }
 
 const PROVIDER_TIMEOUT_MS = 30_000;
+const MAX_PROGRESSION_BODY_BYTES = 4_096;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -49,7 +57,7 @@ export default {
 
     if (url.pathname === "/api/voice/signed-url") {
       if (request.method === "OPTIONS") {
-        return corsPreflight(request, env);
+        return corsPreflight(request, env, true);
       }
       if (request.method === "POST") {
         return handleVoiceSignedUrl(request, env);
@@ -75,9 +83,9 @@ function handleHealth(request: Request, env: Env): Response {
 // authenticated voice session without ever seeing the API key. Mirrors the
 // /api/progression handler's origin gate and error contract.
 async function handleVoiceSignedUrl(request: Request, env: Env): Promise<Response> {
-  const requestOrigin = request.headers.get("Origin");
-  if (requestOrigin && !isOriginPermitted(requestOrigin, request, env)) {
-    return jsonResponse({ error: "Origin not allowed" }, 403, request, env);
+  const admission = await admitProviderRequest(request, env, "voice");
+  if (!admission.ok) {
+    return admission.response;
   }
 
   if (!env.ELEVENLABS_API_KEY || !env.HH_VOICE_AGENT_ID) {
@@ -101,14 +109,23 @@ async function handleVoiceSignedUrl(request: Request, env: Env): Promise<Respons
 }
 
 async function handleProgression(request: Request, env: Env): Promise<Response> {
-  const requestOrigin = request.headers.get("Origin");
-  if (requestOrigin && !isOriginPermitted(requestOrigin, request, env)) {
-    return jsonResponse({ error: "Origin not allowed" }, 403, request, env);
+  const admission = await admitProviderRequest(request, env, "progression");
+  if (!admission.ok) {
+    return admission.response;
+  }
+
+  const bodyText = await readBoundedRequestBody(request, MAX_PROGRESSION_BODY_BYTES);
+  if (!bodyText.ok) {
+    const status = bodyText.reason === "too-large" ? 413 : 400;
+    const error = bodyText.reason === "too-large"
+      ? `Request body must be ${MAX_PROGRESSION_BODY_BYTES} bytes or fewer`
+      : "Request body could not be read";
+    return jsonResponse({ error }, status, request, env);
   }
 
   let body: unknown;
   try {
-    body = await request.json();
+    body = JSON.parse(bodyText.value);
   } catch {
     return jsonResponse({ error: "Request body must be valid JSON" }, 400, request, env);
   }
@@ -176,6 +193,154 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
       env,
     );
   }
+}
+
+type ProviderRoute = "progression" | "voice";
+type AdmissionResult = { ok: true } | { ok: false; response: Response };
+
+async function admitProviderRequest(
+  request: Request,
+  env: Env,
+  route: ProviderRoute,
+): Promise<AdmissionResult> {
+  const requestOrigin = request.headers.get("Origin");
+  if (
+    (route === "voice" && !requestOrigin) ||
+    (requestOrigin !== null && !isOriginPermitted(requestOrigin, request, env))
+  ) {
+    return {
+      ok: false,
+      response: jsonResponse({ error: "Origin not allowed" }, 403, request, env),
+    };
+  }
+
+  const limiter = route === "progression"
+    ? env.PROGRESSION_RATE_LIMITER
+    : env.VOICE_RATE_LIMITER;
+  if (!limiter) {
+    console.error("[harmony-provider] admission:", `${route} rate limiter unavailable`);
+    return {
+      ok: false,
+      response: jsonResponse(
+        { error: "Service temporarily unavailable" },
+        503,
+        request,
+        env,
+      ),
+    };
+  }
+
+  const edgeCaller = request.headers.get("CF-Connecting-IP") ?? localCallerKey(request);
+  if (!edgeCaller) {
+    console.error("[harmony-provider] admission:", `${route} caller identity unavailable`);
+    return {
+      ok: false,
+      response: jsonResponse(
+        { error: "Service temporarily unavailable" },
+        503,
+        request,
+        env,
+      ),
+    };
+  }
+
+  try {
+    const callerHash = await hashRateLimitKey(edgeCaller);
+    const { success } = await limiter.limit({ key: `${route}:${callerHash}` });
+    if (!success) {
+      return {
+        ok: false,
+        response: jsonResponse(
+          { error: "Too many requests" },
+          429,
+          request,
+          env,
+          { "Retry-After": String(RATE_LIMIT_WINDOW_SECONDS) },
+        ),
+      };
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "Unknown rate limiter error";
+    console.error("[harmony-provider] admission:", sanitizeProviderDetail(detail));
+    return {
+      ok: false,
+      response: jsonResponse(
+        { error: "Service temporarily unavailable" },
+        503,
+        request,
+        env,
+      ),
+    };
+  }
+
+  return { ok: true };
+}
+
+function localCallerKey(request: Request): string | null {
+  if (!workerIsLocal(request)) return null;
+  return `local:${new URL(request.url).host}`;
+}
+
+async function hashRateLimitKey(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
+}
+
+type BoundedBodyResult =
+  | { ok: true; value: string }
+  | { ok: false; reason: "too-large" | "unreadable" };
+
+async function readBoundedRequestBody(
+  request: Request,
+  maxBytes: number,
+): Promise<BoundedBodyResult> {
+  const contentLength = request.headers.get("Content-Length");
+  if (contentLength !== null) {
+    if (!/^\d+$/.test(contentLength)) {
+      return { ok: false, reason: "unreadable" };
+    }
+    const declaredBytes = Number(contentLength);
+    if (!Number.isSafeInteger(declaredBytes)) {
+      return { ok: false, reason: "unreadable" };
+    }
+    if (declaredBytes > maxBytes) {
+      return { ok: false, reason: "too-large" };
+    }
+  }
+
+  if (!request.body) return { ok: true, value: "" };
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel();
+        return { ok: false, reason: "too-large" };
+      }
+      chunks.push(value);
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "Unknown request stream error";
+    console.error("[harmony-progression] request body:", sanitizeProviderDetail(detail));
+    return { ok: false, reason: "unreadable" };
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { ok: true, value: new TextDecoder().decode(bytes) };
 }
 
 type PromptResult = { ok: true; value: string } | { ok: false; error: string };
@@ -266,9 +431,9 @@ function corsHeaders(request: Request, env: Env): Record<string, string> {
   return headers;
 }
 
-function corsPreflight(request: Request, env: Env): Response {
+function corsPreflight(request: Request, env: Env, requireOrigin = false): Response {
   const origin = request.headers.get("Origin");
-  if (origin && !isOriginPermitted(origin, request, env)) {
+  if ((requireOrigin && !origin) || (origin && !isOriginPermitted(origin, request, env))) {
     return new Response(null, { status: 403 });
   }
   return new Response(null, { status: 204, headers: corsHeaders(request, env) });
@@ -279,12 +444,14 @@ function jsonResponse(
   status: number,
   request: Request,
   env: Env,
+  additionalHeaders: Record<string, string> = {},
 ): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       ...corsHeaders(request, env),
+      ...additionalHeaders,
     },
   });
 }

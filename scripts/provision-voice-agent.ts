@@ -202,6 +202,7 @@ export async function provisionVoiceAgent(
       assertLiveAgentConfiguration(
         beforeState.snapshot,
         existingId,
+        options.systemPrompt,
         beforeState.linkedTools,
       );
       printSafeVerification(
@@ -229,6 +230,7 @@ export async function provisionVoiceAgent(
       beforeState.snapshot,
       afterState.snapshot,
       existingId,
+      options.systemPrompt,
       afterState.linkedTools,
     );
     printSafeVerification(
@@ -259,7 +261,12 @@ export async function provisionVoiceAgent(
     throw new Error("ElevenLabs create response did not include an agent_id");
   }
   const state = await loadAgentState(call, created.agent_id);
-  assertLiveAgentConfiguration(state.snapshot, created.agent_id, state.linkedTools);
+  assertLiveAgentConfiguration(
+    state.snapshot,
+    created.agent_id,
+    options.systemPrompt,
+    state.linkedTools,
+  );
   printSafeVerification(
     options.log,
     `Created agent. Set HH_VOICE_AGENT_ID=${created.agent_id}`,

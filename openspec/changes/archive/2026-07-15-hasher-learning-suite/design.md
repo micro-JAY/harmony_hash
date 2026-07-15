@@ -9,7 +9,7 @@ The design must preserve several existing contracts while changing the informati
 - Tonari semantic tokens in `public/tokens.css` remain the only color, surface, typography, motion, and sizing source. Gold denotes active/action/playback state; academy blue denotes learning relationships and Hanz focus.
 - All controls remain keyboard reachable, have a 44px minimum target, preserve reduced-motion behavior, and work at 375px through wide desktop layouts.
 - Existing progression share links remain version-compatible. Reordering changes local state only and must not mutate an already-issued URL.
-- The Worker route surface, secrets, provider choice, and production bindings do not change.
+- The Worker route surface, secrets, and provider choice do not change. Security review may add fail-closed, route-specific Cloudflare rate-limit bindings without changing the public API contract.
 - The accepted visual direction is recorded in `docs/design/hasher-learning-suite/hasher-desktop-concept.png` and `docs/design/hasher-learning-suite/theory-desktop-concept.png`. These are layout and hierarchy references; rendered implementation still follows the repository tokens and component conventions.
 
 The primary stakeholders are musicians building progressions on desktop or mobile, keyboard-only and assistive-technology users, guitar and piano users who expect transport parity, and maintainers of the shared browser/Worker chord model and ElevenLabs client-tool contract.

@@ -2,11 +2,11 @@
 
 ## Final state
 
-The piano-voicing roadmap (v2–v5), its inspiration-led Phase 2 feature wave, and the user-directed agent, sharing, and UI-system side tracks are complete on `main` as of 2026-07-14. The canonical milestone status remains in `docs/long_horizon_plan.md`; dated implementation and review evidence remains in `docs/long_horizon_log.md`.
+The piano-voicing roadmap (v2–v5), its inspiration-led Phase 2 feature wave, and the user-directed agent, sharing, UI-system, and Hasher Learning Suite side tracks are complete on `main` as of 2026-07-15. The canonical milestone status remains in `docs/long_horizon_plan.md`; dated implementation and review evidence remains in `docs/long_horizon_log.md`.
 
-- Latest merged product baseline: `f2c39a4f1ee183e5758e99a18e7eaabcedbc43c6`.
-- Exact-head product CI: [run 29277215644](https://github.com/micro-JAY/harmony_hash/actions/runs/29277215644), green for build/test and Playwright alongside the successful Worker build.
-- Latest product gates: local production build and lint pass, Vitest 1,109/1,109; local and exact-head CI Playwright 121/121; Worker dry-run passes.
+- Latest merged product baseline: `529568c77a0fdab05399e42c38f7f3ee81136d5c` via [#72](https://github.com/micro-JAY/harmony_hash/pull/72).
+- Exact-head product CI: all build/test, full Playwright, and Cloudflare Workers build checks on feature head `96652a5` passed before the tree-identical squash merge.
+- Latest product gates: local production build and lint pass, Vitest 1,212/1,212; local and exact-head CI Playwright 143/143; Worker dry-run and strict OpenSpec validation pass.
 - Repository search finds no undocumented `TODO`, `FIXME`, `XXX`, or `HACK` in shipped code.
 - User-owned untracked `.agents/` and `AGENTS.md` remain outside the product history. Local inspiration images remain untracked; the intentionally tracked `docs/inspiration/README.md` remains unchanged.
 
@@ -59,6 +59,7 @@ The Phase 2 surfaces consume shared pure functions under `src/lib/theory/`. The 
 | S.6 — Composer Timeline Continuity | **Done** | Clean and dirty composer drafts rebase to every committed timeline replacement and invalidate delayed text-agent responses synchronously. | [#66](https://github.com/micro-JAY/harmony_hash/pull/66) |
 | S.7 — Versioned Progression Sharing | **Done** | Private Guitar/Piano snapshot links use the shared chord validator, import immediately, reject invalid payloads visibly, and handle clipboard and responsive recovery paths. | [#68](https://github.com/micro-JAY/harmony_hash/pull/68) |
 | S.8 — Tonari UI-System Cleanup | **Done** | Shared workspace chrome, typography, panels, 44px primary controls, reduced motion, modal focus containment, and desktop/tablet/mobile geometry across every shipped workspace. Intentional interval, match-score, chord-suggestion, playback, and Hanz colors remain distinct. | [#69](https://github.com/micro-JAY/harmony_hash/pull/69) |
+| S.9 — Hasher Learning Suite | **Done** | Alliterative Hasher/Tune Toolbox/Fret Finder navigation, rebuilt prompt/direct hierarchy, accessible timeline insertion/reordering, guitar playback, responsive Piano cards/Compare, contextual modifiers, unified Circle/Scale/Network context and handoffs, legible relationship graph, Fretboard cleanup, and versioned onboarding. | [#72](https://github.com/micro-JAY/harmony_hash/pull/72) |
 
 The recovery work retained dictionary validation on both Worker and client boundaries. The Builder was renamed Hasher, its prompt and chord composer were compacted into one workspace, preset analysis remains under Progressions, and Hanz Hasher appears only as an on-demand popup from prompt help.
 
@@ -68,7 +69,7 @@ Later that day, the source-owned provisioning workflow updated the existing Hanz
 
 ## Product-baseline PR ledger
 
-This ledger covers every pull request from the start of the documented long-horizon run through the latest merged product baseline, [#69](https://github.com/micro-JAY/harmony_hash/pull/69). The final closure projection PR is recorded in the dated log rather than assigning itself a merged status. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
+This ledger covers every pull request from the start of the documented long-horizon run through the latest merged product baseline, [#72](https://github.com/micro-JAY/harmony_hash/pull/72). The final closure projection PR is recorded in the dated log rather than assigning itself a merged status. `Done` means merged; `Cancelled` means deliberately closed without merge and superseded by the cited recovery path.
 
 | PR | Status | Contribution |
 |---|---|---|
@@ -129,6 +130,9 @@ This ledger covers every pull request from the start of the documented long-hori
 | [#67](https://github.com/micro-JAY/harmony_hash/pull/67) | **Done** | Usage-pause handoff after composer continuity. |
 | [#68](https://github.com/micro-JAY/harmony_hash/pull/68) | **Done** | Versioned private progression snapshot links and import recovery. |
 | [#69](https://github.com/micro-JAY/harmony_hash/pull/69) | **Done** | Cross-workspace Tonari UI-system cleanup and accessibility hardening. |
+| [#70](https://github.com/micro-JAY/harmony_hash/pull/70) | **Done** | Major-update closure and long-horizon ledger reconciliation. |
+| [#71](https://github.com/micro-JAY/harmony_hash/pull/71) | **Done** | Responsive Fretboard and Japanese learning-tool fixes. |
+| [#72](https://github.com/micro-JAY/harmony_hash/pull/72) | **Done** | Complete Hasher Learning Suite redesign, security hardening, provider synchronization, and release gates. |
 
 ## Quality and safety outcomes
 
@@ -138,7 +142,8 @@ This ledger covers every pull request from the start of the documented long-hori
 - Security remediation is merged; provider errors are sanitized before logging or display.
 - Shared links contain only the validated chord snapshot and instrument; prompts, Hanz state, credentials, and unrelated URL data are excluded.
 - Structural Tonari tokens now govern workspace geometry and typography while interval identities, match-score gradients, chord suggestions, playback, and Hanz retain deliberate accessible color distinctions.
-- Exact-head merge guards and green CI were used for the final feature and ledger closure PRs.
+- Exact-head merge guards and green CI were used for the Hasher Learning Suite feature and ledger closure PRs.
+- Provider-backed Worker routes now enforce separate fail-closed Cloudflare rate limits, bounded bodies/arguments, and sanitized failures without changing their public API contracts.
 - The known Vite warning now belongs to the deferred 501.17 kB voice-runtime chunk; the initial app JavaScript fell from 292.37 kB to 158.73 kB gzip (45.7%) without changing Hanz session behavior.
 
 ## Deliberately deferred
@@ -165,4 +170,4 @@ This ledger covers every pull request from the start of the documented long-hori
 
 ## Closure
 
-No roadmap or major-update milestone is Pending or In Progress. Versioned sharing and the UI-system cleanup are merged, independently reviewed, and covered by the complete local and exact-head gates. Any future product work begins as a new bounded request from this sealed baseline.
+No roadmap or major-update milestone is Pending or In Progress. The Hasher Learning Suite is merged, independently reviewed, provider-synchronized, deployed, and covered by complete local, exact-head, and exact-main preview gates. Any future product work begins as a new bounded request from this sealed baseline.

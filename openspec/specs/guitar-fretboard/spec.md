@@ -37,7 +37,7 @@ The system SHALL expose deterministic, side-effect-free helpers that map a root 
 - **THEN** matching display notes SHALL prefer flat spellings while pitch-class placement remains enharmonically correct
 
 ### Requirement: First-class explorer controls
-The Fretboard workspace SHALL provide independent controls for instrument, tuning, handedness, root, mode, label display, pattern family, pattern sub-selection, and chord overlay without mutating progression-builder state.
+The Fretboard workspace SHALL provide independent controls for instrument, tuning, handedness, root, mode, label display, pattern family, pattern sub-selection, and chord overlay without mutating progression-builder state. The selected tuning SHALL remain available through its labeled control and board semantics without a duplicate standalone header badge.
 
 #### Scenario: Default explorer state
 - **WHEN** the Fretboard workspace opens for the first time
@@ -61,9 +61,10 @@ The Fretboard workspace SHALL provide independent controls for instrument, tunin
 - **THEN** DADGAD SHALL still be selected for guitar
 - **AND** returning to Bass SHALL restore BEAD
 
-#### Scenario: Tuning readout
+#### Scenario: Tuning information without duplicate badge
 - **WHEN** a tuning is selected
-- **THEN** the explorer SHALL show its name and compact open-string pitch sequence
+- **THEN** its name and open-string pitch sequence SHALL remain available in the labeled tuning control and board accessibility text
+- **AND** the former standalone header tuning badge SHALL NOT be rendered
 
 #### Scenario: Remembered pattern choices
 - **WHEN** the user selects CAGED E form, switches to 3NPS degree 4, then returns to CAGED

@@ -93,17 +93,17 @@
 ## 9. Publication and Provider Synchronization
 
 - [x] 9.1 Reconcile `docs/long_horizon_plan.md` and append a current-minute `docs/long_horizon_log.md` entry with branch, completed slices, test evidence, risks, and next concrete step
-- [ ] 9.2 Push the feature branch, open a reviewable PR with What/Why/theory references/concept-vs-rendered screenshots/test summary/risks/follow-ups, and verify the remote head matches the reviewed local SHA
-- [ ] 9.3 Wait for and inspect every exact-head CI check; diagnose and fix any failure on the feature branch and repeat local/review gates for changed scope
-- [ ] 9.4 Provision the reviewed guitar-capable ElevenLabs source, then perform fail-closed readback verification of signed auth, exact nine client tools, no built-ins/MCP/workflow/unknown capabilities, and unchanged live identity/TTS settings
-- [ ] 9.5 Squash-merge only after CI and provider verification are green, then verify remote `main` contains the complete acceptance implementation and no unrelated local files
+- [x] 9.2 Push the feature branch, open a reviewable PR with What/Why/theory references/concept-vs-rendered screenshots/test summary/risks/follow-ups, and verify the remote head matches the reviewed local SHA
+- [x] 9.3 Wait for and inspect every exact-head CI check; diagnose and fix any failure on the feature branch and repeat local/review gates for changed scope
+- [x] 9.4 Provision the reviewed guitar-capable ElevenLabs source, then perform fail-closed readback verification of signed auth, exact nine client tools, no built-ins/MCP/workflow/unknown capabilities, and unchanged live identity/TTS settings
+- [x] 9.5 Squash-merge only after CI and provider verification are green, then verify remote `main` contains the complete acceptance implementation and no unrelated local files
 
 ## 10. OpenSpec Closure, Deployment, and Live Verification
 
-- [ ] 10.1 Apply all eight delta specs to canonical `openspec/specs`, move the change to the dated archive path, and run strict OpenSpec validation against the archived/canonical state
-- [ ] 10.2 Reconcile the final long-horizon plan, log, summary, and acceptance ledger with the squash-merged PR number and exact remote-main SHA
-- [ ] 10.3 Run the full build, lint, Vitest, Playwright, and Worker packaging gates from the exact merged `main` revision
-- [ ] 10.4 Create a Cloudflare version from the exact merged `main` SHA, inspect the version, assets, routes, bindings, compatibility date/flags, and secret names, and smoke-test the preview before traffic promotion
-- [ ] 10.5 Promote traffic to the verified Cloudflare version without changing routes or secrets and confirm the custom domain serves the exact merged asset revision
-- [ ] 10.6 Verify production in real desktop and mobile browsers: onboarding, both Hasher modes, Browse/context/or hierarchy, both instruments, guitar/piano playback, share/import, reorder, modifiers, Compare containment, Theory handoffs/graph, Fretboard, Hanz coexistence, API health, console, and network
-- [ ] 10.7 Fill every production-evidence cell in the acceptance ledger, confirm no release-blocking regression remains, and only then mark the persistent goal complete
+- [x] 10.1 Apply all eight delta specs to canonical `openspec/specs`, move the change to the dated archive path, and run strict OpenSpec validation against the archived/canonical state
+- [x] 10.2 Reconcile the final long-horizon plan, log, summary, and acceptance ledger with the squash-merged PR number and exact remote-main SHA
+- [x] 10.3 Run the full build, lint, Vitest, Playwright, and Worker packaging gates from the exact merged `main` revision
+- [x] 10.4 Create a Cloudflare version from the exact merged `main` SHA, inspect the version, assets, routes, bindings, compatibility date/flags, and secret names, and smoke-test the preview before traffic promotion
+- [x] 10.5 Promote traffic to the verified Cloudflare version without changing routes or secrets and confirm the custom domain serves the exact merged asset revision
+- [x] 10.6 Verify production in real desktop and mobile browsers: onboarding, both Hasher modes, Browse/context/or hierarchy, both instruments, guitar/piano playback, share/import, reorder, modifiers, Compare containment, Theory handoffs/graph, Fretboard, Hanz coexistence, API health, console, and network
+- [x] 10.7 Fill every production-evidence cell in the acceptance ledger, confirm no release-blocking regression remains, and only then mark the persistent goal complete

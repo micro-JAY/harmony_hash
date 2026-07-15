@@ -45,7 +45,7 @@ test("shares a private snapshot, copies it, restores focus, and imports guitar/p
   await page.getByRole("button", { name: "Piano" }).click();
 
   const sourceUrl = page.url();
-  const trigger = page.getByRole("button", { name: "Share progression" });
+  const trigger = page.getByRole("button", { name: "SHARE", exact: true });
   await trigger.click();
   const panel = page.getByRole("dialog", { name: "Share this progression" });
   const linkInput = page.getByRole("textbox", { name: "Shareable progression link" });
@@ -78,7 +78,7 @@ test("shares a private snapshot, copies it, restores focus, and imports guitar/p
   await expect(trigger).toBeFocused();
   await trigger.press("Enter");
   await expect(linkInput).toBeFocused();
-  await page.getByRole("button", { name: "Randomize All Voicings" }).focus();
+  await page.getByRole("button", { name: "RANDOMIZE (UNLOCKED VOICES)", exact: true }).focus();
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
   await expect(trigger).toBeFocused();
@@ -99,7 +99,7 @@ test("round-trips a Guitar progression through the rendered chord-card path", as
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await composeProgression(page, ["Cmaj7", "G7#9", "Bbmaj7"]);
 
-  await page.getByRole("button", { name: "Share progression" }).click();
+  await page.getByRole("button", { name: "SHARE", exact: true }).click();
   const shareLink = await page
     .getByRole("textbox", { name: "Shareable progression link" })
     .inputValue();
@@ -127,7 +127,7 @@ test("shows invalid and duplicate share payloads without breaking the composer",
     "One or more chord names are not available in Harmony Hash.",
   );
   await expect(page.getByTestId("chord-card")).toHaveCount(0);
-  await expect(page.getByRole("list", { name: "Chord progression composer" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Chord progression composer" })).toBeVisible();
 
   await page.goto(
     "/?hh=1&hh=1&instrument=guitar&chords=%5B%22C%22%5D",
@@ -142,7 +142,7 @@ for (const mode of ["reject", "hang"] as const) {
     await installClipboardMock(page, mode);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["C", "G7"]);
-    await page.getByRole("button", { name: "Share progression" }).click();
+    await page.getByRole("button", { name: "SHARE", exact: true }).click();
 
     const linkInput = page.getByRole("textbox", { name: "Shareable progression link" });
     await page.getByRole("button", { name: "Copy link" }).click();
@@ -186,7 +186,7 @@ test("ignores a stale clipboard failure after the panel is reopened", async ({ p
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await composeProgression(page, ["C", "G7"]);
 
-  const trigger = page.getByRole("button", { name: "Share progression" });
+  const trigger = page.getByRole("button", { name: "SHARE", exact: true });
   await trigger.click();
   await page.getByRole("button", { name: "Copy link" }).click();
   await page.keyboard.press("Escape");
@@ -222,7 +222,7 @@ test("ignores a stale clipboard failure after the shared instrument changes", as
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await composeProgression(page, ["C", "G7"]);
 
-  await page.getByRole("button", { name: "Share progression" }).click();
+  await page.getByRole("button", { name: "SHARE", exact: true }).click();
   const linkInput = page.getByRole("textbox", { name: "Shareable progression link" });
   await page.getByRole("button", { name: "Copy link" }).click();
   const pianoButton = page.getByRole("button", { name: "Piano", exact: true });
@@ -244,7 +244,7 @@ for (const viewport of [
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
 
-    const trigger = page.getByRole("button", { name: "Share progression" });
+    const trigger = page.getByRole("button", { name: "SHARE", exact: true });
     await trigger.focus();
     await trigger.press("Enter");
     const panel = page.getByRole("dialog", { name: "Share this progression" });

@@ -89,7 +89,6 @@ test.describe("OpenAI progression builder", () => {
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "Progressions" }).click();
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("slow health check");
@@ -117,7 +116,6 @@ test.describe("OpenAI progression builder", () => {
       });
     });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "Progressions" }).click();
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("should remain blocked");
@@ -156,21 +154,15 @@ test.describe("OpenAI progression builder", () => {
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "D/F#" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "E7#9" })).toBeVisible();
-    await expect(
-      page.locator("#hasher-free-panel").getByText("C major", { exact: true }),
-    ).toBeVisible();
+    await expect(page.getByText("C major", { exact: true })).toBeVisible();
     await expect(
       page.getByText("The slash chord and altered dominant pull smoothly into A minor."),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Free Input" }).click();
-    await page.getByRole("button", { name: "Progressions" }).click();
-    await expect(
-      page.getByText("The slash chord and altered dominant pull smoothly into A minor."),
-    ).toBeVisible();
-
-    await page.getByText("Or pick a preset", { exact: true }).click();
-    await page.getByRole("combobox", { name: "Progression tonality" }).selectOption("minor");
+    await page
+      .getByRole("group", { name: "Preset collection" })
+      .getByRole("button", { name: "Minor", exact: true })
+      .click();
     await expect(
       page.getByText("The slash chord and altered dominant pull smoothly into A minor."),
     ).toBeVisible();
@@ -196,7 +188,6 @@ test.describe("OpenAI progression builder", () => {
     await composeProgression(page, "Cmaj7 Am7 Dm7 G7");
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Progressions" }).click();
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("test malformed response");
@@ -237,8 +228,6 @@ test.describe("OpenAI progression builder", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, "Cmaj7 Am7 Dm7 G7");
-    await page.getByRole("button", { name: "Progressions" }).click();
-
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("bright cinematic resolution");
@@ -270,7 +259,6 @@ test.describe("OpenAI progression builder", () => {
     await page.getByRole("button", { name: "Run progression agent" }).click();
     await delayed.requestStarted;
 
-    await page.getByRole("button", { name: "Free Input" }).click();
     await composeProgression(page, "Fmaj7 G7 Cmaj7 Am7");
     await expect(page.getByRole("heading", { name: "Fmaj7" })).toBeVisible();
 
@@ -280,7 +268,6 @@ test.describe("OpenAI progression builder", () => {
     await expect(page.getByRole("heading", { name: "Fmaj7" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Progressions" }).click();
     await expect(
       page.getByRole("textbox", { name: "Describe the progression you want" }),
     ).toHaveValue("delayed agent response");
@@ -312,8 +299,8 @@ test.describe("OpenAI progression builder", () => {
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
     await expect(
       page
-        .getByRole("list", { name: "Chord progression composer" })
-        .getByRole("listitem"),
+        .getByRole("group", { name: "Chord progression composer" })
+        .locator("[data-composer-chip-index]"),
     ).toHaveText(["Cmaj7"]);
     await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);
   });
@@ -332,8 +319,6 @@ test.describe("OpenAI progression builder", () => {
     await page.getByRole("button", { name: "Run progression agent" }).click();
     await delayed.requestStarted;
 
-    await page.getByRole("button", { name: "Progressions" }).click();
-    await page.getByText("Or pick a preset", { exact: true }).click();
     await page.getByTitle('The "Primary" Loop').click();
     await expect(page.getByRole("heading", { name: "F", exact: true })).toBeVisible();
 
@@ -364,7 +349,10 @@ test.describe("OpenAI progression builder", () => {
 
     const secondCard = page.getByTestId("chord-card").nth(1);
     await secondCard.getByRole("button", { name: "Modify G7" }).click();
-    await secondCard.getByRole("button", { name: "Change G7 to G7#9" }).click();
+    await page
+      .getByRole("dialog", { name: "Modify G7 chord" })
+      .getByRole("button", { name: "Change G7 to G7#9" })
+      .click();
     await expect(secondCard.getByRole("heading", { name: "G7#9" })).toBeVisible();
 
     delayed.releaseResponse();

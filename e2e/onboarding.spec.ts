@@ -18,6 +18,7 @@ test("first visit welcomes people with the logo and three destinations, persists
   await expect(dialog.getByRole("heading", { name: "HASHER" })).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "TUNE TOOLBOX" })).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Show me around" })).toBeVisible();
   await expect(dialog).not.toContainText("send a scale back");
 
   await dialog.getByRole("button", { name: "START HASHING" }).click();
@@ -34,6 +35,54 @@ test("first visit welcomes people with the logo and three destinations, persists
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(help).toBeFocused();
+});
+
+test("optional guided tour spotlights primary tools and supports screen and keyboard navigation", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const introduction = page.getByRole("dialog", { name: "Find your harmony." });
+  await introduction.getByRole("button", { name: "Show me around" }).click();
+  await expect(introduction).toBeHidden();
+
+  const tour = page.getByRole("dialog", { name: "Choose a workspace" });
+  await expect(tour).toBeVisible();
+  await expect(tour).toContainText("Step 1 / 14");
+  await expect(page.locator('[data-tour="workspace-navigation"]')).toBeVisible();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("dialog", { name: "Choose your instrument" })).toBeVisible();
+  await expect(page.locator('[data-tour="instrument-switcher"]')).toBeVisible();
+
+  await page.getByRole("dialog", { name: "Choose your instrument" })
+    .locator(".hh-guided-tour__secondary")
+    .click();
+  await expect(page.getByRole("dialog", { name: "Choose a workspace" })).toBeVisible();
+
+  for (let step = 0; step < 7; step += 1) {
+    await page.keyboard.press("ArrowRight");
+  }
+  await expect(page.getByRole("dialog", { name: "Shape each chord" })).toBeVisible();
+  await expect(page.locator('[data-tour="chord-output"] button[aria-label="Modify Cmaj7"]'))
+    .toBeVisible();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("dialog", { name: "Play what you build" })).toBeVisible();
+  await expect(page.locator('[data-tour="hasher-actions"] button', {
+    hasText: "RANDOMIZE (UNLOCKED VOICES)",
+  })).toBeVisible();
+  await expect(page.locator('[data-tour="hasher-actions"] button[aria-label="Play progression"]'))
+    .toBeVisible();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("dialog", { name: "Explore the Circle of Fifths" })).toBeVisible();
+  await expect(page.locator('[data-tour="workspace-navigation"] button', { hasText: "TUNE TOOLBOX" }))
+    .toHaveAttribute("aria-pressed", "true");
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Explore the Circle of Fifths" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "HASHER" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("chord-card")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Help / About" })).toBeFocused();
 });
 
 test("blocked storage remains usable and dismissal lasts for the page session", async ({ page }) => {

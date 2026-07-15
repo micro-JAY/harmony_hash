@@ -79,9 +79,8 @@ test("compact action toolbar keeps cards adjacent and opens Hanz from prompt hel
   await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
   await expect(page).toHaveScreenshot("builder-desktop-expanded-companion.png", { fullPage: true });
 
-  await page.getByRole("button", { name: "Progressions" }).click();
-  await expect(dialog).toBeVisible();
-  await page.getByRole("button", { name: "Free Input" }).click();
+  await expect(page.getByRole("heading", { name: "Choose from a preset" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build your own" })).toBeVisible();
   await expect(dialog).toBeVisible();
   await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
   await expect(dialog).toHaveCount(0);
@@ -125,7 +124,7 @@ test.describe("375px HASHER layout", () => {
     });
     const agentRun = page.getByRole("button", { name: "Run progression agent" });
     await expectStacked(prompt, agentRun);
-    const composer = page.getByRole("list", { name: "Chord progression composer" });
+    const composer = page.getByRole("group", { name: "Chord progression composer" });
     const composerRun = page.getByRole("button", { name: "Run chord composer" });
     await expectStacked(composer, composerRun);
     await expectNoDocumentOverflow(page);
@@ -144,9 +143,10 @@ test.describe("375px HASHER layout", () => {
     expect(dialogBox.x).toBeGreaterThanOrEqual(0);
     expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(375);
 
-    await page.getByRole("button", { name: "Progressions" }).click();
     await expectStacked(prompt, agentRun);
     await expect(page.getByText("API ready", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Choose from a preset" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Build your own" })).toBeVisible();
     await expect(dialog).toBeVisible();
     await expectNoDocumentOverflow(page);
     await page.getByRole("button", { name: "Close Hanz Hasher" }).click();

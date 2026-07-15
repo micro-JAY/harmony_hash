@@ -55,7 +55,7 @@ async function settleVisual(page: Page): Promise<void> {
 async function openFretboard(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
 }
 
 test.describe("Fretboard Explorer", () => {
@@ -73,8 +73,8 @@ test.describe("Fretboard Explorer", () => {
     expect(requestedUrls.some((url) => url.includes("cdn.jsdelivr.net"))).toBe(false);
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(false);
     await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
-    const toolTitleStyle = await page.getByRole("heading", { name: "Fretboard Explorer" }).evaluate((element) => {
+    await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
+    const toolTitleStyle = await page.getByRole("heading", { name: "FRET FINDER" }).evaluate((element) => {
       const style = getComputedStyle(element);
       return { family: style.fontFamily, size: Number.parseFloat(style.fontSize), weight: Number(style.fontWeight) };
     });

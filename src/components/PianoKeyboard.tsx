@@ -1,5 +1,6 @@
 import type { PianoDisplayMode, VoicedNote } from "../lib/types";
 import { formatNoteForDisplay } from "../lib/chordData";
+import { useT } from "../i18n/I18nContext";
 import { fretboardIntervalColor } from "./fretboardVisuals";
 
 interface PianoKeyboardProps {
@@ -117,6 +118,7 @@ export default function PianoKeyboard({
   size = "standard",
   colorMode = "hand",
 }: PianoKeyboardProps) {
+  const t = useT();
   const activeSet = new Map<number, VoicedNote>();
   for (const note of voicedNotes) {
     activeSet.set(note.midi, note);
@@ -178,7 +180,7 @@ export default function PianoKeyboard({
       data-color-mode={colorMode}
       data-active-midis={activeMidis.join(",")}
       role="img"
-      aria-label={`Piano voicing: ${voicedNoteLabel || "no notes"}`}
+      aria-label={t(`Piano voicing: ${voicedNoteLabel || "no notes"}`)}
       className="relative mx-auto"
       style={{ width: totalWidth, height: whiteKeyH }}
     >

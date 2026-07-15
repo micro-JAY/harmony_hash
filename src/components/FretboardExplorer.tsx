@@ -117,7 +117,7 @@ export default function FretboardExplorer() {
       <div className="hh-workspace__inner">
         <WorkspaceHeader
           titleId="fretboard-title"
-          title="Fretboard Explorer"
+          title="Fret Finder"
           description="See a scale across the whole instrument. Roots stay gold; interval roles keep the same color wherever they repeat."
         />
 
@@ -276,9 +276,9 @@ export default function FretboardExplorer() {
                   key={`${item.note}-${item.interval}`}
                   className="rounded-full px-2 py-1"
                   style={{
-                    backgroundColor: item.interval === "1" ? "var(--interactive-accent-bg)" : "var(--surface-overlay)",
-                    border: `1px solid ${item.interval === "1" ? "var(--interactive-accent-border)" : "var(--border-subtle)"}`,
-                    color: item.interval === "1" ? "var(--interactive-accent-text)" : "var(--text-secondary)",
+                    backgroundColor: `color-mix(in srgb, ${fretboardIntervalColor(item.semitones)} 10%, var(--surface-overlay))`,
+                    border: `1px solid color-mix(in srgb, ${fretboardIntervalColor(item.semitones)} 42%, var(--border-subtle))`,
+                    color: fretboardIntervalColor(item.semitones),
                     fontFamily: "var(--font-mono)",
                     fontSize: "var(--text-xs)",
                   }}

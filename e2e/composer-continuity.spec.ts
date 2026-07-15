@@ -8,16 +8,20 @@ test.describe("composer and committed timeline continuity", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["C", "G7"]);
 
+    await page.getByRole("button", { name: "Browse chords ↓" }).click();
     const fCell = page.locator('[data-chord-name="F"]');
     await fCell.focus();
     await fCell.press("Enter");
-    const composer = page.getByRole("list", { name: "Chord progression composer" });
-    await expect(composer.getByRole("listitem")).toHaveText(["C", "G7", "F"]);
+    const composer = page.getByRole("group", { name: "Chord progression composer" });
+    const chips = composer.locator("[data-composer-chip-index]");
+    await expect(chips).toHaveText(["C", "G7", "F"]);
 
     const secondCard = page.getByTestId("chord-card").nth(1);
     await secondCard.getByRole("button", { name: "Modify G7" }).focus();
     await secondCard.getByRole("button", { name: "Modify G7" }).press("Enter");
-    const altered = secondCard.getByRole("button", { name: "Change G7 to G7#9" });
+    const altered = page
+      .getByRole("dialog", { name: "Modify G7 chord" })
+      .getByRole("button", { name: "Change G7 to G7#9" });
     await altered.focus();
     await altered.press("Enter");
 
@@ -26,7 +30,7 @@ test.describe("composer and committed timeline continuity", () => {
     });
     await expect(notice).toBeVisible();
     await expect(notice).toHaveAttribute("aria-live", "polite");
-    await expect(composer.getByRole("listitem")).toHaveText(["C", "G7#9"]);
+    await expect(chips).toHaveText(["C", "G7#9"]);
 
     await page.getByRole("button", { name: "Am", exact: true }).click();
     await page.getByRole("button", { name: "Run chord composer" }).click();
@@ -39,13 +43,11 @@ test.describe("composer and committed timeline continuity", () => {
 
   test("extends a preset from its committed chords instead of replacing it", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "Progressions" }).click();
-    await page.getByText("Or pick a preset", { exact: true }).click();
+    await page.getByRole("tab", { name: "Jazz & R&B Fundamentals" }).click();
     await page.getByRole("button", { name: "The 2-5-1 (The King): ii – V – I" }).click();
 
-    await page.getByRole("button", { name: "Free Input" }).click();
-    const composer = page.getByRole("list", { name: "Chord progression composer" });
-    await expect(composer.getByRole("listitem")).toHaveText(["Dm", "G", "C"]);
+    const composer = page.getByRole("group", { name: "Chord progression composer" });
+    await expect(composer.locator("[data-composer-chip-index]")).toHaveText(["Dm", "G", "C"]);
 
     await page.getByRole("button", { name: "Browse chords ↓" }).click();
     await page.getByRole("button", { name: "Am", exact: true }).click();
@@ -65,14 +67,16 @@ test.describe("composer and committed timeline continuity", () => {
     await page.getByRole("button", { name: "FRET FINDER" }).click();
     await page.getByRole("button", { name: "HASHER" }).click();
 
-    const composer = page.getByRole("list", { name: "Chord progression composer" });
-    await expect(composer.getByRole("listitem")).toHaveText([
+    const composer = page.getByRole("group", { name: "Chord progression composer" });
+    await expect(composer.locator("[data-composer-chip-index]")).toHaveText([
       "Cmaj7",
       "Am7",
       "Dm7",
       "G7",
     ]);
-    await composer.getByRole("button", { name: "Remove Dm7 at position 3" }).click();
+    const dm = composer.getByRole("button", { name: "Dm7, position 3 of 4" });
+    await dm.focus();
+    await dm.press("Delete");
     await page.getByRole("button", { name: "Run chord composer" }).click();
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText([
       "Cmaj7",
@@ -88,11 +92,15 @@ test.describe("375px composer continuity", () => {
   test("keeps rebase feedback inside the mobile viewport", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["C", "G7"]);
+    await page.getByRole("button", { name: "Browse chords ↓" }).click();
     await page.locator('[data-chord-name="F"]').click();
 
     const secondCard = page.getByTestId("chord-card").nth(1);
     await secondCard.getByRole("button", { name: "Modify G7" }).click();
-    await secondCard.getByRole("button", { name: "Change G7 to G7#9" }).click();
+    await page
+      .getByRole("dialog", { name: "Modify G7 chord" })
+      .getByRole("button", { name: "Change G7 to G7#9" })
+      .click();
 
     const notice = page.getByText(
       "Composer synced to the latest timeline; your uncommitted grid changes were replaced.",

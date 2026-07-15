@@ -21,8 +21,8 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await expect(nav.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
   await expect(nav.getByRole("button", { name: "チューン・ツールボックス", exact: true })).toBeVisible();
   await expect(nav.getByRole("button", { name: "フレット・ファインダー", exact: true })).toBeVisible();
-  await expect(page.getByRole("group", { name: "ハッシャーの入力モード" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "コード進行を共有" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "ハッシャーのハーモニー設定" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "共有", exact: true })).toBeVisible();
   await expect(page.getByRole("combobox", { name: /ムード/ })).toHaveCount(0);
 
   await page.getByRole("button", { name: "ヘルプ／概要" }).click();
@@ -31,15 +31,16 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await expect(introduction.getByRole("button", { name: "ハッシュを始める" })).toBeVisible();
   await introduction.getByRole("button", { name: "Harmony Hashの紹介を閉じる" }).click();
 
-  await page.getByRole("button", { name: "コード進行を共有" }).click();
+  await page.getByRole("button", { name: "共有", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "このコード進行を共有" })).toBeVisible();
   await expect(page.getByLabel("共有用コード進行リンク")).toBeVisible();
   await page.getByRole("button", { name: "共有パネルを閉じる" }).click();
 
   const card = page.getByTestId("chord-card");
   await card.getByRole("button", { name: "Cmaj7を変更" }).click();
-  await expect(card.getByRole("region", { name: "Cmaj7のコードを変更" })).toBeVisible();
-  await expect(card.getByLabel("クイック・コード変更")).toBeVisible();
+  const modifier = page.getByRole("dialog", { name: "Cmaj7のコードを変更" });
+  await expect(modifier).toBeVisible();
+  await expect(modifier.getByLabel("クイック・コード変更")).toBeVisible();
   await page.keyboard.press("Escape");
 
   await nav.getByRole("button", { name: "チューン・ツールボックス", exact: true }).click();
@@ -78,7 +79,7 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await expect(network.getByLabel("関係の強さの凡例")).toBeVisible();
 
   await nav.getByRole("button", { name: "フレット・ファインダー", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "フレットボード・エクスプローラー", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "フレット・ファインダー", level: 1 })).toBeVisible();
   await expect(page.getByRole("region", { name: "フレットボード設定" })).toBeVisible();
   await expectNoDocumentOverflow(page);
 });

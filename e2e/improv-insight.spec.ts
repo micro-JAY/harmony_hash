@@ -37,7 +37,6 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 
 async function enterProgression(page: Page, value = "Cmaj7 Am7 Dm7 G7") {
   await composeProgression(page, value);
-  await page.getByRole("button", { name: "Progressions" }).click();
   await expect(page.getByRole("button", { name: "IMPROV INSIGHT" })).toHaveAttribute("aria-expanded", "false");
 }
 
@@ -84,9 +83,41 @@ test.describe("IMPROV INSIGHT", () => {
     await expect(cMajor).toContainText("static");
     await expect(cMajor).toContainText("diatonic");
     await expect(cMajor).toContainText("tonal");
-    await page.getByRole("button", { name: "Free Input" }).click();
+    const scaleTitleFont = await cMajor.getByRole("heading", { name: "C Major" }).evaluate(
+      (element) => getComputedStyle(element).fontFamily,
+    );
+    expect(scaleTitleFont).toContain("Zalando Sans");
+    const rootNote = cMajor.locator('[data-note-interval="0"]').first();
+    const majorThird = cMajor.locator('[data-note-interval="4"]').first();
+    await expect(rootNote).toHaveAttribute("data-scale-note", "C");
+    expect(await rootNote.evaluate((element) => getComputedStyle(element).color)).not.toBe(
+      await majorThird.evaluate((element) => getComputedStyle(element).color),
+    );
+    const metadataColors = await cMajor.locator("[data-insight-metadata] dd").evaluateAll(
+      (elements) => elements.map((element) => getComputedStyle(element).color),
+    );
+    expect(new Set(metadataColors).size).toBe(1);
+    const panelBox = await page.getByTestId("improv-insight").locator("#improv-insight-panel").boundingBox();
+    const meterBox = await cMajor.getByRole("meter", { name: "C Major match" }).boundingBox();
+    expect(panelBox?.width).toBeLessThanOrEqual(1152);
+    expect(meterBox?.width).toBeLessThanOrEqual(224);
+
+    await page.getByRole("button", { name: "About Improv Insight vocabulary" }).click();
+    const glossary = page.getByRole("dialog", { name: "About the vocabulary" });
+    await expect(glossary).toContainText("Smooth");
+    await expect(glossary).toContainText("Jumpy");
+    await expect(glossary).toContainText("Rises");
+    await expect(glossary).toContainText("Static");
+    await expect(glossary).toContainText("Falls");
+    await expect(glossary).toContainText("Diatonic");
+    await expect(glossary).toContainText("Chromatic");
+    await expect(glossary).toContainText("Tonal");
+    await expect(glossary).toContainText("Modal");
+    await expect(glossary).toContainText("Blues");
+    await page.getByRole("button", { name: "Close Improv Insight vocabulary" }).click();
+    await expect(page.getByRole("button", { name: "About Improv Insight vocabulary" })).toBeFocused();
+
     await composeProgression(page, "Cmaj7 Dm7 G7#9 Cmaj7");
-    await page.getByRole("button", { name: "Progressions" }).click();
     await openInsight(page);
     await expect(cMajor).toHaveAttribute("data-match", "88");
     const lowerMatchColor = await cMajor.getByText("88%").evaluate((element) => getComputedStyle(element).color);
@@ -128,12 +159,10 @@ test.describe("IMPROV INSIGHT", () => {
 
     const bFlatMajor = page.locator('[data-scale-result="Bb Major"]');
     await expect(bFlatMajor).toBeVisible();
-    await expect(bFlatMajor).toContainText("Bb · C · D · Eb · F · G · A");
+    await expect(bFlatMajor.locator("[data-scale-note]")).toHaveText(["Bb", "C", "D", "Eb", "F", "G", "A"]);
     await expect(page.locator('[data-scale-result="A# Major"]')).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Free Input" }).click();
     await composeProgression(page, "Bfmaj7 Efmaj7 F7");
-    await page.getByRole("button", { name: "Progressions" }).click();
     await openInsight(page);
     await expect(bFlatMajor).toBeVisible();
     await expect(page.locator('[data-scale-result="A# Major"]')).toHaveCount(0);

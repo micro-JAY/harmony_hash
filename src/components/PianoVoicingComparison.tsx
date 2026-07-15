@@ -1,8 +1,10 @@
 import { useId, useMemo, useRef } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, LayoutGrid } from "lucide-react";
 import type { VoicedNote, VoicingStyle } from "../lib/types";
 import { formatNoteForDisplay } from "../lib/chordData";
 import { computeVoicingComparisons } from "../lib/harmonyBrain";
+import { chordFamilyColor } from "../lib/visual/chordFamily";
+import AccessibleDialog from "./AccessibleDialog";
 import PianoKeyboard from "./PianoKeyboard";
 import { useT } from "../i18n/I18nContext";
 
@@ -42,16 +44,16 @@ export default function PianoVoicingComparison({
   onStyleChange,
 }: PianoVoicingComparisonProps) {
   const t = useT();
-  const panelId = useId();
+  const optionDescriptionId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const firstOptionRef = useRef<HTMLButtonElement>(null);
   const comparisons = useMemo(
     () => (expanded ? computeVoicingComparisons(noteNames, priorNotes) : []),
     [expanded, noteNames, priorNotes],
   );
 
-  function closeAndRestoreFocus() {
+  function closeComparison() {
     onExpandedChange(false);
-    triggerRef.current?.focus();
   }
 
   return (
@@ -59,11 +61,11 @@ export default function PianoVoicingComparison({
       <button
         ref={triggerRef}
         type="button"
+        aria-haspopup="dialog"
         aria-expanded={expanded}
-        aria-controls={panelId}
         aria-label={t(`Compare voicings for ${displayName}`)}
-        onClick={() => (expanded ? closeAndRestoreFocus() : onExpandedChange(true))}
-        className="piano-voicing-comparison-motion flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition-all"
+        onClick={() => onExpandedChange(true)}
+        className="flex min-h-10 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition-all"
         style={{
           backgroundColor: expanded
             ? "var(--interactive-accent-bg)"
@@ -77,7 +79,7 @@ export default function PianoVoicingComparison({
           fontWeight: "var(--weight-semibold)",
         }}
       >
-        <span>
+        <span className="min-w-0">
           {t("Compare voicings")}
           <span
             className="ml-2 font-normal"
@@ -86,71 +88,53 @@ export default function PianoVoicingComparison({
             {t("Hear the shape before you choose")}
           </span>
         </span>
-        <ChevronDown
-          data-testid="voicing-comparison-chevron"
-          size={16}
-          aria-hidden="true"
-          className="piano-voicing-comparison-motion"
-          style={{
-            flexShrink: 0,
-            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform var(--duration-fast) var(--ease-out)",
-          }}
-        />
+        <LayoutGrid size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
       </button>
 
       {expanded ? (
-        <section
-          id={panelId}
-          role="region"
-          aria-label={t(`Compare ${displayName} piano voicings`)}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              event.preventDefault();
-              closeAndRestoreFocus();
-            }
-          }}
-          className="mt-2 min-w-0 rounded-lg p-3"
-          style={{
-            backgroundColor: "var(--surface-overlay)",
-            border: "1px solid var(--border-subtle)",
-          }}
-        >
-          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-            <div>
-              <p
-                style={{
-                  color: "var(--text-primary)",
-                  fontFamily: "var(--font-display)",
-                  fontSize: "var(--text-base)",
-                  fontWeight: "var(--weight-semibold)",
-                }}
-              >
-                {t("One chord, different shapes")}
-              </p>
-              <p
-                style={{
-                  color: "var(--text-muted)",
-                  fontFamily: "var(--font-body)",
-                  fontSize: "var(--text-xs)",
-                }}
-              >
-                {t("Color follows interval; note names confirm every choice.")}
-              </p>
-            </div>
-            <span className="readout" style={{ color: "var(--text-muted)" }}>
-              {t(`${comparisons.length} shapes`)}
+        <AccessibleDialog
+          title={(
+            <span style={{ color: chordFamilyColor(displayName) }}>
+              {t(`Compare ${displayName} piano voicings`)}
             </span>
-          </div>
-
+          )}
+          description={(
+            <span className="flex flex-wrap items-center justify-between gap-2">
+              <span>{t("Color follows interval; note names confirm every choice.")}</span>
+              <span className="readout" style={{ color: "var(--text-muted)" }}>
+                {t(`${comparisons.length} shapes`)}
+              </span>
+            </span>
+          )}
+          closeLabel={t("Close piano voicing comparison")}
+          onRequestClose={closeComparison}
+          initialFocusRef={firstOptionRef}
+          returnFocusRef={triggerRef}
+          maxWidth="50rem"
+          footer={(
+            <p
+              className="text-center"
+              style={{
+                color: "var(--text-muted)",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-xs)",
+              }}
+            >
+              {t("Choose a voicing to preview and select. Escape closes this window.")}
+            </p>
+          )}
+        >
           <div
-            data-testid="voicing-comparison-rail"
-            className="flex min-w-0 gap-3 overflow-x-auto pb-2"
-            style={{ overscrollBehaviorX: "contain", scrollSnapType: "x proximity" }}
+            data-testid="voicing-comparison-grid"
+            className="grid min-w-0 gap-3"
+            style={{
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 17rem), 1fr))",
+            }}
           >
-            {comparisons.map(({ style, voicing }) => {
+            {comparisons.map(({ style, voicing }, index) => {
               const active = currentStyle === style;
               const styleLabel = PIANO_STYLE_LABELS[style];
+              const translatedStyleLabel = t(styleLabel);
               const notes = [...voicing.notes]
                 .sort((a, b) => a.midi - b.midi)
                 .map((note) => `${formatNoteForDisplay(note.name, preferFlats)}${note.octave}`)
@@ -158,36 +142,37 @@ export default function PianoVoicingComparison({
 
               return (
                 <button
+                  ref={index === 0 ? firstOptionRef : undefined}
                   key={style}
                   type="button"
                   data-testid="voicing-comparison-option"
                   data-style={style}
                   aria-pressed={active}
-                  aria-describedby={`${panelId}-${style}-notes`}
-                  aria-label={t(`${active ? "Current" : "Use"} ${styleLabel} voicing for ${displayName}`)}
+                  aria-describedby={`${optionDescriptionId}-${style}-notes`}
+                  aria-label={t(`${active ? "Current" : "Use"} ${translatedStyleLabel} voicing for ${displayName}`)}
                   onClick={() => onStyleChange(style)}
-                  className="piano-voicing-comparison-motion flex w-[278px] shrink-0 flex-col gap-3 rounded-lg p-3 text-left transition-all"
+                  className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-lg p-3 text-left transition-all"
                   style={{
                     backgroundColor: active
                       ? "var(--interactive-accent-bg)"
-                      : "var(--surface-raised)",
+                      : "var(--surface-overlay)",
                     border: `1px solid ${active ? "var(--interactive-accent-border)" : "var(--border-subtle)"}`,
                     color: "var(--text-primary)",
-                    scrollSnapAlign: "start",
                   }}
                 >
-                  <span className="flex w-full items-center justify-between gap-2">
+                  <span className="flex w-full min-w-0 items-center justify-between gap-2">
                     <span
+                      className="truncate"
                       style={{
                         fontFamily: "var(--font-display)",
                         fontSize: "var(--text-sm)",
                         fontWeight: "var(--weight-semibold)",
                       }}
                     >
-                      {styleLabel}
+                      {translatedStyleLabel}
                     </span>
                     <span
-                      className="flex items-center gap-1"
+                      className="flex shrink-0 items-center gap-1"
                       style={{
                         color: active ? "var(--text-accent)" : "var(--text-muted)",
                         fontFamily: "var(--font-body)",
@@ -199,17 +184,19 @@ export default function PianoVoicingComparison({
                     </span>
                   </span>
 
-                  <PianoKeyboard
-                    voicedNotes={voicing.notes}
-                    displayMode="notes"
-                    preferFlats={preferFlats}
-                    rootNote={noteNames[0] ?? ""}
-                    size="compact"
-                    colorMode="interval"
-                  />
+                  <div className="w-full min-w-0 overflow-hidden">
+                    <PianoKeyboard
+                      voicedNotes={voicing.notes}
+                      displayMode="notes"
+                      preferFlats={preferFlats}
+                      rootNote={noteNames[0] ?? ""}
+                      size="compact"
+                      colorMode="interval"
+                    />
+                  </div>
 
                   <span
-                    id={`${panelId}-${style}-notes`}
+                    id={`${optionDescriptionId}-${style}-notes`}
                     className="min-h-[2.5em] break-words"
                     style={{
                       color: "var(--text-secondary)",
@@ -223,7 +210,7 @@ export default function PianoVoicingComparison({
               );
             })}
           </div>
-        </section>
+        </AccessibleDialog>
       ) : null}
     </div>
   );

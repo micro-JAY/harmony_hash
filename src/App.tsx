@@ -18,6 +18,7 @@ import type {
   Workspace,
 } from "./lib/types";
 import Header from "./components/Header";
+import GuidedTour, { type GuidedTourStep } from "./components/GuidedTour";
 import OnboardingModal from "./components/OnboardingModal";
 import type { NoteNeuralNetworkState } from "./components/NoteNeuralNetwork";
 import type {
@@ -129,6 +130,12 @@ function App() {
   const [onboardingOpen, setOnboardingOpen] = useState(
     () => !onboardingPersistence.isDismissed(),
   );
+  const [tourOpen, setTourOpen] = useState(false);
+  const tourRestoreRef = useRef<{
+    workspace: Workspace;
+    theoryDisclosures: TheoryDisclosures;
+    seededTimeline: boolean;
+  } | null>(null);
   const [timeline, setTimeline] = useState<Array<TimelineItem<DisplayChord>>>(() =>
     initialShare.status === "valid"
       ? initialShare.share.chords.map(({ input, chord }, index) => ({
@@ -173,7 +180,7 @@ function App() {
     scaleType: "major",
   });
   const [improvOpen, setImprovOpen] = useState(false);
-  const [improvOpenedFromTheory, setImprovOpenedFromTheory] = useState(false);
+  const [improvOrigin, setImprovOrigin] = useState<"builder" | "theory" | null>(null);
   const [improvTheoryContext, setImprovTheoryContext] = useState<{
     readonly root: string;
     readonly scaleId: ScaleFormulaType;
@@ -389,29 +396,35 @@ function App() {
 
   const handleOpenTheoryImprov = useCallback((root: string) => {
     setImprovTheoryContext({ root, scaleId: theoryContext.scaleId });
-    setImprovOpenedFromTheory(true);
+    setImprovOrigin("theory");
     setImprovOpen(true);
-    setWorkspace("builder");
     requestAnimationFrame(() => {
-      document.getElementById("hasher-improv-insight")?.focus();
+      document.getElementById("theory-improv-insight")?.focus();
     });
   }, [theoryContext.scaleId]);
 
-  const handleToggleImprov = useCallback(() => {
-    if (!improvOpen) {
-      setImprovTheoryContext(null);
-      setImprovOpenedFromTheory(false);
-      setImprovOpen(true);
+  const handleCloseImprov = useCallback(() => {
+    const closingOrigin = improvOrigin;
+    setImprovOpen(false);
+    setImprovOrigin(null);
+    requestAnimationFrame(() => {
+      document.getElementById(
+        closingOrigin === "theory"
+          ? "theory-circle-improv-trigger"
+          : "hasher-improv-trigger",
+      )?.focus();
+    });
+  }, [improvOrigin]);
+
+  const handleToggleBuilderImprov = useCallback(() => {
+    if (improvOpen && improvOrigin === "builder") {
+      handleCloseImprov();
       return;
     }
-    setImprovOpen(false);
-    if (!improvOpenedFromTheory) return;
-    setImprovOpenedFromTheory(false);
-    setWorkspace("theory");
-    requestAnimationFrame(() => {
-      document.getElementById("theory-circle-improv-trigger")?.focus();
-    });
-  }, [improvOpen, improvOpenedFromTheory]);
+    setImprovTheoryContext(null);
+    setImprovOrigin("builder");
+    setImprovOpen(true);
+  }, [handleCloseImprov, improvOpen, improvOrigin]);
 
   const theoryActive = workspace === "theory"
     || workspace === "circle"
@@ -642,6 +655,141 @@ function App() {
     setOnboardingOpen(false);
   }, []);
 
+  const guidedTourSteps = useMemo<readonly GuidedTourStep[]>(() => [
+    {
+      id: "workspaces",
+      targetSelector: '[data-tour="workspace-navigation"]',
+      title: t("Choose a workspace"),
+      body: t("HASHER builds progressions, TUNE TOOLBOX connects the theory, and FRET FINDER maps the result across the instrument."),
+    },
+    {
+      id: "instrument",
+      targetSelector: '[data-tour="instrument-switcher"]',
+      title: t("Choose your instrument"),
+      body: t("Switch between guitar and piano without rebuilding your progression. The same chord timeline drives both views."),
+    },
+    {
+      id: "context",
+      targetSelector: '[data-tour="hasher-context"]',
+      title: t("Set the harmonic context"),
+      body: t("Choose a key and mode once. Presets, chord suggestions, and analysis all follow that shared context."),
+    },
+    {
+      id: "presets",
+      targetSelector: '[data-tour="hasher-presets"]',
+      title: t("Start with a preset"),
+      body: t("Pick a proven progression, then keep editing it just like one you built yourself."),
+    },
+    {
+      id: "describe",
+      targetSelector: '[data-tour="hasher-describe"]',
+      title: t("Describe what you hear"),
+      body: t("Describe a mood or progression and run the builder. If you get stuck, the small help prompt is the only place to call Hanz."),
+    },
+    {
+      id: "composer",
+      targetSelector: '[data-tour="hasher-composer"]',
+      title: t("Build chord by chord"),
+      body: t("Type a valid chord and press Enter, click a chord below to append it, or drag chips to place and reorder them."),
+    },
+    {
+      id: "browser",
+      targetSelector: '[data-tour="hasher-chord-browser"]',
+      title: t("Browse the chord dictionary"),
+      body: t("Open BROWSE CHORDS for dictionary-valid choices. Suggestions and colors show how each chord relates to your context."),
+    },
+    {
+      id: "cards",
+      targetSelector: '[data-tour="chord-output"]',
+      title: t("Shape each chord"),
+      body: t("Each card renders the same chord for guitar or piano. Lock the voices you want to preserve and use MODIFY for alternatives."),
+    },
+    {
+      id: "playback",
+      targetSelector: '[data-tour="hasher-actions"]',
+      title: t("Play what you build"),
+      body: t("Use PLAY to hear the full progression. RANDOMIZE (UNLOCKED VOICES) gives unlocked guitar variants or piano voicings a fresh performance without changing your chords."),
+    },
+    {
+      id: "circle",
+      targetSelector: '[data-testid="circle-of-fifths"]',
+      title: t("Explore the Circle of Fifths"),
+      body: t("Compare neighboring keys, borrow a progression, or open IMPROV INSIGHT without leaving TUNE TOOLBOX."),
+    },
+    {
+      id: "scales",
+      targetSelector: '[data-testid="scale-synthesia"]',
+      title: t("See a scale on the keyboard"),
+      body: t("SCALE SYNTHESIA names each degree, shows its color, and can send a compatible root and mode back to HASHER."),
+    },
+    {
+      id: "network",
+      targetSelector: '[data-testid="note-neural-network"]',
+      title: t("Connect the note network"),
+      body: t("NOTE NEURAL NETWORK makes relative, parallel, and neighboring scale relationships visible and keeps the shared theory context in sync."),
+    },
+    {
+      id: "fretboard",
+      targetSelector: '[data-testid="fretboard-workspace"]',
+      title: t("Map the fretboard"),
+      body: t("FRET FINDER maps the selected scale from open strings through the highest visible fret, with stable interval colors and responsive detail."),
+    },
+    {
+      id: "handoff",
+      targetSelector: '[data-tour="workspace-navigation"]',
+      title: t("Carry ideas between tools"),
+      body: t("Move between HASHER, TUNE TOOLBOX, and FRET FINDER without losing your key, mode, or progression. Send a scale or chord idea back to the workspace where you need it."),
+    },
+  ], [t]);
+
+  const handleBeforeTourStep = useCallback((step: GuidedTourStep) => {
+    if (step.id === "circle" || step.id === "scales" || step.id === "network") {
+      setWorkspace("theory");
+      setTheoryDisclosures((current) => ({
+        ...current,
+        [step.id]: true,
+      }));
+      return;
+    }
+    if (step.id === "fretboard") {
+      setWorkspace("fretboard");
+      return;
+    }
+    setWorkspace("builder");
+  }, []);
+
+  const handleStartTour = useCallback(() => {
+    const seededTimeline = chordsRef.current.length === 0;
+    tourRestoreRef.current = {
+      workspace,
+      theoryDisclosures,
+      seededTimeline,
+    };
+
+    if (seededTimeline) {
+      const demoChords = ["Cmaj7", "Am7", "Dm7", "G7"].map((input) => {
+        const chord = lookupChord(input);
+        if (!chord) throw new Error(`Guided tour chord is unavailable: ${input}`);
+        return { input, chord };
+      });
+      handleResult(demoChords, []);
+    }
+
+    onboardingPersistence.dismiss();
+    setOnboardingOpen(false);
+    setTourOpen(true);
+  }, [handleResult, theoryDisclosures, workspace]);
+
+  const handleCloseTour = useCallback(() => {
+    const restore = tourRestoreRef.current;
+    tourRestoreRef.current = null;
+    setTourOpen(false);
+    if (!restore) return;
+    setWorkspace(restore.workspace);
+    setTheoryDisclosures(restore.theoryDisclosures);
+    if (restore.seededTimeline) handleResult([], []);
+  }, [handleResult]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header
@@ -726,6 +874,25 @@ function App() {
                 onUseScaleInHasher={handleUseScaleInHasher}
                 onOpenImprov={handleOpenTheoryImprov}
               />
+              {improvOpen && improvOrigin === "theory" ? (
+                <section
+                  id="theory-improv-insight"
+                  tabIndex={-1}
+                  className="mx-auto w-full max-w-6xl px-4 pb-6"
+                >
+                  <ImprovInsight
+                    chords={chords}
+                    moodId={null}
+                    theoryContext={improvTheoryContext}
+                    expanded
+                    hideTrigger
+                    onExpandedChange={(expanded) => {
+                      if (!expanded) handleCloseImprov();
+                    }}
+                    onClose={handleCloseImprov}
+                  />
+                </section>
+              ) : null}
             </Suspense>
           </div>
 
@@ -735,6 +902,7 @@ function App() {
             aria-label={t("Progression actions")}
             data-hasher-key={hasherContext.key}
             data-hasher-mode={hasherContext.scaleType}
+            data-tour="hasher-actions"
           >
             <div className="w-full flex flex-col items-stretch justify-center gap-3 md:flex-row md:flex-wrap md:items-start">
               {workspace === "builder" && (
@@ -758,7 +926,7 @@ function App() {
                       e.currentTarget.style.backgroundColor = "var(--interactive-warm-bg)";
                     }}
                   >
-                    {t(instrument === "guitar" ? "Randomize All Variants" : "Randomize All Voicings")}
+                    {t("RANDOMIZE (UNLOCKED VOICES)")}
                   </button>
 
                   <button
@@ -788,51 +956,34 @@ function App() {
                       }}
                     >
                       {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-                      {t(isPlaybackStarting ? "Starting…" : isPlaying ? "Stop" : "Play progression")}
+                      {t(isPlaybackStarting ? "Starting…" : isPlaying ? "STOP" : "PLAY")}
                     </button>
 
                   <ShareProgression instrument={instrument} chords={chords} />
 
                   <button
+                    id="hasher-improv-trigger"
                     type="button"
-                    aria-expanded={improvOpen}
+                    aria-expanded={improvOpen && improvOrigin === "builder"}
                     aria-controls="hasher-improv-insight"
-                    onClick={handleToggleImprov}
+                    onClick={handleToggleBuilderImprov}
                     className="hh-action transition-all"
                     style={{
-                      backgroundColor: improvOpen
-                        ? "var(--interactive-academy-bg-hover)"
-                        : "var(--interactive-academy-bg)",
-                      color: "var(--interactive-academy-text)",
-                      border: "1px solid var(--interactive-academy-border)",
+                      backgroundColor: "var(--music-insight-action-bg)",
+                      color: "var(--music-insight-action-text)",
+                      border: "1px solid var(--music-insight-action-border)",
                       fontWeight: "var(--weight-medium)",
                     }}
                   >
                     {t("Improv Insight")}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleRequestVoice}
-                    onPointerEnter={ensureVoiceRuntime}
-                    onFocus={ensureVoiceRuntime}
-                    className="hh-action transition-all"
-                    style={{
-                      backgroundColor: "var(--interactive-secondary-bg)",
-                      color: "var(--interactive-secondary-text)",
-                      border: "1px solid var(--interactive-secondary-border)",
-                      fontWeight: "var(--weight-medium)",
-                    }}
-                  >
-                    {t("Hanz")}
                   </button>
                 </div>
               )}
             </div>
           </section>
 
-          {workspace === "builder" && improvOpen && (chords.length > 0 || improvOpenedFromTheory) ? (
-            <section id="hasher-improv-insight" tabIndex={-1} className="mx-auto w-full max-w-7xl px-4">
+          {workspace === "builder" && improvOpen && improvOrigin === "builder" && chords.length > 0 ? (
+            <section id="hasher-improv-insight" tabIndex={-1} className="mx-auto w-full max-w-6xl px-4">
               <Suspense fallback={<span className="readout">{t("Loading Improv Insight…")}</span>}>
                 <ImprovInsight
                   chords={chords}
@@ -840,8 +991,10 @@ function App() {
                   theoryContext={improvTheoryContext}
                   expanded
                   hideTrigger
-                  onExpandedChange={setImprovOpen}
-                  onClose={handleToggleImprov}
+                  onExpandedChange={(expanded) => {
+                    if (!expanded) handleCloseImprov();
+                  }}
+                  onClose={handleCloseImprov}
                 />
               </Suspense>
             </section>
@@ -851,6 +1004,7 @@ function App() {
           <section
             className="mx-auto w-full max-w-[96rem] px-4"
             aria-label={t("Chord cards output")}
+            data-tour="chord-output"
           >
             <div className="hh-chord-card-grid" data-instrument={instrument}>
               {chords.map((chordResult, index) => {
@@ -899,7 +1053,7 @@ function App() {
           )}
 
           {workspace === "builder" && chords.length === 0 && (
-          <div className="flex min-h-28 items-center justify-center px-4">
+          <div data-tour="chord-output" className="flex min-h-28 items-center justify-center px-4">
             <p
               className="text-center max-w-md"
               style={{ color: "var(--text-muted)", fontSize: "var(--text-base)" }}
@@ -937,7 +1091,9 @@ function App() {
           description={t("Interactive chord explorer. Discover harmony across keys and modes.")}
           closeLabel={t("Close Harmony Hash introduction")}
           primaryActionLabel={t("START HASHING")}
+          secondaryActionLabel={t("Show me around")}
           onRequestClose={handleOnboardingClose}
+          onSecondaryAction={handleStartTour}
           returnFocusRef={helpButtonRef}
           visual={(
             <img
@@ -973,6 +1129,21 @@ function App() {
           </section>
         </OnboardingModal>
       ) : null}
+      <GuidedTour
+        open={tourOpen}
+        steps={guidedTourSteps}
+        labels={{
+          tour: t("Guided tour"),
+          close: t("Close guided tour"),
+          previous: t("Previous"),
+          next: t("Next"),
+          finish: t("Finish tour"),
+          step: (current, total) => `${t("Step")} ${current} / ${total}`,
+        }}
+        onBeforeStep={handleBeforeTourStep}
+        onRequestClose={handleCloseTour}
+        returnFocusRef={helpButtonRef}
+      />
       </div>
   );
 }

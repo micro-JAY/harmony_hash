@@ -24,13 +24,13 @@ async function openFreeInputGrid(page: Page): Promise<void> {
   await expect(page.getByTestId("chord-grid-panel")).toBeVisible();
 }
 
-test.describe("Free Input harmonic suggestions", () => {
+test.describe("HASHER harmonic suggestions", () => {
   // The first preview navigation can exceed one minute when Vite serves the
   // initial bundle cold from the external volume. Interaction latency remains
   // independently constrained to 500ms below.
   test.describe.configure({ timeout: 90_000 });
 
-  test("scores every chord cell and keeps Free Input context independent", async ({ page }) => {
+  test("scores every chord cell and keeps the unified HASHER context", async ({ page }) => {
     const browserIssues = collectBrowserIssues(page);
     await page.route("**/api/health", async (route) => {
       await route.fulfill({
@@ -45,8 +45,8 @@ test.describe("Free Input harmonic suggestions", () => {
     });
     await openFreeInputGrid(page);
 
-    const freeKey = page.getByRole("combobox", { name: "Free Input key" });
-    const freeMode = page.getByRole("combobox", { name: "Free Input mode" });
+    const freeKey = page.getByRole("combobox", { name: "HASHER key" });
+    const freeMode = page.getByRole("combobox", { name: "HASHER mode" });
     await expect(freeKey).toHaveValue("C");
     await expect(freeMode).toHaveValue("major");
     await expect(freeMode.locator("option")).toHaveCount(7);
@@ -71,24 +71,15 @@ test.describe("Free Input harmonic suggestions", () => {
     ].map((locator) => locator.getByText(/%$/).evaluate((element) => getComputedStyle(element).color)));
     expect(new Set(fitColors).size).toBe(3);
     await dMinorSeven.click();
-    await expect(page.getByRole("list", { name: "Chord progression composer" })).toContainText("Dm7");
+    await expect(page.getByRole("group", { name: "Chord progression composer" })).toContainText("Dm7");
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
 
     await freeKey.selectOption("D");
     await freeMode.selectOption("dorian");
     await expect(page.getByTestId("suggestion-summary")).toHaveText("Key fit in D Dorian");
 
-    await page.getByRole("button", { name: "Progressions" }).click();
-    await page.getByText("Or pick a preset", { exact: true }).click();
-    const presetKey = page.getByRole("combobox", { name: "Progression key" });
-    await presetKey.selectOption("E");
-
-    await page.getByRole("button", { name: "Free Input" }).click();
     await expect(freeKey).toHaveValue("D");
     await expect(freeMode).toHaveValue("dorian");
-    await page.getByRole("button", { name: "Progressions" }).click();
-    await page.getByText("Or pick a preset", { exact: true }).click();
-    await expect(presetKey).toHaveValue("E");
     expect(browserIssues).toEqual([]);
   });
 
@@ -117,9 +108,9 @@ test.describe("Free Input harmonic suggestions", () => {
     await cMajorSeven.focus();
     await cMajorSeven.press("Enter");
     await expect(page.locator('button[data-chord-name="Cmaj7"]')).toBeFocused();
-    const composer = page.getByRole("list", { name: "Chord progression composer" });
-    await expect(composer.getByRole("button", { name: "Remove G7 at position 1" })).toBeVisible();
-    await expect(composer.getByRole("button", { name: "Remove Cmaj7 at position 2" })).toBeVisible();
+    const composer = page.getByRole("group", { name: "Chord progression composer" });
+    await expect(composer.getByRole("button", { name: "G7, position 1 of 2" })).toBeVisible();
+    await expect(composer.getByRole("button", { name: "Cmaj7, position 2 of 2" })).toBeVisible();
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
 
     await page.getByRole("button", { name: "Run chord composer" }).click();
@@ -129,8 +120,15 @@ test.describe("Free Input harmonic suggestions", () => {
 
     await page.getByRole("button", { name: "Piano" }).click();
     await expect(page.getByTestId("chord-grid-panel")).toBeVisible();
-    await expect(page.getByTestId("chord-card").first().getByText("Fingering")).toBeVisible();
+    const firstPianoCard = page.getByTestId("chord-card").first();
+    await expect(firstPianoCard.getByRole("button", { name: "Fingering", exact: true })).toHaveCount(0);
+    await expect(firstPianoCard.getByRole("button", { name: "Intervals", exact: true })).toHaveCount(0);
+    await expect(firstPianoCard.getByRole("button", { name: "Notes", exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "Guitar" }).click();
+    await expect(page.getByTestId("chord-card").first().getByRole("button", {
+      name: "Fingering",
+      exact: true,
+    })).toBeVisible();
     await expect(page.getByTestId("chord-grid-panel")).toBeVisible();
     expect(browserIssues).toEqual([]);
   });
@@ -185,7 +183,7 @@ test.describe("Free Input harmonic suggestions", () => {
     await expect(tonicResolution).toBeVisible();
 
     const startedAt = await page.evaluate(() => performance.now());
-    await page.getByRole("combobox", { name: "Free Input key" }).selectOption("D");
+    await page.getByRole("combobox", { name: "HASHER key" }).selectOption("D");
     await expect(page.getByTestId("suggestion-summary")).toHaveText(
       "Jazz movement after G7 in D major",
     );
@@ -229,18 +227,18 @@ test.describe("Free Input harmonic suggestions", () => {
     ]);
     expect(tonicFill).not.toBe(dorianFill);
 
-    await page.getByRole("combobox", { name: "Free Input key" }).selectOption("D");
-    await page.getByRole("combobox", { name: "Free Input mode" }).selectOption("dorian");
+    await page.getByRole("combobox", { name: "HASHER key" }).selectOption("D");
+    await page.getByRole("combobox", { name: "HASHER mode" }).selectOption("dorian");
     await expect(dorian).toHaveAttribute("data-modal-id", "dorian");
     await expect(dorian).toHaveAttribute("data-modal-degree", "1");
     await expect(dorian).toContainText("M1");
     expect(await dorian.evaluate((element) => (element as HTMLElement).style.background))
       .toBe(dorianFill);
 
-    await page.getByRole("combobox", { name: "Free Input key" }).selectOption("A");
+    await page.getByRole("combobox", { name: "HASHER key" }).selectOption("A");
     await expect(page.getByTestId("suggestion-summary")).toContainText("A Dorian");
     const startedAt = await page.evaluate(() => performance.now());
-    await page.getByRole("combobox", { name: "Free Input mode" }).selectOption("harmonic_minor");
+    await page.getByRole("combobox", { name: "HASHER mode" }).selectOption("harmonic_minor");
     await expect(page.getByTestId("suggestion-summary")).toHaveText(
       "Modal roots across A harmonic minor · fill maps root modes; % tracks chord-tone fit.",
     );
@@ -346,17 +344,14 @@ test.describe("Free Input harmonic suggestions", () => {
     expect(browserIssues).toEqual([]);
   });
 
-  test("supports logical Tab order through context, modes, filters, and cells", async ({ page }) => {
+  test("supports keyboard focus through context, modes, filters, and cells", async ({ page }) => {
     const browserIssues = collectBrowserIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    const freeKey = page.getByRole("combobox", { name: "Free Input key" });
-    const freeMode = page.getByRole("combobox", { name: "Free Input mode" });
+    const freeKey = page.getByRole("combobox", { name: "HASHER key" });
+    const freeMode = page.getByRole("combobox", { name: "HASHER mode" });
     const browse = page.getByRole("button", { name: /Browse chords/ });
 
-    await browse.focus();
-    await expect(browse).toBeFocused();
-    await browse.press("Enter");
-    await page.keyboard.press("Tab");
+    await freeKey.focus();
     await expect(freeKey).toBeFocused();
     await expect
       .poll(async () =>
@@ -376,8 +371,13 @@ test.describe("Free Input harmonic suggestions", () => {
         }),
       )
       .toMatch(/^solid\|2px\|(?!rgba?\(0, 0, 0, 0\)|transparent).+$/);
-    await page.keyboard.press("Tab");
-    await expect(page.getByRole("button", { name: "Off chord suggestions" })).toBeFocused();
+
+    await browse.focus();
+    await expect(browse).toBeFocused();
+    await browse.press("Enter");
+    const offMode = page.getByRole("button", { name: "Off chord suggestions" });
+    await offMode.focus();
+    await expect(offMode).toBeFocused();
     await page.keyboard.press("Tab");
     const keyMode = page.getByRole("button", { name: "Key chord suggestions" });
     await expect(keyMode).toBeFocused();
@@ -400,7 +400,7 @@ test.describe("Free Input harmonic suggestions", () => {
     await expect(firstChord).toBeFocused();
     await firstChord.press("Enter");
     await expect(firstChord).toBeFocused();
-    await expect(page.getByRole("list", { name: "Chord progression composer" })).toContainText("C");
+    await expect(page.getByRole("group", { name: "Chord progression composer" })).toContainText("C");
     expect(browserIssues).toEqual([]);
   });
 });

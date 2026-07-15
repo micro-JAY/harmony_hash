@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
 import { AudioLines, Lock, Unlock } from "lucide-react";
-import type { Instrument } from "../lib/types";
-import { useT } from "../i18n/I18nContext";
+import { useLocale, useT } from "../i18n/I18nContext";
 
 interface ChordCardFrameProps {
-  instrument: Instrument;
-  comparisonOpen: boolean;
   displayName: string;
+  titleColor: string;
   usageNotes?: string;
   isLocked: boolean;
   onToggleLock: () => void;
@@ -16,9 +14,8 @@ interface ChordCardFrameProps {
 }
 
 export default function ChordCardFrame({
-  instrument,
-  comparisonOpen,
   displayName,
+  titleColor,
   usageNotes,
   isLocked,
   onToggleLock,
@@ -27,12 +24,15 @@ export default function ChordCardFrame({
   children,
 }: ChordCardFrameProps) {
   const t = useT();
+  const { locale } = useLocale();
+  const localizedUsageNotes = usageNotes
+    ?.split(",")
+    .map((note) => t(note.trim()))
+    .join(locale === "ja" ? "、" : ", ");
   return (
     <div
       data-testid="chord-card"
-      className={`relative flex w-full min-w-0 max-w-full flex-col items-center overflow-hidden rounded-xl ${
-        instrument === "piano" && comparisonOpen ? "col-span-full" : ""
-      }`}
+      className="relative flex w-full min-w-0 max-w-full flex-col items-center overflow-hidden rounded-xl"
       data-playing={isPlaying ? "true" : undefined}
       data-agent-highlighted={isAgentHighlighted ? "true" : undefined}
       style={{
@@ -78,7 +78,7 @@ export default function ChordCardFrame({
           className="text-lg font-semibold"
           style={{
             fontFamily: "var(--font-display)",
-            color: "var(--text-primary)",
+            color: titleColor,
             fontWeight: "var(--weight-semibold)",
           }}
         >
@@ -104,12 +104,12 @@ export default function ChordCardFrame({
             {t("Hanz focus")}
           </span>
         )}
-        {usageNotes && (
+        {localizedUsageNotes && (
           <p
             className="text-xs mt-0.5"
             style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
           >
-            {usageNotes}
+            {localizedUsageNotes}
           </p>
         )}
       </div>

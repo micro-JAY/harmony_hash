@@ -26,9 +26,11 @@ interface OnboardingModalProps {
   description?: string;
   closeLabel: string;
   primaryActionLabel: string;
+  secondaryActionLabel?: string;
   visual: ReactNode;
   children: ReactNode;
   onRequestClose: (reason: OnboardingCloseReason) => void;
+  onSecondaryAction?: () => void;
   returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
@@ -67,9 +69,11 @@ export default function OnboardingModal({
   description,
   closeLabel,
   primaryActionLabel,
+  secondaryActionLabel,
   visual,
   children,
   onRequestClose,
+  onSecondaryAction,
   returnFocusRef,
 }: OnboardingModalProps) {
   const titleId = useId();
@@ -209,14 +213,25 @@ export default function OnboardingModal({
                   {description}
                 </p>
               ) : null}
-              <button
-                ref={primaryActionRef}
-                type="button"
-                onClick={() => onRequestClose("primary-action")}
-                className="hh-action hh-onboarding-primary"
-              >
-                {primaryActionLabel}
-              </button>
+              <div className="hh-onboarding-actions">
+                <button
+                  ref={primaryActionRef}
+                  type="button"
+                  onClick={() => onRequestClose("primary-action")}
+                  className="hh-action hh-onboarding-primary"
+                >
+                  {primaryActionLabel}
+                </button>
+                {secondaryActionLabel && onSecondaryAction ? (
+                  <button
+                    type="button"
+                    onClick={onSecondaryAction}
+                    className="hh-action hh-onboarding-secondary"
+                  >
+                    {secondaryActionLabel}
+                  </button>
+                ) : null}
+              </div>
             </header>
           </div>
           <div className="hh-onboarding-destinations">{children}</div>

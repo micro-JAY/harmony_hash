@@ -25,7 +25,6 @@ test.describe("Theory mood lens separation", () => {
     await page.getByRole("button", { name: "Key chord suggestions" }).click();
     await expect(page.locator('[data-chord-name="C"]')).toHaveAttribute("data-fit-score", "100");
 
-    await page.getByRole("button", { name: "Progressions" }).click();
     await expect(page.getByTestId("mood-filter")).toHaveCount(0);
     await expect(page.getByRole("combobox", { name: /Mood/ })).toHaveCount(0);
     expect(issues).toEqual([]);

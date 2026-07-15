@@ -189,6 +189,20 @@
   --music-interval-flat-7:  #A8CC72;
   --music-interval-major-7: #F2A36F;
 
+  /* Harmony Hash chord families use one stable color language everywhere.
+     Dominants stay deliberately deeper than the softer supporting families. */
+  --music-chord-major:      #A7D9B2;
+  --music-chord-minor:      #F0B17A;
+  --music-chord-dominant:   #E2525F;
+  --music-chord-sus:        #F4D889;
+  --music-chord-diminished: #F0B4CF;
+  --music-chord-augmented:  var(--palette-white);
+
+  /* IMPROV INSIGHT uses a pale pink action cue rather than HASHER blue/gold. */
+  --music-insight-action-bg:     #F7EAF0;
+  --music-insight-action-text:   #241B20;
+  --music-insight-action-border: #FFF4F8;
+
 
   /* ----------------------------------------------------------
      TYPOGRAPHY

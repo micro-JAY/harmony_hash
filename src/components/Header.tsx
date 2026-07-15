@@ -52,6 +52,7 @@ export default function Header({
 
       <nav
         aria-label={t("Workspace")}
+        data-tour="workspace-navigation"
         data-reduced-motion={reduceMotion ? "true" : "false"}
         className="order-3 flex w-full justify-center gap-1 rounded-full p-1 lg:order-none lg:w-auto"
         style={{ backgroundColor: "var(--surface-overlay)" }}
@@ -119,10 +120,12 @@ export default function Header({
         </div>
 
         {workspace === "builder" && (
-          <InstrumentToggle
-            instrument={instrument}
-            onInstrumentChange={onInstrumentChange}
-          />
+          <div data-tour="instrument-switcher">
+            <InstrumentToggle
+              instrument={instrument}
+              onInstrumentChange={onInstrumentChange}
+            />
+          </div>
         )}
       </div>
     </header>

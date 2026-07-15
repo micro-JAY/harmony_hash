@@ -20,6 +20,10 @@ import type {
 import type { ScaleType } from "../lib/types";
 import { fretboardIntervalColor } from "./fretboardVisuals";
 import { useT } from "../i18n/I18nContext";
+import {
+  chordFamilyColor,
+  classifyChordFamily,
+} from "../lib/visual/chordFamily";
 
 export type SuggestionMode = "off" | "key" | "next" | "jazz" | "modal";
 
@@ -541,25 +545,32 @@ export default function ChordReferenceGrid({
               >
                 {/* Header Row: empty corner + quality labels */}
                 <div />
-                {visibleQualities.map((q) => (
-                  <div
-                    key={q.label}
-                    style={{
-                      fontSize: "var(--text-xs)",
-                      padding: "var(--space-1) var(--space-2)",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-default)",
-                      background: "var(--surface-raised)",
-                      color: "var(--text-muted)",
-                      fontFamily: "var(--font-mono)",
-                      letterSpacing: "0.02em",
-                      textAlign: "center",
-                      userSelect: "none",
-                    }}
-                  >
-                    {q.label}
-                  </div>
-                ))}
+                {visibleQualities.map((q) => {
+                  const probe = lookupChord(q.suffix === "" ? "C" : `C${q.suffix}`);
+                  const family = classifyChordFamily(probe ?? q.label);
+                  const familyColor = chordFamilyColor(family);
+                  return (
+                    <div
+                      key={q.label}
+                      data-chord-family={family}
+                      style={{
+                        fontSize: "var(--text-xs)",
+                        padding: "var(--space-1) var(--space-2)",
+                        borderRadius: "var(--radius-sm)",
+                        border: `1px solid color-mix(in srgb, ${familyColor} 42%, var(--border-default))`,
+                        background: `color-mix(in srgb, ${familyColor} 8%, var(--surface-raised))`,
+                        color: familyColor,
+                        fontFamily: "var(--font-mono)",
+                        fontWeight: "var(--weight-semibold)",
+                        letterSpacing: "0.02em",
+                        textAlign: "center",
+                        userSelect: "none",
+                      }}
+                    >
+                      {q.label}
+                    </div>
+                  );
+                })}
 
                 {/* Data Rows */}
                 {ROOTS.map((root) => {

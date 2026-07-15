@@ -11,7 +11,9 @@ describe("OnboardingModal", () => {
         description="Interactive chord explorer. Discover harmony across keys and modes."
         closeLabel="Close Harmony Hash introduction"
         primaryActionLabel="START HASHING"
+        secondaryActionLabel="Show me around"
         onRequestClose={() => undefined}
+        onSecondaryAction={() => undefined}
         visual={<img src="/hh_logo.png" alt="" />}
       >
         <p>HASHER, TUNE TOOLBOX, and FRET FINDER work together.</p>
@@ -26,6 +28,7 @@ describe("OnboardingModal", () => {
     expect(markup).toContain('data-onboarding-scroll-region="true"');
     expect(markup).toContain("max-height:calc(100dvh - (2 * var(--space-4)))");
     expect(markup).toContain("START HASHING");
+    expect(markup).toContain("Show me around");
     expect(markup).toContain('/hh_logo.png');
   });
 

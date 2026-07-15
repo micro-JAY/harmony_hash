@@ -3,7 +3,6 @@ import type {
   Instrument,
   IndexedChord,
   GuitarDisplayMode,
-  PianoDisplayMode,
   VoicedChord,
   VoicingStyle,
 } from "../lib/types";
@@ -18,6 +17,7 @@ import PianoVoicingComparison, { PIANO_STYLE_OPTIONS } from "./PianoVoicingCompa
 import { useT } from "../i18n/I18nContext";
 import type { GuitarMidiVoicing } from "../lib/guitarPlayback";
 import type { HarmonyContext } from "../lib/theory";
+import { chordFamilyColor } from "../lib/visual/chordFamily";
 
 interface ChordCardProps {
   chord: IndexedChord;
@@ -82,7 +82,6 @@ export default function ChordCard({
   const maxVariants = chord.variationCount;
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
   const [guitarDisplay, setGuitarDisplay] = useState<GuitarDisplayMode>("fingering");
-  const [pianoDisplay, setPianoDisplay] = useState<PianoDisplayMode>("notes");
   const [comparisonOpen, setComparisonOpen] = useState(false);
 
   function prevVariant() {
@@ -98,14 +97,18 @@ export default function ChordCard({
   }
 
   const noteNames = useMemo(() => parseNotes(chord.entry), [chord.entry]);
+  const availablePianoStyles = useMemo(
+    () => PIANO_STYLE_OPTIONS.filter((option) => isVoicingStyleAvailable(noteNames, option.value)),
+    [noteNames],
+  );
   const preferFlats = prefersFlatNotation(extractDisplayRoot(displayName));
   const formattedNoteNames = noteNames.map((noteName) => formatNoteForDisplay(noteName, preferFlats));
+  const voicingTypeLabel = VOICING_TYPE_LABEL[voicing.voicingType];
 
   return (
     <ChordCardFrame
-      instrument={instrument}
-      comparisonOpen={comparisonOpen}
       displayName={displayName}
+      titleColor={chordFamilyColor(chord)}
       usageNotes={chord.entry["Usage Notes"]}
       isLocked={isLocked}
       onToggleLock={onToggleLock}
@@ -114,19 +117,22 @@ export default function ChordCard({
     >
       {/* Visualization */}
       <div className="flex w-full min-w-0 flex-col items-center gap-2 p-4">
-        <ChordModifier
-          chord={chord}
-          displayName={displayName}
-          onSelect={onChordChange}
-          context={harmonyContext}
-          selectedIndex={timelineIndex ?? 0}
-          timeline={timelineChords ?? [chord]}
-        />
         {instrument === "guitar" ? (
-          <>
-            {/* Guitar display mode toggle */}
+          <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0 flex-1 basis-20">
+              <ChordModifier
+                chord={chord}
+                displayName={displayName}
+                onSelect={onChordChange}
+                context={harmonyContext}
+                selectedIndex={timelineIndex ?? 0}
+                timeline={timelineChords ?? [chord]}
+              />
+            </div>
             <div
-              className="flex rounded-full p-0.5 self-end"
+              role="group"
+              aria-label={t(`Guitar labels for ${displayName}`)}
+              className="flex shrink-0 rounded-full p-0.5"
               style={{
                 backgroundColor: "var(--surface-overlay)",
                 border: "1px solid var(--border-subtle)",
@@ -140,7 +146,7 @@ export default function ChordCard({
                     type="button"
                     aria-pressed={active}
                     onClick={() => setGuitarDisplay(mode)}
-                    className="px-2.5 py-1 text-xs rounded-full transition-all"
+                    className="rounded-full px-2.5 py-1 text-xs transition-all"
                     style={{
                       backgroundColor: active
                         ? "var(--interactive-accent-bg)"
@@ -162,7 +168,19 @@ export default function ChordCard({
                 );
               })}
             </div>
-
+          </div>
+        ) : (
+          <ChordModifier
+            chord={chord}
+            displayName={displayName}
+            onSelect={onChordChange}
+            context={harmonyContext}
+            selectedIndex={timelineIndex ?? 0}
+            timeline={timelineChords ?? [chord]}
+          />
+        )}
+        {instrument === "guitar" ? (
+          <>
             {chord.svgBasePath ? (
               <GuitarChordDiagram
                 chord={chord}
@@ -239,34 +257,32 @@ export default function ChordCard({
           </>
         ) : (
           <>
-            {/* Piano voicing-style toggle (v3): Auto / Drop 2 / Drop 3 / Rootless / Shell */}
+            {/* Only styles with an in-range voicing are useful choices for this chord. */}
             <div
-              className="flex flex-wrap rounded-full p-0.5 self-end gap-0.5"
+              role="group"
+              aria-label={t(`Piano voicing style for ${displayName}`)}
+              className="flex w-full flex-wrap items-center justify-start gap-1 rounded-lg p-1"
               style={{
                 backgroundColor: "var(--surface-overlay)",
                 border: "1px solid var(--border-subtle)",
               }}
             >
-              {PIANO_STYLE_OPTIONS.map((opt) => {
-                const applicable = isVoicingStyleAvailable(noteNames, opt.value);
+              {availablePianoStyles.map((opt) => {
                 const active = pianoStyle === opt.value;
                 return (
                   <button
                     key={opt.value}
                     type="button"
                     aria-pressed={active}
-                    disabled={!applicable}
                     onClick={() => onPianoStyleChange(opt.value)}
-                    className="px-2.5 py-1 text-xs rounded-full transition-all"
+                    className="min-h-8 rounded-md px-2.5 py-1 text-xs transition-all"
                     style={{
                       backgroundColor: active
                         ? "var(--interactive-accent-bg)"
                         : "transparent",
-                      color: !applicable
-                        ? "var(--interactive-disabled-text)"
-                        : active
-                          ? "var(--interactive-accent-text)"
-                          : "var(--text-muted)",
+                      color: active
+                        ? "var(--interactive-accent-text)"
+                        : "var(--text-muted)",
                       border: active
                         ? "1px solid var(--interactive-accent-border)"
                         : "1px solid transparent",
@@ -274,10 +290,10 @@ export default function ChordCard({
                         ? "var(--weight-semibold)"
                         : "var(--weight-regular)",
                       fontFamily: "var(--font-body)",
-                      cursor: applicable ? "pointer" : "not-allowed",
+                      cursor: "pointer",
                     }}
                   >
-                    {opt.label}
+                    {t(opt.label)}
                   </button>
                 );
               })}
@@ -286,48 +302,13 @@ export default function ChordCard({
             <div className="w-full max-w-full overflow-x-auto lg:w-auto lg:max-w-none lg:overflow-x-visible">
               <PianoKeyboard
                 voicedNotes={voicing.notes}
-                displayMode={pianoDisplay}
+                displayMode="notes"
                 preferFlats={preferFlats}
                 rootNote={noteNames[0] ?? ""}
               />
             </div>
             <div className="flex max-w-full flex-wrap items-center justify-center gap-2 mt-1">
-              {/* Notes / Fingering display toggle (per-card). */}
-              <div
-                className="flex rounded-full p-0.5"
-                style={{
-                  backgroundColor: "var(--surface-overlay)",
-                  border: "1px solid var(--border-subtle)",
-                }}
-              >
-                {(["notes", "fingering"] as const).map((mode) => {
-                  const active = pianoDisplay === mode;
-                  return (
-                    <button
-                      key={mode}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setPianoDisplay(mode)}
-                      className="px-2 py-0.5 text-xs rounded-full transition-all"
-                      style={{
-                        backgroundColor: active
-                          ? "var(--interactive-accent-bg)"
-                          : "transparent",
-                        color: active
-                          ? "var(--interactive-accent-text)"
-                          : "var(--text-muted)",
-                        fontWeight: active
-                          ? "var(--weight-semibold)"
-                          : "var(--weight-regular)",
-                        fontFamily: "var(--font-body)",
-                      }}
-                    >
-                      {t(mode === "notes" ? "Notes" : "Fingering")}
-                    </button>
-                  );
-                })}
-              </div>
-              {VOICING_TYPE_LABEL[voicing.voicingType] && (
+              {voicingTypeLabel && (
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
                   style={{
@@ -337,7 +318,7 @@ export default function ChordCard({
                     fontFamily: "var(--font-mono)",
                   }}
                 >
-                  {VOICING_TYPE_LABEL[voicing.voicingType]}
+                  {t(voicingTypeLabel)}
                 </span>
               )}
               <span

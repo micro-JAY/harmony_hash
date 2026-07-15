@@ -45,7 +45,7 @@ test.describe("Circle of Fifths", () => {
         .getByRole("listitem")
         .locator(".readout"),
     ).toHaveText(["C", "Dm", "Em", "F", "G", "Am", "Bdim"]);
-    await expect(page).toHaveScreenshot("circle-of-fifths-desktop.png", { fullPage: true });
+    await expect(page).toHaveScreenshot("circle-of-fifths-desktop.png");
     expect(issues).toEqual([]);
   });
 

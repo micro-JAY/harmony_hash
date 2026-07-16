@@ -10,6 +10,12 @@ import { useT } from "../i18n/I18nContext";
 import { lookupChord } from "../lib/chordData";
 import type { TimelineDraftItem } from "../lib/timelineTransactions";
 import { insertionBoundaryToMoveIndex } from "../lib/timelineTransactions";
+import {
+  getComposerDropBoundary,
+  getComposerDropZone,
+  type ComposerChipRect,
+  type ComposerDropZone,
+} from "./progressionTimelineComposerGeometry";
 
 interface ProgressionTimelineComposerProps {
   items: readonly TimelineDraftItem<string>[];
@@ -21,65 +27,36 @@ interface ProgressionTimelineComposerProps {
   onClear: () => void;
 }
 
-interface ComposerChipRect {
-  readonly index: number;
-  readonly left: number;
-  readonly right: number;
-  readonly top: number;
-  readonly bottom: number;
-}
-
-interface ComposerRow {
-  readonly top: number;
-  readonly bottom: number;
-  readonly chips: ComposerChipRect[];
+interface ComposerItemIdentity {
+  readonly id: number | null;
+  readonly item: TimelineDraftItem<string>;
 }
 
 interface ActivePointerDrag {
   readonly pointerId: number;
-  readonly sourceIndex: number;
+  readonly source: ComposerItemIdentity;
   readonly startX: number;
   readonly startY: number;
   dragging: boolean;
 }
 
-const POINTER_DRAG_THRESHOLD_PX = 6;
-
-function verticalDistance(row: ComposerRow, clientY: number): number {
-  if (clientY < row.top) return row.top - clientY;
-  if (clientY > row.bottom) return clientY - row.bottom;
-  return 0;
+interface ActiveDragPresentation {
+  readonly source: ComposerItemIdentity;
+  readonly zone: ComposerDropZone;
 }
 
-/** Resolve a pointer to a logical insertion boundary, including wrapped rows. */
-// Exported for deterministic geometry tests; it has no component state.
-// eslint-disable-next-line react-refresh/only-export-components
-export function getComposerDropBoundary(
-  rects: readonly ComposerChipRect[],
-  clientX: number,
-  clientY: number,
-): number {
-  if (rects.length === 0) return 0;
+const POINTER_DRAG_THRESHOLD_PX = 6;
 
-  const ordered = [...rects].sort((a, b) => a.index - b.index);
-  const rows: ComposerRow[] = [];
-  for (const rect of ordered) {
-    const row = rows.find(
-      (candidate) => rect.top <= candidate.bottom && rect.bottom >= candidate.top,
-    );
-    if (row) {
-      row.chips.push(rect);
-      continue;
-    }
-    rows.push({ top: rect.top, bottom: rect.bottom, chips: [rect] });
-  }
+function identifyItem(item: TimelineDraftItem<string>): ComposerItemIdentity {
+  return { id: item.id, item };
+}
 
-  const closestRow = rows.reduce((closest, row) =>
-    verticalDistance(row, clientY) < verticalDistance(closest, clientY) ? row : closest,
-  );
-  const rowChips = [...closestRow.chips].sort((a, b) => a.left - b.left);
-  const nextChip = rowChips.find((rect) => clientX < (rect.left + rect.right) / 2);
-  return nextChip?.index ?? rowChips[rowChips.length - 1].index + 1;
+function identityMatches(
+  item: TimelineDraftItem<string>,
+  identity: ComposerItemIdentity | null,
+): boolean {
+  if (!identity) return false;
+  return identity.id === null ? identity.item === item : identity.id === item.id;
 }
 
 export default function ProgressionTimelineComposer({
@@ -95,9 +72,13 @@ export default function ProgressionTimelineComposer({
   const [announcement, setAnnouncement] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [inputInvalid, setInputInvalid] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ComposerItemIdentity | null>(null);
+  const [activeDrag, setActiveDrag] = useState<ActiveDragPresentation | null>(null);
   const composerRef = useRef<HTMLDivElement>(null);
+  const removeTargetRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef(new Map<number, HTMLButtonElement>());
-  const activeDragIndexRef = useRef<number | null>(null);
+  const activeDragItemRef = useRef<ComposerItemIdentity | null>(null);
   const activePointerDragRef = useRef<ActivePointerDrag | null>(null);
   const suppressPointerClickRef = useRef(false);
 
@@ -109,6 +90,7 @@ export default function ProgressionTimelineComposer({
     if (from === to) return;
     const item = items[from];
     if (!item) return;
+    setSelectedItem(identifyItem(item));
     onMove(from, to);
     setAnnouncement(
       t(`${item.value} moved to position ${to + 1} of ${items.length}.`),
@@ -119,9 +101,30 @@ export default function ProgressionTimelineComposer({
   function removeItem(index: number) {
     const item = items[index];
     if (!item) return;
+    const nextIndex = items.length > 1 ? Math.min(index, items.length - 2) : null;
+    const nextItem = nextIndex === null
+      ? null
+      : items[index + 1] ?? items[index - 1] ?? null;
+    setSelectedItem(nextItem ? identifyItem(nextItem) : null);
     onRemove(index);
     setAnnouncement(t(`${item.value} removed from the progression.`));
-    if (items.length > 1) focusItem(Math.min(index, items.length - 2));
+    if (nextIndex === null) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    } else {
+      focusItem(nextIndex);
+    }
+  }
+
+  function currentIndex(identity: ComposerItemIdentity | null): number | null {
+    if (!identity) return null;
+    const index = items.findIndex((item) => identityMatches(item, identity));
+    return index >= 0 ? index : null;
+  }
+
+  function resetDrag() {
+    activeDragItemRef.current = null;
+    activePointerDragRef.current = null;
+    setActiveDrag(null);
   }
 
   function insertChord(chordName: string, boundary: number) {
@@ -166,17 +169,18 @@ export default function ProgressionTimelineComposer({
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     const boundary = boundaryFromDrag(event);
-    const sourceIndex = activeDragIndexRef.current;
-    activeDragIndexRef.current = null;
+    const sourceIndex = currentIndex(activeDragItemRef.current);
 
     if (sourceIndex !== null) {
       const to = insertionBoundaryToMoveIndex(boundary, sourceIndex, items.length);
       moveItem(sourceIndex, to);
       onInsertionBoundaryChange(to + 1);
+      resetDrag();
       return;
     }
 
     insertChord(event.dataTransfer.getData("text/plain"), boundary);
+    resetDrag();
   }
 
   function beginPointerDrag(
@@ -188,7 +192,7 @@ export default function ProgressionTimelineComposer({
     if (event.pointerType === "mouse" || !event.isPrimary || event.button !== 0) return;
     activePointerDragRef.current = {
       pointerId: event.pointerId,
-      sourceIndex,
+      source: identifyItem(items[sourceIndex]),
       startX: event.clientX,
       startY: event.clientY,
       dragging: false,
@@ -209,11 +213,23 @@ export default function ProgressionTimelineComposer({
       );
       if (distance < POINTER_DRAG_THRESHOLD_PX) return;
       active.dragging = true;
+      activeDragItemRef.current = active.source;
+      setActiveDrag({ source: active.source, zone: "invalid" });
     }
 
     event.preventDefault();
     const composer = composerRef.current;
     if (!composer) return;
+    const zone = getComposerDropZone(
+      composer.getBoundingClientRect(),
+      removeTargetRef.current?.getBoundingClientRect() ?? null,
+      event.clientX,
+      event.clientY,
+    );
+    setActiveDrag((current) => current && current.zone !== zone
+      ? { ...current, zone }
+      : current);
+    if (zone !== "composer") return;
     const boundary = getComposerDropBoundary(
       composerRects(composer),
       event.clientX,
@@ -225,12 +241,14 @@ export default function ProgressionTimelineComposer({
   function finishPointerDrag(event: ReactPointerEvent<HTMLButtonElement>) {
     const active = activePointerDragRef.current;
     if (!active || active.pointerId !== event.pointerId) return;
-    activePointerDragRef.current = null;
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-    if (!active.dragging) return;
+    if (!active.dragging) {
+      activePointerDragRef.current = null;
+      return;
+    }
 
     event.preventDefault();
     suppressPointerClickRef.current = true;
@@ -239,7 +257,30 @@ export default function ProgressionTimelineComposer({
     }, 0);
 
     const composer = composerRef.current;
-    if (!composer) return;
+    if (!composer) {
+      resetDrag();
+      return;
+    }
+    const zone = getComposerDropZone(
+      composer.getBoundingClientRect(),
+      removeTargetRef.current?.getBoundingClientRect() ?? null,
+      event.clientX,
+      event.clientY,
+    );
+    const sourceIndex = currentIndex(active.source);
+    if (sourceIndex === null) {
+      resetDrag();
+      return;
+    }
+    if (zone === "remove") {
+      removeItem(sourceIndex);
+      resetDrag();
+      return;
+    }
+    if (zone !== "composer") {
+      resetDrag();
+      return;
+    }
     const boundary = getComposerDropBoundary(
       composerRects(composer),
       event.clientX,
@@ -247,22 +288,31 @@ export default function ProgressionTimelineComposer({
     );
     const to = insertionBoundaryToMoveIndex(
       boundary,
-      active.sourceIndex,
+      sourceIndex,
       items.length,
     );
-    moveItem(active.sourceIndex, to);
+    moveItem(sourceIndex, to);
     onInsertionBoundaryChange(to + 1);
-    if (to === active.sourceIndex) focusItem(active.sourceIndex);
+    if (to === sourceIndex) focusItem(sourceIndex);
+    resetDrag();
   }
 
   function cancelPointerDrag(event: ReactPointerEvent<HTMLButtonElement>) {
     const active = activePointerDragRef.current;
     if (!active || active.pointerId !== event.pointerId) return;
-    activePointerDragRef.current = null;
     suppressPointerClickRef.current = false;
+    resetDrag();
   }
 
   function handleChipKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.key === "Escape" && activePointerDragRef.current) {
+      event.preventDefault();
+      if (event.currentTarget.hasPointerCapture(activePointerDragRef.current.pointerId)) {
+        event.currentTarget.releasePointerCapture(activePointerDragRef.current.pointerId);
+      }
+      resetDrag();
+      return;
+    }
     if (event.key === "Delete" || event.key === "Backspace") {
       event.preventDefault();
       removeItem(index);
@@ -281,7 +331,7 @@ export default function ProgressionTimelineComposer({
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <p id={instructionsId} className="sr-only">
-        {t("Type a chord and press Enter to add it. Drag chords to reorder them. Press Delete to remove a focused chord, or Alt plus an arrow key to move it.")}
+        {t("Type a chord and press Enter to add it. Select a chord to reveal its remove action, drag it inside to reorder, or drag it onto the removal target. Press Delete to remove a focused chord, or Alt plus an arrow key to move it.")}
       </p>
       <div
         ref={composerRef}
@@ -292,59 +342,102 @@ export default function ProgressionTimelineComposer({
         className="hh-composer flex w-full min-w-0 flex-wrap items-center gap-2"
         onDragOver={(event) => {
           event.preventDefault();
-          event.dataTransfer.dropEffect = activeDragIndexRef.current !== null ? "move" : "copy";
+          event.dataTransfer.dropEffect = activeDragItemRef.current !== null ? "move" : "copy";
+          if (activeDragItemRef.current) {
+            setActiveDrag({ source: activeDragItemRef.current, zone: "composer" });
+          }
           const boundary = boundaryFromDrag(event);
           if (boundary !== insertionBoundary) onInsertionBoundaryChange(boundary);
         }}
         onDrop={handleDrop}
       >
-        {items.map((item, index) => (
-          <button
-            key={item.id ?? `draft-${index}-${item.value}`}
-            ref={(node) => {
-              if (node) itemRefs.current.set(index, node);
-              else itemRefs.current.delete(index);
-            }}
-            type="button"
-            draggable
-            data-composer-chip-index={index}
-            data-timeline-item-id={item.id ?? undefined}
-            aria-label={t(`${item.value}, position ${index + 1} of ${items.length}`)}
-            onKeyDown={(event) => handleChipKeyDown(event, index)}
-            onPointerDown={(event) => beginPointerDrag(event, index)}
-            onPointerMove={updatePointerDrag}
-            onPointerUp={finishPointerDrag}
-            onPointerCancel={cancelPointerDrag}
-            onLostPointerCapture={cancelPointerDrag}
-            onClick={(event) => {
-              if (!suppressPointerClickRef.current) return;
-              event.preventDefault();
-              event.stopPropagation();
-              suppressPointerClickRef.current = false;
-            }}
-            onDragStart={(event) => {
-              activeDragIndexRef.current = index;
-              event.dataTransfer.effectAllowed = "move";
-              event.dataTransfer.setData("text/plain", item.value);
-            }}
-            onDragEnd={() => {
-              activeDragIndexRef.current = null;
-            }}
-            className="hh-timeline-chip"
-            style={{
-              minHeight: "var(--control-min-height)",
-              padding: "0 var(--space-3)",
-              cursor: "grab",
-              touchAction: "none",
-              fontFamily: "var(--font-mono)",
-              boxShadow: insertionBoundary === index
-                ? "-3px 0 0 var(--interactive-accent-border)"
-                : undefined,
-            }}
-          >
-            {item.value}
-          </button>
-        ))}
+        {items.map((item, index) => {
+          const selected = identityMatches(item, selectedItem);
+          return (
+            <span
+              key={item.id ?? `draft-${index}-${item.value}`}
+              className="inline-flex min-w-0 items-center"
+              data-composer-chip-shell={index}
+            >
+              <button
+                ref={(node) => {
+                  if (node) itemRefs.current.set(index, node);
+                  else itemRefs.current.delete(index);
+                }}
+                type="button"
+                draggable
+                data-composer-chip-index={index}
+                data-timeline-item-id={item.id ?? undefined}
+                aria-label={t(`${item.value}, position ${index + 1} of ${items.length}`)}
+                aria-pressed={selected}
+                onKeyDown={(event) => handleChipKeyDown(event, index)}
+                onFocus={() => setSelectedItem(identifyItem(item))}
+                onPointerDown={(event) => beginPointerDrag(event, index)}
+                onPointerMove={updatePointerDrag}
+                onPointerUp={finishPointerDrag}
+                onPointerCancel={cancelPointerDrag}
+                onLostPointerCapture={cancelPointerDrag}
+                onClick={(event) => {
+                  if (suppressPointerClickRef.current) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    suppressPointerClickRef.current = false;
+                    return;
+                  }
+                  setSelectedItem(identifyItem(item));
+                }}
+                onDragStart={(event) => {
+                  const source = identifyItem(item);
+                  activeDragItemRef.current = source;
+                  setSelectedItem(source);
+                  setActiveDrag({ source, zone: "invalid" });
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", item.value);
+                }}
+                onDragEnd={resetDrag}
+                className="hh-timeline-chip"
+                style={{
+                  minHeight: "var(--control-min-height)",
+                  padding: "0 var(--space-3)",
+                  cursor: "grab",
+                  touchAction: "none",
+                  fontFamily: "var(--font-mono)",
+                  borderRadius: selected
+                    ? "var(--radius-md) 0 0 var(--radius-md)"
+                    : "var(--radius-md)",
+                  boxShadow: insertionBoundary === index
+                    ? "-3px 0 0 var(--interactive-accent-border)"
+                    : undefined,
+                }}
+              >
+                {item.value}
+              </button>
+              {selected ? (
+                <button
+                  type="button"
+                  aria-label={t(`Remove ${item.value} at position ${index + 1}`)}
+                  onClick={() => removeItem(index)}
+                  className="inline-flex items-center justify-center"
+                  style={{
+                    width: "2rem",
+                    minWidth: "2rem",
+                    minHeight: "2rem",
+                    alignSelf: "stretch",
+                    marginLeft: "-1px",
+                    color: "var(--interactive-accent-text)",
+                    background: "var(--interactive-accent-bg)",
+                    border: "1px solid var(--interactive-accent-border)",
+                    borderRadius: "0 var(--radius-md) var(--radius-md) 0",
+                    fontFamily: "var(--font-mono)",
+                    fontWeight: "var(--weight-bold)",
+                  }}
+                >
+                  X
+                </button>
+              ) : null}
+            </span>
+          );
+        })}
 
         <label
           className="flex min-w-0 flex-1 items-center"
@@ -352,6 +445,7 @@ export default function ProgressionTimelineComposer({
         >
           <span className="sr-only">{t("Chord progression input")}</span>
           <input
+            ref={inputRef}
             value={inputValue}
             onChange={(event) => {
               setInputValue(event.target.value);
@@ -366,7 +460,10 @@ export default function ProgressionTimelineComposer({
                 removeItem(items.length - 1);
               }
             }}
-            onFocus={() => onInsertionBoundaryChange(items.length)}
+            onFocus={() => {
+              setSelectedItem(null);
+              onInsertionBoundaryChange(items.length);
+            }}
             placeholder={items.length === 0
               ? t("Type a chord or choose one below")
               : t("Add another chord")}
@@ -381,6 +478,48 @@ export default function ProgressionTimelineComposer({
           />
         </label>
       </div>
+      {activeDrag ? (
+        <div
+          ref={removeTargetRef}
+          role="status"
+          aria-live="polite"
+          data-testid="composer-remove-target"
+          data-drop-active={activeDrag.zone === "remove" ? "true" : "false"}
+          onDragOver={(event) => {
+            if (!activeDragItemRef.current) return;
+            event.preventDefault();
+            event.stopPropagation();
+            event.dataTransfer.dropEffect = "move";
+            setActiveDrag({ source: activeDragItemRef.current, zone: "remove" });
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const sourceIndex = currentIndex(activeDragItemRef.current);
+            if (sourceIndex !== null) removeItem(sourceIndex);
+            resetDrag();
+          }}
+          className="flex w-full min-w-0 items-center justify-center rounded-lg px-3 text-center"
+          style={{
+            minHeight: "var(--control-min-height)",
+            color: activeDrag.zone === "remove"
+              ? "var(--status-error-text)"
+              : "var(--text-muted)",
+            background: activeDrag.zone === "remove"
+              ? "var(--status-error-bg)"
+              : "var(--surface-raised)",
+            border: `1px dashed ${activeDrag.zone === "remove"
+              ? "var(--status-error-border)"
+              : "var(--border-default)"}`,
+            fontSize: "var(--text-sm)",
+          }}
+        >
+          {t("Drop here to remove selected chord")}:&nbsp;
+          <strong style={{ fontFamily: "var(--font-mono)" }}>
+            {activeDrag.source.item.value}
+          </strong>
+        </div>
+      ) : null}
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {announcement}
       </p>

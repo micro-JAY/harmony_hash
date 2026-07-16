@@ -17,13 +17,13 @@
 
 ## 3. Intuitive Composer Removal and Drag Safety
 
-- [ ] 3.1 Add selected/focused chip state that reveals one compact localized `X` removal action without restoring persistent handles, arrows, or insertion buttons.
-- [ ] 3.2 Route selected `X`, Delete/Backspace, and empty-input Backspace through the same atomic removal transaction and live-region announcement.
-- [ ] 3.3 Add an explicit temporary drag-out removal target for mouse/touch/pen while retaining exact inside-composer insertion and reorder boundaries.
-- [ ] 3.4 Ensure Escape, pointer cancellation, or an invalid drop never removes or moves a chord.
-- [ ] 3.5 Preserve stable item identity, locks, variants, piano style, playback cancellation, Hanz index handling, and text-agent invalidation for remove/reorder operations.
-- [ ] 3.6 Add pure/component/Playwright coverage for click selection, focus selection, `X`, keyboard removal/reorder, drag-in reorder, drag-out removal, cancelled drag, appending grid clicks, and mobile containment.
-- [ ] 3.7 Inspect the composer at desktop, tablet, and mobile widths and commit the removal/drag milestone.
+- [x] 3.1 Add selected/focused chip state that reveals one compact localized `X` removal action without restoring persistent handles, arrows, or insertion buttons.
+- [x] 3.2 Route selected `X`, Delete/Backspace, and empty-input Backspace through the same atomic removal transaction and live-region announcement.
+- [x] 3.3 Add an explicit temporary drag-out removal target for mouse/touch/pen while retaining exact inside-composer insertion and reorder boundaries.
+- [x] 3.4 Ensure Escape, pointer cancellation, or an invalid drop never removes or moves a chord.
+- [x] 3.5 Preserve stable item identity, locks, variants, piano style, playback cancellation, Hanz index handling, and text-agent invalidation for remove/reorder operations.
+- [x] 3.6 Add pure/component/Playwright coverage for click selection, focus selection, `X`, keyboard removal/reorder, drag-in reorder, drag-out removal, cancelled drag, appending grid clicks, and mobile containment.
+- [x] 3.7 Inspect the composer at desktop, tablet, and mobile widths and commit the removal/drag milestone.
 
 ## 4. Chord-Family Colors and Card Control Alignment
 

@@ -43,8 +43,12 @@ test.describe("composer and committed timeline continuity", () => {
 
   test("extends a preset from its committed chords instead of replacing it", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("tab", { name: "Jazz & R&B Fundamentals" }).click();
-    await page.getByRole("button", { name: "The 2-5-1 (The King): ii – V – I" }).click();
+    await page.getByRole("group", { name: "Preset collection" })
+      .getByRole("button", { name: "Major", exact: true })
+      .click();
+    await page.getByRole("dialog", { name: "Major presets" })
+      .getByRole("button", { name: "The 2-5-1 (The King): ii – V – I" })
+      .click();
 
     const composer = page.getByRole("group", { name: "Chord progression composer" });
     await expect(composer.locator("[data-composer-chip-index]")).toHaveText(["Dm", "G", "C"]);
@@ -83,6 +87,63 @@ test.describe("composer and committed timeline continuity", () => {
       "Am7",
       "G7",
     ]);
+  });
+
+  test("reveals one selected X and removes through pointer or keyboard input", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await composeProgression(page, ["Cmaj7", "Dm7", "G7"]);
+
+    const composer = page.getByRole("group", { name: "Chord progression composer" });
+    const chips = composer.locator("[data-composer-chip-index]");
+    await expect(composer.getByRole("button", { name: /Remove / })).toHaveCount(0);
+    await expect(composer.locator(".hh-timeline-chip__handle")).toHaveCount(0);
+
+    const dm = composer.getByRole("button", { name: "Dm7, position 2 of 3" });
+    await dm.click();
+    const removeDm = composer.getByRole("button", { name: "Remove Dm7 at position 2" });
+    await expect(removeDm).toBeVisible();
+    await removeDm.click();
+    await expect(chips).toHaveText(["Cmaj7", "G7"]);
+    await expect(page.getByRole("status").filter({
+      hasText: "Dm7 removed from the progression.",
+    })).toBeVisible();
+
+    const g = composer.getByRole("button", { name: "G7, position 2 of 2" });
+    await g.focus();
+    await g.press("Delete");
+    await expect(chips).toHaveText(["Cmaj7"]);
+
+    const input = page.getByRole("textbox", { name: "Chord progression input" });
+    await input.focus();
+    await input.press("Backspace");
+    await expect(chips).toHaveCount(0);
+    await expect(input).toBeFocused();
+  });
+
+  test("removes a dragged chord only through the temporary outside target", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await composeProgression(page, ["C", "F", "G"]);
+
+    const composer = page.getByRole("group", { name: "Chord progression composer" });
+    const chips = composer.locator("[data-composer-chip-index]");
+    await expect(chips).toHaveCount(3);
+
+    const firstTransfer = await page.evaluateHandle(() => new DataTransfer());
+    await chips.nth(0).dispatchEvent("dragstart", { dataTransfer: firstTransfer });
+    const removeTarget = page.getByTestId("composer-remove-target");
+    await expect(removeTarget).toBeVisible();
+    await removeTarget.dispatchEvent("dragover", { dataTransfer: firstTransfer });
+    await expect(removeTarget).toHaveAttribute("data-drop-active", "true");
+    await removeTarget.dispatchEvent("drop", { dataTransfer: firstTransfer });
+    await expect(chips).toHaveText(["F", "G"]);
+    await expect(removeTarget).toHaveCount(0);
+
+    const cancelledTransfer = await page.evaluateHandle(() => new DataTransfer());
+    await chips.nth(0).dispatchEvent("dragstart", { dataTransfer: cancelledTransfer });
+    await expect(removeTarget).toBeVisible();
+    await chips.nth(0).dispatchEvent("dragend", { dataTransfer: cancelledTransfer });
+    await expect(removeTarget).toHaveCount(0);
+    await expect(chips).toHaveText(["F", "G"]);
   });
 });
 

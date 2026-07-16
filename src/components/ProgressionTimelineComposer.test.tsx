@@ -1,9 +1,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n/I18nProvider";
-import ProgressionTimelineComposer, {
+import ProgressionTimelineComposer from "./ProgressionTimelineComposer";
+import {
   getComposerDropBoundary,
-} from "./ProgressionTimelineComposer";
+  getComposerDropZone,
+} from "./progressionTimelineComposerGeometry";
 
 function renderComposer(): string {
   return renderToStaticMarkup(
@@ -37,6 +39,7 @@ describe("ProgressionTimelineComposer", () => {
     expect(markup).not.toContain("Move before");
     expect(markup).not.toContain("Move after");
     expect(markup).not.toContain("Remove chord");
+    expect(markup).not.toContain("composer-remove-target");
     expect(markup).not.toContain(">Clear<");
   });
 
@@ -78,5 +81,15 @@ describe("ProgressionTimelineComposer", () => {
     expect(getComposerDropBoundary(rects, 119, 76)).toBe(3);
     expect(getComposerDropBoundary(rects, 172, 76)).toBe(4);
     expect(getComposerDropBoundary(rects, 90, 130)).toBe(5);
+  });
+
+  it("recognizes only the composer and explicit removal target as valid drops", () => {
+    const composer = { left: 20, right: 320, top: 20, bottom: 80 };
+    const remove = { left: 20, right: 320, top: 92, bottom: 136 };
+
+    expect(getComposerDropZone(composer, remove, 40, 40)).toBe("composer");
+    expect(getComposerDropZone(composer, remove, 40, 110)).toBe("remove");
+    expect(getComposerDropZone(composer, remove, 4, 110)).toBe("invalid");
+    expect(getComposerDropZone(composer, null, 40, 110)).toBe("invalid");
   });
 });

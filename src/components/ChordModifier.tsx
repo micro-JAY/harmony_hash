@@ -8,7 +8,7 @@ import {
   type ContextualChordModifierOption,
   type HasherModifierContext,
 } from "../lib/theory/modifierScoring";
-import { chordFamilyColor } from "../lib/visual/chordFamily";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 import AccessibleDialog from "./AccessibleDialog";
 import { matchColorForPercent } from "./musicVisuals";
 
@@ -35,6 +35,7 @@ export default function ChordModifier({
   const searchRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const selectedFamily = chordFamilyPresentation(chord);
   const options = useMemo(
     () => rankContextualChordModifiers({
       selectedChord: chord,
@@ -109,7 +110,15 @@ export default function ChordModifier({
       {isOpen ? (
         <AccessibleDialog
           title={(
-            <span style={{ color: chordFamilyColor(chord) }}>
+            <span
+              data-chord-family={selectedFamily.family}
+              className="inline-flex rounded-md px-2 py-0.5"
+              style={{
+                color: selectedFamily.color,
+                backgroundColor: selectedFamily.backgroundColor,
+                border: `1px solid ${selectedFamily.borderColor}`,
+              }}
+            >
               {t(`Modify ${displayName} chord`)}
             </span>
           )}
@@ -167,12 +176,14 @@ export default function ChordModifier({
                 {options.quick.map((option, quickIndex) => {
                   const reason = fitReason(option);
                   const fitId = `${optionListId}-fit-${quickIndex}`;
+                  const fitScoreId = `${optionListId}-score-${quickIndex}`;
+                  const optionFamily = chordFamilyPresentation(option.chord);
                   return (
                     <button
                       key={option.label}
                       type="button"
                       aria-label={t(`Change ${displayName} to ${option.label}`)}
-                      aria-describedby={option.fit ? fitId : undefined}
+                      aria-describedby={option.fit ? `${fitScoreId} ${fitId}` : undefined}
                       onClick={() => handleSelect(option)}
                       className="rounded-lg px-3 py-2.5 text-left transition-all"
                       style={{
@@ -183,9 +194,12 @@ export default function ChordModifier({
                     >
                       <span className="flex min-w-0 items-baseline justify-between gap-3">
                         <strong
-                          className="min-w-0 truncate"
+                          data-chord-family={optionFamily.family}
+                          className="inline-flex min-w-0 truncate rounded px-1.5 py-0.5"
                           style={{
-                            color: chordFamilyColor(option.chord),
+                            color: optionFamily.color,
+                            backgroundColor: optionFamily.backgroundColor,
+                            border: `1px solid ${optionFamily.borderColor}`,
                             fontFamily: "var(--font-mono)",
                             fontSize: "var(--text-sm)",
                           }}
@@ -194,6 +208,8 @@ export default function ChordModifier({
                         </strong>
                         {option.fit ? (
                           <strong
+                            aria-hidden="true"
+                            data-match-score={option.fit.score}
                             style={{
                               flexShrink: 0,
                               color: matchColorForPercent(option.fit.score),
@@ -206,18 +222,23 @@ export default function ChordModifier({
                         ) : null}
                       </span>
                       {option.fit ? (
-                        <span
-                          id={fitId}
-                          className="mt-1 block"
-                          style={{
-                            color: "var(--text-muted)",
-                            fontFamily: "var(--font-body)",
-                            fontSize: "var(--text-xs)",
-                            lineHeight: "var(--leading-normal)",
-                          }}
-                        >
-                          {reason}
-                        </span>
+                        <>
+                          <span id={fitScoreId} className="sr-only">
+                            {option.fit.score}% {t("match")}
+                          </span>
+                          <span
+                            id={fitId}
+                            className="mt-1 block"
+                            style={{
+                              color: "var(--text-muted)",
+                              fontFamily: "var(--font-body)",
+                              fontSize: "var(--text-xs)",
+                              lineHeight: "var(--leading-normal)",
+                            }}
+                          >
+                            {reason}
+                          </span>
+                        </>
                       ) : null}
                     </button>
                   );
@@ -244,25 +265,37 @@ export default function ChordModifier({
                 className="flex max-h-48 flex-wrap gap-2 overflow-y-auto pr-1"
                 aria-label={t("All chord alternatives")}
               >
-                {visibleOptions.map((option) => (
-                  <button
-                    key={option.label}
-                    type="button"
-                    aria-label={t(`Change ${displayName} to ${option.label}`)}
-                    onClick={() => handleSelect(option)}
-                    className="rounded-md px-2.5 py-2 transition-all"
-                    style={{
-                      backgroundColor: "var(--interactive-secondary-bg)",
-                      border: "1px solid var(--interactive-secondary-border)",
-                      color: chordFamilyColor(option.chord),
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-xs)",
-                      fontWeight: "var(--weight-semibold)",
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+                {visibleOptions.map((option) => {
+                  const optionFamily = chordFamilyPresentation(option.chord);
+                  return (
+                    <button
+                      key={option.label}
+                      type="button"
+                      aria-label={t(`Change ${displayName} to ${option.label}`)}
+                      onClick={() => handleSelect(option)}
+                      className="rounded-md px-2.5 py-2 transition-all"
+                      style={{
+                        backgroundColor: "var(--interactive-secondary-bg)",
+                        border: "1px solid var(--interactive-secondary-border)",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "var(--text-xs)",
+                        fontWeight: "var(--weight-semibold)",
+                      }}
+                    >
+                      <span
+                        data-chord-family={optionFamily.family}
+                        className="inline-flex rounded px-1.5 py-0.5"
+                        style={{
+                          color: optionFamily.color,
+                          backgroundColor: optionFamily.backgroundColor,
+                          border: `1px solid ${optionFamily.borderColor}`,
+                        }}
+                      >
+                        {option.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <p

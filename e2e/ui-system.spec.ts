@@ -109,6 +109,7 @@ test.describe("Tonari UI system", () => {
         chordMajor: read("--music-chord-major"),
         chordMinor: read("--music-chord-minor"),
         chordDominant: read("--music-chord-dominant"),
+        chordOnDominant: read("--palette-white"),
         chordSus: read("--music-chord-sus"),
         chordDiminished: read("--music-chord-diminished"),
         chordAugmented: read("--music-chord-augmented"),
@@ -148,7 +149,7 @@ test.describe("Tonari UI system", () => {
       const backgroundLuminance = luminance(background);
       return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
         / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
-    }, { foreground: colors.chordDominant, background: colors.surfaceOverlay });
+    }, { foreground: colors.chordOnDominant, background: colors.chordDominant });
     expect(dominantContrast).toBeGreaterThanOrEqual(4.5);
   });
 
@@ -178,12 +179,11 @@ test.describe("Tonari UI system", () => {
     expect(modifierBox!.x + modifierBox!.width).toBeLessThanOrEqual(375);
     await page.keyboard.press("Escape");
 
-    await page
+    const minorPresetTrigger = page
       .getByRole("group", { name: "Preset collection" })
-      .getByRole("button", { name: "Minor", exact: true })
-      .click();
+      .getByRole("button", { name: "Minor", exact: true });
+    await minorPresetTrigger.click();
     await page.getByRole("button", { name: "What is the Minor Blend?" }).click();
-    const minorBlendTrigger = page.getByRole("button", { name: "What is the Minor Blend?" });
     const minorBlend = page.getByRole("dialog", { name: "Why is my Minor Chord different?" });
     await expect(minorBlend).toBeVisible();
     await expect(minorBlend).toHaveClass(/hh-panel/);
@@ -201,7 +201,7 @@ test.describe("Tonari UI system", () => {
     expect(minorBlendBox!.x + minorBlendBox!.width).toBeLessThanOrEqual(375);
     await page.keyboard.press("Escape");
     await expect(minorBlend).toBeHidden();
-    await expect(minorBlendTrigger).toBeFocused();
+    await expect(minorPresetTrigger).toBeFocused();
     await expectNoDocumentOverflow(page);
   });
 });

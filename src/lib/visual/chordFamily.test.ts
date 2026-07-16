@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { lookupChord } from "../chordData";
 import type { ChordEntry, IndexedChord } from "../types";
-import { chordFamilyColor, classifyChordFamily } from "./chordFamily";
+import {
+  chordFamilyColor,
+  chordFamilyPresentation,
+  classifyChordFamily,
+} from "./chordFamily";
 
 function chord(quality: string, type: ChordEntry["Type"]): IndexedChord {
   return {
@@ -29,6 +34,8 @@ describe("classifyChordFamily", () => {
     expect(classifyChordFamily(chord("aug", "Other"))).toBe("augmented");
     expect(classifyChordFamily(chord("mmaj7", "Minor"))).toBe("minor");
     expect(classifyChordFamily(chord("maj7", "Major"))).toBe("major");
+    expect(classifyChordFamily(chord("mmaj9", "Major"))).toBe("minor");
+    expect(classifyChordFamily(chord("-5", "Major"))).toBe("major");
   });
 
   it("recognizes common display-symbol aliases without dictionary metadata", () => {
@@ -39,6 +46,8 @@ describe("classifyChordFamily", () => {
     expect(classifyChordFamily("C+")).toBe("augmented");
     expect(classifyChordFamily("Ebm9")).toBe("minor");
     expect(classifyChordFamily("A6")).toBe("major");
+    expect(classifyChordFamily("CM7")).toBe("major");
+    expect(classifyChordFamily("C-5")).toBe("major");
   });
 
   it("returns semantic tokens for both chords and explicit families", () => {
@@ -55,5 +64,40 @@ describe("classifyChordFamily", () => {
     const minorWithBadLegacyType = chord("m", "Sustained");
     minorWithBadLegacyType.entry.Symbols = "m, min, -";
     expect(classifyChordFamily(minorWithBadLegacyType)).toBe("minor");
+  });
+
+  it.each([
+    ["C", "major"],
+    ["C6", "major"],
+    ["Cmaj13(#11)", "major"],
+    ["Cm", "minor"],
+    ["Cm6add9", "minor"],
+    ["Cmmaj7", "minor"],
+    ["C7", "dominant"],
+    ["C13b9", "dominant"],
+    ["C7#5", "dominant"],
+    ["Csus2", "suspended"],
+    ["C7sus4", "suspended"],
+    ["Cdim", "diminished"],
+    ["Cdim7", "diminished"],
+    ["Cm7b5", "diminished"],
+    ["Caug", "augmented"],
+  ] as const)("classifies dictionary chord %s as %s", (name, family) => {
+    const resolved = lookupChord(name);
+    if (!resolved) throw new Error(`${name} is missing from the chord dictionary`);
+    expect(classifyChordFamily(resolved)).toBe(family);
+  });
+
+  it("uses a contrast-safe filled presentation only for deep-red dominants", () => {
+    expect(chordFamilyPresentation("dominant")).toEqual({
+      family: "dominant",
+      color: "var(--music-chord-on-dominant)",
+      backgroundColor: "var(--music-chord-dominant)",
+      borderColor: "var(--music-chord-dominant)",
+    });
+    expect(chordFamilyPresentation("major")).toMatchObject({
+      family: "major",
+      color: "var(--music-chord-major)",
+    });
   });
 });

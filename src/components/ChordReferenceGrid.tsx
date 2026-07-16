@@ -21,8 +21,7 @@ import type { ScaleType } from "../lib/types";
 import { fretboardIntervalColor } from "./fretboardVisuals";
 import { useT } from "../i18n/I18nContext";
 import {
-  chordFamilyColor,
-  classifyChordFamily,
+  chordFamilyPresentation,
 } from "../lib/visual/chordFamily";
 
 export type SuggestionMode = "off" | "key" | "next" | "jazz" | "modal";
@@ -547,19 +546,19 @@ export default function ChordReferenceGrid({
                 <div />
                 {visibleQualities.map((q) => {
                   const probe = lookupChord(q.suffix === "" ? "C" : `C${q.suffix}`);
-                  const family = classifyChordFamily(probe ?? q.label);
-                  const familyColor = chordFamilyColor(family);
+                  const presentation = chordFamilyPresentation(probe ?? q.label);
                   return (
                     <div
                       key={q.label}
-                      data-chord-family={family}
+                      data-testid={`chord-quality-header-${q.label}`}
+                      data-chord-family={presentation.family}
                       style={{
                         fontSize: "var(--text-xs)",
                         padding: "var(--space-1) var(--space-2)",
                         borderRadius: "var(--radius-sm)",
-                        border: `1px solid color-mix(in srgb, ${familyColor} 42%, var(--border-default))`,
-                        background: `color-mix(in srgb, ${familyColor} 8%, var(--surface-raised))`,
-                        color: familyColor,
+                        border: `1px solid ${presentation.borderColor}`,
+                        background: presentation.backgroundColor,
+                        color: presentation.color,
                         fontFamily: "var(--font-mono)",
                         fontWeight: "var(--weight-semibold)",
                         letterSpacing: "0.02em",
@@ -579,6 +578,8 @@ export default function ChordReferenceGrid({
                     <div key={root} style={{ display: "contents" }}>
                       {/* Root label */}
                       <span
+                        data-testid={`chord-root-label-${root}`}
+                        data-root-color="blue"
                         style={{
                           fontSize: "var(--text-xs)",
                           fontWeight: "var(--weight-bold)",

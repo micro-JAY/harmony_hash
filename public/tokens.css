@@ -193,7 +193,8 @@
      Dominants stay deliberately deeper than the softer supporting families. */
   --music-chord-major:      #A7D9B2;
   --music-chord-minor:      #F0B17A;
-  --music-chord-dominant:   #E2525F;
+  --music-chord-dominant:   #B42339;
+  --music-chord-on-dominant: var(--palette-white);
   --music-chord-sus:        #F4D889;
   --music-chord-diminished: #F0B4CF;
   --music-chord-augmented:  var(--palette-white);

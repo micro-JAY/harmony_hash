@@ -27,14 +27,14 @@
 
 ## 4. Chord-Family Colors and Card Control Alignment
 
-- [ ] 4.1 Audit and correct the shared chord-family classifier across major extensions, minor, dominant/altered, suspended, diminished/half-diminished, and augmented aliases.
-- [ ] 4.2 Finalize semantic tokens for pastel-green Major, pastel-orange Minor, deep-red Dominant, light-yellow Suspended, soft-pink Diminished, and white Augmented with tested contrast on every real surface.
-- [ ] 4.3 Apply family styling to chord-grid quality headers while preserving blue root rows and independent Key/Next/Jazz/Modal score tiers and percentages.
-- [ ] 4.4 Apply family styling to Guitar/Piano chord-card headings and modifier option names without replacing playback, Hanz, lock, or match-score semantics.
-- [ ] 4.5 Keep the modifier in `AccessibleDialog`, verify the `Top picks` label, and apply the existing percentage-match gradient to supported scores and accessible descriptions.
-- [ ] 4.6 Rebuild the Guitar card toolbar as a symmetric centered layout for `Fingering`, `Intervals`, and `Notes`, including a contained narrow-card wrap.
-- [ ] 4.7 Remove the Piano label-mode selector and confirm Guitar retains its three display modes and exact diagram behavior.
-- [ ] 4.8 Add classifier, token, contrast, non-color, geometry, dialog, focus-restoration, and responsive visual tests, then commit the semantic card-controls milestone.
+- [x] 4.1 Audit and correct the shared chord-family classifier across major extensions, minor, dominant/altered, suspended, diminished/half-diminished, and augmented aliases.
+- [x] 4.2 Finalize semantic tokens for pastel-green Major, pastel-orange Minor, deep-red Dominant, light-yellow Suspended, soft-pink Diminished, and white Augmented with tested contrast on every real surface.
+- [x] 4.3 Apply family styling to chord-grid quality headers while preserving blue root rows and independent Key/Next/Jazz/Modal score tiers and percentages.
+- [x] 4.4 Apply family styling to Guitar/Piano chord-card headings and modifier option names without replacing playback, Hanz, lock, or match-score semantics.
+- [x] 4.5 Keep the modifier in `AccessibleDialog`, verify the `Top picks` label, and apply the existing percentage-match gradient to supported scores and accessible descriptions.
+- [x] 4.6 Rebuild the Guitar card toolbar as a symmetric centered layout for `Fingering`, `Intervals`, and `Notes`, including a contained narrow-card wrap.
+- [x] 4.7 Remove the Piano label-mode selector and confirm Guitar retains its three display modes and exact diagram behavior.
+- [x] 4.8 Add classifier, token, contrast, non-color, geometry, dialog, focus-restoration, and responsive visual tests, then commit the semantic card-controls milestone.
 
 ## 5. Equal, Fully Visible Piano Cards
 

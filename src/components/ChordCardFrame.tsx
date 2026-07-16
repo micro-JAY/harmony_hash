@@ -1,10 +1,14 @@
 import type { ReactNode } from "react";
 import { AudioLines, Lock, Unlock } from "lucide-react";
 import { useLocale, useT } from "../i18n/I18nContext";
+import {
+  chordFamilyPresentation,
+  type ChordFamily,
+} from "../lib/visual/chordFamily";
 
 interface ChordCardFrameProps {
   displayName: string;
-  titleColor: string;
+  titleFamily: ChordFamily;
   usageNotes?: string;
   isLocked: boolean;
   onToggleLock: () => void;
@@ -15,7 +19,7 @@ interface ChordCardFrameProps {
 
 export default function ChordCardFrame({
   displayName,
-  titleColor,
+  titleFamily,
   usageNotes,
   isLocked,
   onToggleLock,
@@ -29,10 +33,11 @@ export default function ChordCardFrame({
     ?.split(",")
     .map((note) => t(note.trim()))
     .join(locale === "ja" ? "、" : ", ");
+  const titlePresentation = chordFamilyPresentation(titleFamily);
   return (
     <div
       data-testid="chord-card"
-      className="relative flex w-full min-w-0 max-w-full flex-col items-center overflow-hidden rounded-xl"
+      className="hh-chord-card relative flex h-full w-full min-w-0 max-w-full flex-col items-center overflow-hidden rounded-xl"
       data-playing={isPlaying ? "true" : undefined}
       data-agent-highlighted={isAgentHighlighted ? "true" : undefined}
       style={{
@@ -75,10 +80,13 @@ export default function ChordCardFrame({
         style={{ borderBottom: "1px solid var(--border-subtle)" }}
       >
         <h3
-          className="text-lg font-semibold"
+          data-chord-family={titlePresentation.family}
+          className="inline-flex rounded-md px-2 py-0.5 text-lg font-semibold"
           style={{
             fontFamily: "var(--font-display)",
-            color: titleColor,
+            color: titlePresentation.color,
+            backgroundColor: titlePresentation.backgroundColor,
+            border: `1px solid ${titlePresentation.borderColor}`,
             fontWeight: "var(--weight-semibold)",
           }}
         >

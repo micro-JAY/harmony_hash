@@ -17,7 +17,7 @@ import PianoVoicingComparison, { PIANO_STYLE_OPTIONS } from "./PianoVoicingCompa
 import { useT } from "../i18n/I18nContext";
 import type { GuitarMidiVoicing } from "../lib/guitarPlayback";
 import type { HarmonyContext } from "../lib/theory";
-import { chordFamilyColor } from "../lib/visual/chordFamily";
+import { classifyChordFamily } from "../lib/visual/chordFamily";
 
 interface ChordCardProps {
   chord: IndexedChord;
@@ -108,7 +108,7 @@ export default function ChordCard({
   return (
     <ChordCardFrame
       displayName={displayName}
-      titleColor={chordFamilyColor(chord)}
+      titleFamily={classifyChordFamily(chord)}
       usageNotes={chord.entry["Usage Notes"]}
       isLocked={isLocked}
       onToggleLock={onToggleLock}
@@ -118,8 +118,8 @@ export default function ChordCard({
       {/* Visualization */}
       <div className="flex w-full min-w-0 flex-col items-center gap-2 p-4">
         {instrument === "guitar" ? (
-          <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0 flex-1 basis-20">
+          <div className="hh-guitar-card-toolbar" data-testid="guitar-card-toolbar">
+            <div className="hh-guitar-card-toolbar__modifier">
               <ChordModifier
                 chord={chord}
                 displayName={displayName}
@@ -132,7 +132,8 @@ export default function ChordCard({
             <div
               role="group"
               aria-label={t(`Guitar labels for ${displayName}`)}
-              className="flex shrink-0 rounded-full p-0.5"
+              data-testid="guitar-label-modes"
+              className="hh-guitar-card-toolbar__modes flex rounded-full p-0.5"
               style={{
                 backgroundColor: "var(--surface-overlay)",
                 border: "1px solid var(--border-subtle)",
@@ -146,7 +147,7 @@ export default function ChordCard({
                     type="button"
                     aria-pressed={active}
                     onClick={() => setGuitarDisplay(mode)}
-                    className="rounded-full px-2.5 py-1 text-xs transition-all"
+                    className="min-h-9 rounded-full px-2.5 py-1 text-xs transition-all"
                     style={{
                       backgroundColor: active
                         ? "var(--interactive-accent-bg)"
@@ -168,6 +169,7 @@ export default function ChordCard({
                 );
               })}
             </div>
+            <span className="hh-guitar-card-toolbar__balance" aria-hidden="true" />
           </div>
         ) : (
           <ChordModifier
@@ -261,7 +263,7 @@ export default function ChordCard({
             <div
               role="group"
               aria-label={t(`Piano voicing style for ${displayName}`)}
-              className="flex w-full flex-wrap items-center justify-start gap-1 rounded-lg p-1"
+              className="flex w-full flex-wrap items-center justify-center gap-1 rounded-lg p-1"
               style={{
                 backgroundColor: "var(--surface-overlay)",
                 border: "1px solid var(--border-subtle)",
@@ -299,7 +301,7 @@ export default function ChordCard({
               })}
             </div>
 
-            <div className="w-full max-w-full overflow-x-auto lg:w-auto lg:max-w-none lg:overflow-x-visible">
+            <div className="w-full max-w-full overflow-hidden">
               <PianoKeyboard
                 voicedNotes={voicing.notes}
                 displayMode="notes"

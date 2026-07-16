@@ -3,17 +3,17 @@
 - [x] 1.1 Run strict OpenSpec validation and reconcile any proposal/design/delta inconsistency before source edits.
 - [x] 1.2 Record a requirement-by-requirement acceptance ledger for the supplied screenshots and written fixes, including authoritative proof for every item.
 - [x] 1.3 Capture current PR #75 desktop, tablet, and mobile evidence for header centering, preset visibility, composer controls, Guitar cards, and Piano cards.
-- [ ] 1.4 Commit the complete OpenSpec artifact boundary as a standalone milestone without staging `.agents/` or `AGENTS.md`.
+- [x] 1.4 Commit the complete OpenSpec artifact boundary as a standalone milestone without staging `.agents/` or `AGENTS.md`.
 
 ## 2. Centered Header and Complete Preset Dialogs
 
-- [ ] 2.1 Replace desktop header flex balancing with a true three-region centered layout while preserving the wrapped tablet/mobile layout.
-- [ ] 2.2 Replace the inline preset subgroup/progression carousels with four centered Major, Minor, Modal, and Advanced category buttons inside the existing bordered surface.
-- [ ] 2.3 Implement one localized accessible preset dialog that renders every subgroup and progression for the selected category, closes on selection, and restores focus on dismissal.
-- [ ] 2.4 Preserve preset transposition, Minor Blend help, shared timeline replacement, stale-agent invalidation, and Japanese labels through the dialog path.
-- [ ] 2.5 Strengthen catalogue parity tests for exact 23/21/13/5 category counts, subgroup/name/numeral parity, uniqueness, and all-key dictionary resolution.
-- [ ] 2.6 Add Playwright coverage for header center geometry, all four complete dialog inventories, pointer/keyboard selection, Escape/outside dismissal, focus restoration, and 375px containment.
-- [ ] 2.7 Inspect and approve the four category-dialog visual states at desktop and mobile widths, then commit the header/preset milestone.
+- [x] 2.1 Replace desktop header flex balancing with a true three-region centered layout while preserving the wrapped tablet/mobile layout.
+- [x] 2.2 Replace the inline preset subgroup/progression carousels with four centered Major, Minor, Modal, and Advanced category buttons inside the existing bordered surface.
+- [x] 2.3 Implement one localized accessible preset dialog that renders every subgroup and progression for the selected category, closes on selection, and restores focus on dismissal.
+- [x] 2.4 Preserve preset transposition, Minor Blend help, shared timeline replacement, stale-agent invalidation, and Japanese labels through the dialog path.
+- [x] 2.5 Strengthen catalogue parity tests for exact 23/21/13/5 category counts, subgroup/name/numeral parity, uniqueness, and all-key dictionary resolution.
+- [x] 2.6 Add Playwright coverage for header center geometry, all four complete dialog inventories, pointer/keyboard selection, Escape/outside dismissal, focus restoration, and 375px containment.
+- [x] 2.7 Inspect and approve the four category-dialog visual states at desktop and mobile widths, then commit the header/preset milestone.
 
 ## 3. Intuitive Composer Removal and Drag Safety
 

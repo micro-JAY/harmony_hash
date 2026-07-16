@@ -319,7 +319,12 @@ test.describe("OpenAI progression builder", () => {
     await page.getByRole("button", { name: "Run progression agent" }).click();
     await delayed.requestStarted;
 
-    await page.getByTitle('The "Primary" Loop').click();
+    await page.getByRole("group", { name: "Preset collection" })
+      .getByRole("button", { name: "Major", exact: true })
+      .click();
+    await page.getByRole("dialog", { name: "Major presets" })
+      .getByRole("button", { name: 'The "Primary" Loop: I – IV – V' })
+      .click();
     await expect(page.getByRole("heading", { name: "F", exact: true })).toBeVisible();
 
     delayed.releaseResponse();

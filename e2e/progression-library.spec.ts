@@ -6,7 +6,12 @@ test.describe("progression preset library", () => {
 
     const keySelector = page.getByRole("combobox", { name: "HASHER key" });
     await keySelector.selectOption("D");
-    await page.getByRole("button", { name: "The Plagal Loop: I – IV – I – V" }).click();
+    await page.getByRole("group", { name: "Preset collection" })
+      .getByRole("button", { name: "Major", exact: true })
+      .click();
+    await page.getByRole("dialog", { name: "Major presets" })
+      .getByRole("button", { name: "The Plagal Loop: I – IV – I – V" })
+      .click();
 
     const cards = page.getByTestId("chord-card");
     await expect(cards).toHaveCount(4);
@@ -15,8 +20,12 @@ test.describe("progression preset library", () => {
 
   test("renders the named ii-V-I reference on guitar and piano", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("tab", { name: "Jazz & R&B Fundamentals" }).click();
-    await page.getByRole("button", { name: "The 2-5-1 (The King): ii – V – I" }).click();
+    await page.getByRole("group", { name: "Preset collection" })
+      .getByRole("button", { name: "Major", exact: true })
+      .click();
+    await page.getByRole("dialog", { name: "Major presets" })
+      .getByRole("button", { name: "The 2-5-1 (The King): ii – V – I" })
+      .click();
 
     const cards = page.getByTestId("chord-card");
     await expect(cards.locator("h3")).toHaveText(["Dm", "G", "C"]);

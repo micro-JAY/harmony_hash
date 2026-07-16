@@ -51,6 +51,55 @@ const documentedScaleTypes = new Map<string, ScaleType>([
 ]);
 
 describe("progression library", () => {
+  test("keeps the exact category and subgroup inventory", () => {
+    expect(PROGRESSION_LIBRARY.map((group) => ({
+      id: group.id,
+      subgroupLabels: group.subgroups.map((subgroup) => subgroup.label),
+      progressionCount: group.subgroups.reduce(
+        (count, subgroup) => count + subgroup.progressions.length,
+        0,
+      ),
+    }))).toEqual([
+      {
+        id: "major",
+        subgroupLabels: [
+          "The Foundations (Rock, Pop, Folk)",
+          "Jazz & R&B Fundamentals",
+          "Gospel & Soul Movement",
+        ],
+        progressionCount: 23,
+      },
+      {
+        id: "minor",
+        subgroupLabels: [
+          "The Essentials (Pop & Rock)",
+          "R&B & Soul Minor Loops",
+          "Harmonic/Classical Minor (Strong Pull)",
+          "Jazz Minor (Sophisticated)",
+        ],
+        progressionCount: 21,
+      },
+      {
+        id: "modal",
+        subgroupLabels: [
+          'Dorian (The "Cool" Funk)',
+          'Mixolydian (The "Greasy" Rock/Soul)',
+          'Lydian (The "Ethereal" Dream)',
+          'Phrygian (The "Aggressive" Dark)',
+          'Locrian (The "Forbidden" / Unstable)',
+        ],
+        progressionCount: 13,
+      },
+      {
+        id: "advanced",
+        subgroupLabels: ["Chromatic & Secondary Dominant Movement"],
+        progressionCount: 5,
+      },
+    ]);
+    expect(entries).toHaveLength(62);
+    expect(transpositionCases).toHaveLength(744);
+  });
+
   test("contains both Common Progressions examples named in the roadmap", () => {
     expect(entries).toEqual(
       expect.arrayContaining([

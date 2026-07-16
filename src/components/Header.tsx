@@ -42,8 +42,8 @@ export default function Header({
   ] as const;
 
   return (
-    <header className="tonari-topbar flex-wrap lg:flex-nowrap">
-      <div className="tonari-brand">
+    <header className="tonari-topbar hh-app-header">
+      <div className="tonari-brand hh-app-header__brand">
         <span className="tonari-brand__name">
           HARMONY <span className="tonari-brand__name--accent">HASH</span>
         </span>
@@ -54,7 +54,7 @@ export default function Header({
         aria-label={t("Workspace")}
         data-tour="workspace-navigation"
         data-reduced-motion={reduceMotion ? "true" : "false"}
-        className="order-3 flex w-full justify-center gap-1 rounded-full p-1 lg:order-none lg:w-auto"
+        className="hh-app-header__nav flex w-full justify-center gap-1 rounded-full p-1 lg:w-auto"
         style={{ backgroundColor: "var(--surface-overlay)" }}
       >
         {destinations.map((destination) => {
@@ -86,7 +86,7 @@ export default function Header({
         })}
       </nav>
 
-      <div className="flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:w-auto sm:justify-end sm:gap-3">
+      <div className="hh-app-header__utilities flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:w-auto sm:justify-end sm:gap-3">
         <button
           ref={helpButtonRef}
           type="button"

@@ -24,6 +24,7 @@ import { PROGRESSION_LIBRARY } from "../data/progressions";
 import { useT } from "../i18n/I18nContext";
 import ChordReferenceGrid from "./ChordReferenceGrid";
 import MinorBlendModal from "./MinorBlendModal";
+import PresetCategoryDialog from "./PresetCategoryDialog";
 import ProgressionAgent from "./ProgressionAgent";
 import ProgressionTimelineComposer from "./ProgressionTimelineComposer";
 
@@ -103,9 +104,9 @@ export default function ProgressionInput({
   const [activeScaleType, setActiveScaleType] = useState<ScaleType>("major");
   const [selected, setSelected] = useState<SelectedProgression | null>(null);
   const [errors, setErrors] = useState<ParseResult["errors"]>([]);
-  const [activeTonality, setActiveTonality] = useState<TonalityId>("major");
-  const [activeSubgroupIndex, setActiveSubgroupIndex] = useState(0);
+  const [presetDialogTonality, setPresetDialogTonality] = useState<TonalityId | null>(null);
   const [minorHelpOpen, setMinorHelpOpen] = useState(false);
+  const presetTriggerRef = useRef<HTMLButtonElement>(null);
   const cancellationVersionRef = useRef(0);
   const [agentCancellationVersion, setAgentCancellationVersion] = useState(0);
   const [contextLaunchNotice, setContextLaunchNotice] = useState<string | null>(null);
@@ -130,8 +131,9 @@ export default function ProgressionInput({
   const composerIsDirty = composerWasRebased ? false : composerDraft.dirty;
   const canRunComposer = composedItems.length > 0 || composerIsDirty;
   const composedChordNames = composedItems.map((item) => item.value);
-  const activeGroup = PROGRESSION_LIBRARY.find((group) => group.id === activeTonality)!;
-  const activeSubgroup = activeGroup.subgroups[activeSubgroupIndex] ?? activeGroup.subgroups[0];
+  const presetDialogGroup = presetDialogTonality === null
+    ? null
+    : PROGRESSION_LIBRARY.find((group) => group.id === presetDialogTonality) ?? null;
 
   useEffect(() => {
     onContextChange({ key: activeKey, scaleType: activeScaleType });
@@ -224,6 +226,7 @@ export default function ProgressionInput({
   }
 
   function handleProgressionSelect(
+    tonalityId: TonalityId,
     subgroupIdx: number,
     progressionIdx: number,
     progression: Progression,
@@ -231,13 +234,14 @@ export default function ProgressionInput({
   ) {
     setActiveScaleType(scaleType);
     setSelected({
-      tonalityId: activeTonality,
+      tonalityId,
       subgroupIdx,
       progressionIdx,
       progression,
       scaleType,
     });
     applyProgression(progression, scaleType, activeKey);
+    setPresetDialogTonality(null);
   }
 
   function handleKeyChange(key: string) {
@@ -252,10 +256,9 @@ export default function ProgressionInput({
     setSelected(null);
   }
 
-  function handleTonalityChange(tonalityId: TonalityId) {
-    setActiveTonality(tonalityId);
-    setActiveSubgroupIndex(0);
-    setSelected(null);
+  function handleCloseMinorHelp() {
+    setMinorHelpOpen(false);
+    requestAnimationFrame(() => presetTriggerRef.current?.focus());
   }
 
   function applyProgression(progression: Progression, scaleType: ScaleType, key: string) {
@@ -272,13 +275,6 @@ export default function ProgressionInput({
     cancelPendingAgentForTimelineEdit();
     setErrors(nextErrors);
     handleResolvedResult(resolved, nextErrors);
-  }
-
-  function isActive(subgroupIdx: number, progressionIdx: number): boolean {
-    return selected !== null
-      && selected.tonalityId === activeTonality
-      && selected.subgroupIdx === subgroupIdx
-      && selected.progressionIdx === progressionIdx;
   }
 
   const contextRail = (
@@ -348,70 +344,18 @@ export default function ProgressionInput({
               <button
                 key={group.id}
                 type="button"
-                aria-pressed={activeTonality === group.id}
-                onClick={() => handleTonalityChange(group.id)}
+                aria-haspopup="dialog"
+                aria-expanded={presetDialogTonality === group.id}
+                aria-pressed={selected?.tonalityId === group.id}
+                onClick={(event) => {
+                  presetTriggerRef.current = event.currentTarget;
+                  setPresetDialogTonality(group.id);
+                }}
                 className="hh-preset-collections__option"
               >
                 {t(group.label)}
               </button>
             ))}
-            {activeTonality === "minor" ? (
-              <button
-                type="button"
-                className="minor-help-btn hh-preset-help"
-                onClick={() => setMinorHelpOpen(true)}
-                aria-label={t("What is the Minor Blend?")}
-                title={t("What is the Minor Blend?")}
-              >
-                ?
-              </button>
-            ) : null}
-          </div>
-          <div className="hh-preset-groups">
-            {activeGroup.subgroups.length > 1 ? (
-              <div className="hh-preset-subgroups" role="tablist" aria-label={t(activeGroup.label)}>
-                {activeGroup.subgroups.map((subgroup, subgroupIdx) => (
-                  <button
-                    key={`${activeGroup.id}-${subgroup.label}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeSubgroupIndex === subgroupIdx}
-                    onClick={() => setActiveSubgroupIndex(subgroupIdx)}
-                    className="hh-preset-subgroups__option"
-                  >
-                    {t(subgroup.label)}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <div className="hh-preset-group">
-              <h3 className="sr-only">{t(activeSubgroup.label)}</h3>
-              <div className="hh-preset-options">
-                {activeSubgroup.progressions.map((progression, progressionIdx) => {
-                  const scaleType = activeSubgroup.scaleType ?? activeGroup.scaleType;
-                  const active = isActive(activeSubgroupIndex, progressionIdx);
-                  return (
-                    <button
-                      key={`${progression.numerals}-${progressionIdx}`}
-                      type="button"
-                      aria-pressed={active}
-                      aria-label={`${t(progression.name)}: ${progression.numerals}`}
-                      onClick={() => handleProgressionSelect(
-                        activeSubgroupIndex,
-                        progressionIdx,
-                        progression,
-                        scaleType,
-                      )}
-                      title={t(progression.name)}
-                      className="hh-preset-option"
-                    >
-                      <span>{progression.numerals}</span>
-                      <small>{t(progression.name)}</small>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </section>
 
@@ -528,8 +472,21 @@ export default function ProgressionInput({
       ) : null}
 
       <AnimatePresence>
-        {minorHelpOpen ? <MinorBlendModal onClose={() => setMinorHelpOpen(false)} /> : null}
+        {minorHelpOpen ? <MinorBlendModal onClose={handleCloseMinorHelp} /> : null}
       </AnimatePresence>
+      {presetDialogGroup ? (
+        <PresetCategoryDialog
+          group={presetDialogGroup}
+          selected={selected}
+          returnFocusRef={presetTriggerRef}
+          onSelect={handleProgressionSelect}
+          onRequestClose={() => setPresetDialogTonality(null)}
+          onOpenMinorBlend={() => {
+            setPresetDialogTonality(null);
+            setMinorHelpOpen(true);
+          }}
+        />
+      ) : null}
     </section>
   );
 }

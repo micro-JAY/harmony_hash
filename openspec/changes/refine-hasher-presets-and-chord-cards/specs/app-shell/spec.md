@@ -15,3 +15,8 @@ The application header SHALL keep the Hasher, Tune Toolbox, and Fret Finder work
 #### Scenario: Keyboard behavior preserved
 - **WHEN** a keyboard user focuses and activates a centered workspace tab
 - **THEN** visible focus, pressed state, and workspace selection SHALL behave identically to the existing navigation contract
+
+#### Scenario: FRET FINDER naming remains canonical
+- **WHEN** the fretboard workspace appears in the header or as its workspace title
+- **THEN** the English visible label SHALL be `FRET FINDER`
+- **AND** Japanese SHALL use the localized FRET FINDER name rather than the legacy Fretboard Explorer title

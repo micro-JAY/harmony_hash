@@ -18,7 +18,9 @@ HASHER SHALL render one shared progression flow without Free Input or Progressio
 
 #### Scenario: Shared action rail
 - **WHEN** a valid progression is rendered in Guitar or Piano
-- **THEN** Randomize, Play/Stop, Share, and Improv Insight SHALL remain available in the same compact action rail
+- **THEN** visible actions SHALL read `RANDOMIZE (UNLOCKED VOICES)`, `PLAY`/`STOP`, `SHARE`, and `IMPROV INSIGHT` in the same compact action rail
+- **AND** Play/Stop and Share SHALL retain their visible icons
+- **AND** no standalone Hanz action SHALL appear because Hanz remains reachable only from the progression prompt's contextual help affordance
 
 #### Scenario: Responsive reading order
 - **WHEN** the unified flow renders at 375px
@@ -110,12 +112,17 @@ The Build Your Own composer SHALL let users append and insert chords, reorder ex
 - **WHEN** a user focuses or selects a chord chip
 - **THEN** a compact `X` SHALL appear for that chip and activating it SHALL remove exactly that chord
 
-#### Scenario: Drag-out removal
-- **WHEN** a pointer user drags an existing chip onto the active outside removal target and releases it
+#### Scenario: Touch or pen drag-out removal
+- **WHEN** a touch or pen user crosses the drag threshold and deliberately releases an existing chip anywhere outside the composer
 - **THEN** that chord SHALL be removed exactly once and a polite live region SHALL announce the removal
 
+#### Scenario: Native mouse drag-out removal
+- **WHEN** a mouse user begins a native drag from an existing chip and produces an actual drop inside the viewport but outside the composer
+- **THEN** that chord SHALL be removed exactly once
+- **AND** an external dictionary-chord drag SHALL NOT qualify as a removal source
+
 #### Scenario: Cancelled drag is safe
-- **WHEN** a drag is cancelled with Escape or ends without a valid inside or removal-target drop
+- **WHEN** a drag is cancelled with Escape, `pointercancel`, lost pointer capture, or a native `dragend` without an actual drop
 - **THEN** the chord order and membership SHALL remain unchanged
 
 #### Scenario: Keyboard reorder and removal

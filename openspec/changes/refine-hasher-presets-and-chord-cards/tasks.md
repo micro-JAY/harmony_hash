@@ -55,4 +55,27 @@
 - [x] 6.5 Reconcile every acceptance item against current code, rendered evidence, and tests; leave no item marked complete from intent or indirect evidence.
 - [x] 6.6 Update OpenSpec task checkboxes and the long-horizon plan/log with exact commits, evidence, risks, and the next merge/archive step.
 - [x] 6.7 Push milestone commits to the PR #75 branch, update the PR description/screenshots, and require exact-head GitHub build, Playwright, and Cloudflare checks to pass before handoff.
-- [ ] 6.8 After PR #75 merges, sync/archive this change and update canonical specs in a separate reviewed documentation boundary.
+
+## 7. Complete Original PR #75 Contract
+
+- [ ] 7.1 Replace target-only composer removal with deliberate touch/pen release or actual native mouse drop anywhere outside the composer; keep Escape, pointer cancellation, lost capture, no-drop dragend, and external grid-source paths inert.
+- [ ] 7.2 Apply the shared chord-family presentation to composer chips, Circle chord labels, and FRET FINDER overlay selection/readout while retaining selection, relationship, score, focus, playback, lock, and Hanz semantics.
+- [ ] 7.3 Replace the Piano style selector's fixed grid/height with centered content-sized wrapping that reserves no unavailable track or empty row and preserves equal sibling cards.
+- [ ] 7.4 Keep the media rail exact—`RANDOMIZE (UNLOCKED VOICES)`, icon-backed `PLAY`/`STOP`, icon-backed `SHARE`, and `IMPROV INSIGHT`—with Hanz available only from progression-prompt help.
+- [ ] 7.5 Unify HASHER, TUNE TOOLBOX, Circle, and in-panel IMPROV controls under the dedicated pale-pink token family while keeping Style neutral and match/degree colors independent.
+- [ ] 7.6 Color IMPROV scale names and notes through the shared named-degree mapping and prove representative Root, minor-third/Ab, tritone, and other intervals match SCALE SYNTHESIA and FRET FINDER.
+- [ ] 7.7 Verify the complete four-category vocabulary dialog, display-face scale typography, compact note spacing, aligned <=14rem match meter, centered <=72rem panel, and local Circle/Toolbox open/close focus behavior.
+- [ ] 7.8 Add or strengthen pure/component/Playwright coverage for arbitrary outside removal and cancellation safety, all-six-family real surfaces, media icons/text, centered partial Piano selector rows, comparison backdrop/no-mutation/no-reflow, IMPROV palette/vocabulary/degree colors, Japanese, reduced motion, and desktop/tablet/375px containment.
+- [ ] 7.9 Inspect all new desktop/tablet/mobile rendered states and commit composer, global-color/Piano, and IMPROV milestones separately without staging `.agents/` or `AGENTS.md`.
+
+## 8. Full-Contract Validation and PR #75 Delivery
+
+- [ ] 8.1 Run production build, lint, all Vitest, strict OpenSpec, diff hygiene, dependency audit, and Worker dry-run on the exact implementation tree.
+- [ ] 8.2 Run complete Playwright plus three repeated focused composer/color/Piano/IMPROV passes and direct Browser QA in English/Japanese at desktop, tablet, transition, 375px, and reduced motion.
+- [ ] 8.3 Commission independent correctness, accessibility, responsive, music-color/theory, and specification-conformance reviews; fix every P0–P2 finding and rerun affected/full gates.
+- [ ] 8.4 Reconcile acceptance rows A1–A18 from direct code/render/test evidence, update the long-horizon plan/log and PR description/screenshots, then push milestone commits.
+- [ ] 8.5 Require exact-head GitHub build/test, both complete Playwright jobs, and Cloudflare Workers build to pass before handoff; keep PR #75 draft until the user approves all remaining issues.
+
+## 9. Merge and Archive Boundary
+
+- [ ] 9.1 After PR #75 merges, sync/archive this change and update canonical specs in a separate reviewed documentation boundary.

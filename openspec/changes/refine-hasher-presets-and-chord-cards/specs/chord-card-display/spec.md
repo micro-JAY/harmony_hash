@@ -36,7 +36,8 @@ Every piano chord card SHALL render a compact style selector above the keyboard 
 
 #### Scenario: Selector remains compact
 - **WHEN** the applicable styles do not fit on one line
-- **THEN** the visible styles SHALL wrap within a bounded selector area without increasing one card beyond the shared card-height contract
+- **THEN** the visible styles SHALL wrap in centered partial rows within a bounded selector area without fixed empty grid tracks or a fixed unused second-row height
+- **AND** sibling equality SHALL remain owned by the shared card-grid contract rather than placeholder selector space
 
 #### Scenario: Style selector hidden in guitar mode
 - **WHEN** the instrument is set to Guitar
@@ -87,6 +88,11 @@ Activating Compare Voicings SHALL open an accessible modal dialog containing eve
 #### Scenario: Escape closes without mutation
 - **WHEN** a keyboard user presses Escape without selecting a comparison
 - **THEN** the dialog SHALL close, the current style SHALL remain unchanged, focus SHALL return to the trigger, and neighboring cards SHALL not reflow
+
+#### Scenario: Backdrop dismissal closes without mutation
+- **WHEN** a pointer user dismisses the comparison through its backdrop without selecting a style
+- **THEN** the current style and neighboring card geometry SHALL remain unchanged
+- **AND** focus SHALL return to the comparison trigger
 
 ## REMOVED Requirements
 

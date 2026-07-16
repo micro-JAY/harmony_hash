@@ -3,6 +3,7 @@ import { Guitar, Music2 } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
 import type { IndexedChord } from "../lib/types";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 import type { ScaleFormulaType } from "../lib/theory/scaleBasics";
 import {
   buildFretboardPattern,
@@ -65,6 +66,7 @@ export default function FretboardExplorer() {
   const [cagedForm, setCagedForm] = useState<CagedFormId>("e");
   const [threeNpsStartDegree, setThreeNpsStartDegree] = useState<ThreeNpsStartDegree>(1);
   const [overlay, setOverlay] = useState<{ chord: IndexedChord; displayName: string }>();
+  const overlayPresentation = overlay ? chordFamilyPresentation(overlay.chord) : null;
   const tuningId = tuningByInstrument[instrument];
   const tuning = fretboardTuningDefinitionFor(instrument, tuningId);
   const tuningOptions = fretboardTuningsFor(instrument);
@@ -117,7 +119,7 @@ export default function FretboardExplorer() {
       <div className="hh-workspace__inner">
         <WorkspaceHeader
           titleId="fretboard-title"
-          title="Fretboard Explorer"
+          title="Fret Finder"
           description="See a scale across the whole instrument. Roots stay gold; interval roles keep the same color wherever they repeat."
         />
 
@@ -236,6 +238,7 @@ export default function FretboardExplorer() {
                 </WorkspaceSelectControl>
               ) : null}
               <ChordOverlayPicker
+                selectedChord={overlay?.chord}
                 selectedLabel={overlay?.displayName}
                 reducedMotion={Boolean(reduceMotion)}
                 onSelect={setOverlay}
@@ -267,7 +270,25 @@ export default function FretboardExplorer() {
               </p>
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 {t(pattern.available ? pattern.label : "All positions")}
-                {overlay ? ` · ${overlay.displayName} ${t("overlay")}` : ""}
+                {overlay && overlayPresentation ? (
+                  <>
+                    {" · "}
+                    <span
+                      data-testid="fretboard-overlay-readout"
+                      data-chord-family={overlayPresentation.family}
+                      className="inline-flex rounded px-1.5 py-0.5"
+                      style={{
+                        color: overlayPresentation.color,
+                        backgroundColor: overlayPresentation.backgroundColor,
+                        border: `1px solid ${overlayPresentation.borderColor}`,
+                        fontFamily: "var(--font-mono)",
+                      }}
+                    >
+                      {overlay.displayName}
+                    </span>
+                    {` ${t("overlay")}`}
+                  </>
+                ) : null}
               </p>
             </div>
             <ol className="mt-2 flex flex-wrap gap-1.5" aria-label={t("Scale notes and intervals")}>
@@ -276,9 +297,9 @@ export default function FretboardExplorer() {
                   key={`${item.note}-${item.interval}`}
                   className="rounded-full px-2 py-1"
                   style={{
-                    backgroundColor: item.interval === "1" ? "var(--interactive-accent-bg)" : "var(--surface-overlay)",
-                    border: `1px solid ${item.interval === "1" ? "var(--interactive-accent-border)" : "var(--border-subtle)"}`,
-                    color: item.interval === "1" ? "var(--interactive-accent-text)" : "var(--text-secondary)",
+                    backgroundColor: `color-mix(in srgb, ${fretboardIntervalColor(item.semitones)} 10%, var(--surface-overlay))`,
+                    border: `1px solid color-mix(in srgb, ${fretboardIntervalColor(item.semitones)} 42%, var(--border-subtle))`,
+                    color: fretboardIntervalColor(item.semitones),
                     fontFamily: "var(--font-mono)",
                     fontSize: "var(--text-xs)",
                   }}

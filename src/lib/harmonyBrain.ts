@@ -692,6 +692,39 @@ interface ParsedNumeral {
   extraSuffix: string; // anything after the numeral e.g. "" or custom quality
 }
 
+function numeralPitchOffset(parsed: ParsedNumeral, scale: readonly number[]): number {
+  // Altered numerals are measured from the major scale so bVII consistently
+  // means a whole step below the tonic in every supported mode.
+  const basePitch = parsed.accidental === 0
+    ? scale[parsed.degree]
+    : MAJOR_SCALE[parsed.degree];
+  return ((basePitch + parsed.accidental) % 12 + 12) % 12;
+}
+
+function numeralQuality(parsed: ParsedNumeral, defaultQualities: readonly string[]): string {
+  if (parsed.suffix) return parsed.suffix;
+  if (parsed.accidental !== 0) return parsed.isMinor ? "m" : "";
+  if (parsed.isMinor) return "m";
+
+  const defaultQuality = defaultQualities[parsed.degree];
+  return defaultQuality === "m" ? "" : defaultQuality;
+}
+
+function isShippedSecondaryDominant(
+  primary: ParsedNumeral,
+  targetToken: string,
+): boolean {
+  // The curated library documents Roman slash tokens as inversions except for
+  // its explicitly named Secondary Pull. Keep that compatibility boundary
+  // narrow: natural uppercase V/ii (or V7/ii, etc.) tonicizes ii; all other
+  // shipped slash targets remain diatonic bass degrees.
+  return primary.degree === NUMERAL_MAP.V
+    && !primary.isMinor
+    && primary.accidental === 0
+    && primary.suffix === ""
+    && targetToken === "ii";
+}
+
 /**
  * Parse a roman numeral string like "bVII", "ii°", "IV", "im"
  */
@@ -767,38 +800,34 @@ export function transposeProgression(
   const noteDisplay = useSharp ? NOTE_DISPLAY_SHARP : NOTE_DISPLAY;
 
   return numerals.map((numeral) => {
-    // Slash-numeral bass notes are currently display-only; resolve the main chord token.
-    const primaryNumeral = numeral.split("/")[0].trim();
+    const slashParts = numeral.split("/").map((part) => part.trim());
+    if (slashParts.length > 2) return numeral;
+
+    const [primaryNumeral, slashTarget] = slashParts;
     const parsed = parseNumeral(primaryNumeral);
     if (!parsed) return numeral; // unparseable, return raw
 
-    const { degree, isMinor, accidental, suffix, extraSuffix } = parsed;
+    const { extraSuffix } = parsed;
+    const primaryOffset = numeralPitchOffset(parsed, scale);
+    let chordRootPc = (keyPc + primaryOffset) % 12;
 
-    // Get the scale degree's pitch class
-    // Accidentals are applied relative to the MAJOR scale, not the modal scale.
-    // e.g. "bVII" always means a whole step below tonic, regardless of mode.
-    const basePc = accidental !== 0 ? MAJOR_SCALE[degree] : scale[degree];
-    const scalePc = basePc + accidental;
-    const chordRootPc = ((keyPc + scalePc) % 12 + 12) % 12;
-    const rootName = noteDisplay[chordRootPc];
+    const slashParsed = slashTarget ? parseNumeral(slashTarget) : null;
+    if (slashTarget && !slashParsed) return numeral;
 
-    // Determine chord quality
-    let quality: string;
-    if (suffix) {
-      // Explicit suffix from the numeral (e.g. ii° → dim)
-      quality = suffix;
-    } else if (accidental !== 0) {
-      // With accidentals (bVII, #IV), the numeral case directly determines quality
-      quality = isMinor ? "m" : "";
-    } else if (isMinor) {
-      quality = "m";
-    } else {
-      // No accidental, no suffix: use scale's default quality for this degree
-      const defaultQ = defaultQualities[degree];
-      quality = defaultQ === "m" ? "" : defaultQ;
+    if (slashParsed && isShippedSecondaryDominant(parsed, slashTarget)) {
+      const targetPc = (keyPc + numeralPitchOffset(slashParsed, scale)) % 12;
+      chordRootPc = (targetPc + 7) % 12;
     }
 
-    return rootName + quality + extraSuffix;
+    const rootName = noteDisplay[chordRootPc];
+    const chordName = rootName + numeralQuality(parsed, defaultQualities) + extraSuffix;
+
+    if (!slashParsed || isShippedSecondaryDominant(parsed, slashTarget)) {
+      return chordName;
+    }
+
+    const bassPc = (keyPc + numeralPitchOffset(slashParsed, scale)) % 12;
+    return `${chordName}/${noteDisplay[bassPc]}`;
   });
 }
 

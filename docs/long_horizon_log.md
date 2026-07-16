@@ -751,3 +751,47 @@ The post-remediation working-tree security diff scan `aed64f35-c26f-4972-9746-c7
 - The custom domain is intercepted by its managed Cloudflare security challenge from this automation environment, so no WAF weakening was attempted. The browser host also has no resumable audio device; live Play controls and lifecycle are verified, while audible output is not claimed. Deterministic Web Audio tests prove distinct guitar pluck/stagger and Piano scheduling behavior.
 - OpenSpec verification found no critical implementation gap. Its two artifact warnings were reconciled before canonical sync: Hanz provider continuity now reflects safe panel/focus teardown on workspace exit, and the design records the security-driven rate-limit bindings.
 - Current state: `chore/close-hasher-learning-suite`; all eight canonical specs are reconciled, the change is archived at `openspec/changes/archive/2026-07-15-hasher-learning-suite`, all 18 canonical specs pass strict validation, and the exact-main build/lint/1,212 Vitest/143 Playwright/Worker packaging gate is green. Next concrete step is the documentation closeout PR, exact-head CI, squash merge, and final deployment readback.
+
+---
+
+## 2026-07-16 18:13 JST — PR #75 HASHER correction review closure
+
+Completed the user-directed correction round on `feat/hasher-unified-flow` through implementation head `33eb5d9`. The primary workspace navigation now uses true geometric centering in English and Japanese. Four centered Major, Minor, Modal, and Advanced buttons open contained localized dialogs with the full 23/21/13/5 catalogue and exact subgroup hierarchy. Preset selection closes and restores focus. The three ambiguous shipped Roman-slash cases now preserve their documented intent: `I/III` resolves to `C/E`, the Soulful Descent keeps `V/vii` as `G/B`, and the named Secondary Pull makes `V/ii` a real A secondary dominant in C.
+
+Composer chips expose one selected `X`, commit clean removals immediately through the shared timeline transaction, retain coherent staged behavior for mixed drafts, clear stale preset identity after non-preset edits, and support exact native/touch insertion plus an explicit temporary outside removal target. Boundary Alt-arrow shortcuts are consumed without browser navigation; real Chromium touch removal, cancellation, and invalid drops are covered. Stable IDs continue to remap locks, variants, Piano styles, playback, Hanz focus, and agent versions through the existing transaction layer.
+
+The shared chord-family palette now classifies aliases, slash chords, suspended roots, minor sharp-five qualities, altered dominants, diminished/half-diminished, and augmented chords consistently. Root rows remain blue and percentage matches retain their independent gradient. Guitar label controls are geometrically centered and absent from Piano. Modifier alternatives use family treatments inside the accessible `Modify … chord` dialog with a `Top picks` section and readable score reasons. Piano comparison selection closes and restores focus; dominant headings and every small inactive/helper label meet computed contrast.
+
+Piano cards render the complete proportional C3–B5 keyboard with 21 white and 15 black keys, no card-level horizontal scrolling, every active key in bounds, only applicable style choices, non-truncated bounded two-row selectors, and equal sibling heights from desktop through 375px. Desktop Browser QA inspected English/Japanese preset, composer, Guitar, modifier, and Piano states with no console issue or document overflow; Playwright supplies the 820px, 500px, 375px, reduced-motion, pointer, keyboard, and real-touch evidence.
+
+**Verification:** production build and lint pass; Vitest is 48 files / 1,269 tests; full Chromium Playwright is 161/161 in 1.8 minutes; the focused integrated correction slice is 36/36; Wrangler 4.110.0 dry-run packages 3,424 assets with the expected assets, progression-rate-limit, voice-rate-limit, and voice-agent-id bindings; strict OpenSpec and diff checks pass. Two fresh post-fix reviews report no remaining P0–P2 finding. The inherited main-chunk size advisory remains unchanged and non-blocking.
+
+**Current state:** milestone commits `3e346b4`, `1685b43`, `00a4605`, `04c464e`, `3d303a6`, and `33eb5d9` are complete locally. Next: commit this evidence ledger, push the exact branch to draft [#75](https://github.com/micro-JAY/harmony_hash/pull/75), update its description, and require exact-head GitHub build/test, Playwright, and Workers checks to pass. Do not merge or archive `refine-hasher-presets-and-chord-cards`; the user has additional PR #75 corrections to address later.
+
+---
+
+## 2026-07-16 18:47 JST — PR #75 Linux Playwright root-cause closure
+
+The first correction heads exposed one deterministic cross-platform visual failure in `e2e/builder-layout.spec.ts`: all 160 functional scenarios passed, but the 375px full-page HASHER baseline was 1,279px on macOS and 1,251px on Linux. Block-level geometry instrumentation proved the header, navigation, context, presets, composer, chord browser, and output were identical. The only 28px divergence was the progression-agent metadata footer after prompt help appeared: Linux font metrics fit the character/help readout and API status on one row, while macOS wrapped the status to a second row.
+
+Commit `8065b8e` makes that mobile help state deterministic by placing the API status on an explicit second flex line below 640px while preserving the original compact single-line footer before help appears. The focused regression asserts the status is geometrically below the readout and retains both full-page snapshots. A fresh independent review found no P0–P2 issue; its only Low observation was closed by applying the layout class only when the help control is actually renderable.
+
+**Verification:** production build, lint, 48 Vitest files / 1,269 tests, the focused 4-test layout suite, and the complete local 161-test Playwright suite pass. Exact implementation head `8065b8e` then passed both Linux build/test jobs, both complete Linux Playwright jobs (3m33s and 3m49s), and Cloudflare Workers build `39c4e8f3-f276-453d-ac9a-f645d756cbc7`.
+
+**Current state:** the bounded correction batch is complete and OpenSpec task 6.7 is closed. Draft [#75](https://github.com/micro-JAY/harmony_hash/pull/75) remains intentionally unmerged because the user has additional issues to review. OpenSpec task 6.8 and archive/sync remain deferred until the full PR is approved and merged.
+
+---
+
+## 2026-07-16 20:19 JST — PR #75 full-contract implementation closure
+
+Restored the complete original PR #75 request from the supplied build brief, with the later correction prompt treated as authoritative where it refined removal, preset, color, alignment, and Piano behavior. Milestone `663794d` replaces the temporary composer removal target with actual native mouse drops and threshold-qualified touch/pen releases anywhere outside the composer while preserving cancellation and external-source safety. Milestone `ad30bdc` completes the global chord-family presentation, exact media rail, centered applicable-only Piano selectors, full three-octave equal-card keyboards, modal chord/Piano tools, dedicated IMPROV palette and vocabulary, shared named-degree colors across IMPROV/SCALE SYNTHESIA/FRET FINDER, and local Circle/Toolbox IMPROV access.
+
+The final Browser pass measured desktop navigation within 3px of the viewport center, four equal 446px Piano cards with aligned keyboards, tablet cards at equal 429px heights, and no document overflow at 1440×900, 820×1000, or 375×812. The complete Major dialog renders all documented subgroups and progressions in a contained 1,024px modal. IMPROV is centered at the 1,152px rail on desktop, remains contained on mobile, and emits no browser warning or error.
+
+**Verification:** exact-tree production build and lint pass; Vitest is 48 files / 1,270 tests; full Playwright is 171/171; the highest-risk composer/color/Piano/IMPROV slice is 75/75 across three consecutive passes; Wrangler 4.110.0 dry-run packages 3,424 assets with the expected rate-limit, assets, and voice-agent-id bindings; production dependency audit reports zero vulnerabilities; strict OpenSpec and diff hygiene pass. Independent correctness, accessibility/specification, and responsive-layout reviews report no remaining P0–P2 finding. The inherited large main-chunk advisory remains unchanged and non-blocking.
+
+**Current state:** all product code is committed locally through `ad30bdc`. Next: commit this reconciled acceptance ledger, push the complete branch, update draft [#75](https://github.com/micro-JAY/harmony_hash/pull/75), require exact-head build/test, both Playwright jobs, and Workers build to pass, then hand the draft back without merge or deployment. OpenSpec archive/sync remains deferred until user-approved merge.
+
+### Exact-head publication gate
+
+Draft [#75](https://github.com/micro-JAY/harmony_hash/pull/75) is updated with the complete A1–A18 scope, root-cause note, validation, milestone commits, and committed desktop/mobile/IMPROV screenshots. Exact published head `1a3d96d` passed both build/test jobs, both complete 171-scenario Linux Playwright jobs in 3m59s and 3m52s, and Cloudflare Workers build `cd1cb35a-fa95-4784-af3c-3041ed177f17`. The PR remains draft, mergeable, undeployed, and unarchived pending user approval.

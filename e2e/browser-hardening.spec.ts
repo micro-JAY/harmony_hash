@@ -1,11 +1,16 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
-async function dispatchNativeDrag(page: Page, source: Locator, target: Locator): Promise<void> {
+async function dispatchNativeDrag(
+  page: Page,
+  source: Locator,
+  target: Locator,
+  targetPosition: { clientX: number; clientY: number },
+): Promise<void> {
   const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
   await source.dispatchEvent("dragstart", { dataTransfer });
-  await target.dispatchEvent("dragover", { dataTransfer });
-  await target.dispatchEvent("drop", { dataTransfer });
+  await target.dispatchEvent("dragover", { dataTransfer, ...targetPosition });
+  await target.dispatchEvent("drop", { dataTransfer, ...targetPosition });
   await source.dispatchEvent("dragend", { dataTransfer });
   await dataTransfer.dispose();
 }
@@ -64,22 +69,38 @@ test("does not trust forged internal drag MIME data", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await composeProgression(page, "C G7 Am");
   const composer = page.getByTestId("chord-composer");
-  const firstSlot = composer.getByTestId("timeline-insertion-slot").first();
+  const chips = composer.locator("[data-composer-chip-index]");
+  const firstChip = await chips.first().boundingBox();
+  expect(firstChip).not.toBeNull();
   const forgedTransfer = await page.evaluateHandle(() => {
     const transfer = new DataTransfer();
     transfer.setData("application/x-harmony-hash-timeline-index", "2");
     transfer.setData("text/plain", "Dm");
     return transfer;
   });
-  await firstSlot.dispatchEvent("dragover", { dataTransfer: forgedTransfer });
-  await firstSlot.dispatchEvent("drop", { dataTransfer: forgedTransfer });
+  await composer.dispatchEvent("dragover", {
+    dataTransfer: forgedTransfer,
+    clientX: firstChip!.x,
+    clientY: firstChip!.y + firstChip!.height / 2,
+  });
+  await composer.dispatchEvent("drop", {
+    dataTransfer: forgedTransfer,
+    clientX: firstChip!.x,
+    clientY: firstChip!.y + firstChip!.height / 2,
+  });
   await forgedTransfer.dispose();
 
-  await expect(composer.getByRole("listitem")).toHaveText(["Dm", "C", "G7", "Am"]);
+  await expect(chips).toHaveText(["Dm", "C", "G7", "Am"]);
+  const newFirstChip = await chips.first().boundingBox();
+  expect(newFirstChip).not.toBeNull();
   await dispatchNativeDrag(
     page,
-    composer.getByRole("listitem").last(),
-    composer.getByTestId("timeline-insertion-slot").first(),
+    chips.last(),
+    composer,
+    {
+      clientX: newFirstChip!.x,
+      clientY: newFirstChip!.y + newFirstChip!.height / 2,
+    },
   );
-  await expect(composer.getByRole("listitem")).toHaveText(["Am", "Dm", "C", "G7"]);
+  await expect(chips).toHaveText(["Am", "Dm", "C", "G7"]);
 });

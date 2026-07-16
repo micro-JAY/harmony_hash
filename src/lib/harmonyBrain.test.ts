@@ -12,6 +12,7 @@ import {
   isVoicingStyleAvailable,
   noteToPitchClass,
 } from "./harmonyBrain";
+import { lookupChord } from "./chordData";
 import type { VoicedChord, VoicedNote, VoicingStyle } from "./types";
 
 // ─── 4.1: Chord Symbol Normalization ─────────────────────────────────
@@ -130,9 +131,22 @@ describe("transposeProgression", () => {
     expect(result).toEqual(["Bmmaj7"]);
   });
 
-  it("resolves slash numerals using the primary numeral token", () => {
-    const result = transposeProgression(["I/III", "V/ii", "ii"], "F", "major");
-    expect(result).toEqual(["F", "C", "Gm"]);
+  it("preserves the shipped slash-bass inversions", () => {
+    expect(transposeProgression(["I/III", "V/vii"], "C", "major"))
+      .toEqual(["C/E", "G/B"]);
+  });
+
+  it("resolves the shipped V/ii Secondary Pull as a real secondary dominant", () => {
+    expect(transposeProgression(["V/ii", "V7/ii"], "C", "major"))
+      .toEqual(["A", "A7"]);
+  });
+
+  it("keeps every shipped ambiguous slash form dictionary-valid in all keys", () => {
+    const keys = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+    for (const key of keys) {
+      const result = transposeProgression(["I/III", "V/vii", "V/ii"], key, "major");
+      expect(result.every((name) => lookupChord(name))).toBe(true);
+    }
   });
 });
 

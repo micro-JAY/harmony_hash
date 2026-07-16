@@ -17,13 +17,14 @@ import {
   type ScaleFormulaType,
 } from "../lib/theory";
 import { useLocale, useT } from "../i18n/I18nContext";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 
 interface CircleOfFifthsProps {
   onUseKey: (key: CircleKey) => void;
   selectedRoot?: string;
   selectedScaleId?: ScaleFormulaType;
   onRootChange?: (root: string) => void;
-  onOpenImprov?: (root: string) => void;
+  onOpenImprov?: (root: string, returnFocusId?: string) => void;
   embedded?: boolean;
 }
 
@@ -348,20 +349,33 @@ export default function CircleOfFifths({
           <section aria-labelledby="circle-diatonic-heading">
             <h3 id="circle-diatonic-heading" style={{ fontSize: "var(--text-lg)" }}>{t("Diatonic chords")}</h3>
             <ol className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4" aria-label={`${t(contextLabel)} ${t("Diatonic chords")}`}>
-              {diatonicChordRows.map(({ edge, node }) => (
-                <li
-                  key={edge.id}
-                  className="flex min-h-16 flex-col items-center justify-center rounded-md px-2 py-2 text-center"
-                  style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-subtle)", color: "var(--text-primary)" }}
-                >
-                  <span className="readout">{node.label}</span>
-                  {node.functionKey ? (
-                    <span className="mt-1 text-[0.65rem]" style={{ color: "var(--text-secondary)" }}>
-                      {t(node.functionKey)}
+              {diatonicChordRows.map(({ edge, node }) => {
+                const familyPresentation = chordFamilyPresentation(node.chordSymbol ?? node.label);
+                return (
+                  <li
+                    key={edge.id}
+                    className="flex min-h-16 flex-col items-center justify-center rounded-md px-2 py-2 text-center"
+                    style={{ backgroundColor: "var(--surface-overlay)", border: "1px solid var(--border-subtle)", color: "var(--text-primary)" }}
+                  >
+                    <span
+                      className="readout inline-flex rounded px-1.5 py-0.5"
+                      data-chord-family={familyPresentation.family}
+                      style={{
+                        color: familyPresentation.color,
+                        backgroundColor: familyPresentation.backgroundColor,
+                        border: `1px solid ${familyPresentation.borderColor}`,
+                      }}
+                    >
+                      {node.label}
                     </span>
-                  ) : null}
-                </li>
-              ))}
+                    {node.functionKey ? (
+                      <span className="mt-1 text-[0.65rem]" style={{ color: "var(--text-secondary)" }}>
+                        {t(node.functionKey)}
+                      </span>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ol>
           </section>
 
@@ -402,13 +416,15 @@ export default function CircleOfFifths({
 
           {onOpenImprov ? (
             <button
+              id="circle-improv-trigger"
               type="button"
-              onClick={() => onOpenImprov(relationshipRoot)}
+              onClick={() => onOpenImprov(relationshipRoot, "circle-improv-trigger")}
               className="hh-action mt-3 transition-colors"
               style={{
-                backgroundColor: "var(--interactive-academy-bg)",
-                border: "1px solid var(--interactive-academy-border)",
-                color: "var(--interactive-academy-text)",
+                backgroundColor: "var(--music-insight-action-bg)",
+                border: "1px solid var(--music-insight-action-border)",
+                color: "var(--music-insight-action-text)",
+                transitionDuration: reduceMotion ? "0ms" : "var(--duration-fast)",
               }}
             >
               {t("Open Improv Insight")}
@@ -432,10 +448,23 @@ export default function CircleOfFifths({
                 ? edge.targetId
                 : edge.sourceId;
               const related = relationshipNodes.get(relatedId);
+              const relatedFamily = related?.chordSymbol
+                ? chordFamilyPresentation(related.chordSymbol)
+                : null;
               return (
                 <li key={edge.id} className="flex items-center justify-between gap-3 text-sm">
                   <span className="min-w-0">
-                    <span className="block truncate">{t(related?.label ?? relatedId)}</span>
+                    <span
+                      data-chord-family={relatedFamily?.family}
+                      className="inline-flex max-w-full truncate rounded px-1.5 py-0.5"
+                      style={relatedFamily ? {
+                        color: relatedFamily.color,
+                        backgroundColor: relatedFamily.backgroundColor,
+                        border: `1px solid ${relatedFamily.borderColor}`,
+                      } : undefined}
+                    >
+                      {t(related?.label ?? relatedId)}
+                    </span>
                     <span className="block text-xs" style={{ color: "var(--text-secondary)" }}>
                       {related?.functionKey ? `${t(related.functionKey)} · ` : null}
                       {t(edge.kind)}

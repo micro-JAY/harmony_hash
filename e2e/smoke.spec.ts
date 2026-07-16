@@ -1,62 +1,21 @@
 import { test, expect } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
-/**
- * Decode the active piano keys' MIDI positions from the rendered DOM.
- * The piano keyboard places white keys at left = i * 30 and black keys at
- * fractional offsets within an octave (see src/components/PianoKeyboard.tsx).
- * Returns one entry per visible chord card, in document order.
- */
+/** Returns the active MIDI notes exposed by each visible chord card. */
 function decodePianoMidis(): Array<{ name: string; midis: number[] | null }> {
-  const WHITE_MIDI: number[] = [];
-  for (let oct = 3; oct <= 5; oct++) {
-    for (const pc of [0, 2, 4, 5, 7, 9, 11]) {
-      WHITE_MIDI.push(pc + (oct + 1) * 12);
-    }
-  }
-
-  const cards = Array.from(document.querySelectorAll<HTMLElement>('[class*="rounded-xl"]'))
-    .filter((c) => c.querySelector("h3"));
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="chord-card"]'));
 
   return cards.map((card) => {
     const name = card.querySelector("h3")?.textContent ?? "";
-    const kbd = card.querySelector<HTMLElement>("div.relative.mx-auto");
+    const kbd = card.querySelector<HTMLElement>('[data-testid="piano-keyboard"]');
     if (!kbd) return { name, midis: null };
 
     const active = Array.from(kbd.querySelectorAll<HTMLElement>("div")).filter((d) =>
       (d.className || "").includes("piano-key-active"),
     );
 
-    const positions = active
-      .map((d) => {
-        const style = d.getAttribute("style") || "";
-        const leftMatch = style.match(/left:\s*(\d+(?:\.\d+)?)px/);
-        const widthMatch = style.match(/width:\s*(\d+(?:\.\d+)?)px/);
-        const isBlack = !!widthMatch && parseFloat(widthMatch[1]) < 25;
-        return {
-          left: leftMatch ? parseFloat(leftMatch[1]) : NaN,
-          isBlack,
-        };
-      })
-      .sort((a, b) => a.left - b.left);
-
-    const midis = positions
-      .map((p) => {
-        if (!p.isBlack) {
-          const whiteIdx = Math.round(p.left / 30);
-          return WHITE_MIDI[whiteIdx];
-        }
-        const total = p.left / 30;
-        const octIdx = Math.floor(total / 7);
-        const fracInOctave = total - octIdx * 7;
-        let pc: number | null = null;
-        if (Math.abs(fracInOctave - 0.65) < 0.2) pc = 1;
-        else if (Math.abs(fracInOctave - 1.75) < 0.2) pc = 3;
-        else if (Math.abs(fracInOctave - 3.6) < 0.2) pc = 6;
-        else if (Math.abs(fracInOctave - 4.7) < 0.2) pc = 8;
-        else if (Math.abs(fracInOctave - 5.8) < 0.2) pc = 10;
-        return pc != null ? pc + (3 + octIdx + 1) * 12 : NaN;
-      })
+    const midis = active
+      .map((key) => Number(key.dataset.midi))
       .filter((m) => Number.isFinite(m))
       .sort((a, b) => a - b);
 
@@ -174,7 +133,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     const starting = page.getByRole("button", { name: "Starting playback" });
     await expect(starting).toBeVisible();
     await expect(starting).toBeDisabled();
-    await expect(starting).toHaveText(/Starting…/);
+    await expect(starting).toHaveText("PLAY");
     await expect(starting).toHaveAttribute("aria-busy", "true");
   });
 

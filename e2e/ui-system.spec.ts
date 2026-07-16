@@ -9,7 +9,7 @@ const VIEWPORTS = [
 
 const WORKSPACES = [
   { button: "TUNE TOOLBOX", title: "TUNE TOOLBOX" },
-  { button: "FRET FINDER", title: "Fretboard Explorer" },
+  { button: "FRET FINDER", title: "FRET FINDER" },
 ] as const;
 
 async function expectNoDocumentOverflow(page: Page): Promise<void> {
@@ -38,20 +38,18 @@ test.describe("Tonari UI system", () => {
       if (viewport.name === "mobile") await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto("/", { waitUntil: "domcontentloaded" });
 
-      const inputMode = page.getByRole("group", { name: "HASHER input mode" });
-      const hasherPanel = page.locator(".hh-builder-primary");
-      await expect(inputMode).toBeVisible();
+      const context = page.getByRole("group", { name: "HASHER harmony context" });
+      const hasherPanel = page.locator("#hasher-unified-flow");
+      await expect(context).toBeVisible();
       await expect(hasherPanel).toBeVisible();
       const primaryControlHeights = await Promise.all([
         page.getByRole("button", { name: "HASHER", exact: true }).evaluate((element) => element.getBoundingClientRect().height),
         page.getByRole("button", { name: "Guitar", exact: true }).evaluate((element) => element.getBoundingClientRect().height),
       ]);
       for (const height of primaryControlHeights) expect(height).toBeGreaterThanOrEqual(43);
-      if (viewport.name === "mobile") {
-        await expect(inputMode.getByRole("button", { name: "Free Input" })).toHaveCSS("transition-duration", "0s");
-      }
-      const [tabsBox, panelBox] = await Promise.all([inputMode.boundingBox(), hasherPanel.boundingBox()]);
-      expect(tabsBox).not.toBeNull();
+      await expect(page.getByRole("group", { name: "HASHER input mode" })).toHaveCount(0);
+      const [contextBox, panelBox] = await Promise.all([context.boundingBox(), hasherPanel.boundingBox()]);
+      expect(contextBox).not.toBeNull();
       expect(panelBox).not.toBeNull();
       expect(panelBox!.x).toBeGreaterThanOrEqual(15);
       expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(viewport.width - 15);
@@ -108,6 +106,14 @@ test.describe("Tonari UI system", () => {
         intervalFlatSeventh: read("--music-interval-flat-7"),
         matchLow: read("--music-match-low"),
         matchHigh: read("--music-match-high"),
+        chordMajor: read("--music-chord-major"),
+        chordMinor: read("--music-chord-minor"),
+        chordDominant: read("--music-chord-dominant"),
+        chordOnDominant: read("--palette-white"),
+        chordSus: read("--music-chord-sus"),
+        chordDiminished: read("--music-chord-diminished"),
+        chordAugmented: read("--music-chord-augmented"),
+        surfaceOverlay: read("--surface-overlay"),
         structuralBorder: read("--border-default"),
       };
     });
@@ -122,6 +128,58 @@ test.describe("Tonari UI system", () => {
     ]).size).toBe(6);
     expect(colors.matchLow).not.toBe(colors.matchHigh);
     expect(colors.intervalRoot).not.toBe(colors.structuralBorder);
+    expect(new Set([
+      colors.chordMajor,
+      colors.chordMinor,
+      colors.chordDominant,
+      colors.chordSus,
+      colors.chordDiminished,
+      colors.chordAugmented,
+    ]).size).toBe(6);
+
+    const dominantContrast = await page.evaluate(({ foreground, background }) => {
+      const luminance = (hex: string) => {
+        const channels = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
+        const [red, green, blue] = channels.map((value) =>
+          value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4,
+        );
+        return (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+      };
+      const foregroundLuminance = luminance(foreground);
+      const backgroundLuminance = luminance(background);
+      return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+        / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+    }, { foreground: colors.chordOnDominant, background: colors.chordDominant });
+    expect(dominantContrast).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test("centers guitar label modes independently and removes them from piano cards", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await composeProgression(page, ["C", "Am"]);
+
+    for (const viewport of [
+      { width: 1500, height: 900 },
+      { width: 500, height: 812 },
+      { width: 375, height: 812 },
+    ]) {
+      await page.setViewportSize(viewport);
+      const cards = page.getByTestId("chord-card");
+      const centerDeltas = await cards.evaluateAll((elements) => elements.map((card) => {
+        const cardBounds = card.getBoundingClientRect();
+        const modes = card.querySelector<HTMLElement>('[data-testid="guitar-label-modes"]');
+        if (!modes) throw new Error("Guitar card is missing its label modes");
+        const modeBounds = modes.getBoundingClientRect();
+        return Math.abs(
+          (modeBounds.left + modeBounds.width / 2)
+          - (cardBounds.left + cardBounds.width / 2),
+        );
+      }));
+      for (const delta of centerDeltas) expect(delta).toBeLessThanOrEqual(1);
+      await expectNoDocumentOverflow(page);
+    }
+
+    await page.getByRole("button", { name: "Piano", exact: true }).click();
+    await expect(page.getByTestId("guitar-label-modes")).toHaveCount(0);
   });
 
   test("contains the standardized share and modifier panels on mobile", async ({ page }) => {
@@ -130,7 +188,7 @@ test.describe("Tonari UI system", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7"]);
 
-    await page.getByRole("button", { name: "Share progression" }).click();
+    await page.getByRole("button", { name: "SHARE", exact: true }).click();
     const share = page.getByRole("dialog", { name: "Share this progression" });
     await expect(share).toBeVisible();
     await expect(share).toHaveClass(/hh-panel/);
@@ -141,7 +199,7 @@ test.describe("Tonari UI system", () => {
     await page.getByRole("button", { name: "Close share progression" }).click();
 
     await page.getByRole("button", { name: "Modify Cmaj7" }).click();
-    const modifier = page.getByRole("region", { name: "Modify Cmaj7 chord" });
+    const modifier = page.getByRole("dialog", { name: "Modify Cmaj7 chord" });
     await expect(modifier).toBeVisible();
     await expect(modifier).toHaveClass(/hh-panel/);
     const modifierBox = await modifier.boundingBox();
@@ -150,11 +208,11 @@ test.describe("Tonari UI system", () => {
     expect(modifierBox!.x + modifierBox!.width).toBeLessThanOrEqual(375);
     await page.keyboard.press("Escape");
 
-    await page.getByRole("button", { name: "Progressions" }).click();
-    await page.getByText("Or pick a preset", { exact: true }).click();
-    await page.getByRole("combobox", { name: "Progression tonality" }).selectOption("minor");
+    const minorPresetTrigger = page
+      .getByRole("group", { name: "Preset collection" })
+      .getByRole("button", { name: "Minor", exact: true });
+    await minorPresetTrigger.click();
     await page.getByRole("button", { name: "What is the Minor Blend?" }).click();
-    const minorBlendTrigger = page.getByRole("button", { name: "What is the Minor Blend?" });
     const minorBlend = page.getByRole("dialog", { name: "Why is my Minor Chord different?" });
     await expect(minorBlend).toBeVisible();
     await expect(minorBlend).toHaveClass(/hh-panel/);
@@ -172,7 +230,7 @@ test.describe("Tonari UI system", () => {
     expect(minorBlendBox!.x + minorBlendBox!.width).toBeLessThanOrEqual(375);
     await page.keyboard.press("Escape");
     await expect(minorBlend).toBeHidden();
-    await expect(minorBlendTrigger).toBeFocused();
+    await expect(minorPresetTrigger).toBeFocused();
     await expectNoDocumentOverflow(page);
   });
 });

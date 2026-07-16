@@ -1,15 +1,16 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { useId, useMemo, useRef, useState } from "react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import type { IndexedChord } from "../lib/types";
 import { useT } from "../i18n/I18nContext";
-import {
-  type ChordModifierOption,
-} from "../lib/chordModifiers";
+import type { ChordModifierOption } from "../lib/chordModifiers";
 import {
   rankContextualChordModifiers,
   type ContextualChordModifierOption,
   type HasherModifierContext,
 } from "../lib/theory/modifierScoring";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
+import AccessibleDialog from "./AccessibleDialog";
+import { matchColorForPercent } from "./musicVisuals";
 
 interface ChordModifierProps {
   chord: IndexedChord;
@@ -29,11 +30,15 @@ export default function ChordModifier({
   timeline,
 }: ChordModifierProps) {
   const t = useT();
-  const panelId = useId();
+  const optionListId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const selectedFamily = chordFamilyPresentation(chord);
+  const localizedDialogTitle = t(`Modify ${displayName} chord`);
+  const [dialogTitleBefore = "", ...dialogTitleRemainder] = localizedDialogTitle.split(displayName);
+  const dialogTitleAfter = dialogTitleRemainder.join(displayName);
   const options = useMemo(
     () => rankContextualChordModifiers({
       selectedChord: chord,
@@ -55,29 +60,14 @@ export default function ChordModifier({
     return options.all.filter((option) => !quickLabels.has(option.label));
   }, [options, query]);
 
-  useEffect(() => {
-    if (isOpen) searchRef.current?.focus();
-  }, [isOpen]);
-
-  function closeAndRestoreFocus() {
+  function closeModifier() {
     setIsOpen(false);
     setQuery("");
-    triggerRef.current?.focus();
-  }
-
-  function handleTrigger() {
-    if (isOpen) {
-      closeAndRestoreFocus();
-      return;
-    }
-    setIsOpen(true);
   }
 
   function handleSelect(option: ChordModifierOption) {
     onSelect(option);
-    setIsOpen(false);
-    setQuery("");
-    triggerRef.current?.focus();
+    closeModifier();
   }
 
   function fitReason(option: ContextualChordModifierOption): string | null {
@@ -97,10 +87,10 @@ export default function ChordModifier({
       <button
         ref={triggerRef}
         type="button"
+        aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-controls={panelId}
         aria-label={t(`Modify ${displayName}`)}
-        onClick={handleTrigger}
+        onClick={() => setIsOpen(true)}
         className="flex min-h-9 items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all"
         style={{
           alignSelf: "flex-start",
@@ -121,66 +111,48 @@ export default function ChordModifier({
       </button>
 
       {isOpen ? (
-        <div
-          id={panelId}
-          role="region"
-          aria-label={t(`Modify ${displayName} chord`)}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              event.preventDefault();
-              closeAndRestoreFocus();
-            }
-          }}
-          className="hh-panel mt-2 flex w-full min-w-0 flex-col gap-3 p-3"
-          style={{
-            backgroundColor: "var(--surface-overlay)",
-          }}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p
-                style={{
-                  color: "var(--text-primary)",
-                  fontFamily: "var(--font-display)",
-                  fontSize: "var(--text-sm)",
-                  fontWeight: "var(--weight-semibold)",
-                }}
-              >
-                {t(`Change ${options.rootLabel}`)}
-              </p>
-              <p
-                style={{
-                  color: "var(--text-muted)",
-                  fontFamily: "var(--font-body)",
-                  fontSize: "var(--text-xs)",
-                }}
-              >
-                {t(`${options.all.length} catalog choices`)}
-              </p>
-            </div>
-            <button
-              type="button"
-              aria-label={t("Close chord modifier")}
-              onClick={closeAndRestoreFocus}
-              className="rounded-md p-1.5"
-              style={{
-                color: "var(--text-muted)",
-                border: "1px solid var(--border-subtle)",
-              }}
+        <AccessibleDialog
+          title={(
+            <span
+              className="inline-flex flex-wrap items-center gap-1"
+              style={{ color: "var(--text-primary)" }}
             >
-              <X size={14} aria-hidden="true" />
-            </button>
-          </div>
-
+              <span className="sr-only">{localizedDialogTitle}</span>
+              <span aria-hidden="true" className="inline-flex flex-wrap items-center gap-1">
+                <span>{dialogTitleBefore}</span>
+                <span
+                  data-chord-family={selectedFamily.family}
+                  className="inline-flex rounded-md px-2 py-0.5"
+                  style={{
+                    color: selectedFamily.color,
+                    backgroundColor: selectedFamily.backgroundColor,
+                    border: `1px solid ${selectedFamily.borderColor}`,
+                  }}
+                >
+                  {displayName}
+                </span>
+                <span>{dialogTitleAfter}</span>
+              </span>
+            </span>
+          )}
+          description={t(`${options.all.length} catalog choices`)}
+          closeLabel={t("Close chord modifier")}
+          onRequestClose={closeModifier}
+          initialFocusRef={searchRef}
+          returnFocusRef={triggerRef}
+          maxWidth="40rem"
+          contentClassName="flex min-w-0 flex-col gap-5"
+        >
           <label
-            className="flex min-w-0 items-center gap-2 rounded-md px-2.5"
+            className="flex min-w-0 items-center gap-2 rounded-lg px-3"
             style={{
-              backgroundColor: "var(--surface-raised)",
-              border: "1px solid var(--border-subtle)",
+              minHeight: "var(--control-min-height)",
+              backgroundColor: "var(--surface-overlay)",
+              border: "1px solid var(--border-default)",
               color: "var(--text-muted)",
             }}
           >
-            <Search size={14} aria-hidden="true" />
+            <Search size={15} aria-hidden="true" />
             <span className="sr-only">{t(`Search ${options.rootLabel} chord alternatives`)}</span>
             <input
               ref={searchRef}
@@ -188,7 +160,7 @@ export default function ChordModifier({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t(`Search ${options.rootLabel} chords`)}
-              className="min-w-0 flex-1 bg-transparent py-2 outline-none"
+              className="min-w-0 flex-1 bg-transparent py-2.5 outline-none"
               style={{
                 color: "var(--text-primary)",
                 fontFamily: "var(--font-body)",
@@ -198,54 +170,100 @@ export default function ChordModifier({
           </label>
 
           {options.quick.length > 0 ? (
-            <div>
-              <p
-                className="mb-1.5"
+            <section aria-labelledby={`${optionListId}-top-picks`}>
+              <h3
+                id={`${optionListId}-top-picks`}
+                className="mb-2"
                 style={{
                   color: "var(--text-secondary)",
                   fontFamily: "var(--font-body)",
                   fontSize: "var(--text-xs)",
                   fontWeight: "var(--weight-semibold)",
+                  letterSpacing: "var(--tracking-wide)",
+                  textTransform: "uppercase",
                 }}
               >
-                {t("Quick changes")}
-              </p>
-              <div className="flex flex-wrap gap-1.5" aria-label={t("Quick chord changes")}>
+                {t("Top picks")}
+              </h3>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" aria-label={t("Quick chord changes")}>
                 {options.quick.map((option, quickIndex) => {
                   const reason = fitReason(option);
-                  const fitId = `${panelId}-fit-${quickIndex}`;
+                  const fitId = `${optionListId}-fit-${quickIndex}`;
+                  const fitScoreId = `${optionListId}-score-${quickIndex}`;
+                  const optionFamily = chordFamilyPresentation(option.chord);
                   return (
-                  <button
-                    key={option.label}
-                    type="button"
-                    aria-label={t(`Change ${displayName} to ${option.label}`)}
-                    aria-describedby={option.fit ? fitId : undefined}
-                    onClick={() => handleSelect(option)}
-                    className="rounded-md px-2.5 py-1.5 transition-all"
-                    style={{
-                      backgroundColor: "var(--interactive-warm-bg)",
-                      border: "1px solid var(--interactive-warm-border)",
-                      color: "var(--interactive-warm-text)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-xs)",
-                    }}
-                  >
-                    <span className="block">{option.label}</span>
-                    {option.fit ? (
-                      <span id={fitId} className="mt-0.5 block text-left" style={{ fontFamily: "var(--font-body)" }}>
-                        <strong>{option.fit.score}%</strong>{reason ? ` · ${reason}` : ""}
+                    <button
+                      key={option.label}
+                      type="button"
+                      aria-label={t(`Change ${displayName} to ${option.label}`)}
+                      aria-describedby={option.fit ? `${fitScoreId} ${fitId}` : undefined}
+                      onClick={() => handleSelect(option)}
+                      className="rounded-lg px-3 py-2.5 text-left transition-all"
+                      style={{
+                        minWidth: 0,
+                        backgroundColor: "var(--surface-overlay)",
+                        border: "1px solid var(--border-default)",
+                      }}
+                    >
+                      <span className="flex min-w-0 items-baseline justify-between gap-3">
+                        <strong
+                          data-chord-family={optionFamily.family}
+                          className="inline-flex min-w-0 truncate rounded px-1.5 py-0.5"
+                          style={{
+                            color: optionFamily.color,
+                            backgroundColor: optionFamily.backgroundColor,
+                            border: `1px solid ${optionFamily.borderColor}`,
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "var(--text-sm)",
+                          }}
+                        >
+                          {option.label}
+                        </strong>
+                        {option.fit ? (
+                          <strong
+                            aria-hidden="true"
+                            data-match-score={option.fit.score}
+                            style={{
+                              flexShrink: 0,
+                              color: matchColorForPercent(option.fit.score),
+                              fontFamily: "var(--font-mono)",
+                              fontSize: "var(--text-sm)",
+                            }}
+                          >
+                            {option.fit.score}%
+                          </strong>
+                        ) : null}
                       </span>
-                    ) : null}
-                  </button>
+                      {option.fit ? (
+                        <>
+                          <span id={fitScoreId} className="sr-only">
+                            {option.fit.score}% {t("match")}
+                          </span>
+                          <span
+                            id={fitId}
+                            className="mt-1 block"
+                            style={{
+                              color: "var(--text-secondary)",
+                              fontFamily: "var(--font-body)",
+                              fontSize: "var(--text-xs)",
+                              lineHeight: "var(--leading-normal)",
+                            }}
+                          >
+                            {reason}
+                          </span>
+                        </>
+                      ) : null}
+                    </button>
                   );
                 })}
               </div>
-            </div>
+            </section>
           ) : null}
 
-          <div>
-            <p
-              className="mb-1.5"
+          <section aria-labelledby={`${optionListId}-all`}>
+            <h3
+              id={`${optionListId}-all`}
+              className="mb-2"
               style={{
                 color: "var(--text-secondary)",
                 fontFamily: "var(--font-body)",
@@ -254,36 +272,49 @@ export default function ChordModifier({
               }}
             >
               {t(query ? "Matches" : `More ${options.rootLabel} chords`)}
-            </p>
+            </h3>
             {visibleOptions.length > 0 ? (
               <div
-                className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto pr-1"
+                className="flex max-h-48 flex-wrap gap-2 overflow-y-auto pr-1"
                 aria-label={t("All chord alternatives")}
               >
-                {visibleOptions.map((option) => (
-                  <button
-                    key={option.label}
-                    type="button"
-                    aria-label={t(`Change ${displayName} to ${option.label}`)}
-                    onClick={() => handleSelect(option)}
-                    className="rounded-md px-2 py-1.5 transition-all"
-                    style={{
-                      backgroundColor: "var(--interactive-secondary-bg)",
-                      border: "1px solid var(--interactive-secondary-border)",
-                      color: "var(--interactive-secondary-text)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-xs)",
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+                {visibleOptions.map((option) => {
+                  const optionFamily = chordFamilyPresentation(option.chord);
+                  return (
+                    <button
+                      key={option.label}
+                      type="button"
+                      aria-label={t(`Change ${displayName} to ${option.label}`)}
+                      onClick={() => handleSelect(option)}
+                      className="rounded-md px-2.5 py-2 transition-all"
+                      style={{
+                        backgroundColor: "var(--interactive-secondary-bg)",
+                        border: "1px solid var(--interactive-secondary-border)",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "var(--text-xs)",
+                        fontWeight: "var(--weight-semibold)",
+                      }}
+                    >
+                      <span
+                        data-chord-family={optionFamily.family}
+                        className="inline-flex rounded px-1.5 py-0.5"
+                        style={{
+                          color: optionFamily.color,
+                          backgroundColor: optionFamily.backgroundColor,
+                          border: `1px solid ${optionFamily.borderColor}`,
+                        }}
+                      >
+                        {option.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <p
                 role="status"
                 style={{
-                  color: "var(--text-muted)",
+                  color: "var(--text-secondary)",
                   fontFamily: "var(--font-body)",
                   fontSize: "var(--text-xs)",
                 }}
@@ -291,8 +322,8 @@ export default function ChordModifier({
                 {t("No matching catalog chord.")}
               </p>
             )}
-          </div>
-        </div>
+          </section>
+        </AccessibleDialog>
       ) : null}
     </div>
   );

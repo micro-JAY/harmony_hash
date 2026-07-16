@@ -79,9 +79,8 @@ test("compact action toolbar keeps cards adjacent and opens Hanz from prompt hel
   await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
   await expect(page).toHaveScreenshot("builder-desktop-expanded-companion.png", { fullPage: true });
 
-  await page.getByRole("button", { name: "Progressions" }).click();
-  await expect(dialog).toBeVisible();
-  await page.getByRole("button", { name: "Free Input" }).click();
+  await expect(page.getByRole("heading", { name: "Choose from a preset" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build your own" })).toBeVisible();
   await expect(dialog).toBeVisible();
   await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
   await expect(dialog).toHaveCount(0);
@@ -125,7 +124,7 @@ test.describe("375px HASHER layout", () => {
     });
     const agentRun = page.getByRole("button", { name: "Run progression agent" });
     await expectStacked(prompt, agentRun);
-    const composer = page.getByRole("list", { name: "Chord progression composer" });
+    const composer = page.getByRole("group", { name: "Chord progression composer" });
     const composerRun = page.getByRole("button", { name: "Run chord composer" });
     await expectStacked(composer, composerRun);
     await expectNoDocumentOverflow(page);
@@ -144,13 +143,29 @@ test.describe("375px HASHER layout", () => {
     expect(dialogBox.x).toBeGreaterThanOrEqual(0);
     expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(375);
 
-    await page.getByRole("button", { name: "Progressions" }).click();
     await expectStacked(prompt, agentRun);
     await expect(page.getByText("API ready", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Choose from a preset" })).toBeVisible();
+    const describeHeading = page.getByRole("heading", { name: "Describe a progression or mood" });
+    const describeHeadingLines = await describeHeading.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return element.getBoundingClientRect().height / Number.parseFloat(style.lineHeight);
+    });
+    expect(describeHeadingLines).toBeGreaterThanOrEqual(1.9);
+    await expect(page.getByRole("heading", { name: "Build your own" })).toBeVisible();
     await expect(dialog).toBeVisible();
     await expectNoDocumentOverflow(page);
     await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
     await expect(dialog).toHaveCount(0);
+    const agentReadout = page.locator(".hh-progression-agent__readout");
+    const agentStatus = page.locator(".hh-progression-agent__status");
+    const [readoutBox, statusBox] = await Promise.all([
+      agentReadout.boundingBox(),
+      agentStatus.boundingBox(),
+    ]);
+    expect(readoutBox).not.toBeNull();
+    expect(statusBox).not.toBeNull();
+    expect(statusBox!.y).toBeGreaterThanOrEqual(readoutBox!.y + readoutBox!.height);
     await expect(page).toHaveScreenshot("builder-mobile-progressions.png", { fullPage: true });
   });
 
@@ -177,15 +192,32 @@ test.describe("375px HASHER layout", () => {
 
     await page.getByRole("button", { name: "Piano" }).click();
     await expectNoDocumentOverflow(page);
-    const keyboardScroller = page
-      .getByRole("region", { name: "Chord cards output" })
-      .locator(".overflow-x-auto")
-      .first();
-    const localWidths = await keyboardScroller.evaluate((element) => ({
-      client: element.clientWidth,
-      scroll: element.scrollWidth,
+    const output = page.getByRole("region", { name: "Chord cards output" });
+    const keyboards = output.getByTestId("piano-keyboard");
+    await expect(keyboards).toHaveCount(4);
+    const containment = await keyboards.evaluateAll((elements) => elements.map((element) => {
+      const keyboard = element.getBoundingClientRect();
+      const card = element.closest('[data-testid="chord-card"]')?.getBoundingClientRect();
+      const keys = Array.from(element.querySelectorAll<HTMLElement>("[data-midi]"));
+      return {
+        width: keyboard.width,
+        keyCount: keys.length,
+        insideCard: card
+          ? keyboard.left >= card.left - 1 && keyboard.right <= card.right + 1
+          : false,
+        keysInside: keys.every((key) => {
+          const bounds = key.getBoundingClientRect();
+          return bounds.left >= keyboard.left - 1 && bounds.right <= keyboard.right + 1;
+        }),
+      };
     }));
-    expect(localWidths.scroll).toBeGreaterThan(localWidths.client);
+    for (const keyboard of containment) {
+      expect(keyboard.width).toBeGreaterThan(0);
+      expect(keyboard.keyCount).toBe(36);
+      expect(keyboard.insideCard).toBe(true);
+      expect(keyboard.keysInside).toBe(true);
+    }
+    await expect(output.locator(".overflow-x-auto")).toHaveCount(0);
     expect(browserErrors).toEqual([]);
   });
 });

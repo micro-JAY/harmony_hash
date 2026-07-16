@@ -264,8 +264,12 @@ export default function ProgressionAgent({
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
+      <div
+        className={`hh-progression-agent__meta flex flex-wrap items-center justify-between gap-3${
+          helpLabel && onRequestHelp ? " hh-progression-agent__meta--with-help" : ""
+        }`}
+      >
+        <div className="hh-progression-agent__readout flex flex-wrap items-center gap-3">
           <span
             className="text-xs"
             style={{
@@ -303,7 +307,7 @@ export default function ProgressionAgent({
             </button>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-3">
+        <div className="hh-progression-agent__status flex flex-wrap items-center justify-end gap-3">
           <HealthPill status={health} />
           <span
             className="hidden text-xs sm:inline"

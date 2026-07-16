@@ -139,8 +139,7 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     const issues = collectBrowserIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
-    await page.getByRole("button", { name: "Hanz", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Progression actions" }).getByRole("button", { name: /Hanz/ })).toHaveCount(0);
 
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);

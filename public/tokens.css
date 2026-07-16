@@ -189,6 +189,26 @@
   --music-interval-flat-7:  #A8CC72;
   --music-interval-major-7: #F2A36F;
 
+  /* Harmony Hash chord families use one stable color language everywhere.
+     Dominants stay deliberately deeper than the softer supporting families. */
+  --music-chord-major:      #A7D9B2;
+  --music-chord-minor:      #F0B17A;
+  --music-chord-dominant:   #B42339;
+  --music-chord-on-dominant: var(--palette-white);
+  --music-chord-sus:        #F4D889;
+  --music-chord-diminished: #F0B4CF;
+  --music-chord-augmented:  var(--palette-white);
+
+  /* IMPROV INSIGHT owns one pale-pink action and translucent selection family;
+     match scores and named degrees deliberately keep their own music colors. */
+  --music-insight-action-bg:      #F7EAF0;
+  --music-insight-action-bg-hover: #FFF7FA;
+  --music-insight-action-text:    #241B20;
+  --music-insight-action-border:  #FFF4F8;
+  --music-insight-surface-bg:     rgba(239, 188, 213, 0.10);
+  --music-insight-surface-text:   #efbcd5;
+  --music-insight-surface-border: rgba(239, 188, 213, 0.25);
+
 
   /* ----------------------------------------------------------
      TYPOGRAPHY

@@ -169,7 +169,6 @@ test.describe("Circle of Fifths", () => {
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "Progressions" }).click();
     await expect(page.getByText("API ready", { exact: true })).toBeVisible();
     await page.getByRole("textbox", { name: "Describe the progression you want" }).fill(
       "delayed circle race",

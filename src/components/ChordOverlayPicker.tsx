@@ -2,9 +2,11 @@ import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { lookupChord, searchChordCatalog } from "../lib/chordData";
 import type { IndexedChord } from "../lib/types";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 import { useLocale, useT } from "../i18n/I18nContext";
 
 interface ChordOverlayPickerProps {
+  selectedChord?: IndexedChord;
   selectedLabel?: string;
   reducedMotion: boolean;
   onSelect: (selection: { chord: IndexedChord; displayName: string }) => void;
@@ -12,6 +14,7 @@ interface ChordOverlayPickerProps {
 }
 
 export default function ChordOverlayPicker({
+  selectedChord,
   selectedLabel,
   reducedMotion,
   onSelect,
@@ -26,6 +29,14 @@ export default function ChordOverlayPicker({
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   const results = useMemo(() => searchChordCatalog(query), [query]);
+  const selectedPresentation = selectedLabel
+    ? chordFamilyPresentation(selectedChord ?? selectedLabel)
+    : null;
+  const localizedTriggerLabel = t(selectedLabel ? `Overlay: ${selectedLabel}` : "Choose a chord");
+  const [triggerLabelBefore = "", ...triggerLabelRemainder] = selectedLabel
+    ? localizedTriggerLabel.split(selectedLabel)
+    : [localizedTriggerLabel];
+  const triggerLabelAfter = selectedLabel ? triggerLabelRemainder.join(selectedLabel) : "";
 
   useLayoutEffect(() => {
     if (open) searchRef.current?.focus();
@@ -70,6 +81,7 @@ export default function ChordOverlayPicker({
         <button
           ref={triggerRef}
           type="button"
+          aria-label={localizedTriggerLabel}
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => {
@@ -78,14 +90,31 @@ export default function ChordOverlayPicker({
           }}
           className="min-h-11 whitespace-nowrap rounded-lg px-4 text-sm"
           style={{
-            backgroundColor: selectedLabel ? "var(--interactive-academy-bg)" : "var(--surface-overlay)",
-            border: `1px solid ${selectedLabel ? "var(--interactive-academy-border)" : "var(--border-default)"}`,
-            color: selectedLabel ? "var(--interactive-academy-text)" : "var(--text-primary)",
+            backgroundColor: "var(--surface-overlay)",
+            border: "1px solid var(--border-default)",
+            color: "var(--text-primary)",
             fontFamily: "var(--font-mono)",
             transitionDuration: reducedMotion ? "0ms" : "var(--duration-fast)",
           }}
         >
-          {t(selectedLabel ? `Overlay: ${selectedLabel}` : "Choose a chord")}
+          {selectedLabel && selectedPresentation ? (
+            <>
+              <span aria-hidden="true">{triggerLabelBefore}</span>
+              <span
+                aria-hidden="true"
+                data-chord-family={selectedPresentation.family}
+                className="inline-flex rounded px-1.5 py-0.5"
+                style={{
+                  color: selectedPresentation.color,
+                  backgroundColor: selectedPresentation.backgroundColor,
+                  border: `1px solid ${selectedPresentation.borderColor}`,
+                }}
+              >
+                {selectedLabel}
+              </span>
+              <span aria-hidden="true">{triggerLabelAfter}</span>
+            </>
+          ) : localizedTriggerLabel}
         </button>
         {selectedLabel ? (
           <button
@@ -160,27 +189,40 @@ export default function ChordOverlayPicker({
             aria-label={t("Chord overlay results")}
             className="mt-2 grid max-h-56 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2"
           >
-            {results.map((item) => (
-              <li key={item.longName}>
-                <button
-                  type="button"
-                  onClick={() => commitLabel(item.label)}
-                  className="flex min-h-10 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left"
-                  style={{
-                    color: "var(--text-primary)",
-                    border: "1px solid transparent",
-                    transitionDuration: reducedMotion ? "0ms" : "var(--duration-fast)",
-                  }}
-                >
-                  <span style={{ fontFamily: "var(--font-mono)", fontWeight: "var(--weight-semibold)" }}>
-                    {item.label}
-                  </span>
-                  <span className="truncate text-xs" style={{ color: "var(--text-muted)" }}>
-                    {item.longName}
-                  </span>
-                </button>
-              </li>
-            ))}
+            {results.map((item) => {
+              const familyPresentation = chordFamilyPresentation(lookupChord(item.label) ?? item.label);
+              return (
+                <li key={item.longName}>
+                  <button
+                    type="button"
+                    onClick={() => commitLabel(item.label)}
+                    className="flex min-h-10 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left"
+                    style={{
+                      color: "var(--text-primary)",
+                      border: "1px solid transparent",
+                      transitionDuration: reducedMotion ? "0ms" : "var(--duration-fast)",
+                    }}
+                  >
+                    <span
+                      data-chord-family={familyPresentation.family}
+                      className="inline-flex rounded px-1.5 py-0.5"
+                      style={{
+                        color: familyPresentation.color,
+                        backgroundColor: familyPresentation.backgroundColor,
+                        border: `1px solid ${familyPresentation.borderColor}`,
+                        fontFamily: "var(--font-mono)",
+                        fontWeight: "var(--weight-semibold)",
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                    <span className="truncate text-xs" style={{ color: "var(--text-muted)" }}>
+                      {item.longName}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}

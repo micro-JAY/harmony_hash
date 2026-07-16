@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { contrastRatio } from "./helpers/contrast";
 import { composeProgression } from "./helpers/progression";
 
 async function enterProgression(page: Page, progression: string): Promise<void> {
@@ -30,8 +31,12 @@ test.describe("quick chord modifiers", () => {
     }
     await expect(firstCard.getByText("5 / 5", { exact: true })).toBeVisible();
 
-    await firstCard.getByRole("button", { name: "Modify C" }).click();
-    await firstCard.getByRole("button", { name: "Change C to Cadd9" }).click();
+    const trigger = firstCard.getByRole("button", { name: "Modify C" });
+    await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+    await trigger.click();
+    let dialog = page.getByRole("dialog", { name: "Modify C chord" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Change C to Cadd9" }).click();
     await expect(firstCard.getByRole("heading", { name: "Cadd9" })).toBeVisible();
     await expect(firstCard.getByRole("button", { name: "Unlock chord card" })).toBeVisible();
     await expect(firstCard.getByRole("button", { name: "Intervals" })).toHaveAttribute(
@@ -40,7 +45,8 @@ test.describe("quick chord modifiers", () => {
     );
 
     await firstCard.getByRole("button", { name: "Modify Cadd9" }).click();
-    await firstCard
+    dialog = page.getByRole("dialog", { name: "Modify Cadd9 chord" });
+    await dialog
       .getByRole("button", { name: "Change Cadd9 to Cmaj13", exact: true })
       .click();
     await expect(firstCard.getByRole("heading", { name: "Cmaj13" })).toBeVisible();
@@ -60,16 +66,36 @@ test.describe("quick chord modifiers", () => {
 
     await trigger.focus();
     await trigger.press("Enter");
-    const search = card.getByRole("searchbox", { name: "Search G chord alternatives" });
+    let dialog = page.getByRole("dialog", { name: "Modify G7 chord" });
+    await expect(dialog).toBeVisible();
+    await expect(
+      dialog.getByRole("heading", { name: "Modify G7 chord" })
+        .locator('[data-chord-family="dominant"]'),
+    ).toHaveAttribute("style", /--music-chord-dominant/);
+    const topPicks = dialog.getByRole("region", { name: "Top picks" });
+    await expect(topPicks).toBeVisible();
+    const firstPick = topPicks.getByRole("button").first();
+    await expect(firstPick).toContainText(/\d+%/);
+    await expect(firstPick.locator("strong").last()).toHaveAttribute(
+      "style",
+      /--music-match-/,
+    );
+    const reasonColors = await firstPick.locator("span[id*='-fit-']").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { foreground: style.color, background: getComputedStyle(element.parentElement!).backgroundColor };
+    });
+    expect(contrastRatio(reasonColors.foreground, reasonColors.background)).toBeGreaterThanOrEqual(4.5);
+    const search = dialog.getByRole("searchbox", { name: "Search G chord alternatives" });
     await expect(search).toBeFocused();
     await search.press("Escape");
-    await expect(card.getByRole("region", { name: "Modify G7 chord" })).toHaveCount(0);
+    await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();
     await expect(card.getByRole("heading", { name: "G7" })).toBeVisible();
 
     await trigger.press("Enter");
+    dialog = page.getByRole("dialog", { name: "Modify G7 chord" });
     await search.fill("#9");
-    const altered = card
+    const altered = dialog
       .getByLabel("All chord alternatives")
       .getByRole("button", { name: "Change G7 to G7#9" });
     await expect(altered).toBeVisible();
@@ -87,22 +113,18 @@ test.describe("quick chord modifiers", () => {
     const firstCard = page.getByTestId("chord-card").nth(0);
 
     await firstCard.getByRole("button", { name: "Shell" }).click();
-    await firstCard.getByRole("button", { name: "Fingering" }).click();
     await expect(firstCard.getByRole("button", { name: "Shell" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
+    await expect(firstCard.getByRole("button", { name: "Fingering" })).toHaveCount(0);
 
     await firstCard.getByRole("button", { name: "Modify Cmaj7" }).click();
-    await firstCard
+    await page.getByRole("dialog", { name: "Modify Cmaj7 chord" })
       .getByRole("button", { name: "Change Cmaj7 to C6", exact: true })
       .click();
     await expect(firstCard.getByRole("heading", { name: "C6" })).toBeVisible();
     await expect(firstCard.getByRole("button", { name: "Auto" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    await expect(firstCard.getByRole("button", { name: "Fingering" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -118,10 +140,16 @@ test.describe("quick chord modifiers", () => {
     const firstCard = page.getByTestId("chord-card").nth(0);
     await firstCard.getByRole("button", { name: "Modify C" }).click();
 
-    await expect(firstCard.getByRole("region", { name: "Modify C chord" })).toBeVisible();
+    const dialog = page.getByRole("dialog", { name: "Modify C chord" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveClass(/hh-panel/);
     await expect(
-      firstCard.getByRole("button", { name: "Change C to Cmaj7", exact: true }),
+      dialog.getByRole("button", { name: "Change C to Cmaj7", exact: true }),
     ).toBeVisible();
+    const dialogBox = await dialog.boundingBox();
+    expect(dialogBox).not.toBeNull();
+    expect(dialogBox!.x).toBeGreaterThanOrEqual(0);
+    expect(dialogBox!.x + dialogBox!.width).toBeLessThanOrEqual(375);
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );

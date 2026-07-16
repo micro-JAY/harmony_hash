@@ -7,19 +7,23 @@ import ChordCard from "./ChordCard";
 function renderChordCard({
   isPlaying = false,
   isAgentHighlighted = false,
+  chordName = "Cmaj7",
+  instrument = "guitar",
 }: {
   isPlaying?: boolean;
   isAgentHighlighted?: boolean;
+  chordName?: string;
+  instrument?: "guitar" | "piano";
 } = {}): string {
-  const chord = lookupChord("Cmaj7");
-  if (!chord) throw new Error("Cmaj7 fixture is missing from the chord dictionary");
+  const chord = lookupChord(chordName);
+  if (!chord) throw new Error(`${chordName} fixture is missing from the chord dictionary`);
 
   return renderToStaticMarkup(
     <I18nProvider>
       <ChordCard
         chord={chord}
-        instrument="guitar"
-        displayName="Cmaj7"
+        instrument={instrument}
+        displayName={chordName}
         variant={1}
         onVariantChange={() => undefined}
         isLocked={false}
@@ -64,5 +68,25 @@ describe("ChordCard emphasis", () => {
     expect(markup).toContain('data-agent-highlighted="true"');
     expect(markup).toContain("Hanz focus");
     expect(markup).toContain("var(--glow-accent), inset 3px 0 0 var(--status-academy-text)");
+  });
+});
+
+describe("ChordCard visual controls", () => {
+  it("colors the chord title by its harmonic family", () => {
+    const markup = renderChordCard({ chordName: "Dm7" });
+
+    expect(markup).toContain("var(--music-chord-minor)");
+  });
+
+  it("keeps guitar label modes together and omits them from piano cards", () => {
+    const guitarMarkup = renderChordCard();
+    const pianoMarkup = renderChordCard({ instrument: "piano" });
+
+    expect(guitarMarkup).toContain('role="group" aria-label="Guitar labels for Cmaj7"');
+    expect(guitarMarkup).toContain("Fingering");
+    expect(guitarMarkup).toContain("Intervals");
+    expect(pianoMarkup).not.toContain('aria-label="Guitar labels for Cmaj7"');
+    expect(pianoMarkup).not.toContain(">Fingering<");
+    expect(pianoMarkup).not.toContain(">Intervals<");
   });
 });

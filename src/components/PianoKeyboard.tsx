@@ -1,13 +1,20 @@
 import type { PianoDisplayMode, VoicedNote } from "../lib/types";
 import { formatNoteForDisplay } from "../lib/chordData";
+import { useT } from "../i18n/I18nContext";
 import { fretboardIntervalColor } from "./fretboardVisuals";
+import {
+  getBlackKeyGeometry,
+  getKeyboardMaxWidth,
+  getWhiteKeyGeometry,
+  type PianoKeyboardSize,
+} from "./pianoKeyboardGeometry";
 
 interface PianoKeyboardProps {
   voicedNotes: VoicedNote[];
   displayMode: PianoDisplayMode;
   preferFlats: boolean;
   rootNote: string;
-  size?: "standard" | "compact";
+  size?: PianoKeyboardSize;
   colorMode?: "hand" | "interval";
 }
 
@@ -95,20 +102,6 @@ const ALL_KEYS = buildKeyboard();
 const WHITE_KEYS = ALL_KEYS.filter((k) => !k.isBlack);
 const BLACK_KEYS = ALL_KEYS.filter((k) => k.isBlack);
 
-// Black key X positions relative to white keys (proportional within octave)
-// C#/Db sits between C and D, etc.
-function getBlackKeyOffset(note: string, octave: number, whiteKeyWidth: number): number {
-  const octaveOffset = (octave - OCTAVE_START) * 7;
-  const positions: Record<string, number> = {
-    Cs: octaveOffset + 0.65,
-    Ds: octaveOffset + 1.75,
-    Fs: octaveOffset + 3.6,
-    Gs: octaveOffset + 4.7,
-    As: octaveOffset + 5.8,
-  };
-  return (positions[note] ?? 0) * whiteKeyWidth;
-}
-
 export default function PianoKeyboard({
   voicedNotes,
   displayMode,
@@ -117,6 +110,7 @@ export default function PianoKeyboard({
   size = "standard",
   colorMode = "hand",
 }: PianoKeyboardProps) {
+  const t = useT();
   const activeSet = new Map<number, VoicedNote>();
   for (const note of voicedNotes) {
     activeSet.set(note.midi, note);
@@ -165,11 +159,9 @@ export default function PianoKeyboard({
   }
 
   const compact = size === "compact";
-  const whiteKeyW = compact ? 12 : 30;
   const whiteKeyH = compact ? 64 : 100;
-  const blackKeyW = compact ? 8 : 18;
   const blackKeyH = compact ? 40 : 60;
-  const totalWidth = WHITE_KEYS.length * whiteKeyW;
+  const maxWidth = getKeyboardMaxWidth(size);
 
   return (
     <div
@@ -178,12 +170,13 @@ export default function PianoKeyboard({
       data-color-mode={colorMode}
       data-active-midis={activeMidis.join(",")}
       role="img"
-      aria-label={`Piano voicing: ${voicedNoteLabel || "no notes"}`}
+      aria-label={t(`Piano voicing: ${voicedNoteLabel || "no notes"}`)}
       className="relative mx-auto"
-      style={{ width: totalWidth, height: whiteKeyH }}
+      style={{ width: "100%", maxWidth, height: whiteKeyH }}
     >
       {/* White keys */}
       {WHITE_KEYS.map((key, i) => {
+        const geometry = getWhiteKeyGeometry(i);
         const active = activeSet.get(key.midi);
         const label = active ? getActiveLabel(active) : "";
         const rootFingerKey = active ? isRootFingerKey(active) : false;
@@ -192,12 +185,14 @@ export default function PianoKeyboard({
         return (
           <div
             key={`w-${key.midi}`}
+            data-midi={key.midi}
+            data-key-kind="white"
             className={active ? (active.hand === "left" ? "piano-key-active-lh" : "piano-key-active") : ""}
             style={{
               position: "absolute",
-              left: i * whiteKeyW,
+              left: `${geometry.leftPercent}%`,
               top: 0,
-              width: whiteKeyW - 1,
+              width: `calc(${geometry.widthPercent}% - 1px)`,
               height: whiteKeyH,
               backgroundColor: active
                 ? activeKeyColor(active, rootFingerKey, false)
@@ -236,17 +231,19 @@ export default function PianoKeyboard({
         const label = active ? getActiveLabel(active) : "";
         const rootFingerKey = active ? isRootFingerKey(active) : false;
         const rootNoteLabel = active ? isRootLabel(active) : false;
-        const xPos = getBlackKeyOffset(key.note, key.octave, whiteKeyW);
+        const geometry = getBlackKeyGeometry(key.note, key.octave, size);
 
         return (
           <div
             key={`b-${key.midi}`}
+            data-midi={key.midi}
+            data-key-kind="black"
             className={active ? (active.hand === "left" ? "piano-key-active-lh" : "piano-key-active") : ""}
             style={{
               position: "absolute",
-              left: xPos,
+              left: `${geometry.leftPercent}%`,
               top: 0,
-              width: blackKeyW,
+              width: `${geometry.widthPercent}%`,
               height: blackKeyH,
               backgroundColor: active
                 ? activeKeyColor(active, rootFingerKey, true)

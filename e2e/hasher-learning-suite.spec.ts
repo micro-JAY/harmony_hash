@@ -9,11 +9,16 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 }
 
-async function dispatchNativeDrag(page: Page, source: Locator, target: Locator): Promise<void> {
+async function dispatchNativeDrag(
+  page: Page,
+  source: Locator,
+  target: Locator,
+  targetPosition: { clientX: number; clientY: number },
+): Promise<void> {
   const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
   await source.dispatchEvent("dragstart", { dataTransfer });
-  await target.dispatchEvent("dragover", { dataTransfer });
-  await target.dispatchEvent("drop", { dataTransfer });
+  await target.dispatchEvent("dragover", { dataTransfer, ...targetPosition });
+  await target.dispatchEvent("drop", { dataTransfer, ...targetPosition });
   await source.dispatchEvent("dragend", { dataTransfer });
   await dataTransfer.dispose();
 }
@@ -40,39 +45,73 @@ test.describe("HASHER learning suite", () => {
     await expect(nav.getByRole("button", { name: "FRET FINDER", exact: true })).toBeVisible();
     await expect(nav.getByRole("button", { name: "Circle", exact: true })).toHaveCount(0);
 
-    const modeTabs = page.getByRole("group", { name: "HASHER input mode" });
+    const context = page.getByRole("group", { name: "HASHER harmony context" });
+    const presets = page.getByRole("heading", { name: "Choose from a preset" });
+    const describe = page.getByRole("heading", { name: "Describe a progression or mood" });
+    const buildOwn = page.getByRole("heading", { name: "Build your own" });
     const browse = page.getByRole("button", { name: "Browse chords ↓" });
-    const freeKey = page.getByRole("combobox", { name: "Free Input key" });
-    const primary = page.locator(".hh-builder-primary");
-    const [tabsBox, browseBox, keyBox, primaryBox] = await Promise.all([
-      modeTabs.boundingBox(),
+    const [contextBox, presetsBox, describeBox, buildBox, browseBox] = await Promise.all([
+      context.boundingBox(),
+      presets.boundingBox(),
+      describe.boundingBox(),
+      buildOwn.boundingBox(),
       browse.boundingBox(),
-      freeKey.boundingBox(),
-      primary.boundingBox(),
     ]);
-    expect(tabsBox).not.toBeNull();
+    expect(contextBox).not.toBeNull();
+    expect(presetsBox).not.toBeNull();
+    expect(describeBox).not.toBeNull();
+    expect(buildBox).not.toBeNull();
     expect(browseBox).not.toBeNull();
-    expect(keyBox).not.toBeNull();
-    expect(primaryBox).not.toBeNull();
-    expect(tabsBox!.y).toBeLessThan(browseBox!.y);
-    expect(browseBox!.y).toBeLessThan(keyBox!.y);
-    expect(keyBox!.y).toBeLessThan(primaryBox!.y);
+    expect(contextBox!.y).toBeLessThan(presetsBox!.y);
+    expect(presetsBox!.y).toBeLessThan(describeBox!.y);
+    expect(describeBox!.y).toBeLessThan(buildBox!.y);
+    expect(buildBox!.y).toBeLessThan(browseBox!.y);
     await expect(page.getByTestId("mood-filter")).toHaveCount(0);
     await expect(page.getByLabel("Mood lens")).toHaveCount(0);
 
     await composeProgression(page, "C Dm G7 C");
-    await expect(page.getByRole("button", { name: "Share progression" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "IMPROV INSIGHT" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Hanz" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Play progression" })).toBeVisible();
+    const actions = page.getByRole("region", { name: "Progression actions" });
+    const randomize = actions.getByRole("button", {
+      name: "RANDOMIZE (UNLOCKED VOICES)",
+      exact: true,
+    });
+    const play = actions.getByRole("button", { name: "Play progression" });
+    const share = actions.getByRole("button", { name: "SHARE", exact: true });
+    await expect(randomize).toHaveText("RANDOMIZE (UNLOCKED VOICES)");
+    await expect(play).toHaveText("PLAY");
+    await expect(play.locator("svg.lucide-play")).toBeVisible();
+    await expect(share).toHaveText("SHARE");
+    await expect(share.locator("svg.lucide-link-2")).toBeVisible();
+    const insight = actions.getByRole("button", { name: "IMPROV INSIGHT", exact: true });
+    await expect(insight).toHaveText("IMPROV INSIGHT");
+    await expect(actions.getByRole("button", { name: /Hanz/ })).toHaveCount(0);
+    await expect(play).toBeEnabled();
+    await play.click();
+    const stop = actions.getByRole("button", { name: "Stop playback" });
+    await expect(stop).toHaveText("STOP");
+    await expect(stop.locator("svg.lucide-square")).toBeVisible();
+    await stop.click();
+    await expect(play).toHaveText("PLAY");
 
-    const composerItems = page.getByTestId("chord-composer").getByRole("listitem");
-    await page.getByRole("button", { name: "Move Dm after" }).click();
+    await page.getByRole("button", { name: "Piano", exact: true }).click();
+    await expect(randomize).toHaveText("RANDOMIZE (UNLOCKED VOICES)");
+    await expect(play).toHaveText("PLAY");
+    await expect(play.locator("svg.lucide-play")).toBeVisible();
+    await expect(share).toHaveText("SHARE");
+    await expect(share.locator("svg.lucide-link-2")).toBeVisible();
+    await expect(insight).toHaveText("IMPROV INSIGHT");
+    await expect(actions.getByRole("button", { name: /Hanz/ })).toHaveCount(0);
+    await page.getByRole("button", { name: "Guitar", exact: true }).click();
+
+    const composerItems = page.getByTestId("chord-composer").locator("[data-composer-chip-index]");
+    const dm = composerItems.nth(1);
+    await dm.focus();
+    await dm.press("Alt+ArrowRight");
     await expect(composerItems.nth(0)).toContainText("C");
     await expect(composerItems.nth(1)).toContainText("G7");
     await expect(composerItems.nth(2)).toContainText("Dm");
     await expect(page.locator('.sr-only[role="status"]')).toContainText("Dm moved to position 3 of 4");
-    await expect(page.getByRole("button", { name: "Move Dm", exact: true })).toBeFocused();
+    await expect(composerItems.nth(2)).toBeFocused();
 
     const cards = page.getByTestId("chord-card");
     await expect(cards.nth(0).getByRole("heading", { name: "C" })).toBeVisible();
@@ -80,51 +119,77 @@ test.describe("HASHER learning suite", () => {
     await expect(cards.nth(2).getByRole("heading", { name: "Dm" })).toBeVisible();
   });
 
-  test("preserves mode-local context and shared actions across both instruments", async ({ page }) => {
+  test("preserves the unified context, composer, prompt, and actions across both instruments", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const directInput = page.getByRole("textbox", { name: "Chord progression input" });
-    await page.getByRole("combobox", { name: "Free Input key" }).selectOption("D");
-    await page.getByRole("combobox", { name: "Free Input mode" }).selectOption("dorian");
-    await directInput.fill("Cmaj7 Am7 Dm7 G7");
-    await directInput.press("Enter");
-
-    await page.getByRole("button", { name: "Progressions" }).click();
-    await page.getByRole("combobox", { name: "Progression key" }).selectOption("Eb");
-    await page.getByRole("combobox", { name: "Progression tonality" }).selectOption("minor");
-    await page.getByRole("textbox", { name: "Describe the progression you want" }).fill("smoky turnaround");
+    await page.getByRole("combobox", { name: "HASHER key" }).selectOption("D");
+    await page.getByRole("combobox", { name: "HASHER mode" }).selectOption("dorian");
+    for (const chord of ["Cmaj7", "Am7", "Dm7", "G7"]) {
+      await directInput.fill(chord);
+      await directInput.press("Enter");
+    }
+    await page.getByRole("button", { name: "Run chord composer" }).click();
+    const prompt = page.getByRole("textbox", { name: "Describe the progression you want" });
+    await prompt.fill("smoky turnaround");
     await expect(page.getByRole("button", { name: "Browse chords ↓" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Share progression" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "SHARE", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "IMPROV INSIGHT" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Choose from a preset" })).toBeVisible();
 
     await page.getByRole("button", { name: "Piano", exact: true }).click();
     await expect(page.getByRole("button", { name: "Play progression" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Hanz", exact: true })).toBeVisible();
-
-    await page.getByRole("button", { name: "Free Input" }).click();
-    await expect(page.getByRole("combobox", { name: "Free Input key" })).toHaveValue("D");
-    await expect(page.getByRole("combobox", { name: "Free Input mode" })).toHaveValue("dorian");
-    await expect(directInput).toHaveValue("Cmaj7 Am7 Dm7 G7");
-    await page.getByRole("button", { name: "Progressions" }).click();
-    await expect(page.getByRole("combobox", { name: "Progression key" })).toHaveValue("Eb");
-    await expect(page.getByRole("combobox", { name: "Progression tonality" })).toHaveValue("minor");
-    await expect(page.getByRole("textbox", { name: "Describe the progression you want" })).toHaveValue("smoky turnaround");
+    await expect(page.getByRole("combobox", { name: "HASHER key" })).toHaveValue("D");
+    await expect(page.getByRole("combobox", { name: "HASHER mode" })).toHaveValue("dorian");
+    await expect(prompt).toHaveValue("smoky turnaround");
+    await expect(page.getByTestId("chord-card")).toHaveCount(4);
   });
 
   test("supports pointer insertion and reordering at exact timeline boundaries", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, "C G7 Am");
     const composer = page.getByTestId("chord-composer");
-    const slots = composer.getByTestId("timeline-insertion-slot");
-
-    await dispatchNativeDrag(page, page.locator('[data-chord-name="F"]'), slots.nth(1));
-    await expect(composer.getByRole("listitem")).toHaveText(["C", "F", "G7", "Am"]);
-    await dispatchNativeDrag(page, composer.getByRole("listitem").nth(3), slots.nth(0));
-    await expect(composer.getByRole("listitem")).toHaveText(["Am", "C", "F", "G7"]);
+    await page.getByRole("button", { name: "Browse chords ↓" }).click();
+    const chips = composer.locator("[data-composer-chip-index]");
+    const secondChip = await chips.nth(1).boundingBox();
+    expect(secondChip).not.toBeNull();
+    await dispatchNativeDrag(page, page.locator('[data-chord-name="F"]'), composer, {
+      clientX: secondChip!.x + 1,
+      clientY: secondChip!.y + secondChip!.height / 2,
+    });
+    await expect(chips).toHaveText(["C", "F", "G7", "Am"]);
+    const firstChip = await chips.first().boundingBox();
+    expect(firstChip).not.toBeNull();
+    await dispatchNativeDrag(page, chips.nth(3), composer, {
+      clientX: firstChip!.x,
+      clientY: firstChip!.y + firstChip!.height / 2,
+    });
+    await expect(chips).toHaveText(["Am", "C", "F", "G7"]);
     await page.getByRole("button", { name: "Run chord composer" }).click();
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Am", "C", "F", "G7"]);
   });
 
-  test("commits only intentional empty composer drafts", async ({ page }) => {
+  test("turns Cmaj into a chip and drops B7 before it", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const input = page.getByRole("textbox", { name: "Chord progression input" });
+    await input.fill("Cmaj");
+    await input.press("Enter");
+
+    const composer = page.getByTestId("chord-composer");
+    const chips = composer.locator("[data-composer-chip-index]");
+    await expect(chips).toHaveText(["Cmaj"]);
+    await page.getByRole("button", { name: "Browse chords ↓" }).click();
+    const firstChip = await chips.first().boundingBox();
+    expect(firstChip).not.toBeNull();
+    await dispatchNativeDrag(page, page.locator('[data-chord-name="B7"]'), composer, {
+      clientX: firstChip!.x,
+      clientY: firstChip!.y + firstChip!.height / 2,
+    });
+    await expect(chips).toHaveText(["B7", "Cmaj"]);
+    await page.getByRole("button", { name: "Run chord composer" }).click();
+    await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["B7", "Cmaj"]);
+  });
+
+  test("commits clean composer removals immediately, including the last chord", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const input = page.getByRole("textbox", { name: "Chord progression input" });
     const run = page.getByRole("button", { name: "Run chord composer" });
@@ -133,28 +198,34 @@ test.describe("HASHER learning suite", () => {
     await expect(run).toBeDisabled();
 
     await input.fill("C");
+    await input.press("Enter");
     await run.click();
     await expect(cards).toHaveCount(1);
-    await page.getByRole("button", { name: "Remove C at position 1" }).click();
-    await expect(run).toBeEnabled();
-    await run.click();
+    await page.getByRole("button", { name: "C, position 1 of 1" }).focus();
+    await page.getByRole("button", { name: "C, position 1 of 1" }).press("Delete");
     await expect(cards).toHaveCount(0);
     await expect(run).toBeDisabled();
 
-    await input.fill("C G7");
+    await input.fill("C");
+    await input.press("Enter");
+    await input.fill("G7");
+    await input.press("Enter");
     await run.click();
     await expect(cards).toHaveCount(2);
-    await page.getByRole("button", { name: "Clear composed chords" }).click();
-    await expect(run).toBeEnabled();
-    await run.click();
+    await page.getByRole("button", { name: "G7, position 2 of 2" }).focus();
+    await page.getByRole("button", { name: "G7, position 2 of 2" }).press("Delete");
+    await expect(cards.locator("h3")).toHaveText(["C"]);
+    await page.getByRole("button", { name: "C, position 1 of 1" }).focus();
+    await page.getByRole("button", { name: "C, position 1 of 1" }).press("Delete");
     await expect(cards).toHaveCount(0);
+    await expect(run).toBeDisabled();
 
     await input.fill("Am");
+    await input.press("Enter");
     await run.click();
     await expect(cards).toHaveCount(1);
-    await input.fill("");
-    await expect(run).toBeEnabled();
-    await run.click();
+    await page.getByRole("button", { name: "Am, position 1 of 1" }).focus();
+    await page.getByRole("button", { name: "Am, position 1 of 1" }).press("Delete");
     await expect(cards).toHaveCount(0);
     await expect(run).toBeDisabled();
   });
@@ -165,6 +236,7 @@ test.describe("HASHER learning suite", () => {
     const input = page.getByRole("textbox", { name: "Chord progression input" });
     await input.fill("C");
     await input.press("Enter");
+    await page.getByRole("button", { name: "Run chord composer" }).click();
 
     const card = page.getByTestId("chord-card");
     const diagram = card.getByTestId("guitar-chord-diagram");
@@ -184,13 +256,16 @@ test.describe("HASHER learning suite", () => {
     const cards = page.getByTestId("chord-card");
 
     await cards.nth(0).getByRole("button", { name: "Modify Dm7" }).click();
-    const dMinorQuick = cards.nth(0).getByLabel("Quick chord changes");
+    let modifier = page.getByRole("dialog", { name: "Modify Dm7 chord" });
+    const dMinorQuick = modifier.getByLabel("Quick chord changes");
     await expect(dMinorQuick.getByRole("button").first()).toContainText(/\d+%/);
     await expect(dMinorQuick.getByRole("button").first()).toContainText("predominant function");
     await expect(dMinorQuick.getByRole("button").first()).toContainText(/chord tones in scale/);
+    await page.keyboard.press("Escape");
 
     await cards.nth(1).getByRole("button", { name: "Modify G7" }).click();
-    const dominantQuick = cards.nth(1).getByLabel("Quick chord changes");
+    modifier = page.getByRole("dialog", { name: "Modify G7 chord" });
+    const dominantQuick = modifier.getByLabel("Quick chord changes");
     await expect(dominantQuick).toContainText("dominant function");
     await expect(dominantQuick.getByRole("button", { name: /Change G7 to G(?:9|13|7b9|7#9)/ }).first()).toBeVisible();
   });
@@ -329,8 +404,8 @@ test.describe("HASHER learning suite", () => {
 
     await page.getByRole("button", { name: "Use this in HASHER" }).first().click();
     await expect(page.getByRole("button", { name: "HASHER", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("combobox", { name: "Free Input key" })).toHaveValue("D");
-    await expect(page.getByRole("combobox", { name: "Free Input mode" })).toHaveValue("dorian");
+    await expect(page.getByRole("combobox", { name: "HASHER key" })).toHaveValue("D");
+    await expect(page.getByRole("combobox", { name: "HASHER mode" })).toHaveValue("dorian");
 
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await root.selectOption("C");
@@ -339,8 +414,8 @@ test.describe("HASHER learning suite", () => {
     await expect(scale).toBeVisible({ timeout: 3_000 });
     await scale.selectOption("whole_tone");
     await page.getByRole("button", { name: "Use this in HASHER" }).first().click();
-    await expect(page.getByRole("combobox", { name: "Free Input key" })).toHaveValue("C");
-    await expect(page.getByRole("combobox", { name: "Free Input mode" })).toHaveValue("dorian");
+    await expect(page.getByRole("combobox", { name: "HASHER key" })).toHaveValue("C");
+    await expect(page.getByRole("combobox", { name: "HASHER mode" })).toHaveValue("dorian");
     const unsupportedNotice = page.getByRole("status").filter({ hasText: "Whole Tone" });
     await expect(unsupportedNotice).toContainText("Whole Tone is not a HASHER preset mode");
     await expect(unsupportedNotice).toContainText("formula");
@@ -385,7 +460,7 @@ test.describe("HASHER learning suite", () => {
     await expect(insight.getByTestId("improv-theory-context")).toContainText("Circle context: D Dorian");
     await expect(insight.getByRole("status")).toContainText("Add chords in HASHER");
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Guitar", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toHaveAttribute("aria-pressed", "true");
 
     await insight.getByRole("button", { name: "Close IMPROV INSIGHT" }).click();
     await expect(page.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -424,7 +499,7 @@ test.describe("HASHER learning suite", () => {
     await expectNoDocumentOverflow(page);
 
     await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Fretboard Explorer" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
     await expect(page.getByTestId("fretboard-tuning-readout")).toHaveCount(0);
     await expect(page.getByRole("combobox", { name: "Fretboard tuning" })).toBeVisible();
     await expectNoDocumentOverflow(page);

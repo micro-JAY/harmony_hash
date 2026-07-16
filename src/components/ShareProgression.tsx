@@ -163,7 +163,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
         }}
       >
         <Link2 size={15} aria-hidden="true" />
-        {t("Share progression")}
+        {t("SHARE")}
       </button>
 
       {open ? (

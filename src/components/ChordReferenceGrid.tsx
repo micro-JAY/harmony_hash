@@ -20,6 +20,9 @@ import type {
 import type { ScaleType } from "../lib/types";
 import { fretboardIntervalColor } from "./fretboardVisuals";
 import { useT } from "../i18n/I18nContext";
+import {
+  chordFamilyPresentation,
+} from "../lib/visual/chordFamily";
 
 export type SuggestionMode = "off" | "key" | "next" | "jazz" | "modal";
 
@@ -541,25 +544,32 @@ export default function ChordReferenceGrid({
               >
                 {/* Header Row: empty corner + quality labels */}
                 <div />
-                {visibleQualities.map((q) => (
-                  <div
-                    key={q.label}
-                    style={{
-                      fontSize: "var(--text-xs)",
-                      padding: "var(--space-1) var(--space-2)",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-default)",
-                      background: "var(--surface-raised)",
-                      color: "var(--text-muted)",
-                      fontFamily: "var(--font-mono)",
-                      letterSpacing: "0.02em",
-                      textAlign: "center",
-                      userSelect: "none",
-                    }}
-                  >
-                    {q.label}
-                  </div>
-                ))}
+                {visibleQualities.map((q) => {
+                  const probe = lookupChord(q.suffix === "" ? "C" : `C${q.suffix}`);
+                  const presentation = chordFamilyPresentation(probe ?? q.label);
+                  return (
+                    <div
+                      key={q.label}
+                      data-testid={`chord-quality-header-${q.label}`}
+                      data-chord-family={presentation.family}
+                      style={{
+                        fontSize: "var(--text-xs)",
+                        padding: "var(--space-1) var(--space-2)",
+                        borderRadius: "var(--radius-sm)",
+                        border: `1px solid ${presentation.borderColor}`,
+                        background: presentation.backgroundColor,
+                        color: presentation.color,
+                        fontFamily: "var(--font-mono)",
+                        fontWeight: "var(--weight-semibold)",
+                        letterSpacing: "0.02em",
+                        textAlign: "center",
+                        userSelect: "none",
+                      }}
+                    >
+                      {q.label}
+                    </div>
+                  );
+                })}
 
                 {/* Data Rows */}
                 {ROOTS.map((root) => {
@@ -568,6 +578,8 @@ export default function ChordReferenceGrid({
                     <div key={root} style={{ display: "contents" }}>
                       {/* Root label */}
                       <span
+                        data-testid={`chord-root-label-${root}`}
+                        data-root-color="blue"
                         style={{
                           fontSize: "var(--text-xs)",
                           fontWeight: "var(--weight-bold)",

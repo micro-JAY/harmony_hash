@@ -146,6 +146,12 @@ test.describe("375px HASHER layout", () => {
     await expectStacked(prompt, agentRun);
     await expect(page.getByText("API ready", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Choose from a preset" })).toBeVisible();
+    const describeHeading = page.getByRole("heading", { name: "Describe a progression or mood" });
+    const describeHeadingLines = await describeHeading.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return element.getBoundingClientRect().height / Number.parseFloat(style.lineHeight);
+    });
+    expect(describeHeadingLines).toBeGreaterThanOrEqual(1.9);
     await expect(page.getByRole("heading", { name: "Build your own" })).toBeVisible();
     await expect(dialog).toBeVisible();
     await expectNoDocumentOverflow(page);

@@ -1253,6 +1253,11 @@ body {
 }
 
 @media (max-width: 39.99rem) {
+  #hasher-describe-title {
+    width: min(100%, 20rem);
+    margin-inline: auto;
+  }
+
   .hh-app-header {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;

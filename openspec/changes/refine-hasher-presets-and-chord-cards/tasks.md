@@ -1,0 +1,58 @@
+## 1. Specification Boundary and Baseline
+
+- [x] 1.1 Run strict OpenSpec validation and reconcile any proposal/design/delta inconsistency before source edits.
+- [x] 1.2 Record a requirement-by-requirement acceptance ledger for the supplied screenshots and written fixes, including authoritative proof for every item.
+- [x] 1.3 Capture current PR #75 desktop, tablet, and mobile evidence for header centering, preset visibility, composer controls, Guitar cards, and Piano cards.
+- [ ] 1.4 Commit the complete OpenSpec artifact boundary as a standalone milestone without staging `.agents/` or `AGENTS.md`.
+
+## 2. Centered Header and Complete Preset Dialogs
+
+- [ ] 2.1 Replace desktop header flex balancing with a true three-region centered layout while preserving the wrapped tablet/mobile layout.
+- [ ] 2.2 Replace the inline preset subgroup/progression carousels with four centered Major, Minor, Modal, and Advanced category buttons inside the existing bordered surface.
+- [ ] 2.3 Implement one localized accessible preset dialog that renders every subgroup and progression for the selected category, closes on selection, and restores focus on dismissal.
+- [ ] 2.4 Preserve preset transposition, Minor Blend help, shared timeline replacement, stale-agent invalidation, and Japanese labels through the dialog path.
+- [ ] 2.5 Strengthen catalogue parity tests for exact 23/21/13/5 category counts, subgroup/name/numeral parity, uniqueness, and all-key dictionary resolution.
+- [ ] 2.6 Add Playwright coverage for header center geometry, all four complete dialog inventories, pointer/keyboard selection, Escape/outside dismissal, focus restoration, and 375px containment.
+- [ ] 2.7 Inspect and approve the four category-dialog visual states at desktop and mobile widths, then commit the header/preset milestone.
+
+## 3. Intuitive Composer Removal and Drag Safety
+
+- [ ] 3.1 Add selected/focused chip state that reveals one compact localized `X` removal action without restoring persistent handles, arrows, or insertion buttons.
+- [ ] 3.2 Route selected `X`, Delete/Backspace, and empty-input Backspace through the same atomic removal transaction and live-region announcement.
+- [ ] 3.3 Add an explicit temporary drag-out removal target for mouse/touch/pen while retaining exact inside-composer insertion and reorder boundaries.
+- [ ] 3.4 Ensure Escape, pointer cancellation, or an invalid drop never removes or moves a chord.
+- [ ] 3.5 Preserve stable item identity, locks, variants, piano style, playback cancellation, Hanz index handling, and text-agent invalidation for remove/reorder operations.
+- [ ] 3.6 Add pure/component/Playwright coverage for click selection, focus selection, `X`, keyboard removal/reorder, drag-in reorder, drag-out removal, cancelled drag, appending grid clicks, and mobile containment.
+- [ ] 3.7 Inspect the composer at desktop, tablet, and mobile widths and commit the removal/drag milestone.
+
+## 4. Chord-Family Colors and Card Control Alignment
+
+- [ ] 4.1 Audit and correct the shared chord-family classifier across major extensions, minor, dominant/altered, suspended, diminished/half-diminished, and augmented aliases.
+- [ ] 4.2 Finalize semantic tokens for pastel-green Major, pastel-orange Minor, deep-red Dominant, light-yellow Suspended, soft-pink Diminished, and white Augmented with tested contrast on every real surface.
+- [ ] 4.3 Apply family styling to chord-grid quality headers while preserving blue root rows and independent Key/Next/Jazz/Modal score tiers and percentages.
+- [ ] 4.4 Apply family styling to Guitar/Piano chord-card headings and modifier option names without replacing playback, Hanz, lock, or match-score semantics.
+- [ ] 4.5 Keep the modifier in `AccessibleDialog`, verify the `Top picks` label, and apply the existing percentage-match gradient to supported scores and accessible descriptions.
+- [ ] 4.6 Rebuild the Guitar card toolbar as a symmetric centered layout for `Fingering`, `Intervals`, and `Notes`, including a contained narrow-card wrap.
+- [ ] 4.7 Remove the Piano label-mode selector and confirm Guitar retains its three display modes and exact diagram behavior.
+- [ ] 4.8 Add classifier, token, contrast, non-color, geometry, dialog, focus-restoration, and responsive visual tests, then commit the semantic card-controls milestone.
+
+## 5. Equal, Fully Visible Piano Cards
+
+- [ ] 5.1 Refactor the procedural C3–B5 keyboard to percentage-based white/black key geometry shared by primary and comparison renderers.
+- [ ] 5.2 Adapt compact note/finger labels without changing MIDI mapping or hiding active keys, and expose complete voicing labels to assistive technology.
+- [ ] 5.3 Render `Auto` plus only applicable explicit voicing styles and reserve no disabled or empty selector slots.
+- [ ] 5.4 Stabilize Piano card keyboard/style/metadata heights so sibling cards remain aligned despite different voicing spans and available-style counts.
+- [ ] 5.5 Verify the comparison remains an accessible modal with only applicable options, contained scrolling, selection/Escape behavior, and focus restoration.
+- [ ] 5.6 Add unit/component/Playwright coverage for wide voicings, every active key inside card bounds, full keyboard visibility, equal sibling bounds, style filtering, Guitar/Piano switching, and desktop/tablet/375px containment.
+- [ ] 5.7 Inspect representative triad, seventh, altered/extended, spread, and two-hand Piano cards and commit the Piano-layout milestone.
+
+## 6. Full Validation, Review, and PR #75 Update
+
+- [ ] 6.1 Run `npm run build`, `npm run lint`, `npm run test`, strict OpenSpec validation, `git diff --check`, and Worker dry-run packaging on the exact implementation tree.
+- [ ] 6.2 Run the complete Playwright suite plus repeated focused preset/composer/card/piano suites to distinguish real regressions from environment flakes.
+- [ ] 6.3 Perform rendered Browser QA in English and Japanese at desktop, 820px tablet, 500px transition, 375px mobile, and reduced-motion settings; inspect screenshots, focus, console, and overflow directly.
+- [ ] 6.4 Commission independent correctness, music-theory/color, accessibility, responsive-layout, and specification-conformance reviews; fix every P0–P2 finding and rerun affected/full gates.
+- [ ] 6.5 Reconcile every acceptance item against current code, rendered evidence, and tests; leave no item marked complete from intent or indirect evidence.
+- [ ] 6.6 Update OpenSpec task checkboxes and the long-horizon plan/log with exact commits, evidence, risks, and the next merge/archive step.
+- [ ] 6.7 Push milestone commits to the PR #75 branch, update the PR description/screenshots, and require exact-head GitHub build, Playwright, and Cloudflare checks to pass before handoff.
+- [ ] 6.8 After PR #75 merges, sync/archive this change and update canonical specs in a separate reviewed documentation boundary.

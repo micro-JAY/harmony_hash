@@ -70,10 +70,27 @@ test.describe("HASHER learning suite", () => {
     await expect(page.getByLabel("Mood lens")).toHaveCount(0);
 
     await composeProgression(page, "C Dm G7 C");
-    await expect(page.getByRole("button", { name: "SHARE", exact: true })).toBeVisible();
+    const actions = page.getByRole("region", { name: "Progression actions" });
+    const randomize = actions.getByRole("button", {
+      name: "RANDOMIZE (UNLOCKED VOICES)",
+      exact: true,
+    });
+    const play = actions.getByRole("button", { name: "Play progression" });
+    const share = actions.getByRole("button", { name: "SHARE", exact: true });
+    await expect(randomize).toHaveText("RANDOMIZE (UNLOCKED VOICES)");
+    await expect(play).toHaveText("PLAY");
+    await expect(play.locator("svg.lucide-play")).toBeVisible();
+    await expect(share).toHaveText("SHARE");
+    await expect(share.locator("svg.lucide-link-2")).toBeVisible();
     await expect(page.getByRole("button", { name: "IMPROV INSIGHT" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Progression actions" }).getByRole("button", { name: /Hanz/ })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Play progression" })).toBeVisible();
+    await expect(actions.getByRole("button", { name: /Hanz/ })).toHaveCount(0);
+    await expect(play).toBeEnabled();
+    await play.click();
+    const stop = actions.getByRole("button", { name: "Stop playback" });
+    await expect(stop).toHaveText("STOP");
+    await expect(stop.locator("svg.lucide-square")).toBeVisible();
+    await stop.click();
+    await expect(play).toHaveText("PLAY");
 
     const composerItems = page.getByTestId("chord-composer").locator("[data-composer-chip-index]");
     const dm = composerItems.nth(1);

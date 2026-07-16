@@ -234,7 +234,7 @@ test.describe("composer and committed timeline continuity", () => {
     await expect(chips).toHaveText(["C", "G7", "F"]);
   });
 
-  test("removes a dragged chord only through the temporary outside target", async ({ page }) => {
+  test("removes only an existing chip on an actual native drop outside the composer", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["C", "F", "G"]);
 
@@ -242,22 +242,34 @@ test.describe("composer and committed timeline continuity", () => {
     const chips = composer.locator("[data-composer-chip-index]");
     await expect(chips).toHaveCount(3);
 
-    const firstTransfer = await page.evaluateHandle(() => new DataTransfer());
-    await chips.nth(0).dispatchEvent("dragstart", { dataTransfer: firstTransfer });
-    const removeTarget = page.getByTestId("composer-remove-target");
-    await expect(removeTarget).toBeVisible();
-    await removeTarget.dispatchEvent("dragover", { dataTransfer: firstTransfer });
-    await expect(removeTarget).toHaveAttribute("data-drop-active", "true");
-    await removeTarget.dispatchEvent("drop", { dataTransfer: firstTransfer });
+    const outsideTarget = page.getByRole("heading", { name: "Build your own" });
+    await chips.nth(0).dragTo(outsideTarget);
     await expect(chips).toHaveText(["F", "G"]);
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["F", "G"]);
-    await expect(removeTarget).toHaveCount(0);
 
     const cancelledTransfer = await page.evaluateHandle(() => new DataTransfer());
     await chips.nth(0).dispatchEvent("dragstart", { dataTransfer: cancelledTransfer });
-    await expect(removeTarget).toBeVisible();
+    await page.keyboard.press("Escape");
     await chips.nth(0).dispatchEvent("dragend", { dataTransfer: cancelledTransfer });
-    await expect(removeTarget).toHaveCount(0);
+    await expect(chips).toHaveText(["F", "G"]);
+
+    await page.getByRole("button", { name: "Browse chords ↓" }).click();
+    const externalTransfer = await page.evaluateHandle(() => new DataTransfer());
+    const externalChord = page.locator('[data-chord-name="Am"]');
+    const outsideBounds = await outsideTarget.boundingBox();
+    expect(outsideBounds).not.toBeNull();
+    await externalChord.dispatchEvent("dragstart", { dataTransfer: externalTransfer });
+    await outsideTarget.dispatchEvent("dragover", {
+      dataTransfer: externalTransfer,
+      clientX: outsideBounds!.x + 4,
+      clientY: outsideBounds!.y + 4,
+    });
+    await outsideTarget.dispatchEvent("drop", {
+      dataTransfer: externalTransfer,
+      clientX: outsideBounds!.x + 4,
+      clientY: outsideBounds!.y + 4,
+    });
+    await externalChord.dispatchEvent("dragend", { dataTransfer: externalTransfer });
     await expect(chips).toHaveText(["F", "G"]);
   });
 });

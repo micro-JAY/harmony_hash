@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -10,6 +11,7 @@ import { useT } from "../i18n/I18nContext";
 import { lookupChord } from "../lib/chordData";
 import type { TimelineDraftItem } from "../lib/timelineTransactions";
 import { insertionBoundaryToMoveIndex } from "../lib/timelineTransactions";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 import {
   getComposerDropBoundary,
   getComposerDropZone,
@@ -75,11 +77,11 @@ export default function ProgressionTimelineComposer({
   const [activeDrag, setActiveDrag] = useState<ActiveDragPresentation | null>(null);
   const [insertionIndicatorActive, setInsertionIndicatorActive] = useState(false);
   const composerRef = useRef<HTMLDivElement>(null);
-  const removeTargetRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef(new Map<number, HTMLButtonElement>());
   const activeDragItemRef = useRef<ComposerItemIdentity | null>(null);
   const activePointerDragRef = useRef<ActivePointerDrag | null>(null);
+  const nativeDragCleanupRef = useRef<(() => void) | null>(null);
   const suppressPointerClickRef = useRef(false);
 
   function focusItem(index: number) {
@@ -122,10 +124,62 @@ export default function ProgressionTimelineComposer({
   }
 
   function resetDrag() {
+    nativeDragCleanupRef.current?.();
+    nativeDragCleanupRef.current = null;
     activeDragItemRef.current = null;
     activePointerDragRef.current = null;
     setActiveDrag(null);
     setInsertionIndicatorActive(false);
+  }
+
+  useEffect(() => () => {
+    nativeDragCleanupRef.current?.();
+    nativeDragCleanupRef.current = null;
+  }, []);
+
+  function beginNativeDrag(source: ComposerItemIdentity) {
+    nativeDragCleanupRef.current?.();
+
+    const handleDocumentDragOver = (event: globalThis.DragEvent) => {
+      const activeSource = activeDragItemRef.current;
+      const composer = composerRef.current;
+      if (!activeSource || !composer) return;
+      if (getComposerDropZone(
+        composer.getBoundingClientRect(),
+        event.clientX,
+        event.clientY,
+      ) !== "outside") return;
+
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      setInsertionIndicatorActive(false);
+      setActiveDrag({ source: activeSource, zone: "outside" });
+    };
+
+    const handleDocumentDrop = (event: globalThis.DragEvent) => {
+      const activeSource = activeDragItemRef.current;
+      const composer = composerRef.current;
+      if (!activeSource || !composer) return;
+      if (getComposerDropZone(
+        composer.getBoundingClientRect(),
+        event.clientX,
+        event.clientY,
+      ) !== "outside") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      const sourceIndex = currentIndex(activeSource);
+      if (sourceIndex !== null) removeItem(sourceIndex);
+      resetDrag();
+    };
+
+    document.addEventListener("dragover", handleDocumentDragOver, true);
+    document.addEventListener("drop", handleDocumentDrop, true);
+    nativeDragCleanupRef.current = () => {
+      document.removeEventListener("dragover", handleDocumentDragOver, true);
+      document.removeEventListener("drop", handleDocumentDrop, true);
+    };
+    setActiveDrag({ source, zone: "composer" });
   }
 
   function insertChord(chordName: string, boundary: number) {
@@ -215,7 +269,7 @@ export default function ProgressionTimelineComposer({
       if (distance < POINTER_DRAG_THRESHOLD_PX) return;
       active.dragging = true;
       activeDragItemRef.current = active.source;
-      setActiveDrag({ source: active.source, zone: "invalid" });
+      setActiveDrag({ source: active.source, zone: "composer" });
     }
 
     event.preventDefault();
@@ -223,7 +277,6 @@ export default function ProgressionTimelineComposer({
     if (!composer) return;
     const zone = getComposerDropZone(
       composer.getBoundingClientRect(),
-      removeTargetRef.current?.getBoundingClientRect() ?? null,
       event.clientX,
       event.clientY,
     );
@@ -244,9 +297,6 @@ export default function ProgressionTimelineComposer({
     const active = activePointerDragRef.current;
     if (!active || active.pointerId !== event.pointerId) return;
 
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
     if (!active.dragging) {
       activePointerDragRef.current = null;
       return;
@@ -265,7 +315,6 @@ export default function ProgressionTimelineComposer({
     }
     const zone = getComposerDropZone(
       composer.getBoundingClientRect(),
-      removeTargetRef.current?.getBoundingClientRect() ?? null,
       event.clientX,
       event.clientY,
     );
@@ -274,12 +323,8 @@ export default function ProgressionTimelineComposer({
       resetDrag();
       return;
     }
-    if (zone === "remove") {
+    if (zone === "outside") {
       removeItem(sourceIndex);
-      resetDrag();
-      return;
-    }
-    if (zone !== "composer") {
       resetDrag();
       return;
     }
@@ -334,7 +379,7 @@ export default function ProgressionTimelineComposer({
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <p id={instructionsId} className="sr-only">
-        {t("Type a chord and press Enter to add it. Select a chord to reveal its remove action, drag it inside to reorder, or drag it onto the removal target. Press Delete to remove a focused chord, or Alt plus an arrow key to move it.")}
+        {t("Type a chord and press Enter to add it. Select a chord to reveal its remove action, drag it inside to reorder, or release it outside the composer to remove it. Press Delete to remove a focused chord, or Alt plus an arrow key to move it.")}
       </p>
       <div
         ref={composerRef}
@@ -342,6 +387,7 @@ export default function ProgressionTimelineComposer({
         aria-label={t("Chord progression composer")}
         aria-describedby={instructionsId}
         data-testid="chord-composer"
+        data-composer-drag-zone={activeDrag?.zone ?? "idle"}
         data-insertion-boundary={insertionBoundary}
         className="hh-composer flex w-full min-w-0 flex-wrap items-center gap-2"
         onDragOver={(event) => {
@@ -364,6 +410,7 @@ export default function ProgressionTimelineComposer({
       >
         {items.map((item, index) => {
           const selected = identityMatches(item, selectedItem);
+          const familyPresentation = chordFamilyPresentation(lookupChord(item.value) ?? item.value);
           return (
             <span
               key={item.id ?? `draft-${index}-${item.value}`}
@@ -382,6 +429,7 @@ export default function ProgressionTimelineComposer({
                   insertionIndicatorActive && insertionBoundary === index ? "true" : "false"
                 }
                 data-timeline-item-id={item.id ?? undefined}
+                data-chord-family={familyPresentation.family}
                 aria-label={t(`${item.value}, position ${index + 1} of ${items.length}`)}
                 aria-pressed={selected}
                 onKeyDown={(event) => handleChipKeyDown(event, index)}
@@ -404,7 +452,7 @@ export default function ProgressionTimelineComposer({
                   const source = identifyItem(item);
                   activeDragItemRef.current = source;
                   setSelectedItem(source);
-                  setActiveDrag({ source, zone: "invalid" });
+                  beginNativeDrag(source);
                   event.dataTransfer.effectAllowed = "move";
                   event.dataTransfer.setData("text/plain", item.value);
                 }}
@@ -416,6 +464,9 @@ export default function ProgressionTimelineComposer({
                   cursor: "grab",
                   touchAction: "none",
                   fontFamily: "var(--font-mono)",
+                  color: familyPresentation.color,
+                  background: familyPresentation.backgroundColor,
+                  borderColor: familyPresentation.borderColor,
                   borderRadius: selected
                     ? "var(--radius-md) 0 0 var(--radius-md)"
                     : "var(--radius-md)",
@@ -501,49 +552,6 @@ export default function ProgressionTimelineComposer({
           />
         </label>
       </div>
-      {activeDrag ? (
-        <div
-          ref={removeTargetRef}
-          role="status"
-          aria-live="polite"
-          data-testid="composer-remove-target"
-          data-drop-active={activeDrag.zone === "remove" ? "true" : "false"}
-          onDragOver={(event) => {
-            if (!activeDragItemRef.current) return;
-            event.preventDefault();
-            event.stopPropagation();
-            event.dataTransfer.dropEffect = "move";
-            setInsertionIndicatorActive(false);
-            setActiveDrag({ source: activeDragItemRef.current, zone: "remove" });
-          }}
-          onDrop={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            const sourceIndex = currentIndex(activeDragItemRef.current);
-            if (sourceIndex !== null) removeItem(sourceIndex);
-            resetDrag();
-          }}
-          className="flex w-full min-w-0 items-center justify-center rounded-lg px-3 text-center"
-          style={{
-            minHeight: "var(--control-min-height)",
-            color: activeDrag.zone === "remove"
-              ? "var(--status-error-text)"
-              : "var(--text-muted)",
-            background: activeDrag.zone === "remove"
-              ? "var(--status-error-bg)"
-              : "var(--surface-raised)",
-            border: `1px dashed ${activeDrag.zone === "remove"
-              ? "var(--status-error-border)"
-              : "var(--border-default)"}`,
-            fontSize: "var(--text-sm)",
-          }}
-        >
-          {t("Drop here to remove selected chord")}:&nbsp;
-          <strong style={{ fontFamily: "var(--font-mono)" }}>
-            {activeDrag.source.item.value}
-          </strong>
-        </div>
-      ) : null}
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {announcement}
       </p>

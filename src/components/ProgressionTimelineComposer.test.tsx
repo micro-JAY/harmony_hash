@@ -82,13 +82,12 @@ describe("ProgressionTimelineComposer", () => {
     expect(getComposerDropBoundary(rects, 90, 130)).toBe(5);
   });
 
-  it("recognizes only the composer and explicit removal target as valid drops", () => {
+  it("classifies every release outside the composer as an outside drop", () => {
     const composer = { left: 20, right: 320, top: 20, bottom: 80 };
-    const remove = { left: 20, right: 320, top: 92, bottom: 136 };
 
-    expect(getComposerDropZone(composer, remove, 40, 40)).toBe("composer");
-    expect(getComposerDropZone(composer, remove, 40, 110)).toBe("remove");
-    expect(getComposerDropZone(composer, remove, 4, 110)).toBe("invalid");
-    expect(getComposerDropZone(composer, null, 40, 110)).toBe("invalid");
+    expect(getComposerDropZone(composer, 40, 40)).toBe("composer");
+    expect(getComposerDropZone(composer, 40, 110)).toBe("outside");
+    expect(getComposerDropZone(composer, 4, 40)).toBe("outside");
+    expect(getComposerDropZone(composer, 340, 40)).toBe("outside");
   });
 });

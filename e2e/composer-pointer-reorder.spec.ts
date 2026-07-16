@@ -115,28 +115,20 @@ test("touch-drags a committed chord outside the composer to remove it immediatel
     }],
   });
 
-  const removeTarget = page.getByTestId("composer-remove-target");
-  await expect(removeTarget).toBeVisible();
-  const target = await removeTarget.boundingBox();
-  expect(target).not.toBeNull();
-  const end = {
-    x: target!.x + target!.width / 2,
-    y: target!.y + target!.height / 2,
-  };
+  const end = { x: 2, y: 2 };
   await cdp.send("Input.dispatchTouchEvent", {
     type: "touchMove",
     touchPoints: [{ ...end, id: 0, force: 1, radiusX: 4, radiusY: 4 }],
   });
-  await expect(removeTarget).toHaveAttribute("data-drop-active", "true");
+  await expect(composer).toHaveAttribute("data-composer-drag-zone", "outside");
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 
   await expect(chips).toHaveText(["C", "G7"]);
   await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["C", "G7"]);
-  await expect(removeTarget).toHaveCount(0);
   await cdp.detach();
 });
 
-test("touch cancellation and invalid drag-out leave the committed timeline intact", async ({
+test("touch cancellation, lost capture, and Escape leave the committed timeline intact", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -157,6 +149,12 @@ test("touch cancellation and invalid drag-out leave the committed timeline intac
     maxTouchPoints: 1,
   });
 
+  await page.evaluate(() => {
+    document.addEventListener("pointerdown", (event) => {
+      (window as Window & { __hhLastPointerId?: number }).__hhLastPointerId = event.pointerId;
+    }, { capture: true });
+  });
+
   async function beginTouchDrag() {
     await cdp.send("Input.dispatchTouchEvent", {
       type: "touchStart",
@@ -173,21 +171,34 @@ test("touch cancellation and invalid drag-out leave the committed timeline intac
         radiusY: 4,
       }],
     });
-    await expect(page.getByTestId("composer-remove-target")).toBeVisible();
+    await expect(composer).toHaveAttribute("data-composer-drag-zone", "composer");
   }
 
   await beginTouchDrag();
   await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
-  await expect(page.getByTestId("composer-remove-target")).toHaveCount(0);
+  await expect(composer).toHaveAttribute("data-composer-drag-zone", "idle");
   await expect(chips).toHaveText(["C", "F", "G7"]);
 
   await beginTouchDrag();
+  const pointerId = await page.evaluate(
+    () => (window as Window & { __hhLastPointerId?: number }).__hhLastPointerId,
+  );
+  expect(pointerId).toBeDefined();
+  await chips.first().dispatchEvent("lostpointercapture", { pointerId });
   await cdp.send("Input.dispatchTouchEvent", {
     type: "touchMove",
     touchPoints: [{ x: 2, y: 2, id: 0, force: 1, radiusX: 4, radiusY: 4 }],
   });
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-  await expect(page.getByTestId("composer-remove-target")).toHaveCount(0);
+  await expect(chips).toHaveText(["C", "F", "G7"]);
+
+  await beginTouchDrag();
+  await page.keyboard.press("Escape");
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ x: 2, y: 2, id: 0, force: 1, radiusX: 4, radiusY: 4 }],
+  });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await expect(chips).toHaveText(["C", "F", "G7"]);
   await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["C", "F", "G7"]);
   await cdp.detach();

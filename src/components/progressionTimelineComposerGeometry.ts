@@ -19,7 +19,7 @@ export interface ComposerDropRect {
   readonly bottom: number;
 }
 
-export type ComposerDropZone = "composer" | "remove" | "invalid";
+export type ComposerDropZone = "composer" | "outside";
 
 function verticalDistance(row: ComposerRow, clientY: number): number {
   if (clientY < row.top) return row.top - clientY;
@@ -63,14 +63,12 @@ export function getComposerDropBoundary(
   return nextChip?.index ?? rowChips[rowChips.length - 1].index + 1;
 }
 
-/** Classify only explicit, visible drop regions; arbitrary outside drops stay inert. */
+/** Distinguish exact inside-composer drops from deliberate outside releases. */
 export function getComposerDropZone(
   composerRect: ComposerDropRect,
-  removeRect: ComposerDropRect | null,
   clientX: number,
   clientY: number,
 ): ComposerDropZone {
-  if (removeRect && containsPoint(removeRect, clientX, clientY)) return "remove";
   if (containsPoint(composerRect, clientX, clientY)) return "composer";
-  return "invalid";
+  return "outside";
 }

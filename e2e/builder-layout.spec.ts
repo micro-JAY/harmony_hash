@@ -157,30 +157,16 @@ test.describe("375px HASHER layout", () => {
     await expectNoDocumentOverflow(page);
     await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
     await expect(dialog).toHaveCount(0);
-    const snapshotMetrics = await page.evaluate(() => {
-      const measure = (selector: string) => {
-        const element = document.querySelector<HTMLElement>(selector);
-        if (!element) return null;
-        const bounds = element.getBoundingClientRect();
-        return { top: bounds.top, height: bounds.height, bottom: bounds.bottom };
-      };
-      return {
-        documentHeight: document.documentElement.scrollHeight,
-        header: measure(".hh-app-header"),
-        brand: measure(".hh-app-header__brand"),
-        utilities: measure(".hh-app-header__utilities"),
-        navigation: measure(".hh-app-header__nav"),
-        context: measure('[data-tour="hasher-context"]'),
-        presets: measure('[data-tour="hasher-presets"]'),
-        describe: measure('[data-tour="hasher-describe"]'),
-        describeTitle: measure("#hasher-describe-title"),
-        composer: measure('[data-tour="hasher-composer"]'),
-        chordBrowser: measure('[data-tour="hasher-chord-browser"]'),
-        chordOutput: measure('[data-tour="chord-output"]'),
-      };
-    });
-    await expect(page, `mobile snapshot metrics ${JSON.stringify(snapshotMetrics)}`)
-      .toHaveScreenshot("builder-mobile-progressions.png", { fullPage: true });
+    const agentReadout = page.locator(".hh-progression-agent__readout");
+    const agentStatus = page.locator(".hh-progression-agent__status");
+    const [readoutBox, statusBox] = await Promise.all([
+      agentReadout.boundingBox(),
+      agentStatus.boundingBox(),
+    ]);
+    expect(readoutBox).not.toBeNull();
+    expect(statusBox).not.toBeNull();
+    expect(statusBox!.y).toBeGreaterThanOrEqual(readoutBox!.y + readoutBox!.height);
+    await expect(page).toHaveScreenshot("builder-mobile-progressions.png", { fullPage: true });
   });
 
   test("contains rendered guitar and piano cards without page overflow", async ({

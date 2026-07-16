@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
+import { contrastRatio } from "./helpers/contrast";
 
 async function openPianoComparison(page: Page, progression: string) {
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -21,7 +22,7 @@ test.describe("piano voicing comparison", () => {
   test("compares every Cmaj7 shape and adopts one without changing the timeline", async ({
     page,
   }) => {
-    const { card, dialog } = await openPianoComparison(page, "Cmaj7 G7");
+    const { card, dialog, trigger } = await openPianoComparison(page, "Cmaj7 G7");
 
     const options = dialog.getByTestId("voicing-comparison-option");
     await expect(options).toHaveCount(6);
@@ -47,11 +48,8 @@ test.describe("piano voicing comparison", () => {
     if (!describedBy) throw new Error("Rootless option must describe its visible notes");
     await expect(dialog.locator(`[id="${describedBy}"]`)).toHaveText("E3 · G3 · B3");
     await rootlessOption.click();
-    await expect(dialog.getByRole("button", { name: "Current Rootless voicing for Cmaj7" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    await dialog.getByRole("button", { name: "Close piano voicing comparison" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
     await expect(card.getByRole("button", { name: "Rootless", exact: true })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -96,10 +94,22 @@ test.describe("piano voicing comparison", () => {
     if (!previewMidis) throw new Error("Drop 2 preview must expose its MIDI notes");
 
     await drop2Option.click();
-    await dialog.getByRole("button", { name: "Close piano voicing comparison" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(secondCard.getByRole("button", { name: "Compare voicings for G7" })).toBeFocused();
     await expect(
       secondCard.locator('[data-testid="piano-keyboard"][data-size="standard"]'),
     ).toHaveAttribute("data-active-midis", previewMidis);
+  });
+
+  test("uses the contrast-safe dominant treatment in the dialog heading", async ({ page }) => {
+    const { dialog } = await openPianoComparison(page, "G7");
+    const familyTitle = dialog.locator('[data-chord-family="dominant"]');
+    const colors = await familyTitle.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { foreground: style.color, background: style.backgroundColor };
+    });
+
+    expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
   });
 
   test("omits styles that cannot fit a high extended chord", async ({ page }) => {

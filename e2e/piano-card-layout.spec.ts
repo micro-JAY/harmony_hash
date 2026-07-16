@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { contrastRatio } from "./helpers/contrast";
 import { composeProgression } from "./helpers/progression";
 
 test.describe("responsive piano chord cards", () => {
@@ -60,6 +61,34 @@ test.describe("responsive piano chord cards", () => {
         elements.map((element) => element.getBoundingClientRect().height)
       ));
       expect(Math.max(...cardHeights) - Math.min(...cardHeights)).toBeLessThanOrEqual(1);
+
+      const selectorLayout = await cards.getByTestId("piano-style-selector").evaluateAll(
+        (selectors) => selectors.map((selector) => {
+          const buttons = Array.from(selector.querySelectorAll<HTMLButtonElement>("button"));
+          const rowTops = new Set(buttons.map((button) => Math.round(button.getBoundingClientRect().top)));
+          return {
+            rows: rowTops.size,
+            everyLabelVisible: buttons.every((button) => (
+              button.scrollWidth <= button.clientWidth + 1
+              && button.scrollHeight <= button.clientHeight + 1
+            )),
+          };
+        }),
+      );
+      for (const selector of selectorLayout) {
+        expect(selector.rows).toBeLessThanOrEqual(2);
+        expect(selector.everyLabelVisible).toBe(true);
+      }
+
+      const inactiveStyle = cards.first().getByTestId("piano-style-selector")
+        .locator('button[aria-pressed="false"]')
+        .first();
+      const inactiveColors = await inactiveStyle.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { foreground: style.color, background: getComputedStyle(element.parentElement!).backgroundColor };
+      });
+      expect(contrastRatio(inactiveColors.foreground, inactiveColors.background))
+        .toBeGreaterThanOrEqual(4.5);
     }
   });
 });

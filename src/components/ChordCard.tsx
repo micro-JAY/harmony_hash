@@ -154,7 +154,7 @@ export default function ChordCard({
                         : "transparent",
                       color: active
                         ? "var(--interactive-accent-text)"
-                        : "var(--text-muted)",
+                        : "var(--text-secondary)",
                       border: active
                         ? "1px solid var(--interactive-accent-border)"
                         : "1px solid transparent",
@@ -263,8 +263,10 @@ export default function ChordCard({
             <div
               role="group"
               aria-label={t(`Piano voicing style for ${displayName}`)}
-              className="grid w-full grid-flow-col auto-cols-fr items-center gap-0.5 rounded-lg p-1"
+              data-testid="piano-style-selector"
+              className="grid w-full grid-cols-4 content-center items-stretch gap-0.5 rounded-lg p-1"
               style={{
+                height: "4.75rem",
                 backgroundColor: "var(--surface-overlay)",
                 border: "1px solid var(--border-subtle)",
               }}
@@ -278,14 +280,14 @@ export default function ChordCard({
                     aria-pressed={active}
                     title={t(opt.label)}
                     onClick={() => onPianoStyleChange(opt.value)}
-                    className="min-h-8 min-w-0 truncate rounded-md px-0.5 py-1 text-xs transition-all"
+                    className="min-h-8 min-w-0 rounded-md px-1 py-1 text-xs leading-tight transition-all"
                     style={{
                       backgroundColor: active
                         ? "var(--interactive-accent-bg)"
                         : "transparent",
                       color: active
                         ? "var(--interactive-accent-text)"
-                        : "var(--text-muted)",
+                        : "var(--text-secondary)",
                       border: active
                         ? "1px solid var(--interactive-accent-border)"
                         : "1px solid transparent",
@@ -296,7 +298,7 @@ export default function ChordCard({
                       cursor: "pointer",
                     }}
                   >
-                    <span className="block truncate">{t(opt.label)}</span>
+                    <span className="block whitespace-normal break-words">{t(opt.label)}</span>
                   </button>
                 );
               })}

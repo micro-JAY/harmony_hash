@@ -15,4 +15,3 @@ The application header SHALL keep the Hasher, Tune Toolbox, and Fret Finder work
 #### Scenario: Keyboard behavior preserved
 - **WHEN** a keyboard user focuses and activates a centered workspace tab
 - **THEN** visible focus, pressed state, and workspace selection SHALL behave identically to the existing navigation contract
-

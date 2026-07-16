@@ -441,7 +441,7 @@ body {
 .hh-preset-collections__option {
   min-height: var(--control-min-height);
   padding: var(--space-2) var(--space-4);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   background: var(--surface-overlay);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
@@ -484,7 +484,7 @@ body {
 
 .hh-preset-dialog__group h3 {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-display);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
@@ -524,7 +524,7 @@ body {
 }
 
 .hh-preset-dialog__option small {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-body);
   font-size: var(--text-xs);
   line-height: var(--leading-tight);

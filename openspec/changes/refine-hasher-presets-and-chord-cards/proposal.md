@@ -25,6 +25,7 @@ None.
 - `app-shell`: Keep the primary workspace tabs geometrically centered while header utilities remain usable at desktop, tablet, and mobile widths.
 - `progression-input`: Replace the inline preset strip with category dialogs and add direct chip removal by selected `X` or drag-out while preserving the shared timeline and accessible keyboard behavior.
 - `progression-library`: Require complete source/document/rendered parity for every Major, Minor, Modal, and Advanced progression and subgroup.
+- `harmony-brain`: Preserve the documented slash-bass intent of `I/III` and the named Soulful Descent while resolving the named Secondary Pull's `V/ii` as a real secondary dominant.
 - `chord-grid-suggestions`: Apply the shared chord-family palette to quality headers without replacing key-row blues, suggestion tiers, percentages, or non-color fit evidence.
 - `chord-card-display`: Apply chord-family color to card titles, center instrument controls, remove the piano label selector, hide unavailable piano styles, and keep full active voicings visible inside consistently sized cards.
 - `guitar-display-mode`: Center and align the three Guitar display-mode options while retaining their existing rendering semantics.
@@ -32,4 +33,4 @@ None.
 
 ## Impact
 
-The change affects the shared header/navigation, HASHER preset and composer surfaces, progression library validation, chord-grid headers, chord-card and piano-keyboard layout, guitar display controls, modifier dialog, design tokens, localization, and their unit/Playwright/visual baselines. It does not change provider APIs, Worker routes, chord-dictionary validity, playback scheduling, Hanz authority, or the intentional interval/mode/score color systems outside the chord-family mapping.
+The change affects the shared header/navigation, HASHER preset and composer surfaces, narrow compatibility handling for the three shipped ambiguous Roman-slash presets, progression library validation, chord-grid headers, chord-card and piano-keyboard layout, guitar display controls, modifier dialog, design tokens, localization, and their unit/Playwright/visual baselines. It does not change provider APIs, Worker routes, chord-dictionary contents, playback scheduling, Hanz authority, or the intentional interval/mode/score color systems outside the chord-family mapping.

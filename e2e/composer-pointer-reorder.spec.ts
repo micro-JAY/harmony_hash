@@ -78,3 +78,117 @@ test("touch-drags a chip to an insertion boundary on a wrapped composer row", as
   );
   await cdp.detach();
 });
+
+test("touch-drags a committed chord outside the composer to remove it immediately", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await composeProgression(page, ["C", "F", "G7"]);
+
+  const composer = page.getByTestId("chord-composer");
+  const chips = composer.locator("[data-composer-chip-index]");
+  const source = await chips.nth(1).boundingBox();
+  expect(source).not.toBeNull();
+  const start = {
+    x: source!.x + source!.width / 2,
+    y: source!.y + source!.height / 2,
+  };
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setTouchEmulationEnabled", {
+    enabled: true,
+    maxTouchPoints: 1,
+  });
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ ...start, id: 0, force: 1, radiusX: 4, radiusY: 4 }],
+  });
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{
+      x: start.x + 12,
+      y: start.y + 12,
+      id: 0,
+      force: 1,
+      radiusX: 4,
+      radiusY: 4,
+    }],
+  });
+
+  const removeTarget = page.getByTestId("composer-remove-target");
+  await expect(removeTarget).toBeVisible();
+  const target = await removeTarget.boundingBox();
+  expect(target).not.toBeNull();
+  const end = {
+    x: target!.x + target!.width / 2,
+    y: target!.y + target!.height / 2,
+  };
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ ...end, id: 0, force: 1, radiusX: 4, radiusY: 4 }],
+  });
+  await expect(removeTarget).toHaveAttribute("data-drop-active", "true");
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  await expect(chips).toHaveText(["C", "G7"]);
+  await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["C", "G7"]);
+  await expect(removeTarget).toHaveCount(0);
+  await cdp.detach();
+});
+
+test("touch cancellation and invalid drag-out leave the committed timeline intact", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await composeProgression(page, ["C", "F", "G7"]);
+
+  const composer = page.getByTestId("chord-composer");
+  const chips = composer.locator("[data-composer-chip-index]");
+  const source = await chips.first().boundingBox();
+  expect(source).not.toBeNull();
+  const start = {
+    x: source!.x + source!.width / 2,
+    y: source!.y + source!.height / 2,
+  };
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setTouchEmulationEnabled", {
+    enabled: true,
+    maxTouchPoints: 1,
+  });
+
+  async function beginTouchDrag() {
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ ...start, id: 0, force: 1, radiusX: 4, radiusY: 4 }],
+    });
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{
+        x: start.x + 12,
+        y: start.y + 12,
+        id: 0,
+        force: 1,
+        radiusX: 4,
+        radiusY: 4,
+      }],
+    });
+    await expect(page.getByTestId("composer-remove-target")).toBeVisible();
+  }
+
+  await beginTouchDrag();
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  await expect(page.getByTestId("composer-remove-target")).toHaveCount(0);
+  await expect(chips).toHaveText(["C", "F", "G7"]);
+
+  await beginTouchDrag();
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ x: 2, y: 2, id: 0, force: 1, radiusX: 4, radiusY: 4 }],
+  });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(page.getByTestId("composer-remove-target")).toHaveCount(0);
+  await expect(chips).toHaveText(["C", "F", "G7"]);
+  await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["C", "F", "G7"]);
+  await cdp.detach();
+});

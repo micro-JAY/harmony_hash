@@ -17,7 +17,7 @@ The change must preserve one application-owned timeline, dictionary validation, 
 **Non-Goals:**
 
 - Adding new progressions that are absent from both the supplied references and `docs/hh-library.md`.
-- Changing chord lookup, Roman-numeral parsing, voicing theory, playback scheduling, Hanz tools, or provider APIs.
+- Broadly redesigning chord lookup, Roman-numeral syntax, voicing theory, playback scheduling, Hanz tools, or provider APIs beyond the three shipped ambiguous slash cases.
 - Recoloring interval roles, mode identities, match-score gradients, playback focus, or Hanz focus.
 - Redesigning IMPROV INSIGHT or other TUNE TOOLBOX/FRET FINDER surfaces in this correction round.
 
@@ -79,6 +79,12 @@ Cropping to the active-note window was rejected because identical chords would l
 Pure tests cover progression hierarchy parity, family classification, color-token mapping, proportional piano geometry, style availability, and drag/remove boundary decisions. Component tests cover dialog inventory, focus restoration, selected-chip removal, cancelled drag safety, centered toolbar structure, and hidden unavailable piano styles. Playwright covers desktop/tablet/375px and transition widths; pointer and keyboard preset selection/removal; drag-in reorder and drag-out removal; all active piano keys inside the card; equal card bounds; no document overflow; Japanese text; reduced motion; contrast; and regression of locks, variants, playback cancellation, Hanz focus, and stale-agent invalidation.
 
 Visual baselines will be updated only after direct inspection of Major/Minor/Modal/Advanced dialogs, Guitar cards, and representative compact/wide Piano voicings.
+
+### 8. Shipped Roman-slash compatibility is explicit and narrow
+
+The library documents Roman slash tokens as chord-over-bass notation, so `I/III` resolves to the tonic chord over scale degree III and the named Soulful Descent's `V/vii` retains its descending-bass `G/B` intent in C major. The one explicit exception is the Advanced preset named Secondary Pull: its natural uppercase `V/ii` is interpreted conventionally as the dominant of ii, yielding A in C major. An explicit extension remains explicit (`V7/ii` yields A7); the parser does not invent a seventh for bare `V/ii`.
+
+General reinterpretation of every slash target as tonicization was rejected because it would break the two documented inversion presets. Treating every slash as an inversion was rejected because it makes the named Secondary Pull harmonically false. Focused examples plus all-key dictionary resolution lock this compatibility boundary.
 
 ## Risks / Trade-offs
 

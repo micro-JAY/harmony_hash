@@ -48,6 +48,10 @@ describe("classifyChordFamily", () => {
     expect(classifyChordFamily("A6")).toBe("major");
     expect(classifyChordFamily("CM7")).toBe("major");
     expect(classifyChordFamily("C-5")).toBe("major");
+    expect(classifyChordFamily("Fsus2")).toBe("suspended");
+    expect(classifyChordFamily("C7/E")).toBe("dominant");
+    expect(classifyChordFamily("C/E")).toBe("major");
+    expect(classifyChordFamily("Cm7#5")).toBe("minor");
   });
 
   it("returns semantic tokens for both chords and explicit families", () => {
@@ -73,10 +77,13 @@ describe("classifyChordFamily", () => {
     ["Cm", "minor"],
     ["Cm6add9", "minor"],
     ["Cmmaj7", "minor"],
+    ["Cm7#5", "minor"],
+    ["Cm7+", "minor"],
     ["C7", "dominant"],
     ["C13b9", "dominant"],
     ["C7#5", "dominant"],
     ["Csus2", "suspended"],
+    ["Fsus2", "suspended"],
     ["C7sus4", "suspended"],
     ["Cdim", "diminished"],
     ["Cdim7", "diminished"],
@@ -86,6 +93,12 @@ describe("classifyChordFamily", () => {
     const resolved = lookupChord(name);
     if (!resolved) throw new Error(`${name} is missing from the chord dictionary`);
     expect(classifyChordFamily(resolved)).toBe(family);
+  });
+
+  it("classifies slash chords from the upper structure", () => {
+    const dominantInversion = lookupChord("C7/E");
+    if (!dominantInversion) throw new Error("C7/E is missing from the chord dictionary");
+    expect(classifyChordFamily(dominantInversion)).toBe("dominant");
   });
 
   it("uses a contrast-safe filled presentation only for deep-red dominants", () => {

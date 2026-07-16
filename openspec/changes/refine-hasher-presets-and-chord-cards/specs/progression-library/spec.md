@@ -19,4 +19,3 @@ The curated progression catalogue SHALL preserve exact category, subgroup, name,
 #### Scenario: Transposition validity
 - **WHEN** every catalogue progression is resolved in every supported key
 - **THEN** every produced chord SHALL resolve through the shared chord dictionary or fail the catalogue validation gate before release
-

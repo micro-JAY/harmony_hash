@@ -18,4 +18,3 @@ The chord reference grid SHALL identify every visible quality column with the sh
 #### Scenario: Non-color and contrast access
 - **WHEN** any quality header is presented
 - **THEN** its visible text SHALL identify the quality without color and the foreground/surface combination SHALL meet the tested contrast requirement
-

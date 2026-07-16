@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { contrastRatio } from "./helpers/contrast";
 import { composeProgression } from "./helpers/progression";
 
 async function enterProgression(page: Page, progression: string): Promise<void> {
@@ -78,6 +79,11 @@ test.describe("quick chord modifiers", () => {
       "style",
       /--music-match-/,
     );
+    const reasonColors = await firstPick.locator("span[id*='-fit-']").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { foreground: style.color, background: getComputedStyle(element.parentElement!).backgroundColor };
+    });
+    expect(contrastRatio(reasonColors.foreground, reasonColors.background)).toBeGreaterThanOrEqual(4.5);
     const search = dialog.getByRole("searchbox", { name: "Search G chord alternatives" });
     await expect(search).toBeFocused();
     await search.press("Escape");

@@ -177,15 +177,32 @@ test.describe("375px HASHER layout", () => {
 
     await page.getByRole("button", { name: "Piano" }).click();
     await expectNoDocumentOverflow(page);
-    const keyboardScroller = page
-      .getByRole("region", { name: "Chord cards output" })
-      .locator(".overflow-x-auto")
-      .first();
-    const localWidths = await keyboardScroller.evaluate((element) => ({
-      client: element.clientWidth,
-      scroll: element.scrollWidth,
+    const output = page.getByRole("region", { name: "Chord cards output" });
+    const keyboards = output.getByTestId("piano-keyboard");
+    await expect(keyboards).toHaveCount(4);
+    const containment = await keyboards.evaluateAll((elements) => elements.map((element) => {
+      const keyboard = element.getBoundingClientRect();
+      const card = element.closest('[data-testid="chord-card"]')?.getBoundingClientRect();
+      const keys = Array.from(element.querySelectorAll<HTMLElement>("[data-midi]"));
+      return {
+        width: keyboard.width,
+        keyCount: keys.length,
+        insideCard: card
+          ? keyboard.left >= card.left - 1 && keyboard.right <= card.right + 1
+          : false,
+        keysInside: keys.every((key) => {
+          const bounds = key.getBoundingClientRect();
+          return bounds.left >= keyboard.left - 1 && bounds.right <= keyboard.right + 1;
+        }),
+      };
     }));
-    expect(localWidths.scroll).toBeGreaterThan(localWidths.client);
+    for (const keyboard of containment) {
+      expect(keyboard.width).toBeGreaterThan(0);
+      expect(keyboard.keyCount).toBe(36);
+      expect(keyboard.insideCard).toBe(true);
+      expect(keyboard.keysInside).toBe(true);
+    }
+    await expect(output.locator(".overflow-x-auto")).toHaveCount(0);
     expect(browserErrors).toEqual([]);
   });
 });

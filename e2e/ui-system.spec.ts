@@ -153,6 +153,35 @@ test.describe("Tonari UI system", () => {
     expect(dominantContrast).toBeGreaterThanOrEqual(4.5);
   });
 
+  test("centers guitar label modes independently and removes them from piano cards", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await composeProgression(page, ["C", "Am"]);
+
+    for (const viewport of [
+      { width: 1500, height: 900 },
+      { width: 500, height: 812 },
+      { width: 375, height: 812 },
+    ]) {
+      await page.setViewportSize(viewport);
+      const cards = page.getByTestId("chord-card");
+      const centerDeltas = await cards.evaluateAll((elements) => elements.map((card) => {
+        const cardBounds = card.getBoundingClientRect();
+        const modes = card.querySelector<HTMLElement>('[data-testid="guitar-label-modes"]');
+        if (!modes) throw new Error("Guitar card is missing its label modes");
+        const modeBounds = modes.getBoundingClientRect();
+        return Math.abs(
+          (modeBounds.left + modeBounds.width / 2)
+          - (cardBounds.left + cardBounds.width / 2),
+        );
+      }));
+      for (const delta of centerDeltas) expect(delta).toBeLessThanOrEqual(1);
+      await expectNoDocumentOverflow(page);
+    }
+
+    await page.getByRole("button", { name: "Piano", exact: true }).click();
+    await expect(page.getByTestId("guitar-label-modes")).toHaveCount(0);
+  });
+
   test("contains the standardized share and modifier panels on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.emulateMedia({ reducedMotion: "reduce" });

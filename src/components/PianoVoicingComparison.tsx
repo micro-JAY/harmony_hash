@@ -3,7 +3,7 @@ import { Check, LayoutGrid } from "lucide-react";
 import type { VoicedNote, VoicingStyle } from "../lib/types";
 import { formatNoteForDisplay } from "../lib/chordData";
 import { computeVoicingComparisons } from "../lib/harmonyBrain";
-import { chordFamilyColor } from "../lib/visual/chordFamily";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 import AccessibleDialog from "./AccessibleDialog";
 import PianoKeyboard from "./PianoKeyboard";
 import { useT } from "../i18n/I18nContext";
@@ -47,6 +47,7 @@ export default function PianoVoicingComparison({
   const optionDescriptionId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const firstOptionRef = useRef<HTMLButtonElement>(null);
+  const familyPresentation = chordFamilyPresentation(displayName);
   const comparisons = useMemo(
     () => (expanded ? computeVoicingComparisons(noteNames, priorNotes) : []),
     [expanded, noteNames, priorNotes],
@@ -83,7 +84,7 @@ export default function PianoVoicingComparison({
           {t("Compare voicings")}
           <span
             className="ml-2 font-normal"
-            style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)" }}
+            style={{ color: "var(--text-secondary)", fontSize: "var(--text-xs)" }}
           >
             {t("Hear the shape before you choose")}
           </span>
@@ -94,14 +95,22 @@ export default function PianoVoicingComparison({
       {expanded ? (
         <AccessibleDialog
           title={(
-            <span style={{ color: chordFamilyColor(displayName) }}>
+            <span
+              data-chord-family={familyPresentation.family}
+              className="inline-flex rounded px-2 py-1"
+              style={{
+                color: familyPresentation.color,
+                backgroundColor: familyPresentation.backgroundColor,
+                border: `1px solid ${familyPresentation.borderColor}`,
+              }}
+            >
               {t(`Compare ${displayName} piano voicings`)}
             </span>
           )}
           description={(
             <span className="flex flex-wrap items-center justify-between gap-2">
               <span>{t("Color follows interval; note names confirm every choice.")}</span>
-              <span className="readout" style={{ color: "var(--text-muted)" }}>
+              <span className="readout" style={{ color: "var(--text-secondary)" }}>
                 {t(`${comparisons.length} shapes`)}
               </span>
             </span>
@@ -115,7 +124,7 @@ export default function PianoVoicingComparison({
             <p
               className="text-center"
               style={{
-                color: "var(--text-muted)",
+                color: "var(--text-secondary)",
                 fontFamily: "var(--font-body)",
                 fontSize: "var(--text-xs)",
               }}
@@ -150,7 +159,10 @@ export default function PianoVoicingComparison({
                   aria-pressed={active}
                   aria-describedby={`${optionDescriptionId}-${style}-notes`}
                   aria-label={t(`${active ? "Current" : "Use"} ${translatedStyleLabel} voicing for ${displayName}`)}
-                  onClick={() => onStyleChange(style)}
+                  onClick={() => {
+                    onStyleChange(style);
+                    closeComparison();
+                  }}
                   className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-lg p-3 text-left transition-all"
                   style={{
                     backgroundColor: active
@@ -174,7 +186,7 @@ export default function PianoVoicingComparison({
                     <span
                       className="flex shrink-0 items-center gap-1"
                       style={{
-                        color: active ? "var(--text-accent)" : "var(--text-muted)",
+                        color: active ? "var(--text-accent)" : "var(--text-secondary)",
                         fontFamily: "var(--font-body)",
                         fontSize: "var(--text-xs)",
                       }}

@@ -20,7 +20,6 @@ function renderComposer(): string {
         onInsert={vi.fn()}
         onMove={vi.fn()}
         onRemove={vi.fn()}
-        onClear={vi.fn()}
       />
     </I18nProvider>,
   );

@@ -39,4 +39,3 @@ Every rendered chord card SHALL provide a compact `Modify` trigger that opens an
 #### Scenario: Responsive containment
 - **WHEN** the modifier dialog is used at 375px, tablet, or desktop widths
 - **THEN** its scores, reasons, controls, and results SHALL remain readable and contained without horizontal document overflow
-

@@ -183,4 +183,3 @@ The chord browser SHALL provide Off, Key, and Next suggestion modes and SHALL sc
 **Reason**: Progression actions no longer need parity between two removed input tabs.
 
 **Migration**: Keep Randomize, Play/Stop, Share, and Improv Insight in one unified action rail whenever the shared timeline makes each action valid.
-

@@ -5,7 +5,8 @@ Every Guitar and Piano chord card SHALL apply the shared chord-family palette to
 
 #### Scenario: Family title mapping
 - **WHEN** Major, Minor, Dominant, Suspended, Diminished, or Augmented chord cards render
-- **THEN** their title text SHALL use pastel green, pastel orange, deep red, light yellow, soft pink, or white respectively
+- **THEN** Major, Minor, Suspended, Diminished, and Augmented titles SHALL use pastel green, pastel orange, light yellow, soft pink, or white respectively
+- **AND** Dominant titles SHALL use a deep-red filled label with contrast-safe foreground text
 
 #### Scenario: State independence
 - **WHEN** a family-colored chord card is playing, locked, or focused by Hanz
@@ -93,4 +94,3 @@ Activating Compare Voicings SHALL open an accessible modal dialog containing eve
 **Reason**: Piano label-mode controls add misaligned card chrome and are explicitly removed from the HASHER card design; Piano uses the standard note-aware keyboard rendering instead.
 
 **Migration**: Remove the Piano `Notes`/`Fingering` selector and render the primary and comparison keyboards with the existing standard note presentation and accessible voicing labels. Guitar retains its separate three-way display control.
-

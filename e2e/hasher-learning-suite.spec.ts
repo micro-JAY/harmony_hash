@@ -140,7 +140,7 @@ test.describe("HASHER learning suite", () => {
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Am", "C", "F", "G7"]);
   });
 
-  test("commits only intentional empty composer drafts", async ({ page }) => {
+  test("commits clean composer removals immediately, including the last chord", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const input = page.getByRole("textbox", { name: "Chord progression input" });
     const run = page.getByRole("button", { name: "Run chord composer" });
@@ -154,8 +154,6 @@ test.describe("HASHER learning suite", () => {
     await expect(cards).toHaveCount(1);
     await page.getByRole("button", { name: "C, position 1 of 1" }).focus();
     await page.getByRole("button", { name: "C, position 1 of 1" }).press("Delete");
-    await expect(run).toBeEnabled();
-    await run.click();
     await expect(cards).toHaveCount(0);
     await expect(run).toBeDisabled();
 
@@ -167,11 +165,11 @@ test.describe("HASHER learning suite", () => {
     await expect(cards).toHaveCount(2);
     await page.getByRole("button", { name: "G7, position 2 of 2" }).focus();
     await page.getByRole("button", { name: "G7, position 2 of 2" }).press("Delete");
+    await expect(cards.locator("h3")).toHaveText(["C"]);
     await page.getByRole("button", { name: "C, position 1 of 1" }).focus();
     await page.getByRole("button", { name: "C, position 1 of 1" }).press("Delete");
-    await expect(run).toBeEnabled();
-    await run.click();
     await expect(cards).toHaveCount(0);
+    await expect(run).toBeDisabled();
 
     await input.fill("Am");
     await input.press("Enter");
@@ -179,8 +177,6 @@ test.describe("HASHER learning suite", () => {
     await expect(cards).toHaveCount(1);
     await page.getByRole("button", { name: "Am, position 1 of 1" }).focus();
     await page.getByRole("button", { name: "Am, position 1 of 1" }).press("Delete");
-    await expect(run).toBeEnabled();
-    await run.click();
     await expect(cards).toHaveCount(0);
     await expect(run).toBeDisabled();
   });

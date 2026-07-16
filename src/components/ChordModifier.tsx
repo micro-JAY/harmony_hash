@@ -230,7 +230,7 @@ export default function ChordModifier({
                             id={fitId}
                             className="mt-1 block"
                             style={{
-                              color: "var(--text-muted)",
+                              color: "var(--text-secondary)",
                               fontFamily: "var(--font-body)",
                               fontSize: "var(--text-xs)",
                               lineHeight: "var(--leading-normal)",
@@ -301,7 +301,7 @@ export default function ChordModifier({
               <p
                 role="status"
                 style={{
-                  color: "var(--text-muted)",
+                  color: "var(--text-secondary)",
                   fontFamily: "var(--font-body)",
                   fontSize: "var(--text-xs)",
                 }}

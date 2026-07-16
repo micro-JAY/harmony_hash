@@ -24,7 +24,6 @@ interface ProgressionTimelineComposerProps {
   onInsert: (chordName: string, boundary: number) => void;
   onMove: (from: number, to: number) => void;
   onRemove: (index: number) => void;
-  onClear: () => void;
 }
 
 interface ComposerItemIdentity {
@@ -74,6 +73,7 @@ export default function ProgressionTimelineComposer({
   const [inputInvalid, setInputInvalid] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ComposerItemIdentity | null>(null);
   const [activeDrag, setActiveDrag] = useState<ActiveDragPresentation | null>(null);
+  const [insertionIndicatorActive, setInsertionIndicatorActive] = useState(false);
   const composerRef = useRef<HTMLDivElement>(null);
   const removeTargetRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -125,6 +125,7 @@ export default function ProgressionTimelineComposer({
     activeDragItemRef.current = null;
     activePointerDragRef.current = null;
     setActiveDrag(null);
+    setInsertionIndicatorActive(false);
   }
 
   function insertChord(chordName: string, boundary: number) {
@@ -229,6 +230,7 @@ export default function ProgressionTimelineComposer({
     setActiveDrag((current) => current && current.zone !== zone
       ? { ...current, zone }
       : current);
+    setInsertionIndicatorActive(zone === "composer");
     if (zone !== "composer") return;
     const boundary = getComposerDropBoundary(
       composerRects(composer),
@@ -318,12 +320,13 @@ export default function ProgressionTimelineComposer({
       removeItem(index);
       return;
     }
-    if (!event.altKey) return;
-    if (event.key === "ArrowLeft" && index > 0) {
-      event.preventDefault();
-      moveItem(index, index - 1);
-    } else if (event.key === "ArrowRight" && index < items.length - 1) {
-      event.preventDefault();
+    if (!event.altKey || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+    // Alt+Arrow is browser history navigation on several desktop browsers.
+    // Always consume the composer shortcut, even when the chord is already at
+    // the requested edge and there is no timeline mutation to perform.
+    event.preventDefault();
+    if (event.key === "ArrowLeft" && index > 0) moveItem(index, index - 1);
+    else if (event.key === "ArrowRight" && index < items.length - 1) {
       moveItem(index, index + 1);
     }
   }
@@ -339,15 +342,23 @@ export default function ProgressionTimelineComposer({
         aria-label={t("Chord progression composer")}
         aria-describedby={instructionsId}
         data-testid="chord-composer"
+        data-insertion-boundary={insertionBoundary}
         className="hh-composer flex w-full min-w-0 flex-wrap items-center gap-2"
         onDragOver={(event) => {
           event.preventDefault();
+          setInsertionIndicatorActive(true);
           event.dataTransfer.dropEffect = activeDragItemRef.current !== null ? "move" : "copy";
           if (activeDragItemRef.current) {
             setActiveDrag({ source: activeDragItemRef.current, zone: "composer" });
           }
           const boundary = boundaryFromDrag(event);
           if (boundary !== insertionBoundary) onInsertionBoundaryChange(boundary);
+        }}
+        onDragLeave={(event) => {
+          const nextTarget = event.relatedTarget;
+          if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+            setInsertionIndicatorActive(false);
+          }
         }}
         onDrop={handleDrop}
       >
@@ -367,6 +378,9 @@ export default function ProgressionTimelineComposer({
                 type="button"
                 draggable
                 data-composer-chip-index={index}
+                data-insertion-active={
+                  insertionIndicatorActive && insertionBoundary === index ? "true" : "false"
+                }
                 data-timeline-item-id={item.id ?? undefined}
                 aria-label={t(`${item.value}, position ${index + 1} of ${items.length}`)}
                 aria-pressed={selected}
@@ -405,7 +419,7 @@ export default function ProgressionTimelineComposer({
                   borderRadius: selected
                     ? "var(--radius-md) 0 0 var(--radius-md)"
                     : "var(--radius-md)",
-                  boxShadow: insertionBoundary === index
+                  boxShadow: insertionIndicatorActive && insertionBoundary === index
                     ? "-3px 0 0 var(--interactive-accent-border)"
                     : undefined,
                 }}
@@ -440,8 +454,17 @@ export default function ProgressionTimelineComposer({
         })}
 
         <label
+          data-testid="composer-trailing-boundary"
+          data-insertion-active={
+            insertionIndicatorActive && insertionBoundary === items.length ? "true" : "false"
+          }
           className="flex min-w-0 flex-1 items-center"
-          style={{ minWidth: "min(14rem, 100%)" }}
+          style={{
+            minWidth: "min(14rem, 100%)",
+            boxShadow: insertionIndicatorActive && insertionBoundary === items.length
+              ? "-3px 0 0 var(--interactive-accent-border)"
+              : undefined,
+          }}
         >
           <span className="sr-only">{t("Chord progression input")}</span>
           <input
@@ -490,6 +513,7 @@ export default function ProgressionTimelineComposer({
             event.preventDefault();
             event.stopPropagation();
             event.dataTransfer.dropEffect = "move";
+            setInsertionIndicatorActive(false);
             setActiveDrag({ source: activeDragItemRef.current, zone: "remove" });
           }}
           onDrop={(event) => {

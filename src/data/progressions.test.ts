@@ -51,6 +51,12 @@ const documentedScaleTypes = new Map<string, ScaleType>([
 ]);
 
 describe("progression library", () => {
+  function progressionNamed(name: string): CatalogEntry {
+    const entry = entries.find(({ progression }) => progression.name === name);
+    if (!entry) throw new Error(`Missing progression: ${name}`);
+    return entry;
+  }
+
   test("keeps the exact category and subgroup inventory", () => {
     expect(PROGRESSION_LIBRARY.map((group) => ({
       id: group.id,
@@ -116,6 +122,27 @@ describe("progression library", () => {
   test("uses a unique label for every preset", () => {
     const names = entries.map(({ progression }) => progression.name);
     expect(new Set(names).size).toBe(names.length);
+  });
+
+  test.each([
+    ['The "Sunday Morning" Walk', ["C", "C/E", "F", "G"]],
+    ['The "Soulful Descent"', ["C", "G/B", "Am", "G"]],
+    ['The "Secondary" Pull', ["C", "A", "Dm", "G"]],
+  ] as const)("preserves the musical intent of %s", (name, expected) => {
+    const { progression, scaleType } = progressionNamed(name);
+    expect(transposeNumeralString(progression.numerals, "C", scaleType)).toEqual(expected);
+  });
+
+  test.each([
+    'The "Sunday Morning" Walk',
+    'The "Soulful Descent"',
+    'The "Secondary" Pull',
+  ])("keeps %s dictionary-valid in every supported key", (name) => {
+    const { progression, scaleType } = progressionNamed(name);
+    for (const key of ALL_KEYS) {
+      const chordNames = transposeNumeralString(progression.numerals, key.value, scaleType);
+      expect(chordNames.filter((chordName) => !lookupChord(chordName))).toEqual([]);
+    }
   });
 
   test("keeps the documented library synchronized with runtime data", () => {

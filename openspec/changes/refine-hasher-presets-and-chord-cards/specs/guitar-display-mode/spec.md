@@ -22,4 +22,3 @@ The guitar chord card SHALL display a centered 3-way segmented control with mode
 #### Scenario: Narrow card alignment
 - **WHEN** the card cannot fit the modifier and three labels on one row
 - **THEN** the controls SHALL form separate contained rows and the display-mode control SHALL remain centered without clipping or horizontal document overflow
-

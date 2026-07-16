@@ -73,7 +73,7 @@ export default function Header({
               style={{
                 minHeight: "var(--control-min-height)",
                 backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
-                color: active ? "var(--interactive-accent-text)" : "var(--text-muted)",
+                color: active ? "var(--interactive-accent-text)" : "var(--text-secondary)",
                 border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
                 fontFamily: "var(--font-body)",
                 fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",

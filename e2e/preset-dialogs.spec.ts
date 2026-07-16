@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { contrastRatio } from "./helpers/contrast";
 
 const CATEGORIES = [
   {
@@ -55,25 +56,32 @@ async function expectNoDocumentOverflow(page: Page) {
 }
 
 test.describe("complete preset dialogs and centered header", () => {
-  test("keeps the workspace navigation at the true desktop center in English and Japanese", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+  test("keeps the workspace navigation at the true center in English and Japanese", async ({ page }) => {
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 820, height: 900 },
+      { width: 500, height: 812 },
+      { width: 375, height: 812 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    const navigation = page.getByRole("navigation", { name: "Workspace" });
-    const centerDelta = await navigation.evaluate((element) => {
-      const bounds = element.getBoundingClientRect();
-      return Math.abs((bounds.left + bounds.width / 2) - window.innerWidth / 2);
-    });
-    expect(centerDelta).toBeLessThanOrEqual(1);
+      const navigation = page.getByRole("navigation", { name: "Workspace" });
+      const centerDelta = await navigation.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return Math.abs((bounds.left + bounds.width / 2) - window.innerWidth / 2);
+      });
+      expect(centerDelta).toBeLessThanOrEqual(1);
 
-    await page.getByRole("button", { name: "JP", exact: true }).click();
-    const japaneseNavigation = page.getByRole("navigation", { name: "ワークスペース" });
-    const japaneseCenterDelta = await japaneseNavigation.evaluate((element) => {
-      const bounds = element.getBoundingClientRect();
-      return Math.abs((bounds.left + bounds.width / 2) - window.innerWidth / 2);
-    });
-    expect(japaneseCenterDelta).toBeLessThanOrEqual(1);
-    await expectNoDocumentOverflow(page);
+      await page.getByRole("button", { name: "JP", exact: true }).click();
+      const japaneseNavigation = page.getByRole("navigation", { name: "ワークスペース" });
+      const japaneseCenterDelta = await japaneseNavigation.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return Math.abs((bounds.left + bounds.width / 2) - window.innerWidth / 2);
+      });
+      expect(japaneseCenterDelta).toBeLessThanOrEqual(1);
+      await expectNoDocumentOverflow(page);
+    }
   });
 
   test("renders all four complete category inventories and restores focus on Escape", async ({ page }) => {
@@ -99,6 +107,42 @@ test.describe("complete preset dialogs and centered header", () => {
     }
 
     await expect(page.getByTestId("chord-card")).toHaveCount(0);
+  });
+
+  test("keeps inactive navigation and preset labels readable on their real surfaces", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const majorTrigger = presetSurface(page).getByRole("button", { name: "Major", exact: true });
+    const navigationButton = page.getByRole("button", { name: "TUNE TOOLBOX", exact: true });
+    const surfaceColors = await Promise.all([
+      navigationButton.evaluate((element) => {
+        const foreground = getComputedStyle(element).color;
+        const background = getComputedStyle(element.parentElement!).backgroundColor;
+        return { foreground, background };
+      }),
+      majorTrigger.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { foreground: style.color, background: style.backgroundColor };
+      }),
+    ]);
+    for (const colors of surfaceColors) {
+      expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
+    }
+
+    await majorTrigger.click();
+    const dialog = page.getByRole("dialog", { name: "Major presets" });
+    const labelColors = await Promise.all([
+      dialog.getByRole("heading", { name: CATEGORIES[0].subgroups[0], level: 3 }).evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { foreground: style.color, background: getComputedStyle(element.parentElement!).backgroundColor };
+      }),
+      dialog.locator("[data-preset-option] small").first().evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { foreground: style.color, background: getComputedStyle(element.parentElement!).backgroundColor };
+      }),
+    ]);
+    for (const colors of labelColors) {
+      expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   test("applies pointer and keyboard selections through the shared timeline", async ({ page }) => {
@@ -170,6 +214,17 @@ test.describe("375px preset dialogs", () => {
       await surface.getByRole("button", { name: category.label, exact: true }).click();
       const dialog = page.getByRole("dialog", { name: category.dialog });
       await expect(dialog.locator("[data-preset-option]")).toHaveCount(category.count);
+      const lastOption = dialog.locator("[data-preset-option]").last();
+      await lastOption.scrollIntoViewIfNeeded();
+      await expect(lastOption).toBeVisible();
+      if (category.count > 5) {
+        const scrollRegion = dialog.locator('[data-dialog-scroll-region="true"]');
+        const scrollMetrics = await scrollRegion.evaluate((element) => ({
+          clientHeight: element.clientHeight,
+          scrollHeight: element.scrollHeight,
+        }));
+        expect(scrollMetrics.scrollHeight).toBeGreaterThan(scrollMetrics.clientHeight);
+      }
       const bounds = await dialog.boundingBox();
       expect(bounds).not.toBeNull();
       expect(bounds!.x).toBeGreaterThanOrEqual(0);

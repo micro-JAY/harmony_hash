@@ -35,10 +35,15 @@ function isIndexedChordSource(source: ChordFamilySource): source is IndexedChord
 
 function qualityFromDisplaySymbol(symbol: string): string {
   const identity = symbol.trim().replaceAll("♭", "b").replaceAll("♯", "#");
+  // Internal sharp roots use a trailing `s`, but natural suspended chords such
+  // as Fsus2 must not be parsed as F-sharp + "us2".
+  if (/^[A-G]sus/i.test(identity)) return identity.slice(1);
   const rootMatch = identity.match(/^[A-G](?:#|b|s|f)?(.*)$/);
   if (!rootMatch) return identity;
   const quality = rootMatch[1] ?? "";
-  return /^\/[A-G](?:#|b)?$/.test(quality) ? "" : quality;
+  // A slash bass does not change chord family: C7/E stays dominant and C/E
+  // stays major. Numeric quality slashes such as C6/9 are intentionally kept.
+  return quality.replace(/\/[A-G](?:#|b|s|f)?$/i, "");
 }
 
 function chordTextAndType(source: ChordFamilySource): {
@@ -94,8 +99,8 @@ export function classifyChordFamily(source: ChordFamilySource): ChordFamily {
   if (/sus/.test(normalized)) return "suspended";
   if (/dim|diminished|°|ø|m7b5|m7-5|half[- ]?dim/.test(normalized)) return "diminished";
   if (type === "Dominant" || isDominantQuality(identity)) return "dominant";
-  if (/aug|augmented|\+|#5/.test(normalized)) return "augmented";
   if (type === "Minor" || isMinorQuality(identity)) return "minor";
+  if (/aug|augmented|\+|#5/.test(normalized)) return "augmented";
   if (type === "Sustained") return "suspended";
   if (type === "Major") return "major";
 

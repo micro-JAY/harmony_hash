@@ -106,7 +106,9 @@ export default function ProgressionInput({
   const [errors, setErrors] = useState<ParseResult["errors"]>([]);
   const [presetDialogTonality, setPresetDialogTonality] = useState<TonalityId | null>(null);
   const [minorHelpOpen, setMinorHelpOpen] = useState(false);
+  const [insertionBoundary, setInsertionBoundary] = useState(committedItems.length);
   const presetTriggerRef = useRef<HTMLButtonElement>(null);
+  const selectedTimelineVersionRef = useRef<number | null>(null);
   const cancellationVersionRef = useRef(0);
   const [agentCancellationVersion, setAgentCancellationVersion] = useState(0);
   const [contextLaunchNotice, setContextLaunchNotice] = useState<string | null>(null);
@@ -136,6 +138,19 @@ export default function ProgressionInput({
     : PROGRESSION_LIBRARY.find((group) => group.id === presetDialogTonality) ?? null;
 
   useEffect(() => {
+    if (composerDraft.baseTimelineVersion !== timelineVersion) {
+      setInsertionBoundary(committedItems.length);
+    }
+  }, [committedItems.length, composerDraft.baseTimelineVersion, timelineVersion]);
+
+  useEffect(() => {
+    if (selected && selectedTimelineVersionRef.current !== timelineVersion) {
+      selectedTimelineVersionRef.current = null;
+      setSelected(null);
+    }
+  }, [selected, timelineVersion]);
+
+  useEffect(() => {
     onContextChange({ key: activeKey, scaleType: activeScaleType });
   }, [activeKey, activeScaleType, onContextChange]);
 
@@ -154,8 +169,18 @@ export default function ProgressionInput({
     };
   }
 
-  function stageComposerItems(items: TimelineDraftItem<string>[]) {
+  function clearSelectedPreset() {
+    selectedTimelineVersionRef.current = null;
+    setSelected(null);
+  }
+
+  function stageComposerItems(
+    items: TimelineDraftItem<string>[],
+    nextInsertionBoundary = Math.min(insertionBoundary, items.length),
+  ) {
     cancelPendingAgentForTimelineEdit();
+    clearSelectedPreset();
+    setInsertionBoundary(nextInsertionBoundary);
     setComposerDraft({
       baseTimelineVersion: timelineVersion,
       items,
@@ -163,8 +188,12 @@ export default function ProgressionInput({
     });
   }
 
-  function acceptAppliedTimeline(applied: readonly TimelineItem<DisplayChord>[]) {
+  function acceptAppliedTimeline(
+    applied: readonly TimelineItem<DisplayChord>[],
+    nextInsertionBoundary = applied.length,
+  ) {
     const appliedItems = draftItemsFromTimeline(applied);
+    setInsertionBoundary(Math.min(nextInsertionBoundary, appliedItems.length));
     setComposerDraft({
       baseTimelineVersion: timelineVersionRef.current,
       items: appliedItems,
@@ -178,7 +207,24 @@ export default function ProgressionInput({
     const safeBoundary = Math.min(Math.max(boundary, 0), current.items.length);
     const nextItems = [...current.items];
     nextItems.splice(safeBoundary, 0, { id: null, value: chordName });
-    stageComposerItems(nextItems);
+    stageComposerItems(nextItems, safeBoundary + 1);
+  }
+
+  function commitOrStageComposerEdit(
+    current: ComposerDraftState,
+    nextItems: TimelineDraftItem<string>[],
+    nextInsertionBoundary: number,
+  ) {
+    if (!current.dirty && nextItems.every((item) => item.id !== null)) {
+      cancelPendingAgentForTimelineEdit();
+      clearSelectedPreset();
+      acceptAppliedTimeline(
+        onApplyTimelineDraft(nextItems),
+        nextInsertionBoundary,
+      );
+      return;
+    }
+    stageComposerItems(nextItems, nextInsertionBoundary);
   }
 
   function handleComposerMove(from: number, to: number) {
@@ -186,12 +232,18 @@ export default function ProgressionInput({
     const transaction = transactTimeline(current.items, { type: "move", from, to });
     if (!transaction.changed) return;
     const nextItems = [...transaction.items];
-    if (!composerIsDirty && nextItems.every((item) => item.id !== null)) {
-      cancelPendingAgentForTimelineEdit();
-      acceptAppliedTimeline(onApplyTimelineDraft(nextItems));
-      return;
-    }
-    stageComposerItems(nextItems);
+    commitOrStageComposerEdit(current, nextItems, to + 1);
+  }
+
+  function handleComposerRemove(index: number) {
+    const current = effectiveDraft();
+    const transaction = transactTimeline(current.items, { type: "remove", index });
+    if (!transaction.changed) return;
+    commitOrStageComposerEdit(
+      current,
+      [...transaction.items],
+      Math.min(index, transaction.items.length),
+    );
   }
 
   function handleComposerSubmit() {
@@ -222,6 +274,7 @@ export default function ProgressionInput({
     resolved: DisplayChord[],
     nextErrors: ParseResult["errors"],
   ) {
+    clearSelectedPreset();
     onResult(resolved, nextErrors);
   }
 
@@ -274,7 +327,8 @@ export default function ProgressionInput({
 
     cancelPendingAgentForTimelineEdit();
     setErrors(nextErrors);
-    handleResolvedResult(resolved, nextErrors);
+    onResult(resolved, nextErrors);
+    selectedTimelineVersionRef.current = timelineVersionRef.current;
   }
 
   const contextRail = (
@@ -394,15 +448,11 @@ export default function ProgressionInput({
           <div className="flex flex-col items-stretch gap-3 sm:flex-row">
             <ProgressionTimelineComposer
               items={composedItems}
-              insertionBoundary={composedItems.length}
-              onInsertionBoundaryChange={() => undefined}
+              insertionBoundary={Math.min(insertionBoundary, composedItems.length)}
+              onInsertionBoundaryChange={setInsertionBoundary}
               onInsert={insertComposedChord}
               onMove={handleComposerMove}
-              onRemove={(index) => {
-                const next = composedItems.filter((_, itemIndex) => itemIndex !== index);
-                stageComposerItems(next);
-              }}
-              onClear={() => stageComposerItems([])}
+              onRemove={handleComposerRemove}
             />
             <button
               type="button"
@@ -446,7 +496,7 @@ export default function ProgressionInput({
           onChordAdd={(chordName) => insertComposedChord(chordName, composedItems.length)}
           onUndo={() => {
             if (composedItems.length === 0) return;
-            stageComposerItems(composedItems.slice(0, -1));
+            handleComposerRemove(composedItems.length - 1);
           }}
           keyContext={{ key: activeKey, scaleType: activeScaleType }}
         />

@@ -48,11 +48,11 @@
 
 ## 6. Full Validation, Review, and PR #75 Update
 
-- [ ] 6.1 Run `npm run build`, `npm run lint`, `npm run test`, strict OpenSpec validation, `git diff --check`, and Worker dry-run packaging on the exact implementation tree.
-- [ ] 6.2 Run the complete Playwright suite plus repeated focused preset/composer/card/piano suites to distinguish real regressions from environment flakes.
-- [ ] 6.3 Perform rendered Browser QA in English and Japanese at desktop, 820px tablet, 500px transition, 375px mobile, and reduced-motion settings; inspect screenshots, focus, console, and overflow directly.
-- [ ] 6.4 Commission independent correctness, music-theory/color, accessibility, responsive-layout, and specification-conformance reviews; fix every P0–P2 finding and rerun affected/full gates.
-- [ ] 6.5 Reconcile every acceptance item against current code, rendered evidence, and tests; leave no item marked complete from intent or indirect evidence.
-- [ ] 6.6 Update OpenSpec task checkboxes and the long-horizon plan/log with exact commits, evidence, risks, and the next merge/archive step.
+- [x] 6.1 Run `npm run build`, `npm run lint`, `npm run test`, strict OpenSpec validation, `git diff --check`, and Worker dry-run packaging on the exact implementation tree.
+- [x] 6.2 Run the complete Playwright suite plus repeated focused preset/composer/card/piano suites to distinguish real regressions from environment flakes.
+- [x] 6.3 Perform rendered Browser QA in English and Japanese on desktop, then use Playwright for 820px tablet, 500px transition, 375px mobile, and reduced-motion proof; inspect screenshots, focus, console, and overflow directly.
+- [x] 6.4 Commission independent correctness, music-theory/color, accessibility, responsive-layout, and specification-conformance reviews; fix every P0–P2 finding and rerun affected/full gates.
+- [x] 6.5 Reconcile every acceptance item against current code, rendered evidence, and tests; leave no item marked complete from intent or indirect evidence.
+- [x] 6.6 Update OpenSpec task checkboxes and the long-horizon plan/log with exact commits, evidence, risks, and the next merge/archive step.
 - [ ] 6.7 Push milestone commits to the PR #75 branch, update the PR description/screenshots, and require exact-head GitHub build, Playwright, and Cloudflare checks to pass before handoff.
 - [ ] 6.8 After PR #75 merges, sync/archive this change and update canonical specs in a separate reviewed documentation boundary.

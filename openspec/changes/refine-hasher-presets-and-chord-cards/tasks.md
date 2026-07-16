@@ -38,13 +38,13 @@
 
 ## 5. Equal, Fully Visible Piano Cards
 
-- [ ] 5.1 Refactor the procedural C3–B5 keyboard to percentage-based white/black key geometry shared by primary and comparison renderers.
-- [ ] 5.2 Adapt compact note/finger labels without changing MIDI mapping or hiding active keys, and expose complete voicing labels to assistive technology.
-- [ ] 5.3 Render `Auto` plus only applicable explicit voicing styles and reserve no disabled or empty selector slots.
-- [ ] 5.4 Stabilize Piano card keyboard/style/metadata heights so sibling cards remain aligned despite different voicing spans and available-style counts.
-- [ ] 5.5 Verify the comparison remains an accessible modal with only applicable options, contained scrolling, selection/Escape behavior, and focus restoration.
-- [ ] 5.6 Add unit/component/Playwright coverage for wide voicings, every active key inside card bounds, full keyboard visibility, equal sibling bounds, style filtering, Guitar/Piano switching, and desktop/tablet/375px containment.
-- [ ] 5.7 Inspect representative triad, seventh, altered/extended, spread, and two-hand Piano cards and commit the Piano-layout milestone.
+- [x] 5.1 Refactor the procedural C3–B5 keyboard to percentage-based white/black key geometry shared by primary and comparison renderers.
+- [x] 5.2 Adapt compact note/finger labels without changing MIDI mapping or hiding active keys, and expose complete voicing labels to assistive technology.
+- [x] 5.3 Render `Auto` plus only applicable explicit voicing styles and reserve no disabled or empty selector slots.
+- [x] 5.4 Stabilize Piano card keyboard/style/metadata heights so sibling cards remain aligned despite different voicing spans and available-style counts.
+- [x] 5.5 Verify the comparison remains an accessible modal with only applicable options, contained scrolling, selection/Escape behavior, and focus restoration.
+- [x] 5.6 Add unit/component/Playwright coverage for wide voicings, every active key inside card bounds, full keyboard visibility, equal sibling bounds, style filtering, Guitar/Piano switching, and desktop/tablet/375px containment.
+- [x] 5.7 Inspect representative triad, seventh, altered/extended, spread, and two-hand Piano cards and commit the Piano-layout milestone.
 
 ## 6. Full Validation, Review, and PR #75 Update
 

@@ -57,7 +57,7 @@ export default function PianoVoicingComparison({
   }
 
   return (
-    <div className="mt-2 w-full min-w-0">
+    <div className="mt-auto w-full min-w-0 pt-2">
       <button
         ref={triggerRef}
         type="button"

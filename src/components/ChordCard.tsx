@@ -263,7 +263,7 @@ export default function ChordCard({
             <div
               role="group"
               aria-label={t(`Piano voicing style for ${displayName}`)}
-              className="flex w-full flex-wrap items-center justify-center gap-1 rounded-lg p-1"
+              className="grid w-full grid-flow-col auto-cols-fr items-center gap-0.5 rounded-lg p-1"
               style={{
                 backgroundColor: "var(--surface-overlay)",
                 border: "1px solid var(--border-subtle)",
@@ -276,8 +276,9 @@ export default function ChordCard({
                     key={opt.value}
                     type="button"
                     aria-pressed={active}
+                    title={t(opt.label)}
                     onClick={() => onPianoStyleChange(opt.value)}
-                    className="min-h-8 rounded-md px-2.5 py-1 text-xs transition-all"
+                    className="min-h-8 min-w-0 truncate rounded-md px-0.5 py-1 text-xs transition-all"
                     style={{
                       backgroundColor: active
                         ? "var(--interactive-accent-bg)"
@@ -295,7 +296,7 @@ export default function ChordCard({
                       cursor: "pointer",
                     }}
                   >
-                    {t(opt.label)}
+                    <span className="block truncate">{t(opt.label)}</span>
                   </button>
                 );
               })}

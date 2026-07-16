@@ -767,3 +767,15 @@ Piano cards render the complete proportional C3–B5 keyboard with 21 white and 
 **Verification:** production build and lint pass; Vitest is 48 files / 1,269 tests; full Chromium Playwright is 161/161 in 1.8 minutes; the focused integrated correction slice is 36/36; Wrangler 4.110.0 dry-run packages 3,424 assets with the expected assets, progression-rate-limit, voice-rate-limit, and voice-agent-id bindings; strict OpenSpec and diff checks pass. Two fresh post-fix reviews report no remaining P0–P2 finding. The inherited main-chunk size advisory remains unchanged and non-blocking.
 
 **Current state:** milestone commits `3e346b4`, `1685b43`, `00a4605`, `04c464e`, `3d303a6`, and `33eb5d9` are complete locally. Next: commit this evidence ledger, push the exact branch to draft [#75](https://github.com/micro-JAY/harmony_hash/pull/75), update its description, and require exact-head GitHub build/test, Playwright, and Workers checks to pass. Do not merge or archive `refine-hasher-presets-and-chord-cards`; the user has additional PR #75 corrections to address later.
+
+---
+
+## 2026-07-16 18:47 JST — PR #75 Linux Playwright root-cause closure
+
+The first correction heads exposed one deterministic cross-platform visual failure in `e2e/builder-layout.spec.ts`: all 160 functional scenarios passed, but the 375px full-page HASHER baseline was 1,279px on macOS and 1,251px on Linux. Block-level geometry instrumentation proved the header, navigation, context, presets, composer, chord browser, and output were identical. The only 28px divergence was the progression-agent metadata footer after prompt help appeared: Linux font metrics fit the character/help readout and API status on one row, while macOS wrapped the status to a second row.
+
+Commit `8065b8e` makes that mobile help state deterministic by placing the API status on an explicit second flex line below 640px while preserving the original compact single-line footer before help appears. The focused regression asserts the status is geometrically below the readout and retains both full-page snapshots. A fresh independent review found no P0–P2 issue; its only Low observation was closed by applying the layout class only when the help control is actually renderable.
+
+**Verification:** production build, lint, 48 Vitest files / 1,269 tests, the focused 4-test layout suite, and the complete local 161-test Playwright suite pass. Exact implementation head `8065b8e` then passed both Linux build/test jobs, both complete Linux Playwright jobs (3m33s and 3m49s), and Cloudflare Workers build `39c4e8f3-f276-453d-ac9a-f645d756cbc7`.
+
+**Current state:** the bounded correction batch is complete and OpenSpec task 6.7 is closed. Draft [#75](https://github.com/micro-JAY/harmony_hash/pull/75) remains intentionally unmerged because the user has additional issues to review. OpenSpec task 6.8 and archive/sync remain deferred until the full PR is approved and merged.

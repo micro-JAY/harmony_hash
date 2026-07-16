@@ -54,5 +54,5 @@
 - [x] 6.4 Commission independent correctness, music-theory/color, accessibility, responsive-layout, and specification-conformance reviews; fix every P0–P2 finding and rerun affected/full gates.
 - [x] 6.5 Reconcile every acceptance item against current code, rendered evidence, and tests; leave no item marked complete from intent or indirect evidence.
 - [x] 6.6 Update OpenSpec task checkboxes and the long-horizon plan/log with exact commits, evidence, risks, and the next merge/archive step.
-- [ ] 6.7 Push milestone commits to the PR #75 branch, update the PR description/screenshots, and require exact-head GitHub build, Playwright, and Cloudflare checks to pass before handoff.
+- [x] 6.7 Push milestone commits to the PR #75 branch, update the PR description/screenshots, and require exact-head GitHub build, Playwright, and Cloudflare checks to pass before handoff.
 - [ ] 6.8 After PR #75 merges, sync/archive this change and update canonical specs in a separate reviewed documentation boundary.

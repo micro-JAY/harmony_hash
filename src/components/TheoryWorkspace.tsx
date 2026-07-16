@@ -40,7 +40,7 @@ interface TheoryWorkspaceProps {
   onNetworkStateChange: (state: NoteNeuralNetworkState) => void;
   onUseCircleKey: (key: CircleKey) => void;
   onUseScaleInHasher: (root: string, scaleId: ScaleFormulaType) => void;
-  onOpenImprov: (root: string) => void;
+  onOpenImprov: (root: string, returnFocusId?: string) => void;
   active: boolean;
 }
 
@@ -242,12 +242,12 @@ export default function TheoryWorkspace({
               <button
                 id="theory-circle-improv-trigger"
                 type="button"
-                onClick={() => onOpenImprov(context.root)}
+                onClick={() => onOpenImprov(context.root, "theory-circle-improv-trigger")}
                 className="hh-action"
                 style={{
-                  backgroundColor: "var(--interactive-academy-bg)",
-                  border: "1px solid var(--interactive-academy-border)",
-                  color: "var(--interactive-academy-text)",
+                  backgroundColor: "var(--music-insight-action-bg)",
+                  border: "1px solid var(--music-insight-action-border)",
+                  color: "var(--music-insight-action-text)",
                 }}
               >
                 {t("Open Improv Insight")}

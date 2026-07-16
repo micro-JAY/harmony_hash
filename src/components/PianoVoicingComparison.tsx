@@ -48,6 +48,9 @@ export default function PianoVoicingComparison({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const firstOptionRef = useRef<HTMLButtonElement>(null);
   const familyPresentation = chordFamilyPresentation(displayName);
+  const localizedDialogTitle = t(`Compare ${displayName} piano voicings`);
+  const [dialogTitleBefore = "", ...dialogTitleRemainder] = localizedDialogTitle.split(displayName);
+  const dialogTitleAfter = dialogTitleRemainder.join(displayName);
   const comparisons = useMemo(
     () => (expanded ? computeVoicingComparisons(noteNames, priorNotes) : []),
     [expanded, noteNames, priorNotes],
@@ -96,15 +99,25 @@ export default function PianoVoicingComparison({
         <AccessibleDialog
           title={(
             <span
-              data-chord-family={familyPresentation.family}
-              className="inline-flex rounded px-2 py-1"
-              style={{
-                color: familyPresentation.color,
-                backgroundColor: familyPresentation.backgroundColor,
-                border: `1px solid ${familyPresentation.borderColor}`,
-              }}
+              className="inline-flex flex-wrap items-center gap-1"
+              style={{ color: "var(--text-primary)" }}
             >
-              {t(`Compare ${displayName} piano voicings`)}
+              <span className="sr-only">{localizedDialogTitle}</span>
+              <span aria-hidden="true" className="inline-flex flex-wrap items-center gap-1">
+                <span>{dialogTitleBefore}</span>
+                <span
+                  data-chord-family={familyPresentation.family}
+                  className="inline-flex rounded px-2 py-1"
+                  style={{
+                    color: familyPresentation.color,
+                    backgroundColor: familyPresentation.backgroundColor,
+                    border: `1px solid ${familyPresentation.borderColor}`,
+                  }}
+                >
+                  {displayName}
+                </span>
+                <span>{dialogTitleAfter}</span>
+              </span>
             </span>
           )}
           description={(

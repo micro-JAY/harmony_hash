@@ -199,10 +199,15 @@
   --music-chord-diminished: #F0B4CF;
   --music-chord-augmented:  var(--palette-white);
 
-  /* IMPROV INSIGHT uses a pale pink action cue rather than HASHER blue/gold. */
-  --music-insight-action-bg:     #F7EAF0;
-  --music-insight-action-text:   #241B20;
-  --music-insight-action-border: #FFF4F8;
+  /* IMPROV INSIGHT owns one pale-pink action and translucent selection family;
+     match scores and named degrees deliberately keep their own music colors. */
+  --music-insight-action-bg:      #F7EAF0;
+  --music-insight-action-bg-hover: #FFF7FA;
+  --music-insight-action-text:    #241B20;
+  --music-insight-action-border:  #FFF4F8;
+  --music-insight-surface-bg:     rgba(239, 188, 213, 0.10);
+  --music-insight-surface-text:   #efbcd5;
+  --music-insight-surface-border: rgba(239, 188, 213, 0.25);
 
 
   /* ----------------------------------------------------------

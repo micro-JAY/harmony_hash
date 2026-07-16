@@ -19,6 +19,17 @@ async function openPianoComparison(page: Page, progression: string) {
 }
 
 test.describe("piano voicing comparison", () => {
+  test("omits comparison when a power chord has no alternative voicing", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await composeProgression(page, "C5");
+    await page.getByRole("button", { name: "Piano", exact: true }).click();
+
+    const card = page.getByTestId("chord-card");
+    await expect(card.getByTestId("piano-style-selector").getByRole("button"))
+      .toHaveText(["Auto"]);
+    await expect(card.getByRole("button", { name: /Compare voicings/ })).toHaveCount(0);
+  });
+
   test("compares every Cmaj7 shape and adopts one without changing the timeline", async ({
     page,
   }) => {
@@ -136,13 +147,19 @@ test.describe("piano voicing comparison", () => {
     await expect(dialog.locator('[data-style="two-hand"]')).toHaveCount(0);
   });
 
-  test("supports keyboard opening, option focus, and Escape focus restoration", async ({ page }) => {
+  test("supports Escape without mutation or sibling reflow and restores focus", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await composeProgression(page, "Cmaj7");
+    await composeProgression(page, "Cmaj7 G7");
     await page.getByRole("button", { name: "Piano" }).click();
 
-    const card = page.getByTestId("chord-card");
+    const cards = page.getByTestId("chord-card");
+    const card = cards.first();
     const trigger = card.getByRole("button", { name: /Compare voicings/ });
+    const activeMidis = await card.getByTestId("piano-keyboard").getAttribute("data-active-midis");
+    const boxesBefore = await cards.evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { x: box.x, documentY: box.y + window.scrollY, width: box.width, height: box.height };
+    }));
     await trigger.focus();
     await trigger.press("Enter");
     const dialog = page.getByRole("dialog", { name: "Compare Cmaj7 piano voicings" });
@@ -150,6 +167,40 @@ test.describe("piano voicing comparison", () => {
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();
+    await expect(card.getByRole("button", { name: "Auto", exact: true }))
+      .toHaveAttribute("aria-pressed", "true");
+    await expect(card.getByTestId("piano-keyboard")).toHaveAttribute(
+      "data-active-midis",
+      activeMidis ?? "",
+    );
+    expect(await cards.evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { x: box.x, documentY: box.y + window.scrollY, width: box.width, height: box.height };
+    }))).toEqual(boxesBefore);
+  });
+
+  test("closes on backdrop without mutation or sibling reflow and restores focus", async ({ page }) => {
+    const { card, dialog, trigger } = await openPianoComparison(page, "Cmaj7 G7");
+    const cards = page.getByTestId("chord-card");
+    const activeMidis = await card.getByTestId("piano-keyboard").getAttribute("data-active-midis");
+    const boxesBefore = await cards.evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { x: box.x, documentY: box.y + window.scrollY, width: box.width, height: box.height };
+    }));
+
+    await page.locator('[data-dialog-backdrop="true"]').click({ position: { x: 2, y: 2 } });
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await expect(card.getByRole("button", { name: "Auto", exact: true }))
+      .toHaveAttribute("aria-pressed", "true");
+    await expect(card.getByTestId("piano-keyboard")).toHaveAttribute(
+      "data-active-midis",
+      activeMidis ?? "",
+    );
+    expect(await cards.evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { x: box.x, documentY: box.y + window.scrollY, width: box.width, height: box.height };
+    }))).toEqual(boxesBefore);
   });
 
   test("contains the dialog grid on desktop, tablet, and mobile with reduced motion", async ({ page }) => {

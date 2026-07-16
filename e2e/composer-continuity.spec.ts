@@ -246,12 +246,50 @@ test.describe("composer and committed timeline continuity", () => {
     await chips.nth(0).dragTo(outsideTarget);
     await expect(chips).toHaveText(["F", "G"]);
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["F", "G"]);
+    await expect(chips.nth(0)).toBeFocused();
+    await expect(page.locator('.sr-only[role="status"]')).toContainText(
+      "C removed from the progression",
+    );
+
+    const noDropTransfer = await page.evaluateHandle(() => new DataTransfer());
+    await chips.nth(0).dispatchEvent("dragstart", { dataTransfer: noDropTransfer });
+    await chips.nth(0).dispatchEvent("dragend", { dataTransfer: noDropTransfer });
+    await expect(chips).toHaveText(["F", "G"]);
+
+    const detachedTransfer = await page.evaluateHandle(() => new DataTransfer());
+    await chips.nth(0).dispatchEvent("dragstart", { dataTransfer: detachedTransfer });
+    await composer.getByRole("button", { name: "Remove F at position 1" }).click();
+    await expect(chips).toHaveText(["G"]);
+    await page.evaluate(() => {
+      const target = document.querySelector<HTMLElement>("#hasher-compose-title");
+      if (!target) throw new Error("Build your own heading is unavailable");
+      target.addEventListener("drop", () => {
+        (window as Window & { __hhDetachedDropReachedTarget?: boolean })
+          .__hhDetachedDropReachedTarget = true;
+      }, { once: true });
+    });
+    const detachedBounds = await outsideTarget.boundingBox();
+    expect(detachedBounds).not.toBeNull();
+    await outsideTarget.dispatchEvent("dragover", {
+      dataTransfer: detachedTransfer,
+      clientX: detachedBounds!.x + 4,
+      clientY: detachedBounds!.y + 4,
+    });
+    await outsideTarget.dispatchEvent("drop", {
+      dataTransfer: detachedTransfer,
+      clientX: detachedBounds!.x + 4,
+      clientY: detachedBounds!.y + 4,
+    });
+    expect(await page.evaluate(() => (
+      window as Window & { __hhDetachedDropReachedTarget?: boolean }
+    ).__hhDetachedDropReachedTarget)).toBe(true);
+    await expect(chips).toHaveText(["G"]);
 
     const cancelledTransfer = await page.evaluateHandle(() => new DataTransfer());
     await chips.nth(0).dispatchEvent("dragstart", { dataTransfer: cancelledTransfer });
     await page.keyboard.press("Escape");
     await chips.nth(0).dispatchEvent("dragend", { dataTransfer: cancelledTransfer });
-    await expect(chips).toHaveText(["F", "G"]);
+    await expect(chips).toHaveText(["G"]);
 
     await page.getByRole("button", { name: "Browse chords ↓" }).click();
     const externalTransfer = await page.evaluateHandle(() => new DataTransfer());
@@ -270,7 +308,7 @@ test.describe("composer and committed timeline continuity", () => {
       clientY: outsideBounds!.y + 4,
     });
     await externalChord.dispatchEvent("dragend", { dataTransfer: externalTransfer });
-    await expect(chips).toHaveText(["F", "G"]);
+    await expect(chips).toHaveText(["G"]);
   });
 });
 

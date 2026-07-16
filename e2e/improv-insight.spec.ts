@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
 interface BrowserIssue {
@@ -46,6 +46,17 @@ async function openInsight(page: Page) {
   await expect(page.getByRole("heading", { name: "IMPROV INSIGHT" })).toBeVisible();
 }
 
+async function expectInsightActionPalette(button: Locator) {
+  await expect(button).toHaveAttribute("style", /--music-insight-action-bg/);
+  await expect(button).toHaveAttribute("style", /--music-insight-action-text/);
+  await expect(button).toHaveAttribute("style", /--music-insight-action-border/);
+  const colors = await button.evaluate((element) => ({
+    background: getComputedStyle(element).backgroundColor,
+    foreground: getComputedStyle(element).color,
+  }));
+  expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
+}
+
 async function expectNoDocumentOverflow(page: Page) {
   const widths = await page.evaluate(() => ({
     client: document.documentElement.clientWidth,
@@ -65,6 +76,7 @@ test.describe("IMPROV INSIGHT", () => {
     expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(false);
 
     await enterProgression(page);
+    await expectInsightActionPalette(page.getByRole("button", { name: "IMPROV INSIGHT", exact: true }));
     expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(false);
     await openInsight(page);
     expect(requests.some((url) => url.includes("ImprovInsight"))).toBe(true);
@@ -93,10 +105,12 @@ test.describe("IMPROV INSIGHT", () => {
     expect(await rootNote.evaluate((element) => getComputedStyle(element).color)).not.toBe(
       await majorThird.evaluate((element) => getComputedStyle(element).color),
     );
-    const metadataColors = await cMajor.locator("[data-insight-metadata] dd").evaluateAll(
-      (elements) => elements.map((element) => getComputedStyle(element).color),
-    );
-    expect(new Set(metadataColors).size).toBe(1);
+    const styleMetadata = cMajor.locator('[data-insight-metadata="style"]');
+    const motionMetadata = cMajor.locator('[data-insight-metadata="motion"]');
+    await expect(styleMetadata).toHaveAttribute("data-insight-tone", "neutral");
+    await expect(motionMetadata).toHaveAttribute("data-insight-tone", "pink");
+    await expect(styleMetadata).toHaveAttribute("style", /--surface-raised/);
+    await expect(styleMetadata.locator("dd")).toHaveCSS("color", "rgb(168, 169, 184)");
     const panelBox = await page.getByTestId("improv-insight").locator("#improv-insight-panel").boundingBox();
     const meterBox = await cMajor.getByRole("meter", { name: "C Major match" }).boundingBox();
     expect(panelBox?.width).toBeLessThanOrEqual(1152);
@@ -104,17 +118,41 @@ test.describe("IMPROV INSIGHT", () => {
 
     await page.getByRole("button", { name: "About Improv Insight vocabulary" }).click();
     const glossary = page.getByRole("dialog", { name: "About the vocabulary" });
+    await expect(glossary).toContainText("Motion");
+    await expect(glossary).toContainText("How the scale line tends to move.");
     await expect(glossary).toContainText("Smooth");
     await expect(glossary).toContainText("Jumpy");
+    await expect(glossary).toContainText("Stepwise, connected movement.");
+    await expect(glossary).toContainText("Larger leaps and skips.");
+    await expect(glossary).toContainText("Tension");
+    await expect(glossary).toContainText("How the line creates or releases pull.");
     await expect(glossary).toContainText("Rises");
     await expect(glossary).toContainText("Static");
     await expect(glossary).toContainText("Falls");
+    await expect(glossary).toContainText("Builds tension.");
+    await expect(glossary).toContainText("Holds tension.");
+    await expect(glossary).toContainText("Releases tension.");
+    await expect(glossary).toContainText("Palette");
+    await expect(glossary).toContainText("Which notes shape the sound.");
     await expect(glossary).toContainText("Diatonic");
     await expect(glossary).toContainText("Chromatic");
+    await expect(glossary).toContainText("Mostly notes from the home key.");
+    await expect(glossary).toContainText("Includes notes outside the home key.");
+    await expect(glossary).toContainText("Style");
+    await expect(glossary).toContainText("The broad musical context.");
     await expect(glossary).toContainText("Tonal");
     await expect(glossary).toContainText("Modal");
     await expect(glossary).toContainText("Blues");
+    await expect(glossary).toContainText("Functional harmony centered on a key.");
+    await expect(glossary).toContainText("Mode-based harmony and color.");
+    await expect(glossary).toContainText("Blues and blues-derived language.");
     await page.getByRole("button", { name: "Close Improv Insight vocabulary" }).click();
+    await expect(page.getByRole("button", { name: "About Improv Insight vocabulary" })).toBeFocused();
+    await page.getByRole("button", { name: "About Improv Insight vocabulary" }).click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "About Improv Insight vocabulary" })).toBeFocused();
+    await page.getByRole("button", { name: "About Improv Insight vocabulary" }).click();
+    await page.locator('[data-dialog-backdrop="true"]').click({ position: { x: 2, y: 2 } });
     await expect(page.getByRole("button", { name: "About Improv Insight vocabulary" })).toBeFocused();
 
     await composeProgression(page, "Cmaj7 Dm7 G7#9 Cmaj7");
@@ -139,7 +177,11 @@ test.describe("IMPROV INSIGHT", () => {
     const perChord = page.getByRole("tab", { name: "Per chord" });
     await expect(perChord).toBeFocused();
     await expect(perChord).toHaveAttribute("aria-selected", "true");
+    await expect(perChord).toHaveAttribute("style", /--music-insight-surface-bg/);
     await page.getByRole("button", { name: "4. G7", exact: true }).click();
+    const selectedScope = page.locator('[data-insight-chord-scope="G7"]');
+    await expect(selectedScope).toHaveAttribute("style", /--music-insight-surface-bg/);
+    await expect(selectedScope.locator('[data-chord-family="dominant"]')).toBeVisible();
     await expect(page.locator('[data-scale-result="G Mixolydian"]')).toHaveAttribute("data-match", "100");
     await expect(page.locator('[data-scale-result="G Mixolydian"]')).toContainText("modal");
     const elapsed = await page.evaluate((start) => performance.now() - start, startedAt);
@@ -148,6 +190,73 @@ test.describe("IMPROV INSIGHT", () => {
     await disclosure.click();
     await expect(disclosure).toBeFocused();
     await expect(page.getByRole("heading", { name: "IMPROV INSIGHT" })).toBeHidden();
+    expect(issues).toEqual([]);
+  });
+
+  test("keeps Circle-origin Improv local and restores the exact launcher and state", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await enterProgression(page);
+    await page.getByRole("button", { name: "Piano", exact: true }).click();
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
+    await page.locator("#theory-root").selectOption("D");
+    await page.locator("#theory-scale").selectOption("dorian");
+    await page.locator("#theory-mood").selectOption("jazzy");
+
+    const toolboxLauncher = page.locator("#theory-circle-improv-trigger");
+    const circleLauncher = page.locator("#circle-improv-trigger");
+    await expectInsightActionPalette(toolboxLauncher);
+    await expectInsightActionPalette(circleLauncher);
+    await circleLauncher.click();
+
+    await expect(page.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#theory-improv-insight")).toBeFocused();
+    await expect(page.getByTestId("improv-insight").getByTestId("improv-theory-context"))
+      .toContainText("Circle context: D Dorian");
+    await page.getByTestId("improv-insight").getByRole("button", { name: "Close IMPROV INSIGHT" }).click();
+    await expect(circleLauncher).toBeFocused();
+    await expect(page.locator("#theory-root")).toHaveValue("D");
+    await expect(page.locator("#theory-scale")).toHaveValue("dorian");
+    await expect(page.locator("#theory-mood")).toHaveValue("jazzy");
+    await expect(page.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toHaveAttribute("aria-pressed", "true");
+
+    await page.getByRole("button", { name: "HASHER", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Piano", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("chord-card")).toHaveCount(4);
+    expect(issues).toEqual([]);
+  });
+
+  test("renders the same Ab minor-third color across Improv, Scale Synthesia, and FRET FINDER", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await enterProgression(page, "Fadd9 Fm6");
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
+    await page.locator("#theory-root").selectOption("F");
+    await page.locator("#theory-scale").selectOption("major_blues");
+    await page.locator("#theory-circle-improv-trigger").click();
+
+    const improvAb = page.locator('[data-scale-result="F Major Blues"] [data-scale-note="Ab"]');
+    await expect(improvAb).toBeVisible();
+    await expect(improvAb.locator(".." )).toHaveAttribute("aria-label", "Ab, Minor third");
+    const improvColor = await improvAb.evaluate((element) => getComputedStyle(element).color);
+
+    await page.getByTestId("improv-insight").getByRole("button", { name: "Close IMPROV INSIGHT" }).click();
+    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
+    const synthAb = page.getByTestId("scale-synthesia")
+      .getByRole("list", { name: "Scale notes" })
+      .getByRole("listitem")
+      .filter({ hasText: /^Ab/ });
+    await expect(synthAb).toBeVisible();
+    expect(await synthAb.evaluate((element) => getComputedStyle(element).color)).toBe(improvColor);
+
+    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+    await page.getByRole("combobox", { name: "Fretboard root" }).selectOption("F");
+    await page.getByRole("combobox", { name: "Fretboard mode" }).selectOption("major_blues");
+    const fretAb = page.getByRole("list", { name: "Scale notes and intervals" })
+      .getByRole("listitem")
+      .filter({ hasText: /^Ab/ });
+    await expect(fretAb).toBeVisible();
+    expect(await fretAb.evaluate((element) => getComputedStyle(element).color)).toBe(improvColor);
     expect(issues).toEqual([]);
   });
 
@@ -188,6 +297,17 @@ test.describe("IMPROV INSIGHT", () => {
       const results = page.locator("[data-scale-result]");
       await expect(results).toHaveCount(6);
       await expect(results.first().getByRole("meter")).toBeVisible();
+      if (viewport.name === "mobile") {
+        await page.getByRole("button", { name: "JP", exact: true }).click();
+        const help = page.getByRole("button", { name: "Improv Insightの用語について" });
+        await help.click();
+        const glossary = page.getByRole("dialog", { name: "用語について" });
+        await expect(glossary).toContainText("スケールの旋律線がどのように動く傾向かを示します。");
+        await expect(glossary).toHaveAttribute("data-reduced-motion", "true");
+        await page.keyboard.press("Escape");
+        await expect(help).toBeFocused();
+        await expectNoDocumentOverflow(page);
+      }
       expect(issues).toEqual([]);
     });
   }

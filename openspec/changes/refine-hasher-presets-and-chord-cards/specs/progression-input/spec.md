@@ -76,7 +76,7 @@ The system SHALL render four centered preset category buttons—Major, Minor, Mo
 
 #### Scenario: Preset selection closes and applies
 - **WHEN** the user selects any progression in a category dialog
-- **THEN** the dialog SHALL close, that progression SHALL be transposed through the active Key and Mode context, and its dictionary-valid chords SHALL replace the rendered timeline
+- **THEN** the dialog SHALL close, that progression SHALL be transposed through the active Key and the preset's declared scale context, the visible Mode SHALL reflect that context, and its dictionary-valid chords SHALL replace the rendered timeline
 
 #### Scenario: Dialog dismissal preserves timeline
 - **WHEN** the user closes a preset dialog with Escape, outside click, or its close action without choosing a progression

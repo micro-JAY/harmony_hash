@@ -36,6 +36,7 @@ import {
   type TheoryRelationshipNode,
 } from "../lib/theory";
 import { useT } from "../i18n/I18nContext";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 import {
   WorkspaceHeader,
   WorkspaceSegmentedControl,
@@ -94,6 +95,14 @@ function nodeTone(node: TheoryRelationshipNode): {
   border: string;
   text: string;
 } {
+  if (node.chordSymbol) {
+    const presentation = chordFamilyPresentation(node.chordSymbol);
+    return {
+      background: presentation.backgroundColor,
+      border: presentation.borderColor,
+      text: presentation.color,
+    };
+  }
   if (node.selected) {
     return {
       background: "var(--interactive-academy-bg)",
@@ -170,6 +179,9 @@ export default function NoteNeuralNetwork({
   const selectedNode = catalog.nodes.find((node) => node.id === selectedNodeId)
     ?? catalog.nodes.find((node) => node.id === catalog.selectedNodeId)
     ?? catalog.nodes[0];
+  const selectedNodeFamily = selectedNode.chordSymbol
+    ? chordFamilyPresentation(selectedNode.chordSymbol)
+    : null;
   const relatedEdges = catalog.edges.filter((edge) => (
     edge.sourceId === selectedNode.id || edge.targetId === selectedNode.id
   ));
@@ -385,6 +397,9 @@ export default function NoteNeuralNetwork({
                         tabIndex={-1}
                         aria-label={`${localizedLabel.fullLabel}, ${t(layoutNode.node.cluster)}`}
                         data-network-node={layoutNode.node.id}
+                        data-chord-family={layoutNode.node.chordSymbol
+                          ? chordFamilyPresentation(layoutNode.node.chordSymbol).family
+                          : undefined}
                         onClick={() => selectNode(layoutNode.node)}
                         style={{ cursor: "pointer" }}
                       >
@@ -427,7 +442,9 @@ export default function NoteNeuralNetwork({
             </div>
 
             <ul className="grid grid-cols-2 gap-2 border-t p-3 sm:grid-cols-3" aria-label={t("Network nodes")} style={{ borderColor: "var(--border-default)" }}>
-              {catalog.nodes.map((node, index) => (
+              {catalog.nodes.map((node, index) => {
+                const family = node.chordSymbol ? chordFamilyPresentation(node.chordSymbol) : null;
+                return (
                 <li key={`semantic-${node.id}`} className="min-w-0">
                   <button
                     ref={(element) => { semanticNodeRefs.current[index] = element; }}
@@ -437,21 +454,22 @@ export default function NoteNeuralNetwork({
                     onKeyDown={(event) => handleSemanticKeyDown(event, index)}
                     className="hh-action w-full min-w-0 justify-start"
                     style={{
-                      backgroundColor: node.id === selectedNode.id
+                      backgroundColor: family?.backgroundColor ?? (node.id === selectedNode.id
                         ? "var(--interactive-academy-bg)"
-                        : "var(--interactive-secondary-bg)",
+                        : "var(--interactive-secondary-bg)"),
                       border: `1px solid ${node.id === selectedNode.id
-                        ? "var(--interactive-academy-border)"
-                        : "var(--interactive-secondary-border)"}`,
-                      color: node.id === selectedNode.id
+                        ? "var(--interactive-accent-border)"
+                        : family?.borderColor ?? "var(--interactive-secondary-border)"}`,
+                      color: family?.color ?? (node.id === selectedNode.id
                         ? "var(--interactive-academy-text)"
-                        : "var(--interactive-secondary-text)",
+                        : "var(--interactive-secondary-text)"),
                     }}
                   >
-                    <span className="truncate">{t(node.label)}</span>
+                    <span data-chord-family={family?.family} className="truncate">{t(node.label)}</span>
                   </button>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </div>
 
@@ -459,7 +477,17 @@ export default function NoteNeuralNetwork({
             <div className="flex items-start gap-3">
               <Network size={22} aria-hidden="true" style={{ color: "var(--interactive-academy-text)", marginTop: "0.25rem" }} />
               <div className="min-w-0">
-                <h2 className="hh-panel-title break-words" style={{ color: "var(--interactive-academy-text)" }}>{t(selectedNode.label)}</h2>
+                <h2
+                  data-chord-family={selectedNodeFamily?.family}
+                  className="hh-panel-title break-words rounded px-1.5 py-0.5"
+                  style={{
+                    color: selectedNodeFamily?.color ?? "var(--interactive-academy-text)",
+                    backgroundColor: selectedNodeFamily?.backgroundColor,
+                    border: selectedNodeFamily ? `1px solid ${selectedNodeFamily.borderColor}` : undefined,
+                  }}
+                >
+                  {t(selectedNode.label)}
+                </h2>
                 <p className="mt-1 label-caps" style={{ color: "var(--text-secondary)" }}>{t(selectedNode.kind)}</p>
               </div>
             </div>

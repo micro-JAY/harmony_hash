@@ -188,6 +188,8 @@ test.describe("complete preset dialogs and centered header", () => {
       .click();
     const help = page.getByRole("dialog", { name: "Why is my Minor Chord different?" });
     await expect(help).toBeVisible();
+    await expect(help.locator('[data-chord-family="dominant"]', { hasText: "E7" })).toBeVisible();
+    await expect(help.locator('[data-chord-family="minor"]', { hasText: "Am" })).toBeVisible();
     await page.getByRole("button", { name: "Close minor blend help" }).click();
     await expect(help).toHaveCount(0);
     await expect(minorTrigger).toBeFocused();

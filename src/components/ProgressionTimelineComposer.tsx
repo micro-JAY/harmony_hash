@@ -137,6 +137,19 @@ export default function ProgressionTimelineComposer({
     nativeDragCleanupRef.current = null;
   }, []);
 
+  useEffect(() => {
+    const activeSource = activeDragItemRef.current;
+    if (!activeSource || items.some((item) => identityMatches(item, activeSource))) return;
+    nativeDragCleanupRef.current?.();
+    nativeDragCleanupRef.current = null;
+    activeDragItemRef.current = null;
+    activePointerDragRef.current = null;
+    requestAnimationFrame(() => {
+      setActiveDrag(null);
+      setInsertionIndicatorActive(false);
+    });
+  }, [items]);
+
   function beginNativeDrag(source: ComposerItemIdentity) {
     nativeDragCleanupRef.current?.();
 
@@ -173,11 +186,15 @@ export default function ProgressionTimelineComposer({
       resetDrag();
     };
 
+    const handleDocumentDragEnd = () => resetDrag();
+
     document.addEventListener("dragover", handleDocumentDragOver, true);
     document.addEventListener("drop", handleDocumentDrop, true);
+    document.addEventListener("dragend", handleDocumentDragEnd, true);
     nativeDragCleanupRef.current = () => {
       document.removeEventListener("dragover", handleDocumentDragOver, true);
       document.removeEventListener("drop", handleDocumentDrop, true);
+      document.removeEventListener("dragend", handleDocumentDragEnd, true);
     };
     setActiveDrag({ source, zone: "composer" });
   }

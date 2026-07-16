@@ -133,7 +133,7 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     const starting = page.getByRole("button", { name: "Starting playback" });
     await expect(starting).toBeVisible();
     await expect(starting).toBeDisabled();
-    await expect(starting).toHaveText(/Starting…/);
+    await expect(starting).toHaveText("PLAY");
     await expect(starting).toHaveAttribute("aria-busy", "true");
   });
 

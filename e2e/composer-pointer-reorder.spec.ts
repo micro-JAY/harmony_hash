@@ -125,6 +125,10 @@ test("touch-drags a committed chord outside the composer to remove it immediatel
 
   await expect(chips).toHaveText(["C", "G7"]);
   await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["C", "G7"]);
+  await expect(chips.nth(1)).toBeFocused();
+  await expect(page.locator('.sr-only[role="status"]')).toContainText(
+    "F removed from the progression",
+  );
   await cdp.detach();
 });
 

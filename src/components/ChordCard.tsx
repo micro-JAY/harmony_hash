@@ -101,6 +101,7 @@ export default function ChordCard({
     () => PIANO_STYLE_OPTIONS.filter((option) => isVoicingStyleAvailable(noteNames, option.value)),
     [noteNames],
   );
+  const hasPianoComparisons = availablePianoStyles.some((option) => option.value !== "auto");
   const preferFlats = prefersFlatNotation(extractDisplayRoot(displayName));
   const formattedNoteNames = noteNames.map((noteName) => formatNoteForDisplay(noteName, preferFlats));
   const voicingTypeLabel = VOICING_TYPE_LABEL[voicing.voicingType];
@@ -116,7 +117,7 @@ export default function ChordCard({
       isAgentHighlighted={isAgentHighlighted}
     >
       {/* Visualization */}
-      <div className="flex w-full min-w-0 flex-col items-center gap-2 p-4">
+      <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-2 p-4">
         {instrument === "guitar" ? (
           <div className="hh-guitar-card-toolbar" data-testid="guitar-card-toolbar">
             <div className="hh-guitar-card-toolbar__modifier">
@@ -259,14 +260,21 @@ export default function ChordCard({
           </>
         ) : (
           <>
+            <div className="w-full max-w-full overflow-hidden">
+              <PianoKeyboard
+                voicedNotes={voicing.notes}
+                displayMode="notes"
+                preferFlats={preferFlats}
+                rootNote={noteNames[0] ?? ""}
+              />
+            </div>
             {/* Only styles with an in-range voicing are useful choices for this chord. */}
             <div
               role="group"
               aria-label={t(`Piano voicing style for ${displayName}`)}
               data-testid="piano-style-selector"
-              className="grid w-full grid-cols-4 content-center items-stretch gap-0.5 rounded-lg p-1"
+              className="flex w-full flex-wrap items-stretch justify-center gap-1 rounded-lg p-1"
               style={{
-                height: "4.75rem",
                 backgroundColor: "var(--surface-overlay)",
                 border: "1px solid var(--border-subtle)",
               }}
@@ -280,7 +288,7 @@ export default function ChordCard({
                     aria-pressed={active}
                     title={t(opt.label)}
                     onClick={() => onPianoStyleChange(opt.value)}
-                    className="min-h-8 min-w-0 rounded-md px-1 py-1 text-xs leading-tight transition-all"
+                    className="min-h-8 flex-none rounded-md px-2 py-1 text-xs leading-tight transition-all"
                     style={{
                       backgroundColor: active
                         ? "var(--interactive-accent-bg)"
@@ -298,19 +306,10 @@ export default function ChordCard({
                       cursor: "pointer",
                     }}
                   >
-                    <span className="block whitespace-normal break-words">{t(opt.label)}</span>
+                    <span className="block whitespace-nowrap">{t(opt.label)}</span>
                   </button>
                 );
               })}
-            </div>
-
-            <div className="w-full max-w-full overflow-hidden">
-              <PianoKeyboard
-                voicedNotes={voicing.notes}
-                displayMode="notes"
-                preferFlats={preferFlats}
-                rootNote={noteNames[0] ?? ""}
-              />
             </div>
             <div className="flex max-w-full flex-wrap items-center justify-center gap-2 mt-1">
               {voicingTypeLabel && (
@@ -337,16 +336,18 @@ export default function ChordCard({
                 {formattedNoteNames.join(" – ")}
               </span>
             </div>
-            <PianoVoicingComparison
-              displayName={displayName}
-              noteNames={noteNames}
-              priorNotes={priorVoicing?.notes ?? EMPTY_PRIOR_NOTES}
-              preferFlats={preferFlats}
-              currentStyle={pianoStyle}
-              expanded={comparisonOpen}
-              onExpandedChange={setComparisonOpen}
-              onStyleChange={onPianoStyleChange}
-            />
+            {hasPianoComparisons ? (
+              <PianoVoicingComparison
+                displayName={displayName}
+                noteNames={noteNames}
+                priorNotes={priorVoicing?.notes ?? EMPTY_PRIOR_NOTES}
+                preferFlats={preferFlats}
+                currentStyle={pianoStyle}
+                expanded={comparisonOpen}
+                onExpandedChange={setComparisonOpen}
+                onStyleChange={onPianoStyleChange}
+              />
+            ) : null}
           </>
         )}
       </div>

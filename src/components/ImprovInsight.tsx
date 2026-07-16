@@ -6,6 +6,7 @@ import type { IndexedChord } from "../lib/types";
 import {
   filterScaleSuggestionsByMood,
   moodDefinitionFor,
+  scaleDegreeName,
   scaleIntervalsFor,
   scaleLearningDefinitionFor,
   type MoodId,
@@ -18,6 +19,7 @@ import {
 } from "../lib/theory/improvInsight";
 import { matchColorForPercent } from "./musicVisuals";
 import { intervalColor } from "../lib/visual/musicVisuals";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 import { useT } from "../i18n/I18nContext";
 import AccessibleDialog from "./AccessibleDialog";
 
@@ -53,7 +55,7 @@ const METADATA_LABELS = Object.freeze([
   ["style", "Style"],
 ] as const);
 
-const IMPROV_ACCENT = "color-mix(in srgb, var(--interactive-soft-text) 68%, var(--text-primary))";
+const IMPROV_ACCENT = "var(--music-insight-surface-text)";
 
 const GLOSSARY = Object.freeze([
   {
@@ -100,7 +102,7 @@ function insightPanelId(mode: InsightMode): string {
   return `improv-insight-panel-${mode}`;
 }
 
-function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: number }) {
+export function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: number }) {
   const t = useT();
   const matchColor = matchColorForPercent(suggestion.match);
   const intervals = scaleIntervalsFor(suggestion.scaleType);
@@ -121,7 +123,7 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
           <h3
             className="min-w-0"
             style={{
-              color: "var(--text-primary)",
+              color: intervalColor(0),
               fontFamily: "var(--font-display)",
               fontSize: "var(--text-lg)",
               fontWeight: "var(--weight-semibold)",
@@ -136,23 +138,31 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
             {t("Also known as")} {t(suggestion.alsoKnownAs)}
           </p>
         ) : null}
-        <p
+        <ol
           className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 pl-8 readout"
           aria-label={t(`${suggestion.label} notes`)}
         >
-          {suggestion.notes.map((note, index) => (
-            <span key={`${note}-${index}`} className="inline-flex items-center gap-1.5">
+          {suggestion.notes.map((note, index) => {
+            const interval = intervals[index];
+            return (
+            <li
+              key={`${note}-${index}`}
+              className="inline-flex items-center gap-1.5"
+              aria-label={`${note}, ${t(scaleDegreeName(interval, suggestion.scaleType))}`}
+            >
               {index > 0 ? <span aria-hidden="true" style={{ color: "var(--text-muted)" }}>·</span> : null}
               <span
+                aria-hidden="true"
                 data-scale-note={note}
-                data-note-interval={intervals[index]}
-                style={{ color: intervalColor(intervals[index]) }}
+                data-note-interval={interval}
+                style={{ color: intervalColor(interval) }}
               >
                 {note}
               </span>
-            </span>
-          ))}
-        </p>
+            </li>
+            );
+          })}
+        </ol>
       </div>
 
       <div className="min-w-0 lg:max-w-56">
@@ -191,16 +201,19 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
       </div>
 
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {METADATA_LABELS.map(([key, label]) => (
-          <div
-            key={key}
-            className="min-w-0 rounded-lg px-2.5 py-2"
-            data-insight-metadata={key}
-            style={{
-              backgroundColor: "var(--interactive-soft-bg)",
-              border: "1px solid var(--interactive-soft-border)",
-            }}
-          >
+        {METADATA_LABELS.map(([key, label]) => {
+          const neutral = key === "style";
+          return (
+            <div
+              key={key}
+              className="min-w-0 rounded-lg px-2.5 py-2"
+              data-insight-metadata={key}
+              data-insight-tone={neutral ? "neutral" : "pink"}
+              style={{
+                backgroundColor: neutral ? "var(--surface-raised)" : "var(--music-insight-surface-bg)",
+                border: `1px solid ${neutral ? "var(--border-subtle)" : "var(--music-insight-surface-border)"}`,
+              }}
+            >
             <dt
               className="label-caps"
               style={{ color: "var(--text-secondary)", fontSize: "var(--text-xs)" }}
@@ -210,15 +223,16 @@ function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion; rank: 
             <dd
               className="mt-1 capitalize"
               style={{
-                color: "var(--text-secondary)",
+                color: neutral ? "var(--text-secondary)" : "var(--music-insight-surface-text)",
                 fontFamily: "var(--font-mono)",
                 fontSize: "var(--text-xs)",
               }}
             >
               {t(suggestion.metadata[key])}
             </dd>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </dl>
     </article>
   );
@@ -292,9 +306,9 @@ export default function ImprovInsight({
         onClick={() => setExpanded(!expanded)}
       className="hh-disclosure flex w-full items-center justify-between px-4 py-3 text-left"
         style={{
-          color: IMPROV_ACCENT,
-          backgroundColor: "var(--interactive-soft-bg)",
-          borderColor: "var(--interactive-soft-border)",
+          color: "var(--music-insight-action-text)",
+          backgroundColor: "var(--music-insight-action-bg)",
+          borderColor: "var(--music-insight-action-border)",
           fontFamily: "var(--font-body)",
           fontSize: "var(--text-base)",
           fontWeight: "var(--weight-semibold)",
@@ -318,7 +332,7 @@ export default function ImprovInsight({
         style={{
           marginTop: "var(--space-3)",
           maxWidth: "var(--layout-content-max)",
-          borderColor: "var(--interactive-soft-border)",
+          borderColor: "var(--music-insight-surface-border)",
         }}
       >
         <header className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
@@ -337,8 +351,8 @@ export default function ImprovInsight({
                 style={{
                   minWidth: "var(--control-min-height)",
                   color: IMPROV_ACCENT,
-                  backgroundColor: "var(--interactive-soft-bg)",
-                  borderColor: "var(--interactive-soft-border)",
+                  backgroundColor: "var(--music-insight-surface-bg)",
+                  borderColor: "var(--music-insight-surface-border)",
                 }}
               >
                 <CircleHelp size={17} aria-hidden="true" />
@@ -384,8 +398,8 @@ export default function ImprovInsight({
                     onKeyDown={(event) => handleTabKeyDown(event, item.id)}
                     className="rounded-full px-4 py-2 text-sm"
                     style={{
-                      backgroundColor: active ? "var(--interactive-soft-bg)" : "transparent",
-                      border: active ? "1px solid var(--interactive-soft-border)" : "1px solid transparent",
+                      backgroundColor: active ? "var(--music-insight-surface-bg)" : "transparent",
+                      border: active ? "1px solid var(--music-insight-surface-border)" : "1px solid transparent",
                       color: active ? IMPROV_ACCENT : "var(--text-secondary)",
                       fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
                       transition: reduceMotion ? "none" : "all var(--duration-normal) var(--ease-out)",
@@ -415,22 +429,35 @@ export default function ImprovInsight({
             <div className="mb-4 flex gap-2 overflow-x-auto pb-2" aria-label={t("Chord to analyze")}>
               {chords.map((item, index) => {
                 const active = index === selectedChordIndex;
+                const family = chordFamilyPresentation(item.chord);
                 return (
                   <button
                     key={`${item.input}-${index}`}
                     type="button"
                     aria-pressed={active}
+                    data-insight-chord-scope={item.input}
                     onClick={() => setRequestedChordIndex(index)}
                     className="shrink-0 rounded-full px-4 py-2"
                     style={{
-                      backgroundColor: active ? "var(--interactive-accent-bg)" : "var(--interactive-secondary-bg)",
-                      border: `1px solid ${active ? "var(--interactive-accent-border)" : "var(--interactive-secondary-border)"}`,
-                      color: active ? "var(--interactive-accent-text)" : "var(--interactive-secondary-text)",
+                      backgroundColor: active ? "var(--music-insight-surface-bg)" : "var(--interactive-secondary-bg)",
+                      border: `1px solid ${active ? "var(--music-insight-surface-border)" : "var(--interactive-secondary-border)"}`,
+                      color: active ? IMPROV_ACCENT : "var(--interactive-secondary-text)",
                       fontFamily: "var(--font-mono)",
                       fontSize: "var(--text-sm)",
                     }}
                   >
-                    {index + 1}. {item.input}
+                    <span>{index + 1}.</span>{" "}
+                    <span
+                      data-chord-family={family.family}
+                      className="inline-flex rounded-full px-2 py-0.5"
+                      style={{
+                        color: family.color,
+                        backgroundColor: family.backgroundColor,
+                        border: `1px solid ${family.borderColor}`,
+                      }}
+                    >
+                      {item.input}
+                    </span>
                   </button>
                 );
               })}
@@ -465,8 +492,8 @@ export default function ImprovInsight({
                 key={group.label}
                 className="rounded-lg p-3"
                 style={{
-                  backgroundColor: "var(--interactive-soft-bg)",
-                  border: "1px solid var(--interactive-soft-border)",
+                  backgroundColor: "var(--music-insight-surface-bg)",
+                  border: "1px solid var(--music-insight-surface-border)",
                 }}
               >
                 <dt className="label-caps" style={{ color: IMPROV_ACCENT }}>

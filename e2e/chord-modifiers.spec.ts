@@ -69,7 +69,8 @@ test.describe("quick chord modifiers", () => {
     let dialog = page.getByRole("dialog", { name: "Modify G7 chord" });
     await expect(dialog).toBeVisible();
     await expect(
-      dialog.getByRole("heading", { name: "Modify G7 chord" }).locator("span"),
+      dialog.getByRole("heading", { name: "Modify G7 chord" })
+        .locator('[data-chord-family="dominant"]'),
     ).toHaveAttribute("style", /--music-chord-dominant/);
     const topPicks = dialog.getByRole("region", { name: "Top picks" });
     await expect(topPicks).toBeVisible();

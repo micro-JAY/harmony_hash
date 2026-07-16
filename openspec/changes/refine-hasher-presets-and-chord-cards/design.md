@@ -103,7 +103,7 @@ The progression action rail exposes exactly `RANDOMIZE (UNLOCKED VOICES)`, icon-
 
 ## Risks / Trade-offs
 
-- **[Risk] Drag-out removal can be mistaken for a cancelled drag.** → Use an explicit active removal target and drag-threshold state; never infer deletion from `dragend` alone.
+- **[Risk] Drag-out removal can be mistaken for a cancelled drag.** → Remove only after a threshold-qualified pointer release or actual native drop outside the composer; never infer deletion from `dragend` alone.
 - **[Risk] Dialog inventory can become dense on mobile.** → Use a vertically scrollable modal body with subgroup headings and wrapped buttons; keep the page itself overflow-free.
 - **[Risk] A family alias is classified incorrectly.** → Classify from matched chord quality/display identity, not comma-separated alias catalog text, and add exhaustive representative alias tests.
 - **[Risk] Deep dominant red lacks small-text contrast.** → Test contrast on each real surface and use deep-red fill plus contrast-safe foreground where necessary.

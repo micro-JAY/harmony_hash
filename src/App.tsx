@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type ComponentType,
+  type ReactNode,
 } from "react";
 import { Play, Square } from "lucide-react";
 import type {
@@ -93,6 +94,27 @@ function loadVoiceAgentRuntime() {
 }
 
 const PLAYBACK_BPM = 80;
+
+function TheoryImprovFocusRegion({ children }: { children: ReactNode }) {
+  const regionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    regionRef.current?.focus();
+  }, []);
+
+  return (
+    <section
+      ref={regionRef}
+      id="theory-improv-insight"
+      tabIndex={-1}
+      aria-labelledby="improv-insight-title"
+      className="mx-auto w-full max-w-6xl px-4 pb-6"
+    >
+      {children}
+    </section>
+  );
+}
+
 function createAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -181,6 +203,7 @@ function App() {
   });
   const [improvOpen, setImprovOpen] = useState(false);
   const [improvOrigin, setImprovOrigin] = useState<"builder" | "theory" | null>(null);
+  const improvReturnFocusIdRef = useRef("theory-circle-improv-trigger");
   const [improvTheoryContext, setImprovTheoryContext] = useState<{
     readonly root: string;
     readonly scaleId: ScaleFormulaType;
@@ -394,13 +417,11 @@ function App() {
     setTheoryDisclosures((current) => ({ ...current, [tool]: expanded }));
   }, []);
 
-  const handleOpenTheoryImprov = useCallback((root: string) => {
+  const handleOpenTheoryImprov = useCallback((root: string, returnFocusId = "theory-circle-improv-trigger") => {
+    improvReturnFocusIdRef.current = returnFocusId;
     setImprovTheoryContext({ root, scaleId: theoryContext.scaleId });
     setImprovOrigin("theory");
     setImprovOpen(true);
-    requestAnimationFrame(() => {
-      document.getElementById("theory-improv-insight")?.focus();
-    });
   }, [theoryContext.scaleId]);
 
   const handleCloseImprov = useCallback(() => {
@@ -410,7 +431,7 @@ function App() {
     requestAnimationFrame(() => {
       document.getElementById(
         closingOrigin === "theory"
-          ? "theory-circle-improv-trigger"
+          ? improvReturnFocusIdRef.current
           : "hasher-improv-trigger",
       )?.focus();
     });
@@ -875,11 +896,7 @@ function App() {
                 onOpenImprov={handleOpenTheoryImprov}
               />
               {improvOpen && improvOrigin === "theory" ? (
-                <section
-                  id="theory-improv-insight"
-                  tabIndex={-1}
-                  className="mx-auto w-full max-w-6xl px-4 pb-6"
-                >
+                <TheoryImprovFocusRegion>
                   <ImprovInsight
                     chords={chords}
                     moodId={null}
@@ -891,7 +908,7 @@ function App() {
                     }}
                     onClose={handleCloseImprov}
                   />
-                </section>
+                </TheoryImprovFocusRegion>
               ) : null}
             </Suspense>
           </div>
@@ -956,7 +973,7 @@ function App() {
                       }}
                     >
                       {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-                      {t(isPlaybackStarting ? "Starting…" : isPlaying ? "STOP" : "PLAY")}
+                      {t(isPlaying ? "STOP" : "PLAY")}
                     </button>
 
                   <ShareProgression instrument={instrument} chords={chords} />

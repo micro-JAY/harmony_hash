@@ -82,7 +82,8 @@ test.describe("HASHER learning suite", () => {
     await expect(play.locator("svg.lucide-play")).toBeVisible();
     await expect(share).toHaveText("SHARE");
     await expect(share.locator("svg.lucide-link-2")).toBeVisible();
-    await expect(page.getByRole("button", { name: "IMPROV INSIGHT" })).toBeVisible();
+    const insight = actions.getByRole("button", { name: "IMPROV INSIGHT", exact: true });
+    await expect(insight).toHaveText("IMPROV INSIGHT");
     await expect(actions.getByRole("button", { name: /Hanz/ })).toHaveCount(0);
     await expect(play).toBeEnabled();
     await play.click();
@@ -91,6 +92,16 @@ test.describe("HASHER learning suite", () => {
     await expect(stop.locator("svg.lucide-square")).toBeVisible();
     await stop.click();
     await expect(play).toHaveText("PLAY");
+
+    await page.getByRole("button", { name: "Piano", exact: true }).click();
+    await expect(randomize).toHaveText("RANDOMIZE (UNLOCKED VOICES)");
+    await expect(play).toHaveText("PLAY");
+    await expect(play.locator("svg.lucide-play")).toBeVisible();
+    await expect(share).toHaveText("SHARE");
+    await expect(share.locator("svg.lucide-link-2")).toBeVisible();
+    await expect(insight).toHaveText("IMPROV INSIGHT");
+    await expect(actions.getByRole("button", { name: /Hanz/ })).toHaveCount(0);
+    await page.getByRole("button", { name: "Guitar", exact: true }).click();
 
     const composerItems = page.getByTestId("chord-composer").locator("[data-composer-chip-index]");
     const dm = composerItems.nth(1);
@@ -155,6 +166,27 @@ test.describe("HASHER learning suite", () => {
     await expect(chips).toHaveText(["Am", "C", "F", "G7"]);
     await page.getByRole("button", { name: "Run chord composer" }).click();
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Am", "C", "F", "G7"]);
+  });
+
+  test("turns Cmaj into a chip and drops B7 before it", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const input = page.getByRole("textbox", { name: "Chord progression input" });
+    await input.fill("Cmaj");
+    await input.press("Enter");
+
+    const composer = page.getByTestId("chord-composer");
+    const chips = composer.locator("[data-composer-chip-index]");
+    await expect(chips).toHaveText(["Cmaj"]);
+    await page.getByRole("button", { name: "Browse chords ↓" }).click();
+    const firstChip = await chips.first().boundingBox();
+    expect(firstChip).not.toBeNull();
+    await dispatchNativeDrag(page, page.locator('[data-chord-name="B7"]'), composer, {
+      clientX: firstChip!.x,
+      clientY: firstChip!.y + firstChip!.height / 2,
+    });
+    await expect(chips).toHaveText(["B7", "Cmaj"]);
+    await page.getByRole("button", { name: "Run chord composer" }).click();
+    await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["B7", "Cmaj"]);
   });
 
   test("commits clean composer removals immediately, including the last chord", async ({ page }) => {

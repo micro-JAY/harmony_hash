@@ -6,7 +6,7 @@ test.describe("responsive piano chord cards", () => {
   test("shows the complete three-octave keyboard inside equal cards", async ({ page }) => {
     await page.setViewportSize({ width: 1500, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await composeProgression(page, ["C", "Am(add9)", "F", "G"]);
+    await composeProgression(page, ["C", "Am(add9)", "F", "G7"]);
     await page.getByRole("button", { name: "Piano", exact: true }).click();
 
     const cards = page.getByTestId("chord-card");
@@ -62,12 +62,39 @@ test.describe("responsive piano chord cards", () => {
       ));
       expect(Math.max(...cardHeights) - Math.min(...cardHeights)).toBeLessThanOrEqual(1);
 
+      const keyboardTopOffsets = await keyboards.evaluateAll((elements) => elements.map((element) => {
+        const keyboard = element.getBoundingClientRect();
+        const card = element.closest('[data-testid="chord-card"]')?.getBoundingClientRect();
+        return card ? keyboard.top - card.top : Number.NaN;
+      }));
+      expect(keyboardTopOffsets.every(Number.isFinite)).toBe(true);
+      expect(Math.max(...keyboardTopOffsets) - Math.min(...keyboardTopOffsets)).toBeLessThanOrEqual(1);
+
       const selectorLayout = await cards.getByTestId("piano-style-selector").evaluateAll(
         (selectors) => selectors.map((selector) => {
           const buttons = Array.from(selector.querySelectorAll<HTMLButtonElement>("button"));
           const rowTops = new Set(buttons.map((button) => Math.round(button.getBoundingClientRect().top)));
           return {
+            buttonCount: buttons.length,
             rows: rowTops.size,
+            rowCenterDeltas: [...rowTops].map((top) => {
+              const rowButtons = buttons.filter((button) => (
+                Math.round(button.getBoundingClientRect().top) === top
+              ));
+              const first = rowButtons[0].getBoundingClientRect();
+              const last = rowButtons[rowButtons.length - 1].getBoundingClientRect();
+              const selectorBounds = selector.getBoundingClientRect();
+              return Math.abs(
+                ((first.left + last.right) / 2)
+                - (selectorBounds.left + selectorBounds.width / 2),
+              );
+            }),
+            verticalSlack: (() => {
+              const selectorBounds = selector.getBoundingClientRect();
+              const top = Math.min(...buttons.map((button) => button.getBoundingClientRect().top));
+              const bottom = Math.max(...buttons.map((button) => button.getBoundingClientRect().bottom));
+              return selectorBounds.height - (bottom - top);
+            })(),
             everyLabelVisible: buttons.every((button) => (
               button.scrollWidth <= button.clientWidth + 1
               && button.scrollHeight <= button.clientHeight + 1
@@ -76,9 +103,22 @@ test.describe("responsive piano chord cards", () => {
         }),
       );
       for (const selector of selectorLayout) {
+        expect(selector.buttonCount).toBeGreaterThan(0);
         expect(selector.rows).toBeLessThanOrEqual(2);
+        for (const delta of selector.rowCenterDeltas) expect(delta).toBeLessThanOrEqual(1);
+        expect(selector.verticalSlack).toBeLessThanOrEqual(12);
         expect(selector.everyLabelVisible).toBe(true);
       }
+
+      const selectorFontSizes = await cards.getByTestId("piano-style-selector")
+        .locator("button")
+        .evaluateAll((buttons) => buttons.map((button) => Number.parseFloat(getComputedStyle(button).fontSize)));
+      expect(Math.min(...selectorFontSizes)).toBeGreaterThanOrEqual(12);
+
+      await expect(cards.first().getByTestId("piano-style-selector")).not.toHaveAttribute(
+        "style",
+        /height/,
+      );
 
       const inactiveStyle = cards.first().getByTestId("piano-style-selector")
         .locator('button[aria-pressed="false"]')

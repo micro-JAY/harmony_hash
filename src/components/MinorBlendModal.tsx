@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useLocale, useT } from "../i18n/I18nContext";
+import { lookupChord } from "../lib/chordData";
+import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 
 interface MinorBlendModalProps {
   onClose: () => void;
@@ -15,6 +17,25 @@ const FOCUSABLE_SELECTOR = [
   "textarea:not([disabled])",
   '[tabindex]:not([tabindex="-1"])',
 ].join(",");
+
+function ChordExample({ symbol }: { symbol: string }) {
+  const presentation = chordFamilyPresentation(lookupChord(symbol) ?? symbol);
+  return (
+    <strong
+      data-chord-family={presentation.family}
+      className="inline-flex rounded px-1 py-0.5"
+      style={{
+        color: presentation.color,
+        backgroundColor: presentation.backgroundColor,
+        border: `1px solid ${presentation.borderColor}`,
+        fontFamily: "var(--font-mono)",
+        fontStyle: "normal",
+      }}
+    >
+      {symbol}
+    </strong>
+  );
+}
 
 function EnContent() {
   return (
@@ -223,7 +244,7 @@ function EnContent() {
           lineHeight: "var(--leading-relaxed)",
         }}
       >
-        Pro Tip: If you see an <strong style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)", fontStyle: "normal" }}>E7</strong> in an <strong style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)", fontStyle: "normal" }}>Am</strong> progression,
+        Pro Tip: If you see an <ChordExample symbol="E7" /> in an <ChordExample symbol="Am" /> progression,
         that&apos;s the &quot;Magnetic Pull&quot; in action!
       </blockquote>
     </>
@@ -424,7 +445,7 @@ function JaContent() {
           lineHeight: "var(--leading-relaxed)",
         }}
       >
-        プロのヒント：Am進行で<strong style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)", fontStyle: "normal" }}>E7</strong>を見かけたら、それが「引力」の正体です！
+        プロのヒント：<ChordExample symbol="Am" />進行で<ChordExample symbol="E7" />を見かけたら、それが「引力」の正体です！
       </blockquote>
     </>
   );

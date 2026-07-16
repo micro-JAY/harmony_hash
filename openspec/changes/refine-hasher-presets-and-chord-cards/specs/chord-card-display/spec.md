@@ -19,7 +19,7 @@ Every Guitar and Piano chord card SHALL apply the shared chord-family palette to
 ## MODIFIED Requirements
 
 ### Requirement: Piano voicing-style selector
-Every piano chord card SHALL render a compact style selector above the keyboard containing `Auto` plus only the explicit voicing styles applicable to that chord. The active style SHALL be visually and semantically distinguished; unavailable styles SHALL be omitted and SHALL reserve no layout space.
+Every piano chord card SHALL render a compact style selector beneath the keyboard containing `Auto` plus only the explicit voicing styles applicable to that chord. The active style SHALL be visually and semantically distinguished; unavailable styles SHALL be omitted and SHALL reserve no layout space. Keeping the keyboard before this content-sized selector SHALL align sibling keyboard tops without placeholder tracks or undersized labels.
 
 #### Scenario: Default style is Auto
 - **WHEN** a chord card first renders in piano mode

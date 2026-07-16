@@ -36,6 +36,9 @@ export default function ChordModifier({
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const selectedFamily = chordFamilyPresentation(chord);
+  const localizedDialogTitle = t(`Modify ${displayName} chord`);
+  const [dialogTitleBefore = "", ...dialogTitleRemainder] = localizedDialogTitle.split(displayName);
+  const dialogTitleAfter = dialogTitleRemainder.join(displayName);
   const options = useMemo(
     () => rankContextualChordModifiers({
       selectedChord: chord,
@@ -111,15 +114,25 @@ export default function ChordModifier({
         <AccessibleDialog
           title={(
             <span
-              data-chord-family={selectedFamily.family}
-              className="inline-flex rounded-md px-2 py-0.5"
-              style={{
-                color: selectedFamily.color,
-                backgroundColor: selectedFamily.backgroundColor,
-                border: `1px solid ${selectedFamily.borderColor}`,
-              }}
+              className="inline-flex flex-wrap items-center gap-1"
+              style={{ color: "var(--text-primary)" }}
             >
-              {t(`Modify ${displayName} chord`)}
+              <span className="sr-only">{localizedDialogTitle}</span>
+              <span aria-hidden="true" className="inline-flex flex-wrap items-center gap-1">
+                <span>{dialogTitleBefore}</span>
+                <span
+                  data-chord-family={selectedFamily.family}
+                  className="inline-flex rounded-md px-2 py-0.5"
+                  style={{
+                    color: selectedFamily.color,
+                    backgroundColor: selectedFamily.backgroundColor,
+                    border: `1px solid ${selectedFamily.borderColor}`,
+                  }}
+                >
+                  {displayName}
+                </span>
+                <span>{dialogTitleAfter}</span>
+              </span>
             </span>
           )}
           description={t(`${options.all.length} catalog choices`)}

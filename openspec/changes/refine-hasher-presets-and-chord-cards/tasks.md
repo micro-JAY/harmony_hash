@@ -73,7 +73,7 @@
 - [x] 8.1 Run production build, lint, all Vitest, strict OpenSpec, diff hygiene, dependency audit, and Worker dry-run on the exact implementation tree.
 - [x] 8.2 Run complete Playwright plus three repeated focused composer/color/Piano/IMPROV passes and direct Browser QA in English/Japanese at desktop, tablet, transition, 375px, and reduced motion.
 - [x] 8.3 Commission independent correctness, accessibility, responsive, music-color/theory, and specification-conformance reviews; fix every P0–P2 finding and rerun affected/full gates.
-- [ ] 8.4 Reconcile acceptance rows A1–A18 from direct code/render/test evidence, update the long-horizon plan/log and PR description/screenshots, then push milestone commits.
+- [x] 8.4 Reconcile acceptance rows A1–A18 from direct code/render/test evidence, update the long-horizon plan/log and PR description/screenshots, then push milestone commits.
 - [ ] 8.5 Require exact-head GitHub build/test, both complete Playwright jobs, and Cloudflare Workers build to pass before handoff; keep PR #75 draft until the user approves all remaining issues.
 
 ## 9. Merge and Archive Boundary

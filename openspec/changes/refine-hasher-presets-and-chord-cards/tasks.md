@@ -19,7 +19,7 @@
 
 - [x] 3.1 Add selected/focused chip state that reveals one compact localized `X` removal action without restoring persistent handles, arrows, or insertion buttons.
 - [x] 3.2 Route selected `X`, Delete/Backspace, and empty-input Backspace through the same atomic removal transaction and live-region announcement.
-- [x] 3.3 Add an explicit temporary drag-out removal target for mouse/touch/pen while retaining exact inside-composer insertion and reorder boundaries.
+- [x] 3.3 Remove an existing chip after an actual native mouse drop or threshold-qualified touch/pen release anywhere outside the composer while retaining exact inside-composer insertion and reorder boundaries.
 - [x] 3.4 Ensure Escape, pointer cancellation, or an invalid drop never removes or moves a chord.
 - [x] 3.5 Preserve stable item identity, locks, variants, piano style, playback cancellation, Hanz index handling, and text-agent invalidation for remove/reorder operations.
 - [x] 3.6 Add pure/component/Playwright coverage for click selection, focus selection, `X`, keyboard removal/reorder, drag-in reorder, drag-out removal, cancelled drag, appending grid clicks, and mobile containment.
@@ -58,21 +58,21 @@
 
 ## 7. Complete Original PR #75 Contract
 
-- [ ] 7.1 Replace target-only composer removal with deliberate touch/pen release or actual native mouse drop anywhere outside the composer; keep Escape, pointer cancellation, lost capture, no-drop dragend, and external grid-source paths inert.
-- [ ] 7.2 Apply the shared chord-family presentation to composer chips, Circle chord labels, and FRET FINDER overlay selection/readout while retaining selection, relationship, score, focus, playback, lock, and Hanz semantics.
-- [ ] 7.3 Replace the Piano style selector's fixed grid/height with centered content-sized wrapping that reserves no unavailable track or empty row and preserves equal sibling cards.
-- [ ] 7.4 Keep the media rail exact—`RANDOMIZE (UNLOCKED VOICES)`, icon-backed `PLAY`/`STOP`, icon-backed `SHARE`, and `IMPROV INSIGHT`—with Hanz available only from progression-prompt help.
-- [ ] 7.5 Unify HASHER, TUNE TOOLBOX, Circle, and in-panel IMPROV controls under the dedicated pale-pink token family while keeping Style neutral and match/degree colors independent.
-- [ ] 7.6 Color IMPROV scale names and notes through the shared named-degree mapping and prove representative Root, minor-third/Ab, tritone, and other intervals match SCALE SYNTHESIA and FRET FINDER.
-- [ ] 7.7 Verify the complete four-category vocabulary dialog, display-face scale typography, compact note spacing, aligned <=14rem match meter, centered <=72rem panel, and local Circle/Toolbox open/close focus behavior.
-- [ ] 7.8 Add or strengthen pure/component/Playwright coverage for arbitrary outside removal and cancellation safety, all-six-family real surfaces, media icons/text, centered partial Piano selector rows, comparison backdrop/no-mutation/no-reflow, IMPROV palette/vocabulary/degree colors, Japanese, reduced motion, and desktop/tablet/375px containment.
-- [ ] 7.9 Inspect all new desktop/tablet/mobile rendered states and commit composer, global-color/Piano, and IMPROV milestones separately without staging `.agents/` or `AGENTS.md`.
+- [x] 7.1 Replace target-only composer removal with deliberate touch/pen release or actual native mouse drop anywhere outside the composer; keep Escape, pointer cancellation, lost capture, no-drop dragend, and external grid-source paths inert.
+- [x] 7.2 Apply the shared chord-family presentation to composer chips, Circle chord labels, and FRET FINDER overlay selection/readout while retaining selection, relationship, score, focus, playback, lock, and Hanz semantics.
+- [x] 7.3 Replace the Piano style selector's fixed grid/height with centered content-sized wrapping that reserves no unavailable track or empty row and preserves equal sibling cards.
+- [x] 7.4 Keep the media rail exact—`RANDOMIZE (UNLOCKED VOICES)`, icon-backed `PLAY`/`STOP`, icon-backed `SHARE`, and `IMPROV INSIGHT`—with Hanz available only from progression-prompt help.
+- [x] 7.5 Unify HASHER, TUNE TOOLBOX, Circle, and in-panel IMPROV controls under the dedicated pale-pink token family while keeping Style neutral and match/degree colors independent.
+- [x] 7.6 Color IMPROV scale names and notes through the shared named-degree mapping and prove representative Root, minor-third/Ab, tritone, and other intervals match SCALE SYNTHESIA and FRET FINDER.
+- [x] 7.7 Verify the complete four-category vocabulary dialog, display-face scale typography, compact note spacing, aligned <=14rem match meter, centered <=72rem panel, and local Circle/Toolbox open/close focus behavior.
+- [x] 7.8 Add or strengthen pure/component/Playwright coverage for arbitrary outside removal and cancellation safety, all-six-family real surfaces, media icons/text, centered partial Piano selector rows, comparison backdrop/no-mutation/no-reflow, IMPROV palette/vocabulary/degree colors, Japanese, reduced motion, and desktop/tablet/375px containment.
+- [x] 7.9 Inspect all new desktop/tablet/mobile rendered states and commit composer, global-color/Piano, and IMPROV milestones separately without staging `.agents/` or `AGENTS.md`.
 
 ## 8. Full-Contract Validation and PR #75 Delivery
 
-- [ ] 8.1 Run production build, lint, all Vitest, strict OpenSpec, diff hygiene, dependency audit, and Worker dry-run on the exact implementation tree.
-- [ ] 8.2 Run complete Playwright plus three repeated focused composer/color/Piano/IMPROV passes and direct Browser QA in English/Japanese at desktop, tablet, transition, 375px, and reduced motion.
-- [ ] 8.3 Commission independent correctness, accessibility, responsive, music-color/theory, and specification-conformance reviews; fix every P0–P2 finding and rerun affected/full gates.
+- [x] 8.1 Run production build, lint, all Vitest, strict OpenSpec, diff hygiene, dependency audit, and Worker dry-run on the exact implementation tree.
+- [x] 8.2 Run complete Playwright plus three repeated focused composer/color/Piano/IMPROV passes and direct Browser QA in English/Japanese at desktop, tablet, transition, 375px, and reduced motion.
+- [x] 8.3 Commission independent correctness, accessibility, responsive, music-color/theory, and specification-conformance reviews; fix every P0–P2 finding and rerun affected/full gates.
 - [ ] 8.4 Reconcile acceptance rows A1–A18 from direct code/render/test evidence, update the long-horizon plan/log and PR description/screenshots, then push milestone commits.
 - [ ] 8.5 Require exact-head GitHub build/test, both complete Playwright jobs, and Cloudflare Workers build to pass before handoff; keep PR #75 draft until the user approves all remaining issues.
 

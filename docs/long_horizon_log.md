@@ -831,3 +831,9 @@ The host external-disclosure safeguard rejected the first push of `feat/tune-too
 ### 2026-07-17 17:20 JST — Remote branch hygiene complete
 
 A fresh check again found zero open PRs. Remote cleanup then deleted 39 branches proven merged by PR history or direct `main` ancestry. The retained remote set is `main`, `feat/hasher-unified-flow`, `feat/logo-splash-tool-names`, `feat/hasher-learning-suite`, and the unique unmerged `chore/deploy-hardening` branch. The new TUNE branch was not uploaded as part of cleanup, so the earlier external-disclosure safeguard remains respected. Publication and exact-head CI are now the only incomplete release tasks.
+
+### 2026-07-17 17:39 JST — Draft PR #77 exact code-head gate
+
+After explicit user authorization, published `feat/tune-toolbox-neural-synthesia` and opened draft [#77](https://github.com/micro-JAY/harmony_hash/pull/77). Exact code head `831669c` is mergeable and passed both GitHub build/test jobs in 32s and 35s, both complete 174-scenario Linux Playwright jobs in 4m06s and 4m11s, and Cloudflare Workers build `84b9bc8f-84a0-45af-ab2a-419eb8730a90`. No retry, snapshot weakening, skip, or CI-only workaround was used.
+
+The final local branch inventory contains `main`, the TUNE feature branch, the latest three prior feature branches, and two explicitly marked stale unique histories. The remote inventory contains `main`, the same latest three prior feature branches, the TUNE branch, and unique unmerged `chore/deploy-hardening`. The worktree is clean except the protected user-owned untracked `.agents/` and `AGENTS.md`, which remain untouched. No HASHER or FRET FINDER source path changed. Merge, deployment, and OpenSpec archive/sync remain intentionally deferred.

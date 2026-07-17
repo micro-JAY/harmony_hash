@@ -101,6 +101,12 @@ export function modeFamilyDefinitionFor(familyId: ModeFamilyId): ModeFamilyMembe
   return definition;
 }
 
+export function modeFamilyForScale(scaleId: ScaleFormulaType): ModeFamilyId | null {
+  return MODE_FAMILIES.find((family) => (
+    modeFamilyDefinitionFor(family.id).members.includes(scaleId)
+  ))?.id ?? null;
+}
+
 export function characteristicIntervalFor(scaleId: ScaleFormulaType): string {
   return CHARACTERISTIC_INTERVALS[scaleId] ?? "Distinctive scale-degree color";
 }

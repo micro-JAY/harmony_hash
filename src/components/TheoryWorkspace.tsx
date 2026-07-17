@@ -2,15 +2,13 @@ import { lazy, Suspense, useMemo, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { ALL_KEYS } from "../lib/harmonyBrain";
 import {
-  MODE_FAMILIES,
   MOODS,
   SCALE_LEARNING,
   THEORY_MOOD_ANY,
   canonicalTheoryRoot,
-  modeFamilyDefinitionFor,
+  modeFamilyForScale,
   moodDefinitionFor,
   type CircleKey,
-  type ModeFamilyId,
   type MoodId,
   type ScaleFormulaType,
   type TheoryContext,
@@ -51,12 +49,6 @@ interface TheoryToolSectionProps {
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
   children: ReactNode;
-}
-
-function familyForScale(scaleId: ScaleFormulaType): ModeFamilyId {
-  return MODE_FAMILIES.find((family) => (
-    modeFamilyDefinitionFor(family.id).members.includes(scaleId)
-  ))?.id ?? "major";
 }
 
 function TheoryToolSection({
@@ -145,7 +137,7 @@ export default function TheoryWorkspace({
   }
 
   function updateScale(scaleId: ScaleFormulaType): void {
-    const familyId = familyForScale(scaleId);
+    const familyId = modeFamilyForScale(scaleId) ?? "major";
     onContextChange({ ...context, scaleId });
     onNetworkStateChange({
       ...networkState,
@@ -290,7 +282,7 @@ export default function TheoryWorkspace({
                   onNetworkStateChange({
                     ...networkState,
                     root: canonicalRoot,
-                    familyId: familyForScale(scaleId),
+                    familyId: modeFamilyForScale(scaleId) ?? "major",
                     selectedScaleId: scaleId,
                   });
                   onDisclosureChange("scales", true);

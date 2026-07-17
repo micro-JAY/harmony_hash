@@ -15,13 +15,13 @@
 
 ## 3. Note Neural Network Layout And Interaction
 
-- [ ] 3.1 Replace clustered rows with deterministic centered radial desktop geometry and add a bounded static-mobile projection in the pure layout module.
-- [ ] 3.2 Extend layout tests for exact centering, stable rings, collision-free labels, boundary-terminated edges, mobile projection limits, and reduced motion.
-- [ ] 3.3 Separate node inspection from context activation so single click shows details, scale/key double click or Enter recenters, and chord clicks never mutate Root/Scale.
-- [ ] 3.4 Render the graph on a true-black canvas with one-shot outward desktop motion, connector layering, retained desktop scale details, and retained lower semantic information.
-- [ ] 3.5 Omit animated/pannable graph controls on mobile while preserving the complete semantic node/detail path and document containment.
-- [ ] 3.6 Add localized instructions and focused component/Playwright coverage for mouse, keyboard, reduced-motion, desktop/tablet radial behavior, and static mobile behavior.
-- [ ] 3.7 Compare rendered desktop/mobile screenshots to the accepted concepts, fix every material mismatch, and commit the graph milestone separately.
+- [x] 3.1 Replace clustered rows with deterministic centered radial desktop geometry and add a bounded static-mobile projection in the pure layout module.
+- [x] 3.2 Extend layout tests for exact centering, stable rings, collision-free labels, boundary-terminated edges, mobile projection limits, and reduced motion.
+- [x] 3.3 Separate node inspection from context activation so single click shows details, scale/key double click or Enter recenters, and chord clicks never mutate Root/Scale.
+- [x] 3.4 Render the graph on a true-black canvas with one-shot outward desktop motion, connector layering, retained desktop scale details, and retained lower semantic information.
+- [x] 3.5 Omit animated/pannable graph controls on mobile while preserving the complete semantic node/detail path and document containment.
+- [x] 3.6 Add localized instructions and focused component/Playwright coverage for mouse, keyboard, reduced-motion, desktop/tablet radial behavior, and static mobile behavior.
+- [x] 3.7 Compare rendered desktop/mobile screenshots to the accepted concepts, fix every material mismatch, and commit the graph milestone separately.
 
 ## 4. Scope And Release Validation
 

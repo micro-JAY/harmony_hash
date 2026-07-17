@@ -39,6 +39,7 @@ export {
   buildModeNetwork,
   characteristicIntervalFor,
   MODE_FAMILIES,
+  modeFamilyForScale,
   modeFamilyDefinitionFor,
 } from "./modeNetwork";
 export type {

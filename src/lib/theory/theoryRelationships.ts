@@ -1,8 +1,7 @@
 import {
-  MODE_FAMILIES,
   buildModeNetwork,
+  modeFamilyForScale,
   modeFamilyDefinitionFor,
-  type ModeFamilyId,
 } from "./modeNetwork";
 import { scaleLearningDefinitionFor } from "./scaleCatalog";
 import {
@@ -219,21 +218,13 @@ function addRelativeMajorMinor(
   ));
 }
 
-function familyForScale(scaleId: ScaleFormulaType): ModeFamilyId | null {
-  for (const family of MODE_FAMILIES) {
-    const network = buildModeNetwork("C", family.id, "parallel");
-    if (network.nodes.some((node) => node.scaleId === scaleId)) return family.id;
-  }
-  return null;
-}
-
 function addModalFamily(
   context: TheoryContext,
   selectedNodeId: string,
   nodes: Map<string, TheoryRelationshipNode>,
   edges: TheoryRelationshipEdge[],
 ): void {
-  const familyId = familyForScale(context.scaleId);
+  const familyId = modeFamilyForScale(context.scaleId);
   if (!familyId) return;
   const family = modeFamilyDefinitionFor(familyId);
   const selectedIndex = family.members.indexOf(context.scaleId);

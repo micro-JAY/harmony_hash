@@ -34,5 +34,5 @@
 ## 5. Publication And Branch Hygiene
 
 - [ ] 5.1 Push the reviewed feature branch, open a focused draft PR, and require exact-head build/test, Playwright, and Workers checks to pass.
-- [ ] 5.2 Inventory live PR/branch state; delete only branches proven merged or gone while retaining `main`, this feature branch, all open/unmerged work, and the latest few useful feature/fix branches.
+- [x] 5.2 Inventory live PR/branch state; delete only branches proven merged or gone while retaining `main`, this feature branch, all open/unmerged work, and the latest few useful feature/fix branches.
 - [ ] 5.3 Verify the final local/remote branch inventory, clean worktree boundary, unchanged `.agents/` and `AGENTS.md`, and final exact-head CI status.

@@ -233,9 +233,8 @@ test.describe("IMPROV INSIGHT", () => {
     await page.locator("#theory-scale").selectOption("dorian");
     await page.locator("#theory-mood").selectOption("jazzy");
 
-    const toolboxLauncher = page.locator("#theory-circle-improv-trigger");
     const circleLauncher = page.locator("#circle-improv-trigger");
-    await expectInsightActionPalette(toolboxLauncher);
+    await expect(page.locator("#theory-circle-improv-trigger")).toHaveCount(0);
     await expectInsightActionPalette(circleLauncher);
     await circleLauncher.click();
 
@@ -263,7 +262,8 @@ test.describe("IMPROV INSIGHT", () => {
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await page.locator("#theory-root").selectOption("F");
     await page.locator("#theory-scale").selectOption("major_blues");
-    await page.locator("#theory-circle-improv-trigger").click();
+    await expect(page.locator("#theory-circle-improv-trigger")).toHaveCount(0);
+    await page.locator("#circle-improv-trigger").click();
 
     const improvAb = page.locator('[data-scale-result="F Major Blues"] [data-scale-note="Ab"]');
     await expect(improvAb).toBeVisible();

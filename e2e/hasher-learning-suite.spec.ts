@@ -494,10 +494,10 @@ test.describe("HASHER learning suite", () => {
     await expect(network.getByRole("img", { name: "C relationship network" })).toBeVisible();
     await expect(network.getByRole("list", { name: "Network nodes" }).getByRole("listitem")).toHaveCount(18);
     await expect(network.getByLabel("Relationship strength legend")).toContainText("Strong relationship");
-    await network.getByRole("button", { name: "Zoom in" }).click();
-    await expect(network.getByText("115%", { exact: true })).toBeVisible();
-    await network.getByRole("button", { name: "Reset network view" }).click();
-    await expect(network.getByText("100%", { exact: true })).toBeVisible();
+    const graph = network.getByTestId("mode-network-graph-scroller");
+    await expect(graph).toHaveAttribute("data-graph-projection", "mobile-static");
+    await expect(graph.locator("[data-network-node]")).toHaveCount(11);
+    await expect(network.getByRole("group", { name: "Network viewport controls" })).toHaveCount(0);
     await expectNoDocumentOverflow(page);
 
     await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();

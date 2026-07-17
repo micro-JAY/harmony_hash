@@ -201,17 +201,15 @@ export function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion;
       </div>
 
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {METADATA_LABELS.map(([key, label]) => {
-          const neutral = key === "style";
-          return (
+        {METADATA_LABELS.map(([key, label]) => (
             <div
               key={key}
               className="min-w-0 rounded-lg px-2.5 py-2"
               data-insight-metadata={key}
-              data-insight-tone={neutral ? "neutral" : "pink"}
+              data-insight-tone="pink"
               style={{
-                backgroundColor: neutral ? "var(--surface-raised)" : "var(--music-insight-surface-bg)",
-                border: `1px solid ${neutral ? "var(--border-subtle)" : "var(--music-insight-surface-border)"}`,
+                backgroundColor: "var(--music-insight-surface-bg)",
+                border: "1px solid var(--music-insight-surface-border)",
               }}
             >
             <dt
@@ -223,7 +221,7 @@ export function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion;
             <dd
               className="mt-1 capitalize"
               style={{
-                color: neutral ? "var(--text-secondary)" : "var(--music-insight-surface-text)",
+                color: "var(--music-insight-surface-text)",
                 fontFamily: "var(--font-mono)",
                 fontSize: "var(--text-xs)",
               }}
@@ -231,8 +229,7 @@ export function ScaleResult({ suggestion, rank }: { suggestion: ScaleSuggestion;
               {t(suggestion.metadata[key])}
             </dd>
             </div>
-          );
-        })}
+          ))}
       </dl>
     </article>
   );
@@ -345,17 +342,26 @@ export default function ImprovInsight({
               <button
                 ref={glossaryTriggerRef}
                 type="button"
-                className="hh-icon-button"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center border-0 bg-transparent p-0"
                 aria-label={t("About Improv Insight vocabulary")}
                 onClick={() => setGlossaryOpen(true)}
                 style={{
                   minWidth: "var(--control-min-height)",
                   color: IMPROV_ACCENT,
-                  backgroundColor: "var(--music-insight-surface-bg)",
-                  borderColor: "var(--music-insight-surface-border)",
+                  backgroundColor: "transparent",
                 }}
               >
-                <CircleHelp size={17} aria-hidden="true" />
+                <span
+                  aria-hidden="true"
+                  data-testid="improv-vocabulary-icon"
+                  className="inline-flex h-5 w-5 items-center justify-center rounded-full"
+                  style={{
+                    backgroundColor: "var(--music-insight-surface-bg)",
+                    border: "1px solid var(--music-insight-surface-border)",
+                  }}
+                >
+                  <CircleHelp size={14} />
+                </span>
               </button>
             </div>
             <p className="mt-2 max-w-2xl" style={{ color: "var(--text-secondary)" }}>

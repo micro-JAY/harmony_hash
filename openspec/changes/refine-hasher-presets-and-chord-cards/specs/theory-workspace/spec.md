@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Dedicated IMPROV INSIGHT presentation
-Every IMPROV INSIGHT launch control and in-panel navigation/accent surface SHALL use the dedicated pale-pink `music-insight` token family instead of the HASHER accent or TUNE TOOLBOX academy-blue families. Match scores and named-degree colors SHALL remain independent semantic exceptions, and Style metadata SHALL use a neutral surface.
+Every IMPROV INSIGHT launch control, metadata container, and in-panel navigation/accent surface SHALL use the dedicated pale-pink `music-insight` token family instead of the HASHER accent or TUNE TOOLBOX academy-blue families. Match scores and named-degree colors SHALL remain independent semantic exceptions.
 
 #### Scenario: Launchers share one color language
 - **WHEN** IMPROV INSIGHT is available from HASHER, TUNE TOOLBOX, or Circle of Fifths
@@ -11,9 +11,13 @@ Every IMPROV INSIGHT launch control and in-panel navigation/accent surface SHALL
 - **WHEN** Whole Progression, Per Chord, a chord scope, vocabulary help, or another IMPROV-owned control is selected
 - **THEN** its accent SHALL use the dedicated translucent pink surface/text/border tokens rather than gold or blue
 
-#### Scenario: Style remains neutral
+#### Scenario: Style shares the IMPROV metadata theme
 - **WHEN** Style metadata displays Tonal, Modal, or Blues
-- **THEN** its value and container SHALL use neutral text/surface/border tokens rather than a blue or pink categorical fill
+- **THEN** its value and container SHALL use the same pale-pink text/surface/border tokens as Motion, Tension, and Palette
+
+#### Scenario: Vocabulary launcher stays circular
+- **WHEN** the vocabulary `?` renders beside the IMPROV INSIGHT heading
+- **THEN** its visible pink treatment SHALL be a circular glyph inside a transparent minimum-size hit target
 
 #### Scenario: Score and degree exceptions
 - **WHEN** scale suggestions render inside the pink panel

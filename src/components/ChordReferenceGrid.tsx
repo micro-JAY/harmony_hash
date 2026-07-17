@@ -21,8 +21,10 @@ import type { ScaleType } from "../lib/types";
 import { fretboardIntervalColor } from "./fretboardVisuals";
 import { useT } from "../i18n/I18nContext";
 import {
+  chordFamilyColor,
   chordFamilyPresentation,
 } from "../lib/visual/chordFamily";
+import type { ChordFamily } from "../lib/visual/chordFamily";
 
 export type SuggestionMode = "off" | "key" | "next" | "jazz" | "modal";
 
@@ -157,6 +159,15 @@ const GROUP_LABELS: { id: QualityGroup | "all"; label: string }[] = [
   { id: "alt",   label: "Alt" },
   { id: "all",   label: "All" },
 ];
+
+const CHORD_FAMILY_LEGEND = [
+  { family: "major", label: "Major" },
+  { family: "minor", label: "Minor" },
+  { family: "dominant", label: "Dominant" },
+  { family: "suspended", label: "Suspended" },
+  { family: "diminished", label: "Diminished" },
+  { family: "augmented", label: "Augmented" },
+] as const satisfies ReadonlyArray<{ family: ChordFamily; label: string }>;
 
 // ─── Props ──────────────────────────────────────────────────────────
 
@@ -491,43 +502,95 @@ export default function ChordReferenceGrid({
               </div>
             )}
 
-            {/* Group Filter Chips */}
             <div
+              data-testid="chord-grid-toolbar"
               style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "var(--space-2)",
+                display: "grid",
+                gridTemplateColumns: "28px minmax(0, 1fr)",
+                columnGap: "var(--space-1)",
                 padding: "var(--space-3) 0 var(--space-2)",
               }}
             >
-              {GROUP_LABELS.map((g) => {
-                const active = activeGroup === g.id;
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => handleGroupSelect(g.id)}
-                    aria-pressed={active}
-                    style={{
-                      fontSize: "var(--text-xs)",
-                      minHeight: "2rem",
-                      padding: "var(--space-1) var(--space-2)",
-                      borderRadius: "var(--radius-full)",
-                      border: active
-                        ? "1px solid var(--border-default)"
-                        : "1px solid var(--border-subtle)",
-                      background: active ? "var(--surface-raised)" : "transparent",
-                      color: active ? "var(--text-primary)" : "var(--text-muted)",
-                      fontWeight: active ? "var(--weight-semibold)" : "normal",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {t(g.label)}
-                  </button>
-                );
-              })}
+              <span aria-hidden="true" />
+              <div
+                data-testid="chord-grid-toolbar-content"
+                style={{
+                  display: "flex",
+                  minWidth: 0,
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  gap: "var(--space-2) var(--space-4)",
+                }}
+              >
+                <div
+                  role="group"
+                  aria-label={t("Chord quality groups")}
+                  style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}
+                >
+                  {GROUP_LABELS.map((g) => {
+                    const active = activeGroup === g.id;
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => handleGroupSelect(g.id)}
+                        aria-pressed={active}
+                        style={{
+                          fontSize: "var(--text-xs)",
+                          minHeight: "2rem",
+                          padding: "var(--space-1) var(--space-2)",
+                          borderRadius: "var(--radius-full)",
+                          border: active
+                            ? "1px solid var(--border-default)"
+                            : "1px solid var(--border-subtle)",
+                          background: active ? "var(--surface-raised)" : "transparent",
+                          color: active ? "var(--text-primary)" : "var(--text-muted)",
+                          fontWeight: active ? "var(--weight-semibold)" : "normal",
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {t(g.label)}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <aside
+                  aria-label={t("Chord family color legend")}
+                  data-testid="chord-family-legend"
+                  style={{
+                    display: "flex",
+                    minWidth: 0,
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    gap: "var(--space-1) var(--space-3)",
+                    color: "var(--text-secondary)",
+                    fontSize: "var(--text-xs)",
+                  }}
+                >
+                  <span className="label-caps" style={{ color: "var(--text-muted)" }}>
+                    {t("Chord colors")}
+                  </span>
+                  {CHORD_FAMILY_LEGEND.map(({ family, label }) => (
+                    <span
+                      key={family}
+                      data-chord-family={family}
+                      className="inline-flex items-center gap-1.5"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: chordFamilyColor(family) }}
+                      />
+                      {t(label)}
+                    </span>
+                  ))}
+                </aside>
+              </div>
             </div>
 
             {/* Grid */}

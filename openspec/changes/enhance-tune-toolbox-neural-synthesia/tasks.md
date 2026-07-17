@@ -6,12 +6,12 @@
 
 ## 2. Scale Synthesia And Toolbox Actions
 
-- [ ] 2.1 Add immutable Triad, Seventh, Sixth, Sus2, and Sus4 arpeggio definitions plus internal 120 BPM note-length timing helpers.
-- [ ] 2.2 Add pure unit tests for every arpeggio sequence, all five note-length onset grids, validation, and frozen catalog behavior.
-- [ ] 2.3 Add the arpeggio and note-length controls, material-neutral `PLAY`/`STOP` transport, and immediate collapse cleanup in Scale Synthesia.
-- [ ] 2.4 Remove Circle/Scale collapsed-header action duplicates and apply the expanded-only `HASH it` and `IMPROV INSIGHT` copy in English and Japanese.
-- [ ] 2.5 Add focused component/browser regressions for action counts, labels, timing choices, playback cursor lifecycle, and HASHER handoff behavior.
-- [ ] 2.6 Run build, lint, focused Vitest, and Scale/Circle Playwright checks; commit the Scale/action milestone separately.
+- [x] 2.1 Add immutable Triad, Seventh, Sixth, Sus2, and Sus4 arpeggio definitions plus internal 120 BPM note-length timing helpers.
+- [x] 2.2 Add pure unit tests for every arpeggio sequence, all five note-length onset grids, validation, and frozen catalog behavior.
+- [x] 2.3 Add the arpeggio and note-length controls, material-neutral `PLAY`/`STOP` transport, and immediate collapse cleanup in Scale Synthesia.
+- [x] 2.4 Remove Circle/Scale collapsed-header action duplicates and apply the expanded-only `HASH it` and `IMPROV INSIGHT` copy in English and Japanese.
+- [x] 2.5 Add focused component/browser regressions for action counts, labels, timing choices, playback cursor lifecycle, and HASHER handoff behavior.
+- [x] 2.6 Run build, lint, focused Vitest, and Scale/Circle Playwright checks; commit the Scale/action milestone separately.
 
 ## 3. Note Neural Network Layout And Interaction
 

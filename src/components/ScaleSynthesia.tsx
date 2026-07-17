@@ -4,6 +4,7 @@ import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
 import { playSchedule, type PlaybackHandle } from "../lib/audioEngine";
 import {
+  ARPEGGIO_PATTERNS,
   buildFretboardPattern,
   buildFretboardRows,
   buildScalePlaybackSchedule,
@@ -12,6 +13,8 @@ import {
   fretboardTuningDefinitionFor,
   MOODS,
   moodDefinitionFor,
+  PRACTICE_NOTE_LENGTHS,
+  practiceNoteDurationSeconds,
   SCALE_FAMILIES,
   SCALE_LEARNING,
   scaleLearningDefinitionFor,
@@ -23,6 +26,7 @@ import {
   type MoodId,
   type PracticeDirection,
   type PracticeMaterial,
+  type PracticeNoteLength,
   type ScaleFamilyId,
   type ScaleFormulaType,
   type FretboardStringRow,
@@ -100,6 +104,7 @@ export default function ScaleSynthesia({
   const [direction, setDirection] = useState<PracticeDirection>("ascending");
   const [material, setMaterial] = useState<PracticeMaterial>("scale");
   const [arpeggioType, setArpeggioType] = useState<ArpeggioType>("triad");
+  const [noteLength, setNoteLength] = useState<PracticeNoteLength>("eighth");
   const [activeSequenceIndex, setActiveSequenceIndex] = useState<number | null>(null);
   const [previousActive, setPreviousActive] = useState(active);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -207,7 +212,10 @@ export default function ScaleSynthesia({
     setActiveSequenceIndex(0);
     if (context.state === "suspended") await context.resume();
     playbackRef.current = playSchedule(
-      buildScalePlaybackSchedule(practiceSequence),
+      buildScalePlaybackSchedule(
+        practiceSequence,
+        material === "arpeggio" ? practiceNoteDurationSeconds(noteLength) : undefined,
+      ),
       context,
       (index) => {
         setActiveSequenceIndex(index);
@@ -315,15 +323,31 @@ export default function ScaleSynthesia({
               onChange={(value) => setArpeggioType(value as ArpeggioType)}
               className="w-44"
             >
-              <option value="triad">{t("Triad")} (1 3 5)</option>
-              <option value="seventh">{t("Seventh")} (1 3 5 7)</option>
+              {ARPEGGIO_PATTERNS.map((pattern) => (
+                <option key={pattern.id} value={pattern.id}>
+                  {t(pattern.label)} ({pattern.degrees.join(" ")})
+                </option>
+              ))}
+            </WorkspaceSelectControl>
+          ) : null}
+          {material === "arpeggio" ? (
+            <WorkspaceSelectControl
+              id="arpeggio-note-length"
+              label="Note length"
+              value={noteLength}
+              onChange={(value) => setNoteLength(value as PracticeNoteLength)}
+              className="w-32"
+            >
+              {PRACTICE_NOTE_LENGTHS.map((definition) => (
+                <option key={definition.id} value={definition.id}>{definition.label}</option>
+              ))}
             </WorkspaceSelectControl>
           ) : null}
           <button
             type="button"
             onClick={() => void handlePlayback()}
             className="hh-action ml-auto"
-            aria-label={t(isPlaying ? "Stop scale playback" : "Play scale")}
+            aria-label={t(isPlaying ? "Stop practice playback" : "Play practice sequence")}
             style={{
               backgroundColor: "var(--interactive-accent-bg)",
               border: "1px solid var(--interactive-accent-border)",
@@ -331,7 +355,7 @@ export default function ScaleSynthesia({
             }}
           >
             {isPlaying ? <Pause size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}
-            {t(isPlaying ? "Stop scale" : "Play scale")}
+            {t(isPlaying ? "STOP" : "PLAY")}
           </button>
           {onUseInHasher ? (
             <button
@@ -344,7 +368,7 @@ export default function ScaleSynthesia({
                 color: "var(--interactive-accent-text)",
               }}
             >
-              {t("Use this in Hasher")}
+              {t("HASH it")}
             </button>
           ) : null}
         </section>

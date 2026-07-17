@@ -50,7 +50,6 @@ interface TheoryToolSectionProps {
   summary: string;
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
-  action?: ReactNode;
   children: ReactNode;
 }
 
@@ -66,7 +65,6 @@ function TheoryToolSection({
   summary,
   expanded,
   onExpandedChange,
-  action,
   children,
 }: TheoryToolSectionProps) {
   const t = useT();
@@ -99,7 +97,6 @@ function TheoryToolSection({
             </span>
           </span>
         </button>
-        {action}
       </header>
       <div
         id={bodyId}
@@ -238,21 +235,6 @@ export default function TheoryWorkspace({
             summary={contextSummary}
             expanded={disclosures.circle}
             onExpandedChange={(expanded) => onDisclosureChange("circle", expanded)}
-            action={(
-              <button
-                id="theory-circle-improv-trigger"
-                type="button"
-                onClick={() => onOpenImprov(context.root, "theory-circle-improv-trigger")}
-                className="hh-action"
-                style={{
-                  backgroundColor: "var(--music-insight-action-bg)",
-                  border: "1px solid var(--music-insight-action-border)",
-                  color: "var(--music-insight-action-text)",
-                }}
-              >
-                {t("Open Improv Insight")}
-              </button>
-            )}
           >
             <Suspense fallback={<span className="readout">{t("Loading Circle of Fifths…")}</span>}>
               <CircleOfFifths
@@ -272,20 +254,6 @@ export default function TheoryWorkspace({
             summary={contextSummary}
             expanded={disclosures.scales}
             onExpandedChange={(expanded) => onDisclosureChange("scales", expanded)}
-            action={(
-              <button
-                type="button"
-                onClick={() => onUseScaleInHasher(context.root, context.scaleId)}
-                className="hh-action"
-                style={{
-                  backgroundColor: "var(--interactive-accent-bg)",
-                  border: "1px solid var(--interactive-accent-border)",
-                  color: "var(--interactive-accent-text)",
-                }}
-              >
-                {t("Use this in Hasher")}
-              </button>
-            )}
           >
             <Suspense fallback={<span className="readout">{t("Loading Scale Synthesia…")}</span>}>
               <ScaleSynthesia

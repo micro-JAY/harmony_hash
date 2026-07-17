@@ -89,7 +89,7 @@ test.describe("Circle of Fifths", () => {
     const gMajor = page.getByRole("option", { name: /G major, relative E minor/ });
     await gMajor.focus();
     await gMajor.press("ArrowRight");
-    await page.getByRole("button", { name: "Use D in HASHER" }).click();
+    await page.getByRole("button", { name: "HASH it", exact: true }).click();
 
     await expect(page.getByRole("button", { name: "HASHER" })).toHaveAttribute(
       "aria-pressed",
@@ -177,7 +177,7 @@ test.describe("Circle of Fifths", () => {
     await started;
 
     await page.getByRole("button", { name: "TUNE TOOLBOX" }).click();
-    await page.getByRole("button", { name: "Use C in HASHER" }).click();
+    await page.getByRole("button", { name: "HASH it", exact: true }).click();
     releaseResponse();
     await expect(page.getByTestId("chord-card")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);
@@ -212,5 +212,16 @@ test.describe("Circle of Fifths", () => {
     expect(labelledBy).toBe("theory-tool-circle-heading");
     await expect(page.locator(`#${labelledBy}`)).toHaveText("Circle of Fifths");
     expect(issues).toEqual([]);
+  });
+
+  test("keeps one expanded-only HASH and IMPROV action", async ({ page }) => {
+    await openCircle(page);
+    await expect(page.getByRole("button", { name: "HASH it", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "IMPROV INSIGHT", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Open IMPROV INSIGHT", exact: true })).toHaveCount(0);
+
+    await page.getByRole("button", { name: /Circle of Fifths/ }).first().click();
+    await expect(page.getByRole("button", { name: "HASH it", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "IMPROV INSIGHT", exact: true })).toHaveCount(0);
   });
 });

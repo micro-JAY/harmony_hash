@@ -795,3 +795,13 @@ The final Browser pass measured desktop navigation within 3px of the viewport ce
 ### Exact-head publication gate
 
 Draft [#75](https://github.com/micro-JAY/harmony_hash/pull/75) is updated with the complete A1–A18 scope, root-cause note, validation, milestone commits, and committed desktop/mobile/IMPROV screenshots. Exact published head `1a3d96d` passed both build/test jobs, both complete 171-scenario Linux Playwright jobs in 3m59s and 3m52s, and Cloudflare Workers build `cd1cb35a-fa95-4784-af3c-3041ed177f17`. The PR remains draft, mergeable, undeployed, and unarchived pending user approval.
+
+---
+
+## 2026-07-17 11:05 JST — PR #75 post-merge grid and IMPROV polish
+
+PR [#75](https://github.com/micro-JAY/harmony_hash/pull/75) was squash-merged as `887d2f6` before this follow-up. Draft [#76](https://github.com/micro-JAY/harmony_hash/pull/76) therefore starts cleanly from current `main` and carries only the requested presentation corrections. The chord-grid toolbar now shares the grid's root-column geometry, and a compact six-family legend uses the existing major, minor, dominant, suspended, diminished, and augmented tokens without changing the matrix columns. The IMPROV vocabulary launcher retains a 44px accessible target while rendering only a centered 20px circular pink glyph, removing the browser-independent rectangular highlight. STYLE now uses the same soft-pink metadata treatment as Motion, Tension, and Palette.
+
+**Verification:** production build and lint pass; Vitest passes 48 files / 1,270 tests; the CI-equivalent Chromium Playwright suite passes 171/171; strict OpenSpec and diff hygiene pass. Desktop and 375px assertions prove legend/grid alignment, containment, no document overflow, circular help-icon geometry, and identical STYLE metadata colors. Exact implementation head `1cdc367` passed both GitHub build/test jobs, both complete Linux Playwright jobs in 4m01s and 4m04s, and Cloudflare Workers build `f25ef48d-d9b1-47dd-aa61-1ad1f5cbcf76`.
+
+**Current state:** draft [#76](https://github.com/micro-JAY/harmony_hash/pull/76) remains unmerged and undeployed. OpenSpec archive/sync remains deferred until user-approved merge; the local `.agents/` and `AGENTS.md` files remain untracked and untouched.

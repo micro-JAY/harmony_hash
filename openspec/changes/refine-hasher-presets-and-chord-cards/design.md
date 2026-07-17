@@ -91,7 +91,7 @@ General reinterpretation of every slash target as tonicization was rejected beca
 
 ### 9. IMPROV INSIGHT owns a dedicated semantic visual layer
 
-All launch actions use one `music-insight` token family: near-white pink for the primary action and restrained translucent pink for selected tabs, metadata categories, help, and panel borders. Match percentages/meters remain on the independent low/mid/high score gradient; named-degree notes remain on the shared interval palette; Style metadata is deliberately neutral rather than recolored pink. The per-chord selector uses the IMPROV surface family rather than HASHER gold or Toolbox blue.
+All launch actions use one `music-insight` token family: near-white pink for the primary action and restrained translucent pink for selected tabs, all four metadata categories, help, and panel borders. Match percentages/meters remain on the independent low/mid/high score gradient, and named-degree notes remain on the shared interval palette. The per-chord selector uses the IMPROV surface family rather than HASHER gold or Toolbox blue. The vocabulary launcher keeps a 44px transparent hit target around a 20px circular pink glyph so its accessible target never renders as a rectangular highlight.
 
 The shared `intervalColor()` helper remains the single source for SCALE SYNTHESIA, IMPROV INSIGHT, and FRET FINDER. Suggested scale names use the Root degree token and each note uses its formula interval, so examples such as Ab in F Major Blues resolve to the same minor-third purple everywhere. The scale title stays on the display face. Result rows cap the match block at 14rem, reduce inter-note spacing, and remain inside the centered 72rem content rail; generated chord cards remain the only allowed wider exception.
 
@@ -110,7 +110,7 @@ The progression action rail exposes exactly `RANDOMIZE (UNLOCKED VOICES)`, icon-
 - **[Risk] Fluid piano keys make labels crowded.** → Adapt label size/visibility independently from active-key visibility and retain complete accessible note names.
 - **[Risk] Outside-drop removal fires for a cancelled native drag.** → Remove only on an actual captured `drop` or threshold-qualified `pointerup`; keep `dragend`, Escape, `pointercancel`, and lost capture reset-only.
 - **[Risk] Global family colors overwrite score, focus, or relationship meaning.** → Apply family presentation only to chord-name text/tint layers and retain the existing non-color/semantic state layers.
-- **[Risk] Pink IMPROV accents flatten musical colors.** → Keep match gradients and interval/named-degree colors explicitly independent; make Style metadata neutral.
+- **[Risk] Pink IMPROV accents flatten musical colors.** → Keep match gradients and interval/named-degree colors explicitly independent while using pink only for the four descriptive metadata surfaces.
 - **[Risk] Header centering regresses Japanese or narrow layouts.** → Keep the desktop grid decision breakpoint-scoped and test English/Japanese geometry at desktop, tablet, and mobile widths.
 
 ## Migration Plan

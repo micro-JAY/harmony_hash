@@ -64,13 +64,15 @@ describe("ImprovInsight presentation", () => {
     );
   });
 
-  it("keeps scale names on the display face and metadata values neutral", () => {
+  it("keeps scale names on the display face and all metadata on the pink surface", () => {
     const markup = renderInsight();
 
     expect(markup).toContain("font-family:var(--font-display)");
-    expect(markup).toMatch(/data-insight-metadata="style" data-insight-tone="neutral"[\s\S]*?background-color:var\(--surface-raised\)[\s\S]*?color:var\(--text-secondary\)/);
+    expect(markup).toMatch(/data-insight-metadata="style" data-insight-tone="pink"[\s\S]*?background-color:var\(--music-insight-surface-bg\)[\s\S]*?color:var\(--music-insight-surface-text\)/);
     expect(markup).toMatch(/data-insight-metadata="motion" data-insight-tone="pink"[\s\S]*?var\(--music-insight-surface-bg\)/);
     expect(markup).not.toMatch(/data-insight-metadata="style"[\s\S]*?var\(--text-academy\)/);
+    expect(markup).toContain('data-testid="improv-vocabulary-icon"');
+    expect(markup).toContain("background-color:transparent");
   });
 
   it("uses only the dedicated music-insight treatment for launch and panel accents", () => {

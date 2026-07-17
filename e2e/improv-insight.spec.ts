@@ -107,16 +107,46 @@ test.describe("IMPROV INSIGHT", () => {
     );
     const styleMetadata = cMajor.locator('[data-insight-metadata="style"]');
     const motionMetadata = cMajor.locator('[data-insight-metadata="motion"]');
-    await expect(styleMetadata).toHaveAttribute("data-insight-tone", "neutral");
+    await expect(styleMetadata).toHaveAttribute("data-insight-tone", "pink");
     await expect(motionMetadata).toHaveAttribute("data-insight-tone", "pink");
-    await expect(styleMetadata).toHaveAttribute("style", /--surface-raised/);
-    await expect(styleMetadata.locator("dd")).toHaveCSS("color", "rgb(168, 169, 184)");
+    await expect(styleMetadata).toHaveAttribute("style", /--music-insight-surface-bg/);
+    expect(await styleMetadata.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(
+      await motionMetadata.evaluate((element) => getComputedStyle(element).backgroundColor),
+    );
+    expect(await styleMetadata.locator("dd").evaluate((element) => getComputedStyle(element).color)).toBe(
+      await motionMetadata.locator("dd").evaluate((element) => getComputedStyle(element).color),
+    );
     const panelBox = await page.getByTestId("improv-insight").locator("#improv-insight-panel").boundingBox();
     const meterBox = await cMajor.getByRole("meter", { name: "C Major match" }).boundingBox();
     expect(panelBox?.width).toBeLessThanOrEqual(1152);
     expect(meterBox?.width).toBeLessThanOrEqual(224);
 
-    await page.getByRole("button", { name: "About Improv Insight vocabulary" }).click();
+    const vocabularyButton = page.getByRole("button", { name: "About Improv Insight vocabulary" });
+    const vocabularyIcon = page.getByTestId("improv-vocabulary-icon");
+    const [buttonVisual, iconVisual] = await Promise.all([
+      vocabularyButton.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { background: style.backgroundColor, width: element.getBoundingClientRect().width };
+      }),
+      vocabularyIcon.evaluate((element) => {
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return {
+          background: style.backgroundColor,
+          borderRadius: style.borderRadius,
+          width: rect.width,
+          height: rect.height,
+        };
+      }),
+    ]);
+    expect(buttonVisual.background).toBe("rgba(0, 0, 0, 0)");
+    expect(buttonVisual.width).toBe(44);
+    expect(iconVisual.background).not.toBe("rgba(0, 0, 0, 0)");
+    expect(iconVisual.width).toBe(20);
+    expect(iconVisual.height).toBe(20);
+    expect(Number.parseFloat(iconVisual.borderRadius)).toBeGreaterThanOrEqual(10);
+
+    await vocabularyButton.click();
     const glossary = page.getByRole("dialog", { name: "About the vocabulary" });
     await expect(glossary).toContainText("Motion");
     await expect(glossary).toContainText("How the scale line tends to move.");

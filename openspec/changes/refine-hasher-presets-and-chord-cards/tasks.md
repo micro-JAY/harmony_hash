@@ -79,3 +79,10 @@
 ## 9. Merge and Archive Boundary
 
 - [ ] 9.1 After PR #75 merges, sync/archive this change and update canonical specs in a separate reviewed documentation boundary.
+
+## 10. Focused Chord-Grid and IMPROV Polish
+
+- [x] 10.1 Align the chord-grid toolbar to the first quality column and add a compact six-family legend that wraps inside the panel.
+- [x] 10.2 Replace the visible rectangular IMPROV vocabulary hit target with a circular pink glyph inside a transparent accessible button.
+- [x] 10.3 Apply the existing pale-pink metadata treatment to Style without changing match or named-degree colors.
+- [x] 10.4 Run focused desktop/mobile rendered checks, build, lint, affected Playwright suites, and strict OpenSpec validation before updating PR #75.

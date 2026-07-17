@@ -18,3 +18,8 @@ The chord reference grid SHALL identify every visible quality column with the sh
 #### Scenario: Non-color and contrast access
 - **WHEN** any quality header is presented
 - **THEN** its visible text SHALL identify the quality without color and the foreground/surface combination SHALL meet the tested contrast requirement
+
+#### Scenario: Aligned family legend
+- **WHEN** the chord reference grid opens
+- **THEN** a compact six-family color legend SHALL align with the first quality column without changing the grid column sizes
+- **AND** the legend SHALL wrap inside the grid panel without document overflow at narrow widths

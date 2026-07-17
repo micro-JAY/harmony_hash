@@ -68,6 +68,24 @@ test.describe("global chord-family presentation", () => {
   test("colors every grid family while keeping blue roots and match scores independent", async ({ page }) => {
     await openChordGrid(page);
     const panel = page.getByTestId("chord-grid-panel");
+    const legend = panel.getByTestId("chord-family-legend");
+
+    await expect(legend).toBeVisible();
+    await expect(legend.locator("[data-chord-family]")).toHaveCount(6);
+    for (const [, family] of FAMILY_CHORDS) {
+      await expect(legend.locator(`[data-chord-family="${family}"]`)).toBeVisible();
+    }
+
+    const [toolbarBox, firstHeaderBox, panelBox] = await Promise.all([
+      panel.getByTestId("chord-grid-toolbar-content").boundingBox(),
+      panel.getByTestId("chord-quality-header-M").boundingBox(),
+      panel.boundingBox(),
+    ]);
+    if (!toolbarBox || !firstHeaderBox || !panelBox) {
+      throw new Error("Chord-grid alignment targets must have rendered bounds.");
+    }
+    expect(Math.abs(toolbarBox.x - firstHeaderBox.x)).toBeLessThanOrEqual(1);
+    expect(toolbarBox.x + toolbarBox.width).toBeLessThanOrEqual(panelBox.x + panelBox.width);
 
     for (const [header, family] of [["M", "major"], ["m", "minor"], ["7", "dominant"]] as const) {
       const familyHeader = panel.getByTestId(`chord-quality-header-${header}`);
@@ -104,6 +122,23 @@ test.describe("global chord-family presentation", () => {
     await expectFamilyPresentation(augmentedHeader, "augmented");
 
     await expect(panel.locator('button[data-chord-name] [data-chord-family]')).toHaveCount(0);
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    const [mobileLegendBox, mobileToolbarBox, mobileFirstHeaderBox, mobilePanelBox] = await Promise.all([
+      legend.boundingBox(),
+      panel.getByTestId("chord-grid-toolbar-content").boundingBox(),
+      panel.locator('[data-testid^="chord-quality-header-"]').first().boundingBox(),
+      panel.boundingBox(),
+    ]);
+    expect(Math.abs((mobileToolbarBox?.x ?? 0) - (mobileFirstHeaderBox?.x ?? 0)))
+      .toBeLessThanOrEqual(1);
+    expect(Math.abs((mobileLegendBox?.x ?? 0) - (mobileFirstHeaderBox?.x ?? 0)))
+      .toBeLessThanOrEqual(1);
+    expect(mobileLegendBox?.x).toBeGreaterThanOrEqual(mobilePanelBox?.x ?? 0);
+    expect((mobileLegendBox?.x ?? 0) + (mobileLegendBox?.width ?? 0))
+      .toBeLessThanOrEqual((mobilePanelBox?.x ?? 0) + (mobilePanelBox?.width ?? 0));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth))
+      .toBeLessThanOrEqual(await page.evaluate(() => document.documentElement.clientWidth));
   });
 
   test("colors Circle diatonic chord labels without replacing relationship text", async ({ page }) => {

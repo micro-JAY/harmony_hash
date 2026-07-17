@@ -25,11 +25,11 @@
 
 ## 4. Scope And Release Validation
 
-- [ ] 4.1 Run Browser QA through Scale playback/actions, Circle handoffs, graph inspection/recentering, chord details, workspace round trips, and desktop/tablet/mobile containment with clean console output.
-- [ ] 4.2 Run the exact full gate: production build, lint, all Vitest, all Playwright, strict OpenSpec, and dependency/Worker packaging checks applicable to the diff.
-- [ ] 4.3 Prove no HASHER or FRET FINDER source file changed from the branch base and run their focused existing Playwright regressions plus the full suite.
-- [ ] 4.4 Audit the final diff for design-system, React performance, accessibility, localization, snapshot, debug-artifact, and unrelated-scope regressions.
-- [ ] 4.5 Reconcile `docs/long_horizon_plan.md` and `docs/long_horizon_log.md` with exact test/browser evidence and commit the validation ledger separately.
+- [x] 4.1 Run Browser QA through Scale playback/actions, Circle handoffs, graph inspection/recentering, chord details, workspace round trips, and desktop/tablet/mobile containment with clean console output.
+- [x] 4.2 Run the exact full gate: production build, lint, all Vitest, all Playwright, strict OpenSpec, and dependency/Worker packaging checks applicable to the diff.
+- [x] 4.3 Prove no HASHER or FRET FINDER source file changed from the branch base and run their focused existing Playwright regressions plus the full suite.
+- [x] 4.4 Audit the final diff for design-system, React performance, accessibility, localization, snapshot, debug-artifact, and unrelated-scope regressions.
+- [x] 4.5 Reconcile `docs/long_horizon_plan.md` and `docs/long_horizon_log.md` with exact test/browser evidence and commit the validation ledger separately.
 
 ## 5. Publication And Branch Hygiene
 

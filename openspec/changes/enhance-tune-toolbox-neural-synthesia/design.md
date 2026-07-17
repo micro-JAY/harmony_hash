@@ -60,4 +60,3 @@ Use literal `#000` only on the graph-canvas surface as the explicit user-approve
 - **[Risk] Long note lengths make tests or collapse cleanup flaky.** → Test pure schedules directly, stub AudioContext in browser tests, and retain the existing immediate stop-on-collapse cleanup.
 - **[Risk] Mobile still pays for the desktop graph.** → Select one layout/render path from a small viewport subscription and do not mount desktop controls or animated SVG groups on mobile.
 - **[Risk] Scope leaks into HASHER/FRET FINDER.** → Stage explicit files, assert their source paths are unchanged from the branch base, and run their existing focused plus full browser regressions.
-

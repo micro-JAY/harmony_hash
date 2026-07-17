@@ -143,4 +143,3 @@ Note Neural Network SHALL render a true-black, deterministic relationship graph 
 - **WHEN** the graph is viewed at 375px width
 - **THEN** it SHALL render a bounded static projection with one centered active scale, up to six related scale/key nodes, and up to four representative chord nodes
 - **AND** it SHALL omit graph pan, zoom, reset, drag, double-click, and animated-entry behavior while retaining the full semantic list/detail path below
-

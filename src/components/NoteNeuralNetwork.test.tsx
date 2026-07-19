@@ -29,6 +29,9 @@ describe("NoteNeuralNetwork", () => {
     expect(markup).toMatch(/<ul[^>]+aria-label="Network nodes"[^>]*>.*<li[^>]*><button/s);
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain('aria-label="Relationship strength legend"');
+    expect(markup).toContain('<canvas');
+    expect(markup).toContain('data-graph-projection="desktop-force-canvas"');
+    expect(markup).toContain("Drag nodes to reshape the network");
     expect(markup).toContain("E Harmonic Minor");
     expect(markup).toContain("1 · 2 · b3 · 4 · 5 · b6 · 7");
     expect(markup).toContain("Open in SCALE SYNTHESIA");

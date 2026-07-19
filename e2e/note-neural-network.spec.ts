@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
 interface BrowserIssue {
@@ -40,11 +40,45 @@ async function openNetwork(
   }));
 }
 
+async function findCanvasNodePoint(
+  canvas: Locator,
+  targetNodeId: string,
+): Promise<Readonly<{ x: number; y: number }>> {
+  await canvas.scrollIntoViewIfNeeded();
+  const point = await canvas.evaluate((element, requestedId) => {
+    const rect = element.getBoundingClientRect();
+    const maximumRadius = Math.min(rect.width, rect.height) / 2 - 12;
+    for (let radius = 0; radius <= maximumRadius; radius += 6) {
+      for (let angleStep = 0; angleStep < 180; angleStep += 1) {
+        const angle = angleStep / 180 * Math.PI * 2;
+        const x = rect.width / 2 + Math.cos(angle) * radius;
+        const y = rect.height / 2 + Math.sin(angle) * radius;
+        element.dispatchEvent(new PointerEvent("pointermove", {
+          bubbles: true,
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+          pointerId: 997,
+          pointerType: "mouse",
+        }));
+        if (element.dataset.hoveredNode === requestedId) {
+          return { x: rect.left + x, y: rect.top + y };
+        }
+      }
+    }
+    return null;
+  }, targetNodeId);
+  if (!point) throw new Error(`Unable to locate ${targetNodeId} on the NOTE NEURAL NETWORK canvas`);
+  return point;
+}
+
 test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
   test.describe.configure({ timeout: 90_000 });
 
-  test("renders a centered radial graph with redundant relationship cues", async ({ page }) => {
+  test("renders a centered high-DPI force canvas with redundant relationship cues", async ({ page }) => {
     const issues = collectBrowserIssues(page);
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: 2 });
+    });
     await page.setViewportSize({ width: 1280, height: 960 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await openNetwork(page, { root: "E", scale: "harmonic_minor" });
@@ -53,23 +87,26 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await expect(network).toHaveAccessibleName("NOTE NEURAL NETWORK");
     await expect(network.getByRole("img", { name: "E relationship network" })).toBeVisible();
     const graph = network.getByTestId("mode-network-graph-scroller");
-    await expect(graph).toHaveAttribute("data-graph-projection", "desktop-radial");
+    const canvas = network.getByTestId("note-network-canvas");
+    await expect(graph).toHaveAttribute("data-graph-projection", "desktop-force-canvas");
+    await expect(graph).toHaveAttribute("data-graph-motion", "settled");
     await expect(graph).toHaveCSS("background-color", "rgb(0, 0, 0)");
-    const selectedGraphNode = graph.locator('[data-network-node="scale:E:harmonic_minor"]');
-    const [graphBox, selectedGraphNodeBox] = await Promise.all([
-      graph.boundingBox(),
-      selectedGraphNode.boundingBox(),
-    ]);
-    expect(graphBox).not.toBeNull();
-    expect(selectedGraphNodeBox).not.toBeNull();
-    expect(Math.abs(
-      selectedGraphNodeBox!.x + selectedGraphNodeBox!.width / 2
-      - (graphBox!.x + graphBox!.width / 2),
-    )).toBeLessThanOrEqual(1);
-    expect(Math.abs(
-      selectedGraphNodeBox!.y + selectedGraphNodeBox!.height / 2
-      - (graphBox!.y + graphBox!.height / 2),
-    )).toBeLessThanOrEqual(1);
+    await expect(canvas).toHaveAttribute("data-simulation-state", "settled");
+    await expect(canvas).toHaveAttribute("data-node-count", "18");
+    const canvasGeometry = await canvas.evaluate((element) => ({
+      backingHeight: element.height,
+      backingWidth: element.width,
+      cssHeight: Number(element.dataset.cssHeight),
+      cssWidth: Number(element.dataset.cssWidth),
+      dpr: Number(element.dataset.devicePixelRatio),
+      selectedX: Number(element.dataset.selectedNodeX),
+      selectedY: Number(element.dataset.selectedNodeY),
+    }));
+    expect(canvasGeometry.dpr).toBe(2);
+    expect(canvasGeometry.backingWidth).toBe(Math.round(canvasGeometry.cssWidth * 2));
+    expect(canvasGeometry.backingHeight).toBe(Math.round(canvasGeometry.cssHeight * 2));
+    expect(canvasGeometry.selectedX).toBeCloseTo(canvasGeometry.cssWidth / 2, 1);
+    expect(canvasGeometry.selectedY).toBeCloseTo(canvasGeometry.cssHeight / 2, 1);
     const semanticList = network.getByRole("list", { name: "Network nodes" });
     const listItems = semanticList.getByRole("listitem");
     const nodes = semanticList.getByRole("button");
@@ -85,71 +122,123 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await expect(network.getByLabel("Relationship strength legend")).toContainText("Strong relationship");
     await expect(network.getByLabel("Relationship strength legend")).toContainText("Weak relationship");
 
-    const labels = await network.locator("svg g[role=button] title").allTextContents();
+    const labels = await nodes.allTextContents();
     expect(labels.some((label) => label.length > 16)).toBe(true);
-    await page.waitForTimeout(650);
-    const overlaps = await graph.locator("[data-network-node]").evaluateAll((elements) => {
-      const bounds = elements.map((element) => ({
-        id: element.getAttribute("data-network-node"),
-        rect: element.getBoundingClientRect(),
-      }));
-      const collisions: string[] = [];
-      for (let leftIndex = 0; leftIndex < bounds.length; leftIndex += 1) {
-        for (let rightIndex = leftIndex + 1; rightIndex < bounds.length; rightIndex += 1) {
-          const left = bounds[leftIndex];
-          const right = bounds[rightIndex];
-          if (left.rect.left < right.rect.right && left.rect.right > right.rect.left
-            && left.rect.top < right.rect.bottom && left.rect.bottom > right.rect.top) {
-            collisions.push(`${left.id}/${right.id}`);
-          }
-        }
-      }
-      return collisions;
-    });
-    expect(overlaps).toEqual([]);
+    await canvas.scrollIntoViewIfNeeded();
+    const canvasBox = await canvas.boundingBox();
+    expect(canvasBox).not.toBeNull();
+    await page.mouse.move(
+      canvasBox!.x + canvasBox!.width / 2,
+      canvasBox!.y + canvasBox!.height / 2,
+    );
+    await expect(canvas).toHaveAttribute("data-hovered-node", "scale:E:harmonic_minor");
     await expect(network).toHaveScreenshot("note-neural-network-desktop.png", {
       animations: "allow",
     });
+    await canvas.evaluate(() => {
+      Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: 1.5 });
+      window.dispatchEvent(new Event("resize"));
+    });
+    await expect(canvas).toHaveAttribute("data-device-pixel-ratio", "1.50");
+    const resizedBackingStore = await canvas.evaluate((element) => ({
+      height: element.height,
+      width: element.width,
+      cssHeight: Number(element.dataset.cssHeight),
+      cssWidth: Number(element.dataset.cssWidth),
+    }));
+    expect(resizedBackingStore.width).toBe(Math.round(resizedBackingStore.cssWidth * 1.5));
+    expect(resizedBackingStore.height).toBe(Math.round(resizedBackingStore.cssHeight * 1.5));
     expect(issues).toEqual([]);
   });
 
   test("inspects on single click and recenters scales only on double click", async ({ page }) => {
     const issues = collectBrowserIssues(page);
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await openNetwork(page);
     const network = page.getByTestId("note-neural-network");
-    const graph = network.getByTestId("mode-network-graph-scroller");
-    const chord = graph.locator('[data-network-node="chord:C"]');
-    await chord.click();
+    const canvas = network.getByTestId("note-network-canvas");
+    const chordPoint = await findCanvasNodePoint(canvas, "chord:C");
+    await page.mouse.click(chordPoint.x, chordPoint.y);
     await expect(network.getByRole("complementary", { name: "C details" })).toBeVisible();
     await expect(page.locator("#theory-root")).toHaveValue("C");
     await expect(page.locator("#theory-scale")).toHaveValue("major");
-    await chord.dblclick();
+    await page.mouse.dblclick(chordPoint.x, chordPoint.y);
     await expect(page.locator("#theory-root")).toHaveValue("C");
     await expect(page.locator("#theory-scale")).toHaveValue("major");
 
-    const dorian = graph.locator('[data-network-node="scale:D:dorian"]');
-    await dorian.click();
+    const dorianPoint = await findCanvasNodePoint(canvas, "scale:D:dorian");
+    await page.mouse.click(dorianPoint.x, dorianPoint.y);
     await expect(network.getByRole("complementary", { name: "D Dorian details" })).toBeVisible();
     await expect(page.locator("#theory-root")).toHaveValue("C");
     await expect(page.locator("#theory-scale")).toHaveValue("major");
-    await dorian.dblclick();
+    await page.mouse.dblclick(dorianPoint.x, dorianPoint.y);
     await expect(page.locator("#theory-root")).toHaveValue("D");
     await expect(page.locator("#theory-scale")).toHaveValue("dorian");
-    const recentered = graph.locator('[data-network-node="scale:D:dorian"]');
-    const [recenteredGraphBox, recenteredNodeBox] = await Promise.all([
-      graph.boundingBox(),
-      recentered.boundingBox(),
-    ]);
-    expect(recenteredGraphBox).not.toBeNull();
-    expect(recenteredNodeBox).not.toBeNull();
-    expect(Math.abs(
-      recenteredNodeBox!.x + recenteredNodeBox!.width / 2
-      - (recenteredGraphBox!.x + recenteredGraphBox!.width / 2),
-    )).toBeLessThanOrEqual(1);
-    expect(Math.abs(
-      recenteredNodeBox!.y + recenteredNodeBox!.height / 2
-      - (recenteredGraphBox!.y + recenteredGraphBox!.height / 2),
-    )).toBeLessThanOrEqual(1);
+    await expect(canvas).toHaveAttribute("data-simulation-state", "settled");
+    const centered = await canvas.evaluate((element) => ({
+      height: Number(element.dataset.cssHeight),
+      selectedX: Number(element.dataset.selectedNodeX),
+      selectedY: Number(element.dataset.selectedNodeY),
+      width: Number(element.dataset.cssWidth),
+    }));
+    expect(centered.selectedX).toBeCloseTo(centered.width / 2, 1);
+    expect(centered.selectedY).toBeCloseTo(centered.height / 2, 1);
+    expect(issues).toEqual([]);
+  });
+
+  test("keeps physics active during node drag and supports background pan and cursor zoom", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await openNetwork(page);
+    const network = page.getByTestId("note-neural-network");
+    const canvas = network.getByTestId("note-network-canvas");
+    await expect.poll(async () => canvas.getAttribute("data-simulation-state"), {
+      message: "wait for the initial force layout to settle before interaction",
+    }).toBe("settled");
+
+    const chordPoint = await findCanvasNodePoint(canvas, "chord:C");
+    await page.mouse.move(chordPoint.x, chordPoint.y);
+    await page.mouse.down();
+    await page.mouse.move(chordPoint.x + 110, chordPoint.y - 64, { steps: 8 });
+    await expect(canvas).toHaveAttribute("data-dragged-node", "chord:C");
+    await expect(canvas).toHaveAttribute("data-simulation-state", "active");
+    await page.mouse.up();
+    await expect(canvas).toHaveAttribute("data-dragged-node", "");
+    await expect.poll(async () => Number(await canvas.getAttribute("data-simulation-energy")))
+      .toBeGreaterThan(0);
+
+    await network.getByRole("button", { name: "Reset network view" }).click();
+    const canvasBox = await canvas.boundingBox();
+    expect(canvasBox).not.toBeNull();
+    const emptyStart = {
+      x: canvasBox!.x + 18,
+      y: canvasBox!.y + canvasBox!.height - 18,
+    };
+    await page.mouse.move(emptyStart.x, emptyStart.y);
+    await page.mouse.down();
+    await page.mouse.move(emptyStart.x + 92, emptyStart.y - 48, { steps: 6 });
+    await page.mouse.up();
+    const panned = await canvas.evaluate((element) => ({
+      x: Number(element.dataset.cameraPanX),
+      y: Number(element.dataset.cameraPanY),
+    }));
+    expect(Math.abs(panned.x)).toBeGreaterThan(40);
+    expect(Math.abs(panned.y)).toBeGreaterThan(20);
+
+    await network.getByRole("button", { name: "Reset network view" }).click();
+    const zoomCursor = {
+      x: canvasBox!.x + canvasBox!.width * 0.72,
+      y: canvasBox!.y + canvasBox!.height * 0.38,
+    };
+    await page.mouse.move(zoomCursor.x, zoomCursor.y);
+    await page.mouse.wheel(0, -180);
+    const zoomed = await canvas.evaluate((element) => ({
+      panX: Number(element.dataset.cameraPanX),
+      panY: Number(element.dataset.cameraPanY),
+      scale: Number(element.dataset.cameraScale),
+    }));
+    expect(zoomed.scale).toBeGreaterThan(1);
+    expect(Math.abs(zoomed.panX) + Math.abs(zoomed.panY)).toBeGreaterThan(1);
     expect(issues).toEqual([]);
   });
 
@@ -167,11 +256,13 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await relationship.getByRole("button", { name: "Parallel" }).click();
     await expect(relationship.getByRole("button", { name: "Parallel" }))
       .toHaveAttribute("aria-pressed", "true");
-    const parallelLabels = await network.locator("[data-network-node] title").allTextContents();
+    const parallelLabels = await network.getByRole("list", { name: "Network nodes" })
+      .getByRole("button").allTextContents();
     await relationship.getByRole("button", { name: "Relative" }).click();
     await expect(relationship.getByRole("button", { name: "Relative" }))
       .toHaveAttribute("aria-pressed", "true");
-    const relativeLabels = await network.locator("[data-network-node] title").allTextContents();
+    const relativeLabels = await network.getByRole("list", { name: "Network nodes" })
+      .getByRole("button").allTextContents();
     expect(relativeLabels).not.toEqual(parallelLabels);
     expect(issues).toEqual([]);
   });
@@ -275,6 +366,7 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
       if (viewport.name === "mobile") {
         const graph = network.getByTestId("mode-network-graph-scroller");
         await expect(graph).toHaveAttribute("data-graph-projection", "mobile-static");
+        await expect(network.getByTestId("note-network-canvas")).toHaveCount(0);
         await expect(graph.locator("[data-network-node]")).toHaveCount(11);
         await expect(graph.locator('[role="button"]')).toHaveCount(0);
         await expect(network.getByRole("group", { name: "Network viewport controls" })).toHaveCount(0);
@@ -289,8 +381,11 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
         await expect(graph).toHaveAttribute("data-graph-motion", "static");
       } else {
         const graph = network.getByTestId("mode-network-graph-scroller");
-        await expect(graph).toHaveAttribute("data-graph-motion", "outward");
-        await expect(graph).toHaveAttribute("data-graph-projection", "desktop-radial");
+        const canvas = network.getByTestId("note-network-canvas");
+        await expect(graph).toHaveAttribute("data-graph-motion", "force");
+        await expect(graph).toHaveAttribute("data-graph-projection", "desktop-force-canvas");
+        await expect(canvas).toHaveCount(1);
+        await expect(canvas).toHaveAttribute("data-node-count", "18");
         await expect(network.getByRole("group", { name: "Network viewport controls" })).toBeVisible();
       }
       expect(issues).toEqual([]);

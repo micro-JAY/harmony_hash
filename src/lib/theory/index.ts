@@ -196,3 +196,21 @@ export type {
   NoteNetworkLayoutNode,
   NoteNetworkLayoutOptions,
 } from "./noteNetworkLayout";
+
+export {
+  createNoteNetworkSimulation,
+  moveNoteNetworkNode,
+  noteNetworkNodeRadius,
+  NOTE_NETWORK_PHYSICS,
+  releaseNoteNetworkNode,
+  resizeNoteNetworkSimulation,
+  settleNoteNetworkSimulation,
+  stepNoteNetworkSimulation,
+  wakeNoteNetworkSimulation,
+} from "./noteNetworkPhysics";
+export type {
+  NoteNetworkPhysicsConfig,
+  NoteNetworkPhysicsEdge,
+  NoteNetworkPhysicsNode,
+  NoteNetworkSimulation,
+} from "./noteNetworkPhysics";

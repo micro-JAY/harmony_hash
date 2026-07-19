@@ -623,6 +623,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     "A static mobile overview centers the active scale with its strongest related scales and chords. Use the complete list below to inspect every node.": "モバイルでは選択中のスケールと関係の強いスケール／コードを静的に表示します。すべてのノードは下のリストで確認できます。",
     "Single click inspects a node. Double click a scale to move it to the center.": "シングルクリックでノードを確認し、スケールをダブルクリックすると中央へ移動します。",
     "Static overview for mobile. Use the complete node list below to inspect or recenter.": "モバイル用の静的表示です。確認や中央への移動には下のノード一覧を使います。",
+    "Drag nodes to reshape the network. Drag empty space to pan, scroll to zoom, hover to isolate connections, and double click a scale to center it.": "ノードをドラッグしてネットワークを動かせます。空白をドラッグして移動、スクロールで拡大縮小、ホバーで接続を強調し、スケールをダブルクリックすると中央に移動します。",
+    "Use the complete node list below to inspect every relationship.": "すべての関係を確認するには、下のノード一覧を使います。",
     "Play scale": "スケールを再生",
     "Stop scale": "再生を停止",
     "Stop scale playback": "スケール再生を停止",

@@ -406,7 +406,13 @@ export default function NoteNetworkCanvas({
     if (!container || !canvas || typeof ResizeObserver === "undefined") return;
     const context = canvas.getContext("2d");
     if (!context) throw new Error("NOTE NEURAL NETWORK requires a 2D canvas context");
-    paletteRef.current = buildCanvasPalette(catalog, edgeColorFor, nodeToneFor);
+    const palette = buildCanvasPalette(catalog, edgeColorFor, nodeToneFor);
+    paletteRef.current = palette;
+    canvas.dataset.nodePalette = JSON.stringify(catalog.nodes.flatMap((node) => {
+      if (!node.chordSymbol) return [];
+      const colors = palette.nodeColors.get(node.id);
+      return colors ? [{ id: node.id, ...colors }] : [];
+    }));
 
     const resize = (): void => {
       const bounds = container.getBoundingClientRect();

@@ -417,6 +417,7 @@ export default function NoteNeuralNetwork({
                   <button
                     ref={(element) => { semanticNodeRefs.current[index] = element; }}
                     type="button"
+                    data-network-node={node.id}
                     aria-pressed={node.id === selectedNode.id}
                     onClick={() => inspectNode(node)}
                     onKeyDown={(event) => handleSemanticKeyDown(event, index)}

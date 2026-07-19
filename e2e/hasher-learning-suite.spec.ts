@@ -402,7 +402,7 @@ test.describe("HASHER learning suite", () => {
     await expect(synth).toBeVisible();
     await expect(synth).toContainText("D Dorian");
 
-    await page.getByRole("button", { name: "Use this in HASHER" }).first().click();
+    await synth.getByRole("button", { name: "HASH it", exact: true }).click();
     await expect(page.getByRole("button", { name: "HASHER", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("combobox", { name: "HASHER key" })).toHaveValue("D");
     await expect(page.getByRole("combobox", { name: "HASHER mode" })).toHaveValue("dorian");
@@ -413,7 +413,9 @@ test.describe("HASHER learning suite", () => {
     expect(pageErrors).toEqual([]);
     await expect(scale).toBeVisible({ timeout: 3_000 });
     await scale.selectOption("whole_tone");
-    await page.getByRole("button", { name: "Use this in HASHER" }).first().click();
+    await page.getByTestId("scale-synthesia")
+      .getByRole("button", { name: "HASH it", exact: true })
+      .click();
     await expect(page.getByRole("combobox", { name: "HASHER key" })).toHaveValue("C");
     await expect(page.getByRole("combobox", { name: "HASHER mode" })).toHaveValue("dorian");
     const unsupportedNotice = page.getByRole("status").filter({ hasText: "Whole Tone" });
@@ -452,7 +454,7 @@ test.describe("HASHER learning suite", () => {
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await page.locator("#theory-root").selectOption("D");
     await page.locator("#theory-scale").selectOption("dorian");
-    const trigger = page.locator("#theory-circle-improv-trigger");
+    const trigger = page.locator("#circle-improv-trigger");
     await trigger.click();
 
     const insight = page.getByTestId("improv-insight");
@@ -492,10 +494,10 @@ test.describe("HASHER learning suite", () => {
     await expect(network.getByRole("img", { name: "C relationship network" })).toBeVisible();
     await expect(network.getByRole("list", { name: "Network nodes" }).getByRole("listitem")).toHaveCount(18);
     await expect(network.getByLabel("Relationship strength legend")).toContainText("Strong relationship");
-    await network.getByRole("button", { name: "Zoom in" }).click();
-    await expect(network.getByText("115%", { exact: true })).toBeVisible();
-    await network.getByRole("button", { name: "Reset network view" }).click();
-    await expect(network.getByText("100%", { exact: true })).toBeVisible();
+    const graph = network.getByTestId("mode-network-graph-scroller");
+    await expect(graph).toHaveAttribute("data-graph-projection", "mobile-static");
+    await expect(graph.locator("[data-network-node]")).toHaveCount(11);
+    await expect(network.getByRole("group", { name: "Network viewport controls" })).toHaveCount(0);
     await expectNoDocumentOverflow(page);
 
     await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();

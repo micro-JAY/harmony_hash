@@ -411,7 +411,7 @@ export default function CircleOfFifths({
               color: "var(--interactive-accent-text)",
             }}
           >
-            {t(`Use ${displayRoot(selectedKey)} in Hasher`)}
+            {t("HASH it")}
           </button>
 
           {onOpenImprov ? (
@@ -427,7 +427,7 @@ export default function CircleOfFifths({
                 transitionDuration: reduceMotion ? "0ms" : "var(--duration-fast)",
               }}
             >
-              {t("Open Improv Insight")}
+              {t("IMPROV INSIGHT")}
             </button>
           ) : null}
 

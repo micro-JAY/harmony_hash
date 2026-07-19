@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  ARPEGGIO_PATTERNS,
   buildScalePlaybackSchedule,
   buildScalePracticeSequence,
   parseScaleLearningDefinitions,
+  PRACTICE_NOTE_LENGTHS,
+  practiceNoteDurationSeconds,
+  SCALE_PRACTICE_BEATS_PER_BAR,
+  SCALE_PRACTICE_BPM,
   SCALE_FAMILIES,
   SCALE_LEARNING,
   scaleDegreeName,
@@ -50,6 +55,47 @@ describe("Scale Synthesia catalog", () => {
     expect(ascending.map((note) => note.label)).toEqual(["C", "E", "G", "B", "C"]);
     expect(descending.map((note) => note.midi)).toEqual([...ascending].reverse().map((note) => note.midi));
     expect(Object.isFrozen(ascending)).toBe(true);
+  });
+
+  it("defines five immutable arpeggio patterns and builds every sequence", () => {
+    expect(ARPEGGIO_PATTERNS.map((pattern) => [pattern.id, pattern.degrees])).toEqual([
+      ["triad", [1, 3, 5]],
+      ["seventh", [1, 3, 5, 7]],
+      ["sixth", [1, 3, 5, 6]],
+      ["sus2", [1, 2, 5]],
+      ["sus4", [1, 4, 5]],
+    ]);
+    expect(Object.isFrozen(ARPEGGIO_PATTERNS)).toBe(true);
+    expect(ARPEGGIO_PATTERNS.every((pattern) => (
+      Object.isFrozen(pattern) && Object.isFrozen(pattern.degrees)
+    ))).toBe(true);
+    expect(buildScalePracticeSequence("C", "major", "arpeggio", "triad", "ascending")
+      .map((note) => note.label)).toEqual(["C", "E", "G", "C"]);
+    expect(buildScalePracticeSequence("C", "major", "arpeggio", "seventh", "ascending")
+      .map((note) => note.label)).toEqual(["C", "E", "G", "B", "C"]);
+    expect(buildScalePracticeSequence("C", "major", "arpeggio", "sixth", "ascending")
+      .map((note) => note.label)).toEqual(["C", "E", "G", "A", "C"]);
+    expect(buildScalePracticeSequence("C", "major", "arpeggio", "sus2", "ascending")
+      .map((note) => note.label)).toEqual(["C", "D", "G", "C"]);
+    expect(buildScalePracticeSequence("C", "major", "arpeggio", "sus4", "ascending")
+      .map((note) => note.label)).toEqual(["C", "F", "G", "C"]);
+    expect(() => buildScalePracticeSequence(
+      "C", "major", "arpeggio", "unknown" as never, "ascending",
+    )).toThrow(RangeError);
+  });
+
+  it("maps all displayed note lengths to a locked 120 BPM 4/4 onset grid", () => {
+    expect(SCALE_PRACTICE_BPM).toBe(120);
+    expect(SCALE_PRACTICE_BEATS_PER_BAR).toBe(4);
+    expect(PRACTICE_NOTE_LENGTHS.map((definition) => definition.label)).toEqual([
+      "1/16", "1/8", "1/4", "1/2", "1",
+    ]);
+    expect(PRACTICE_NOTE_LENGTHS.map((definition) => (
+      practiceNoteDurationSeconds(definition.id)
+    ))).toEqual([0.125, 0.25, 0.5, 1, 2]);
+    expect(Object.isFrozen(PRACTICE_NOTE_LENGTHS)).toBe(true);
+    expect(PRACTICE_NOTE_LENGTHS.every(Object.isFrozen)).toBe(true);
+    expect(() => practiceNoteDurationSeconds("triplet" as never)).toThrow(RangeError);
   });
 
   it("creates monophonic playback events with strict timing validation", () => {

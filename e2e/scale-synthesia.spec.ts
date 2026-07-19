@@ -84,17 +84,42 @@ test.describe("SCALE SYNTHESIA in TUNE TOOLBOX", () => {
     await expect(board.getByRole("button", { name: /string 1.*E#.*interval 7/ }).first()).toBeVisible();
 
     await page.getByRole("button", { name: "Arpeggio", exact: true }).click();
-    await page.getByRole("combobox", { name: "Arpeggio type" }).selectOption("seventh");
+    const arpeggioType = page.getByRole("combobox", { name: "Arpeggio type" });
+    const noteLength = page.getByRole("combobox", { name: "Note length" });
+    await expect(arpeggioType.locator("option")).toHaveText([
+      "Triad (1 3 5)",
+      "Seventh (1 3 5 7)",
+      "Sixth (1 3 5 6)",
+      "Sus2 (1 2 5)",
+      "Sus4 (1 4 5)",
+    ]);
+    await expect(noteLength.locator("option")).toHaveText(["1/16", "1/8", "1/4", "1/2", "1"]);
+    await arpeggioType.selectOption("sixth");
+    await noteLength.selectOption("quarter");
     await page.getByRole("button", { name: "Descending", exact: true }).click();
     await expect(page.getByRole("list", { name: "Playback sequence" }).getByRole("listitem"))
       .toHaveCount(5);
 
-    await page.getByRole("button", { name: "Play scale" }).click();
+    const transport = page.getByRole("button", { name: "Play practice sequence" });
+    await expect(transport).toHaveText("PLAY");
+    await transport.click();
+    await expect(page.getByRole("button", { name: "Stop practice playback" })).toHaveText("STOP");
     await expect(page.locator('[data-playing="true"]')).toHaveCount(1);
     await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
     await expect(page.getByTestId("scale-synthesia")).toBeHidden();
     await expect(page.locator('[data-playing="true"]')).toHaveCount(0);
     expect(issues).toEqual([]);
+  });
+
+  test("keeps one expanded-only HASH it action and material-neutral transport copy", async ({ page }) => {
+    await openScales(page);
+    const scaleTool = page.locator('[data-theory-tool="scales"]');
+    await expect(scaleTool.getByRole("button", { name: "HASH it", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Use this in HASHER", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Play practice sequence" })).toHaveText("PLAY");
+
+    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
+    await expect(scaleTool.getByRole("button", { name: "HASH it", exact: true })).toHaveCount(0);
   });
 
   test("preserves the HASHER timeline and Toolbox state across round trips", async ({ page }) => {

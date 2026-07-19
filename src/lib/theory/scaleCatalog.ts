@@ -19,7 +19,28 @@ export const SCALE_FAMILIES = Object.freeze([
 export type ScaleFamilyId = typeof SCALE_FAMILIES[number]["id"];
 export type PracticeDirection = "ascending" | "descending";
 export type PracticeMaterial = "scale" | "arpeggio";
-export type ArpeggioType = "triad" | "seventh";
+
+export const ARPEGGIO_PATTERNS = Object.freeze([
+  Object.freeze({ id: "triad", label: "Triad", degrees: Object.freeze([1, 3, 5]) }),
+  Object.freeze({ id: "seventh", label: "Seventh", degrees: Object.freeze([1, 3, 5, 7]) }),
+  Object.freeze({ id: "sixth", label: "Sixth", degrees: Object.freeze([1, 3, 5, 6]) }),
+  Object.freeze({ id: "sus2", label: "Sus2", degrees: Object.freeze([1, 2, 5]) }),
+  Object.freeze({ id: "sus4", label: "Sus4", degrees: Object.freeze([1, 4, 5]) }),
+] as const);
+
+export const PRACTICE_NOTE_LENGTHS = Object.freeze([
+  Object.freeze({ id: "sixteenth", label: "1/16", beats: 0.25 }),
+  Object.freeze({ id: "eighth", label: "1/8", beats: 0.5 }),
+  Object.freeze({ id: "quarter", label: "1/4", beats: 1 }),
+  Object.freeze({ id: "half", label: "1/2", beats: 2 }),
+  Object.freeze({ id: "whole", label: "1", beats: 4 }),
+] as const);
+
+export const SCALE_PRACTICE_BPM = 120;
+export const SCALE_PRACTICE_BEATS_PER_BAR = 4;
+
+export type ArpeggioType = typeof ARPEGGIO_PATTERNS[number]["id"];
+export type PracticeNoteLength = typeof PRACTICE_NOTE_LENGTHS[number]["id"];
 
 export interface ScaleLearningDefinition {
   readonly id: ScaleFormulaType;
@@ -163,9 +184,11 @@ export function buildScalePracticeSequence(
 
   const intervals = scaleIntervalsFor(scaleId);
   const labels = spellScaleNotes(root, scaleId);
+  const arpeggioPattern = ARPEGGIO_PATTERNS.find((pattern) => pattern.id === arpeggioType);
+  if (!arpeggioPattern) throw new RangeError(`Unknown arpeggio type: ${arpeggioType}`);
   const requestedIndices = material === "scale"
     ? intervals.map((_, index) => index)
-    : arpeggioType === "triad" ? [0, 2, 4] : [0, 2, 4, 6];
+    : arpeggioPattern.degrees.map((degree) => degree - 1);
   const rootMidi = rootPitchClass + (startOctave + 1) * 12;
   const ascending: ScalePracticeNote[] = requestedIndices
     .filter((index) => index < intervals.length)
@@ -184,6 +207,12 @@ export function buildScalePracticeSequence(
     octaveRoot: true,
   }));
   return Object.freeze(direction === "ascending" ? ascending : [...ascending].reverse());
+}
+
+export function practiceNoteDurationSeconds(noteLength: PracticeNoteLength): number {
+  const definition = PRACTICE_NOTE_LENGTHS.find((candidate) => candidate.id === noteLength);
+  if (!definition) throw new RangeError(`Unknown practice note length: ${noteLength}`);
+  return (60 / SCALE_PRACTICE_BPM) * definition.beats;
 }
 
 export function buildScalePlaybackSchedule(

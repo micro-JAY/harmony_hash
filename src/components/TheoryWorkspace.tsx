@@ -2,15 +2,13 @@ import { lazy, Suspense, useMemo, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { ALL_KEYS } from "../lib/harmonyBrain";
 import {
-  MODE_FAMILIES,
   MOODS,
   SCALE_LEARNING,
   THEORY_MOOD_ANY,
   canonicalTheoryRoot,
-  modeFamilyDefinitionFor,
+  modeFamilyForScale,
   moodDefinitionFor,
   type CircleKey,
-  type ModeFamilyId,
   type MoodId,
   type ScaleFormulaType,
   type TheoryContext,
@@ -50,14 +48,7 @@ interface TheoryToolSectionProps {
   summary: string;
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
-  action?: ReactNode;
   children: ReactNode;
-}
-
-function familyForScale(scaleId: ScaleFormulaType): ModeFamilyId {
-  return MODE_FAMILIES.find((family) => (
-    modeFamilyDefinitionFor(family.id).members.includes(scaleId)
-  ))?.id ?? "major";
 }
 
 function TheoryToolSection({
@@ -66,7 +57,6 @@ function TheoryToolSection({
   summary,
   expanded,
   onExpandedChange,
-  action,
   children,
 }: TheoryToolSectionProps) {
   const t = useT();
@@ -99,7 +89,6 @@ function TheoryToolSection({
             </span>
           </span>
         </button>
-        {action}
       </header>
       <div
         id={bodyId}
@@ -148,7 +137,7 @@ export default function TheoryWorkspace({
   }
 
   function updateScale(scaleId: ScaleFormulaType): void {
-    const familyId = familyForScale(scaleId);
+    const familyId = modeFamilyForScale(scaleId) ?? "major";
     onContextChange({ ...context, scaleId });
     onNetworkStateChange({
       ...networkState,
@@ -238,21 +227,6 @@ export default function TheoryWorkspace({
             summary={contextSummary}
             expanded={disclosures.circle}
             onExpandedChange={(expanded) => onDisclosureChange("circle", expanded)}
-            action={(
-              <button
-                id="theory-circle-improv-trigger"
-                type="button"
-                onClick={() => onOpenImprov(context.root, "theory-circle-improv-trigger")}
-                className="hh-action"
-                style={{
-                  backgroundColor: "var(--music-insight-action-bg)",
-                  border: "1px solid var(--music-insight-action-border)",
-                  color: "var(--music-insight-action-text)",
-                }}
-              >
-                {t("Open Improv Insight")}
-              </button>
-            )}
           >
             <Suspense fallback={<span className="readout">{t("Loading Circle of Fifths…")}</span>}>
               <CircleOfFifths
@@ -272,20 +246,6 @@ export default function TheoryWorkspace({
             summary={contextSummary}
             expanded={disclosures.scales}
             onExpandedChange={(expanded) => onDisclosureChange("scales", expanded)}
-            action={(
-              <button
-                type="button"
-                onClick={() => onUseScaleInHasher(context.root, context.scaleId)}
-                className="hh-action"
-                style={{
-                  backgroundColor: "var(--interactive-accent-bg)",
-                  border: "1px solid var(--interactive-accent-border)",
-                  color: "var(--interactive-accent-text)",
-                }}
-              >
-                {t("Use this in Hasher")}
-              </button>
-            )}
           >
             <Suspense fallback={<span className="readout">{t("Loading Scale Synthesia…")}</span>}>
               <ScaleSynthesia
@@ -322,7 +282,7 @@ export default function TheoryWorkspace({
                   onNetworkStateChange({
                     ...networkState,
                     root: canonicalRoot,
-                    familyId: familyForScale(scaleId),
+                    familyId: modeFamilyForScale(scaleId) ?? "major",
                     selectedScaleId: scaleId,
                   });
                   onDisclosureChange("scales", true);

@@ -15,7 +15,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
 import {
   buildModeNetwork,
@@ -25,6 +25,7 @@ import {
   clampNoteNetworkPan,
   clampNoteNetworkZoom,
   createTheoryContext,
+  modeFamilyForScale,
   MODE_FAMILIES,
   NOTE_NETWORK_ZOOM_BOUNDS,
   scaleIntervalFormulaFor,
@@ -73,6 +74,13 @@ interface GraphViewportState {
   readonly pan: PanOffset;
 }
 
+function centerOfPanBounds(bounds: ReturnType<typeof calculateNoteNetworkPanBounds>): PanOffset {
+  return Object.freeze({
+    x: (bounds.minX + bounds.maxX) / 2,
+    y: (bounds.minY + bounds.maxY) / 2,
+  });
+}
+
 interface NodeSelection {
   readonly catalogId: string;
   readonly nodeId: string;
@@ -80,6 +88,21 @@ interface NodeSelection {
 
 const DEFAULT_LAYOUT_WIDTH = 760;
 const DEFAULT_VIEWPORT_HEIGHT = 544;
+const MOBILE_GRAPH_QUERY = "(max-width: 639px)";
+
+function useMobileStaticGraph(): boolean {
+  const [mobile, setMobile] = useState(() => (
+    typeof window !== "undefined" && window.matchMedia(MOBILE_GRAPH_QUERY).matches
+  ));
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_GRAPH_QUERY);
+    const update = (): void => setMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return mobile;
+}
 
 function edgeColor(kind: string): string {
   if (kind === "fifths" || kind === "relative_major_minor") return "var(--text-accent)";
@@ -140,6 +163,7 @@ export default function NoteNeuralNetwork({
 }: NoteNeuralNetworkProps) {
   const t = useT();
   const reduceMotion = Boolean(useReducedMotion());
+  const mobileStatic = useMobileStaticGraph();
   const { root, familyId, relationship, selectedScaleId } = state;
   const graphContainerRef = useRef<HTMLDivElement>(null);
   const semanticNodeRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -167,7 +191,8 @@ export default function NoteNeuralNetwork({
   const layout = useMemo(() => buildNoteNetworkLayout(catalog, {
     width: Math.max(280, graphViewportSize.width),
     reducedMotion: reduceMotion,
-  }), [catalog, graphViewportSize.width, reduceMotion]);
+    mobileStatic,
+  }), [catalog, graphViewportSize.width, mobileStatic, reduceMotion]);
   const panBounds = calculateNoteNetworkPanBounds(
     layout.width,
     layout.height,
@@ -175,7 +200,14 @@ export default function NoteNeuralNetwork({
     graphViewportSize.height,
     graphViewport.zoom,
   );
-  const visiblePan = clampNoteNetworkPan(graphViewport.pan, panBounds);
+  const graphViewportIsDefault = graphViewport.zoom === NOTE_NETWORK_ZOOM_BOUNDS.default
+    && graphViewport.pan.x === 0
+    && graphViewport.pan.y === 0;
+  const visiblePan = mobileStatic
+    ? Object.freeze({ x: 0, y: 0 })
+    : graphViewportIsDefault
+      ? centerOfPanBounds(panBounds)
+      : clampNoteNetworkPan(graphViewport.pan, panBounds);
   const selectedNode = catalog.nodes.find((node) => node.id === selectedNodeId)
     ?? catalog.nodes.find((node) => node.id === catalog.selectedNodeId)
     ?? catalog.nodes[0];
@@ -216,20 +248,36 @@ export default function NoteNeuralNetwork({
     onStateChange({ ...state, relationship: nextRelationship });
   }
 
-  function selectNode(node: TheoryRelationshipNode): void {
+  function inspectNode(node: TheoryRelationshipNode): void {
     setNodeSelection({ catalogId: catalog.selectedNodeId, nodeId: node.id });
-    if (node.root && node.scaleId) {
-      onStateChange({ ...state, root: node.root, selectedScaleId: node.scaleId });
-    }
+  }
+
+  function activateNode(node: TheoryRelationshipNode): void {
+    if (node.chordSymbol || !node.root || !node.scaleId) return;
+    const nextFamily = modeFamilyForScale(node.scaleId);
+    if (!nextFamily) return;
+    setNodeSelection(null);
+    resetViewport();
+    onStateChange({
+      ...state,
+      root: node.root,
+      familyId: nextFamily,
+      selectedScaleId: node.scaleId,
+    });
   }
 
   function selectSemanticNode(index: number): void {
     const normalized = ((index % catalog.nodes.length) + catalog.nodes.length) % catalog.nodes.length;
-    selectNode(catalog.nodes[normalized]);
+    inspectNode(catalog.nodes[normalized]);
     requestAnimationFrame(() => semanticNodeRefs.current[normalized]?.focus());
   }
 
   function handleSemanticKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      activateNode(catalog.nodes[index]);
+      return;
+    }
     if (event.key === "Home") {
       event.preventDefault();
       selectSemanticNode(0);
@@ -255,7 +303,11 @@ export default function NoteNeuralNetwork({
         graphViewportSize.height,
         current.zoom,
       );
-      const currentPan = clampNoteNetworkPan(current.pan, bounds);
+      const currentPan = current.zoom === NOTE_NETWORK_ZOOM_BOUNDS.default
+        && current.pan.x === 0
+        && current.pan.y === 0
+        ? centerOfPanBounds(bounds)
+        : clampNoteNetworkPan(current.pan, bounds);
       return {
         ...current,
         pan: clampNoteNetworkPan({ x: currentPan.x + x, y: currentPan.y + y }, bounds),
@@ -273,12 +325,24 @@ export default function NoteNeuralNetwork({
         graphViewportSize.height,
         zoom,
       );
-      return { zoom, pan: clampNoteNetworkPan(current.pan, bounds) };
+      const currentPan = current.zoom === NOTE_NETWORK_ZOOM_BOUNDS.default
+        && current.pan.x === 0
+        && current.pan.y === 0
+        ? centerOfPanBounds(bounds)
+        : clampNoteNetworkPan(current.pan, bounds);
+      return { zoom, pan: clampNoteNetworkPan(currentPan, bounds) };
     });
   }
 
   function resetViewport(): void {
-    setGraphViewport({ zoom: NOTE_NETWORK_ZOOM_BOUNDS.default, pan: { x: 0, y: 0 } });
+    const bounds = calculateNoteNetworkPanBounds(
+      layout.width,
+      layout.height,
+      graphViewportSize.width,
+      graphViewportSize.height,
+      NOTE_NETWORK_ZOOM_BOUNDS.default,
+    );
+    setGraphViewport({ zoom: NOTE_NETWORK_ZOOM_BOUNDS.default, pan: centerOfPanBounds(bounds) });
   }
 
   return (
@@ -336,53 +400,62 @@ export default function NoteNeuralNetwork({
 
         <div className="hh-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.65fr)]">
           <div className="min-w-0 border-b lg:border-b-0 lg:border-r" style={{ borderColor: "var(--border-default)" }}>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
-              <div className="flex flex-wrap gap-1" role="group" aria-label={t("Network viewport controls")}>
-                <button type="button" className="hh-action" disabled={visiblePan.y >= panBounds.maxY} onClick={() => panBy(0, 28)} aria-label={t("Pan up")}><ArrowUp size={15} aria-hidden="true" /></button>
-                <button type="button" className="hh-action" disabled={visiblePan.x >= panBounds.maxX} onClick={() => panBy(28, 0)} aria-label={t("Pan left")}><ArrowLeft size={15} aria-hidden="true" /></button>
-                <button type="button" className="hh-action" disabled={visiblePan.x <= panBounds.minX} onClick={() => panBy(-28, 0)} aria-label={t("Pan right")}><ArrowRight size={15} aria-hidden="true" /></button>
-                <button type="button" className="hh-action" disabled={visiblePan.y <= panBounds.minY} onClick={() => panBy(0, -28)} aria-label={t("Pan down")}><ArrowDown size={15} aria-hidden="true" /></button>
-                <button type="button" className="hh-action" onClick={() => zoomBy(-NOTE_NETWORK_ZOOM_BOUNDS.step)} aria-label={t("Zoom out")}><ZoomOut size={15} aria-hidden="true" /></button>
-                <button type="button" className="hh-action" onClick={() => zoomBy(NOTE_NETWORK_ZOOM_BOUNDS.step)} aria-label={t("Zoom in")}><ZoomIn size={15} aria-hidden="true" /></button>
-                <button type="button" className="hh-action" onClick={resetViewport} aria-label={t("Reset network view")}><RotateCcw size={15} aria-hidden="true" /></button>
+            {mobileStatic ? null : (
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
+                <div className="flex flex-wrap gap-1" role="group" aria-label={t("Network viewport controls")}>
+                  <button type="button" className="hh-action" disabled={visiblePan.y >= panBounds.maxY} onClick={() => panBy(0, 28)} aria-label={t("Pan up")}><ArrowUp size={15} aria-hidden="true" /></button>
+                  <button type="button" className="hh-action" disabled={visiblePan.x >= panBounds.maxX} onClick={() => panBy(28, 0)} aria-label={t("Pan left")}><ArrowLeft size={15} aria-hidden="true" /></button>
+                  <button type="button" className="hh-action" disabled={visiblePan.x <= panBounds.minX} onClick={() => panBy(-28, 0)} aria-label={t("Pan right")}><ArrowRight size={15} aria-hidden="true" /></button>
+                  <button type="button" className="hh-action" disabled={visiblePan.y <= panBounds.minY} onClick={() => panBy(0, -28)} aria-label={t("Pan down")}><ArrowDown size={15} aria-hidden="true" /></button>
+                  <button type="button" className="hh-action" onClick={() => zoomBy(-NOTE_NETWORK_ZOOM_BOUNDS.step)} aria-label={t("Zoom out")}><ZoomOut size={15} aria-hidden="true" /></button>
+                  <button type="button" className="hh-action" onClick={() => zoomBy(NOTE_NETWORK_ZOOM_BOUNDS.step)} aria-label={t("Zoom in")}><ZoomIn size={15} aria-hidden="true" /></button>
+                  <button type="button" className="hh-action" onClick={resetViewport} aria-label={t("Reset network view")}><RotateCcw size={15} aria-hidden="true" /></button>
+                </div>
+                <span className="readout" aria-live="polite" style={{ color: "var(--text-secondary)" }}>
+                  {Math.round(graphViewport.zoom * 100)}%
+                </span>
               </div>
-              <span className="readout" aria-live="polite" style={{ color: "var(--text-secondary)" }}>
-                {Math.round(graphViewport.zoom * 100)}%
-              </span>
-            </div>
+            )}
 
             <div
               ref={graphContainerRef}
-              className="relative max-h-[34rem] min-h-72 overflow-hidden"
+              className="relative overflow-clip"
               data-testid="mode-network-graph-scroller"
               data-graph-height={layout.height}
+              data-graph-motion={reduceMotion || mobileStatic ? "static" : "outward"}
+              data-graph-projection={layout.projection}
               data-layout-width={layout.width}
               data-pan-min-y={panBounds.minY}
               data-pan-y={visiblePan.y}
               data-viewport-height={graphViewportSize.height}
+              style={{ backgroundColor: "#000", height: `${layout.height}px` }}
             >
               <svg
                 viewBox={`0 0 ${layout.width} ${layout.height}`}
-                className="block h-auto w-full"
+                className="block h-full w-full"
                 role="img"
                 aria-label={t(`${root} relationship network`)}
               >
                 <title>{t(`${root} relationship network`)}</title>
-                <desc>{t("Keys, modes, and chords are grouped in stable clusters. Edge weight and line style show relationship strength.")}</desc>
-                <g transform={`translate(${visiblePan.x} ${visiblePan.y}) scale(${graphViewport.zoom})`} style={{ transformOrigin: "center" }}>
-                  {layout.edges.map(({ edge, path }) => (
-                    <path
+                <desc>{t(mobileStatic
+                  ? "A static mobile overview centers the active scale with its strongest related scales and chords. Use the complete list below to inspect every node."
+                  : "The active scale is centered. Related scales and chords radiate outward; single click inspects and double click recenters a scale.")}</desc>
+                <g transform={`translate(${visiblePan.x} ${visiblePan.y}) scale(${mobileStatic ? 1 : graphViewport.zoom})`} style={{ transformOrigin: "center" }}>
+                  {layout.edges.map(({ edge, path }, edgeIndex) => (
+                    <motion.path
                       key={edge.id}
                       d={path}
                       fill="none"
                       stroke={edgeColor(edge.kind)}
                       strokeWidth={edge.strength}
                       strokeDasharray={edge.strength === 1 ? "5 5" : undefined}
-                      strokeOpacity={edge.strength === 1 ? 0.58 : 0.82}
+                      initial={reduceMotion || mobileStatic ? false : { pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: edge.strength === 1 ? 0.58 : 0.82 }}
+                      transition={{ duration: 0.4, delay: 0.02 + edgeIndex * 0.006 }}
                       aria-hidden="true"
                     />
                   ))}
-                  {layout.nodes.map((layoutNode) => {
+                  {layout.nodes.map((layoutNode, nodeIndex) => {
                     const tone = nodeTone(layoutNode.node);
                     const locallySelected = layoutNode.node.id === selectedNode.id;
                     const localizedLabel = wrapNoteNetworkLabel(
@@ -390,50 +463,68 @@ export default function NoteNeuralNetwork({
                       Math.max(4, Math.floor((layoutNode.width - 18) / 7)),
                     );
                     return (
-                      <g
+                      <motion.g
                         key={layoutNode.node.id}
-                        transform={`translate(${layoutNode.bounds.x} ${layoutNode.bounds.y})`}
-                        role="button"
-                        tabIndex={-1}
-                        aria-label={`${localizedLabel.fullLabel}, ${t(layoutNode.node.cluster)}`}
-                        data-network-node={layoutNode.node.id}
-                        data-chord-family={layoutNode.node.chordSymbol
-                          ? chordFamilyPresentation(layoutNode.node.chordSymbol).family
-                          : undefined}
-                        onClick={() => selectNode(layoutNode.node)}
-                        style={{ cursor: "pointer" }}
+                        initial={layoutNode.animate ? {
+                          x: layoutNode.initialX - layoutNode.x,
+                          y: layoutNode.initialY - layoutNode.y,
+                          opacity: 0,
+                        } : false}
+                        animate={{ x: 0, y: 0, opacity: 1 }}
+                        transition={{ duration: 0.34, delay: 0.02 + nodeIndex * 0.008 }}
                       >
-                        <title>{localizedLabel.fullLabel}</title>
-                        <rect
-                          width={layoutNode.width}
-                          height={layoutNode.height}
-                          rx="12"
-                          fill={tone.background}
-                          stroke={locallySelected ? "var(--text-accent)" : tone.border}
-                          strokeWidth={locallySelected ? 3 : 1.5}
-                        />
-                        <text
-                          x={layoutNode.width / 2}
-                          y={layoutNode.height / 2 - (localizedLabel.lines.length - 1) * 8}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          fill={tone.text}
-                          fontFamily="var(--font-mono)"
-                          fontSize="12"
-                          pointerEvents="none"
+                        <g
+                          transform={`translate(${layoutNode.bounds.x} ${layoutNode.bounds.y})`}
+                          role={mobileStatic ? undefined : "button"}
+                          tabIndex={mobileStatic ? undefined : -1}
+                          aria-label={mobileStatic ? undefined : `${localizedLabel.fullLabel}, ${t(layoutNode.node.cluster)}`}
+                          data-network-node={layoutNode.node.id}
+                          data-network-kind={layoutNode.node.kind}
+                          data-chord-family={layoutNode.node.chordSymbol
+                            ? chordFamilyPresentation(layoutNode.node.chordSymbol).family
+                            : undefined}
+                          onClick={mobileStatic ? undefined : () => inspectNode(layoutNode.node)}
+                          onDoubleClick={mobileStatic ? undefined : () => activateNode(layoutNode.node)}
+                          style={{ cursor: mobileStatic ? "default" : "pointer" }}
                         >
-                          {localizedLabel.lines.map((line, lineIndex) => (
-                            <tspan key={`${line}-${lineIndex}`} x={layoutNode.width / 2} dy={lineIndex === 0 ? 0 : 16}>
-                              {line}
-                            </tspan>
-                          ))}
-                        </text>
-                      </g>
+                          <title>{localizedLabel.fullLabel}</title>
+                          <rect
+                            width={layoutNode.width}
+                            height={layoutNode.height}
+                            rx={layoutNode.node.selected ? 16 : 11}
+                            fill={tone.background}
+                            stroke={locallySelected ? "var(--text-accent)" : tone.border}
+                            strokeWidth={locallySelected ? 3 : 1.5}
+                          />
+                          <text
+                            x={layoutNode.width / 2}
+                            y={layoutNode.height / 2 - (localizedLabel.lines.length - 1) * 8}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fill={tone.text}
+                            fontFamily="var(--font-mono)"
+                            fontSize={mobileStatic && layoutNode.node.chordSymbol ? "10" : "12"}
+                            pointerEvents="none"
+                          >
+                            {localizedLabel.lines.map((line, lineIndex) => (
+                              <tspan key={`${line}-${lineIndex}`} x={layoutNode.width / 2} dy={lineIndex === 0 ? 0 : 16}>
+                                {line}
+                              </tspan>
+                            ))}
+                          </text>
+                        </g>
+                      </motion.g>
                     );
                   })}
                 </g>
               </svg>
             </div>
+
+            <p className="border-t px-3 py-2 text-xs" data-testid="network-interaction-instructions" style={{ borderColor: "var(--border-default)", color: "var(--text-secondary)" }}>
+              {t(mobileStatic
+                ? "Static overview for mobile. Use the complete node list below to inspect or recenter."
+                : "Single click inspects a node. Double click a scale to move it to the center.")}
+            </p>
 
             <div className="flex flex-wrap gap-x-4 gap-y-2 border-t px-3 py-2 text-xs" style={{ borderColor: "var(--border-default)", color: "var(--text-secondary)" }} aria-label={t("Relationship strength legend")}>
               <span><span aria-hidden="true">━━━</span> {t("Strong relationship")}</span>
@@ -450,7 +541,7 @@ export default function NoteNeuralNetwork({
                     ref={(element) => { semanticNodeRefs.current[index] = element; }}
                     type="button"
                     aria-pressed={node.id === selectedNode.id}
-                    onClick={() => selectNode(node)}
+                    onClick={() => inspectNode(node)}
                     onKeyDown={(event) => handleSemanticKeyDown(event, index)}
                     className="hh-action w-full min-w-0 justify-start"
                     style={{

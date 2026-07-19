@@ -805,3 +805,35 @@ PR [#75](https://github.com/micro-JAY/harmony_hash/pull/75) was squash-merged as
 **Verification:** production build and lint pass; Vitest passes 48 files / 1,270 tests; the CI-equivalent Chromium Playwright suite passes 171/171; strict OpenSpec and diff hygiene pass. Desktop and 375px assertions prove legend/grid alignment, containment, no document overflow, circular help-icon geometry, and identical STYLE metadata colors. Exact implementation head `1cdc367` passed both GitHub build/test jobs, both complete Linux Playwright jobs in 4m01s and 4m04s, and Cloudflare Workers build `f25ef48d-d9b1-47dd-aa61-1ad1f5cbcf76`.
 
 **Current state:** draft [#76](https://github.com/micro-JAY/harmony_hash/pull/76) remains unmerged and undeployed. OpenSpec archive/sync remains deferred until user-approved merge; the local `.agents/` and `AGENTS.md` files remain untracked and untouched.
+
+---
+
+## 2026-07-17 17:11 JST — TUNE TOOLBOX neural and Synthesia local validation
+
+Implemented the scoped TUNE TOOLBOX upgrade on `feat/tune-toolbox-neural-synthesia` from base `0f6a2b5`. SCALE SYNTHESIA now offers Triad, Seventh, Sixth, Sus2, and Sus4 arpeggios at `1/16`, `1/8`, `1/4`, `1/2`, and `1` note lengths on an internal 120-BPM 4/4 schedule. The transport uses the material-neutral `PLAY`/`STOP` vocabulary. Duplicate header handoffs are removed; the retained expanded Circle and Scale actions read `HASH it`, and the retained Circle action reads `IMPROV INSIGHT`.
+
+NOTE NEURAL NETWORK now derives a deterministic desktop radial layout with the active scale exactly centered, related scale/key nodes on an inner ring, chord nodes on an outer ring, boundary-terminated connectors, bounded labels, and a one-shot outward entrance. Single click inspects without changing context; double click and semantic Enter recenter only scale/key nodes; chord activation remains informational. The graph canvas is true black while the right detail panel and lower complete semantic list remain in place. At mobile width the component mounts a contained 11-node static projection with no animation, graph buttons, pan, zoom, or reset controls while retaining the full semantic list and detail path.
+
+**Rendered verification:** desktop E Harmonic Minor measured 18 contained nodes, zero node overlaps, exact center deltas of `0px`, true-black canvas, and no document overflow. Scale single-click preserved E Harmonic Minor; double-click moved B Phrygian Dominant to center; chord double-click preserved that context. Mobile measured a 309×360 static graph with 11 nodes, zero graph buttons, no viewport controls, and no overflow. English and Japanese mobile layouts remained contained, Scale playback visibly changed `PLAY` to `STOP`, internal `120` was absent from rendered copy, and Browser console warning/error output was empty.
+
+**Release verification:** production build and lint pass; Vitest passes 48 files / 1,273 tests; the complete Chromium matrix passes 174/174 in 2.2 minutes; the explicit HASHER/FRET FINDER suite passes 37/37; Wrangler 4.110.0 dry-run packages 3,432 assets with the expected rate-limit, assets, and voice-agent-id bindings; production dependency audit reports zero vulnerabilities; strict OpenSpec, dependency-tree validation, source/debug scan, and diff hygiene pass. The only changed source paths are TUNE TOOLBOX components, localization, and shared theory modules—no HASHER or FRET FINDER source file changed. Generated concepts remain external and uncommitted; accepted desktop/mobile snapshots are committed.
+
+**Current state:** specification commit `62688d8`, Scale/action milestone `76843eb`, graph milestone `fd164a7`, and integration-test correction `9ec2889` are complete. Next: commit this local validation ledger, push a focused draft PR, require its exact-head build/test, Playwright, and Workers checks to pass, then conservatively delete only branches proven merged or gone. No merge or deployment is authorized; `.agents/` and `AGENTS.md` remain untouched.
+
+---
+
+## 2026-07-17 17:16 JST — Local branch hygiene and publication safeguard
+
+Read-only GitHub inventory found no open PRs and confirmed the merged head branch for every locally deleted squash-merge candidate. Local cleanup deleted 46 old branches recoverable from `main` or a merged PR. The retained working set is `main`, `feat/tune-toolbox-neural-synthesia`, and the three most recent prior feature branches: `feat/hasher-unified-flow`, `feat/logo-splash-tool-names`, and `feat/hasher-learning-suite`. Two unique unmerged histories were not deleted; they are explicitly marked `stale/pre-reset-main-20260513` and `stale/chord-reference-legacy`.
+
+The host external-disclosure safeguard rejected the first push of `feat/tune-toolbox-neural-synthesia` to `https://github.com/micro-JAY/harmony_hash.git` because the repository's trust/public-private status is not established. No alternate upload path was attempted. Remote branches were refreshed/pruned for inspection but not deleted, so remote cleanup and draft-PR exact-head CI remain pending the user's explicit approval of the push risk. Local implementation, commits, validation, and branch cleanup remain intact; `.agents/` and `AGENTS.md` are still untouched.
+
+### 2026-07-17 17:20 JST — Remote branch hygiene complete
+
+A fresh check again found zero open PRs. Remote cleanup then deleted 39 branches proven merged by PR history or direct `main` ancestry. The retained remote set is `main`, `feat/hasher-unified-flow`, `feat/logo-splash-tool-names`, `feat/hasher-learning-suite`, and the unique unmerged `chore/deploy-hardening` branch. The new TUNE branch was not uploaded as part of cleanup, so the earlier external-disclosure safeguard remains respected. Publication and exact-head CI are now the only incomplete release tasks.
+
+### 2026-07-17 17:39 JST — Draft PR #77 exact code-head gate
+
+After explicit user authorization, published `feat/tune-toolbox-neural-synthesia` and opened draft [#77](https://github.com/micro-JAY/harmony_hash/pull/77). Exact code head `831669c` is mergeable and passed both GitHub build/test jobs in 32s and 35s, both complete 174-scenario Linux Playwright jobs in 4m06s and 4m11s, and Cloudflare Workers build `84b9bc8f-84a0-45af-ab2a-419eb8730a90`. No retry, snapshot weakening, skip, or CI-only workaround was used.
+
+The final local branch inventory contains `main`, the TUNE feature branch, the latest three prior feature branches, and two explicitly marked stale unique histories. The remote inventory contains `main`, the same latest three prior feature branches, the TUNE branch, and unique unmerged `chore/deploy-hardening`. The worktree is clean except the protected user-owned untracked `.agents/` and `AGENTS.md`, which remain untouched. No HASHER or FRET FINDER source path changed. Merge, deployment, and OpenSpec archive/sync remain intentionally deferred.

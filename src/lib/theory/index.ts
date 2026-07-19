@@ -10,9 +10,14 @@ export {
 export type { ScaleFormulaType } from "./scaleBasics";
 
 export {
+  ARPEGGIO_PATTERNS,
   buildScalePlaybackSchedule,
   buildScalePracticeSequence,
   parseScaleLearningDefinitions,
+  PRACTICE_NOTE_LENGTHS,
+  practiceNoteDurationSeconds,
+  SCALE_PRACTICE_BEATS_PER_BAR,
+  SCALE_PRACTICE_BPM,
   SCALE_FAMILIES,
   SCALE_LEARNING,
   scaleDegreeName,
@@ -22,6 +27,7 @@ export {
 } from "./scaleCatalog";
 export type {
   ArpeggioType,
+  PracticeNoteLength,
   PracticeDirection,
   PracticeMaterial,
   ScaleFamilyId,
@@ -33,6 +39,7 @@ export {
   buildModeNetwork,
   characteristicIntervalFor,
   MODE_FAMILIES,
+  modeFamilyForScale,
   modeFamilyDefinitionFor,
 } from "./modeNetwork";
 export type {

@@ -43,14 +43,33 @@ async function openNetwork(
 test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
   test.describe.configure({ timeout: 90_000 });
 
-  test("renders a stable clustered graph with redundant relationship cues", async ({ page }) => {
+  test("renders a centered radial graph with redundant relationship cues", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await page.setViewportSize({ width: 1280, height: 960 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await openNetwork(page, { root: "E", scale: "harmonic_minor" });
 
     const network = page.getByTestId("note-neural-network");
     await expect(network).toHaveAccessibleName("NOTE NEURAL NETWORK");
     await expect(network.getByRole("img", { name: "E relationship network" })).toBeVisible();
+    const graph = network.getByTestId("mode-network-graph-scroller");
+    await expect(graph).toHaveAttribute("data-graph-projection", "desktop-radial");
+    await expect(graph).toHaveCSS("background-color", "rgb(0, 0, 0)");
+    const selectedGraphNode = graph.locator('[data-network-node="scale:E:harmonic_minor"]');
+    const [graphBox, selectedGraphNodeBox] = await Promise.all([
+      graph.boundingBox(),
+      selectedGraphNode.boundingBox(),
+    ]);
+    expect(graphBox).not.toBeNull();
+    expect(selectedGraphNodeBox).not.toBeNull();
+    expect(Math.abs(
+      selectedGraphNodeBox!.x + selectedGraphNodeBox!.width / 2
+      - (graphBox!.x + graphBox!.width / 2),
+    )).toBeLessThanOrEqual(1);
+    expect(Math.abs(
+      selectedGraphNodeBox!.y + selectedGraphNodeBox!.height / 2
+      - (graphBox!.y + graphBox!.height / 2),
+    )).toBeLessThanOrEqual(1);
     const semanticList = network.getByRole("list", { name: "Network nodes" });
     const listItems = semanticList.getByRole("listitem");
     const nodes = semanticList.getByRole("button");
@@ -68,7 +87,69 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
 
     const labels = await network.locator("svg g[role=button] title").allTextContents();
     expect(labels.some((label) => label.length > 16)).toBe(true);
-    await expect(network).toHaveScreenshot("note-neural-network-desktop.png");
+    await page.waitForTimeout(650);
+    const overlaps = await graph.locator("[data-network-node]").evaluateAll((elements) => {
+      const bounds = elements.map((element) => ({
+        id: element.getAttribute("data-network-node"),
+        rect: element.getBoundingClientRect(),
+      }));
+      const collisions: string[] = [];
+      for (let leftIndex = 0; leftIndex < bounds.length; leftIndex += 1) {
+        for (let rightIndex = leftIndex + 1; rightIndex < bounds.length; rightIndex += 1) {
+          const left = bounds[leftIndex];
+          const right = bounds[rightIndex];
+          if (left.rect.left < right.rect.right && left.rect.right > right.rect.left
+            && left.rect.top < right.rect.bottom && left.rect.bottom > right.rect.top) {
+            collisions.push(`${left.id}/${right.id}`);
+          }
+        }
+      }
+      return collisions;
+    });
+    expect(overlaps).toEqual([]);
+    await expect(network).toHaveScreenshot("note-neural-network-desktop.png", {
+      animations: "allow",
+    });
+    expect(issues).toEqual([]);
+  });
+
+  test("inspects on single click and recenters scales only on double click", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await openNetwork(page);
+    const network = page.getByTestId("note-neural-network");
+    const graph = network.getByTestId("mode-network-graph-scroller");
+    const chord = graph.locator('[data-network-node="chord:C"]');
+    await chord.click();
+    await expect(network.getByRole("complementary", { name: "C details" })).toBeVisible();
+    await expect(page.locator("#theory-root")).toHaveValue("C");
+    await expect(page.locator("#theory-scale")).toHaveValue("major");
+    await chord.dblclick();
+    await expect(page.locator("#theory-root")).toHaveValue("C");
+    await expect(page.locator("#theory-scale")).toHaveValue("major");
+
+    const dorian = graph.locator('[data-network-node="scale:D:dorian"]');
+    await dorian.click();
+    await expect(network.getByRole("complementary", { name: "D Dorian details" })).toBeVisible();
+    await expect(page.locator("#theory-root")).toHaveValue("C");
+    await expect(page.locator("#theory-scale")).toHaveValue("major");
+    await dorian.dblclick();
+    await expect(page.locator("#theory-root")).toHaveValue("D");
+    await expect(page.locator("#theory-scale")).toHaveValue("dorian");
+    const recentered = graph.locator('[data-network-node="scale:D:dorian"]');
+    const [recenteredGraphBox, recenteredNodeBox] = await Promise.all([
+      graph.boundingBox(),
+      recentered.boundingBox(),
+    ]);
+    expect(recenteredGraphBox).not.toBeNull();
+    expect(recenteredNodeBox).not.toBeNull();
+    expect(Math.abs(
+      recenteredNodeBox!.x + recenteredNodeBox!.width / 2
+      - (recenteredGraphBox!.x + recenteredGraphBox!.width / 2),
+    )).toBeLessThanOrEqual(1);
+    expect(Math.abs(
+      recenteredNodeBox!.y + recenteredNodeBox!.height / 2
+      - (recenteredGraphBox!.y + recenteredGraphBox!.height / 2),
+    )).toBeLessThanOrEqual(1);
     expect(issues).toEqual([]);
   });
 
@@ -114,6 +195,11 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await expect(nodes.last()).toHaveAttribute("aria-pressed", "true");
     await nodes.last().press("Home");
     await expect(nodes.first()).toBeFocused();
+    const dorian = nodes.filter({ hasText: "D Dorian" });
+    await dorian.focus();
+    await dorian.press("Enter");
+    await expect(page.locator("#theory-root")).toHaveValue("D");
+    await expect(page.locator("#theory-scale")).toHaveValue("dorian");
     expect(issues).toEqual([]);
   });
 
@@ -188,25 +274,24 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
       await expect(network.getByRole("list", { name: "Network nodes" }).getByRole("button")).toHaveCount(18);
       if (viewport.name === "mobile") {
         const graph = network.getByTestId("mode-network-graph-scroller");
-        const panDown = network.getByRole("button", { name: "Pan down" });
-        expect(Number(await graph.getAttribute("data-graph-height")))
-          .toBeGreaterThan(Number(await graph.getAttribute("data-viewport-height")));
-        for (let step = 0; step < 60 && await panDown.isEnabled(); step += 1) {
-          await panDown.click();
-        }
-        await expect(panDown).toBeDisabled();
-        expect(Number(await graph.getAttribute("data-pan-y")))
-          .toBe(Number(await graph.getAttribute("data-pan-min-y")));
-        await expect(network.getByText("100%", { exact: true })).toBeVisible();
+        await expect(graph).toHaveAttribute("data-graph-projection", "mobile-static");
+        await expect(graph.locator("[data-network-node]")).toHaveCount(11);
+        await expect(graph.locator('[role="button"]')).toHaveCount(0);
+        await expect(network.getByRole("group", { name: "Network viewport controls" })).toHaveCount(0);
+        await expect(network.getByText("100%", { exact: true })).toHaveCount(0);
+        await expect(graph).toHaveScreenshot("note-neural-network-mobile-static.png");
         const graphBox = await graph.boundingBox();
         const bottomNodeBox = await graph.locator("[data-network-node]").last().boundingBox();
         expect(graphBox).not.toBeNull();
         expect(bottomNodeBox).not.toBeNull();
         expect(bottomNodeBox!.y + bottomNodeBox!.height)
           .toBeLessThanOrEqual(graphBox!.y + graphBox!.height + 1);
-        const animations = await network.evaluate((element) => element.getAnimations({ subtree: true })
-          .filter((animation) => animation.playState === "running").length);
-        expect(animations).toBe(0);
+        await expect(graph).toHaveAttribute("data-graph-motion", "static");
+      } else {
+        const graph = network.getByTestId("mode-network-graph-scroller");
+        await expect(graph).toHaveAttribute("data-graph-motion", "outward");
+        await expect(graph).toHaveAttribute("data-graph-projection", "desktop-radial");
+        await expect(network.getByRole("group", { name: "Network viewport controls" })).toBeVisible();
       }
       expect(issues).toEqual([]);
     });

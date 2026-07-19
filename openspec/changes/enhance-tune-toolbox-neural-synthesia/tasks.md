@@ -36,3 +36,15 @@
 - [x] 5.1 Push the reviewed feature branch, open a focused draft PR, and require exact-head build/test, Playwright, and Workers checks to pass.
 - [x] 5.2 Inventory live PR/branch state; delete only branches proven merged or gone while retaining `main`, this feature branch, all open/unmerged work, and the latest few useful feature/fix branches.
 - [x] 5.3 Verify the final local/remote branch inventory, clean worktree boundary, unchanged `.agents/` and `AGENTS.md`, and final exact-head CI status.
+
+## 6. NOTE NEURAL NETWORK Force-Canvas Continuation
+
+- [x] 6.1 Reopen only the NOTE NEURAL NETWORK contract, record the merged radial SVG as the baseline, and extract the supplied Obsidian GIF into a temporary motion-reference contact sheet.
+- [x] 6.2 Add a dependency-free fixed-step physics module with deterministic seeding, repulsion, relationship springs, center gravity, collision separation, damping, bounds, dragging, resizing, energy, and sleep/wake behavior.
+- [x] 6.3 Add pure unit tests covering every force, deterministic reduced-motion warm-up, dynamic node radii, center anchoring, drag response, containment, and settling thresholds.
+- [x] 6.4 Replace only the desktop SVG graph with a high-DPI native canvas whose animation, camera, hover, and pointer state live in refs and pause correctly while inactive or hidden.
+- [x] 6.5 Add fluid node dragging, empty-canvas pan, cursor-centered wheel zoom, toolbar parity, hover neighborhood emphasis, circular glow nodes, and canvas click/double-click hit testing without changing shared selection semantics.
+- [x] 6.6 Preserve the current static mobile SVG, right detail panel, lower semantic list, English/Japanese localization, reduced-motion behavior, and Scale Synthesia handoff unchanged.
+- [x] 6.7 Add component and Playwright regressions for backing resolution, settling, drag elasticity, panning, cursor zoom, hover dimming, activation, mobile no-canvas behavior, containment, and interaction latency.
+- [ ] 6.8 Compare the rendered desktop states against the supplied GIF and Tonari tokens, fix material visual/interaction mismatches, and commit the force-canvas milestone separately.
+- [ ] 6.9 Run Browser QA plus build, lint, all Vitest, all Playwright, strict OpenSpec, Worker/dependency checks, and explicit HASHER/FRET FINDER source/test guards before publishing a focused draft PR.

@@ -92,16 +92,42 @@ Circle of Fifths SHALL expose an `IMPROV INSIGHT` action inside its expanded con
 - **WHEN** a keyboard user closes Improv Insight after opening it from Circle
 - **THEN** focus SHALL return to the surviving Circle trigger
 
-### Requirement: Legible interactive Note Neural Network
-Note Neural Network SHALL render a true-black, deterministic relationship graph centered on the active scale, with protected label space, bounded desktop navigation, deliberate scale activation, chord-only inspection, and an equivalent semantic list/detail path. The adjacent desktop scale information and the information panel below the graph SHALL retain their current placement.
+### Requirement: Fluid interactive Note Neural Network
+Note Neural Network SHALL render a true-black native-canvas relationship graph centered on the active scale, with lightweight force physics, protected labels, fluid desktop pointer navigation, deliberate scale activation, chord-only inspection, and an equivalent semantic list/detail path. The adjacent desktop scale information and the information panel below the graph SHALL retain their current placement.
+
+#### Scenario: High-DPI responsive canvas
+- **WHEN** the desktop graph mounts or its parent size or device pixel ratio changes
+- **THEN** one native canvas SHALL fill the measured graph area
+- **AND** its backing resolution SHALL match the CSS size multiplied by the active device pixel ratio while drawing in CSS-pixel coordinates
+
+#### Scenario: Force-directed settling
+- **WHEN** a desktop graph context renders or changes without reduced motion
+- **THEN** related nodes SHALL spread from the centered active scale through pairwise repulsion, edge springs, and gentle center gravity in a request-animation-frame loop
+- **AND** velocity damping between `0.85` and `0.9` SHALL let the graph settle without perpetual visible jitter
 
 #### Scenario: Centered active scale
-- **WHEN** a desktop graph context renders or changes
-- **THEN** the active scale SHALL occupy the exact visual center and related scale/key and chord nodes SHALL radiate outward on stable rings
+- **WHEN** the desktop graph is not actively dragging its main node
+- **THEN** the active scale SHALL occupy the exact world center while related scale/key and chord nodes settle around it
 
-#### Scenario: Animated radial entry
-- **WHEN** a desktop context changes without reduced motion
-- **THEN** related nodes and connectors SHALL animate outward from the center once and SHALL stop at deterministic final positions
+#### Scenario: Fluid node dragging
+- **WHEN** a desktop pointer user drags any graph node
+- **THEN** that node SHALL follow the world-space pointer with zero drag velocity while all other nodes continue responding through live forces
+- **AND** release SHALL return the node to normal physics, with the active scale restoring its center anchor
+
+#### Scenario: Empty-canvas pan and cursor zoom
+- **WHEN** a desktop pointer user drags empty canvas space or wheels over the graph
+- **THEN** the camera SHALL pan or zoom smoothly without moving simulation coordinates
+- **AND** wheel zoom SHALL preserve the world point under the cursor and SHALL NOT scroll the document
+
+#### Scenario: Hover neighborhood emphasis
+- **WHEN** a desktop pointer hovers a node
+- **THEN** that node plus its first-degree edges and neighbors SHALL brighten
+- **AND** unrelated nodes and edges SHALL dim without disappearing or changing selected details
+
+#### Scenario: Connection-weighted circular nodes
+- **WHEN** the desktop graph draws nodes
+- **THEN** they SHALL be filled circles with Tonari/Harmony token colors, bounded glow, and radius based on connection count
+- **AND** edges SHALL render behind nodes and labels
 
 #### Scenario: Scale inspection versus activation
 - **WHEN** a user single-clicks a related scale/key node
@@ -120,14 +146,14 @@ Note Neural Network SHALL render a true-black, deterministic relationship graph 
 
 #### Scenario: Edge termination and layering
 - **WHEN** graph edges connect labeled nodes
-- **THEN** each visible edge SHALL render behind nodes, terminate at node boundaries, and SHALL NOT run through a node label
+- **THEN** each visible edge SHALL render behind nodes, terminate at circular node boundaries, and SHALL NOT visually obscure a node label
 
-#### Scenario: Stable radial layout
-- **WHEN** the same graph context renders repeatedly
-- **THEN** node positions SHALL be stable, the active scale SHALL remain centered, and no free-running simulation SHALL cause continuing layout drift
+#### Scenario: Bounded settled layout
+- **WHEN** the same graph context reaches its low-energy threshold
+- **THEN** the active scale SHALL remain centered, all nodes SHALL remain within the world bounds, and the solver SHALL sleep until an interaction, resize, or context change wakes it
 
 #### Scenario: Pointer graph controls
-- **WHEN** a desktop pointer user pans, zooms, resets, inspects, or double-clicks a scale node
+- **WHEN** a desktop pointer user pans, zooms, resets, inspects, drags, hovers, or double-clicks a scale node
 - **THEN** the bounded graph viewport SHALL update without causing document-level horizontal overflow
 
 #### Scenario: Keyboard semantic path
@@ -137,9 +163,10 @@ Note Neural Network SHALL render a true-black, deterministic relationship graph 
 
 #### Scenario: Reduced motion
 - **WHEN** reduced motion is requested on desktop
-- **THEN** the graph SHALL render directly at deterministic final positions without animated settling
+- **THEN** the graph SHALL advance to a deterministic settled state without visible animated travel while retaining inspection, camera, and semantic-list operation
 
 #### Scenario: Static mobile graph
 - **WHEN** the graph is viewed at 375px width
 - **THEN** it SHALL render a bounded static projection with one centered active scale, up to six related scale/key nodes, and up to four representative chord nodes
-- **AND** it SHALL omit graph pan, zoom, reset, drag, double-click, and animated-entry behavior while retaining the full semantic list/detail path below
+- **AND** it SHALL not mount the desktop canvas or physics loop
+- **AND** it SHALL omit graph pan, zoom, reset, drag, double-click, and animated behavior while retaining the full semantic list/detail path below

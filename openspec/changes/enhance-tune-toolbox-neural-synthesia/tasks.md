@@ -46,5 +46,5 @@
 - [x] 6.5 Add fluid node dragging, empty-canvas pan, cursor-centered wheel zoom, toolbar parity, hover neighborhood emphasis, circular glow nodes, and canvas click/double-click hit testing without changing shared selection semantics.
 - [x] 6.6 Preserve the current static mobile SVG, right detail panel, lower semantic list, English/Japanese localization, reduced-motion behavior, and Scale Synthesia handoff unchanged.
 - [x] 6.7 Add component and Playwright regressions for backing resolution, settling, drag elasticity, panning, cursor zoom, hover dimming, activation, mobile no-canvas behavior, containment, and interaction latency.
-- [ ] 6.8 Compare the rendered desktop states against the supplied GIF and Tonari tokens, fix material visual/interaction mismatches, and commit the force-canvas milestone separately.
+- [x] 6.8 Compare the rendered desktop states against the supplied GIF and Tonari tokens, fix material visual/interaction mismatches, and commit the force-canvas milestone separately.
 - [ ] 6.9 Run Browser QA plus build, lint, all Vitest, all Playwright, strict OpenSpec, Worker/dependency checks, and explicit HASHER/FRET FINDER source/test guards before publishing a focused draft PR.

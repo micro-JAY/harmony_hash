@@ -29,9 +29,18 @@ describe("NoteNeuralNetwork", () => {
     expect(markup).toMatch(/<ul[^>]+aria-label="Network nodes"[^>]*>.*<li[^>]*><button/s);
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain('aria-label="Relationship strength legend"');
+    expect(markup).toContain('data-relationship-strength="strong"');
+    expect(markup).toContain('data-relationship-strength="medium"');
+    expect(markup).toContain('data-relationship-strength="weak"');
     expect(markup).toContain('<canvas');
     expect(markup).toContain('data-graph-projection="desktop-force-canvas"');
     expect(markup).toContain("Drag nodes to reshape the network");
+    expect(markup).toContain('aria-label="About NOTE NEURAL NETWORK"');
+    expect(markup).toContain('data-testid="network-selection-kind"');
+    expect(markup).toContain("Selected · SCALE");
+    expect(markup).toContain("Expand connections");
+    expect(markup).toContain('data-network-kind="scale"');
+    expect(markup).toContain('data-network-kind="chord"');
     expect(markup).toContain("E Harmonic Minor");
     expect(markup).toContain("1 · 2 · b3 · 4 · 5 · b6 · 7");
     expect(markup).toContain("Open in SCALE SYNTHESIA");

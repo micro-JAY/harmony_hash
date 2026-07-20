@@ -151,7 +151,7 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     expect(issues).toEqual([]);
   });
 
-  test("inspects on single click and recenters scales only on double click", async ({ page }) => {
+  test("separates inspection, progressive expansion, and explicit centering", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await openNetwork(page);
@@ -165,6 +165,10 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await page.mouse.dblclick(chordPoint.x, chordPoint.y);
     await expect(page.locator("#theory-root")).toHaveValue("C");
     await expect(page.locator("#theory-scale")).toHaveValue("major");
+    await expect.poll(async () => Number(await canvas.getAttribute("data-node-count")))
+      .toBeGreaterThan(18);
+    const chordExpansionCount = Number(await canvas.getAttribute("data-node-count"));
+    await expect(network).toHaveAttribute("data-exploration-count", "1");
 
     const dorianPoint = await findCanvasNodePoint(canvas, "scale:D:dorian");
     await page.mouse.click(dorianPoint.x, dorianPoint.y);
@@ -172,8 +176,16 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await expect(page.locator("#theory-root")).toHaveValue("C");
     await expect(page.locator("#theory-scale")).toHaveValue("major");
     await page.mouse.dblclick(dorianPoint.x, dorianPoint.y);
+    await expect.poll(async () => Number(await canvas.getAttribute("data-node-count")))
+      .toBeGreaterThan(chordExpansionCount);
+    await expect(network).toHaveAttribute("data-exploration-count", "2");
+    await expect(page.locator("#theory-root")).toHaveValue("C");
+    await expect(page.locator("#theory-scale")).toHaveValue("major");
+    await network.getByRole("button", { name: "Make center" }).click();
     await expect(page.locator("#theory-root")).toHaveValue("D");
     await expect(page.locator("#theory-scale")).toHaveValue("dorian");
+    await expect(network).toHaveAttribute("data-exploration-count", "0");
+    await expect(canvas).toHaveAttribute("data-node-count", "18");
     await expect(canvas).toHaveAttribute("data-simulation-state", "settled");
     const centered = await canvas.evaluate((element) => ({
       height: Number(element.dataset.cssHeight),
@@ -183,6 +195,175 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     }));
     expect(centered.selectedX).toBeCloseTo(centered.width / 2, 1);
     expect(centered.selectedY).toBeCloseTo(centered.height / 2, 1);
+    expect(issues).toEqual([]);
+  });
+
+  test("pins by a stationary 550ms press and exposes equivalent explicit controls", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openNetwork(page);
+    const network = page.getByTestId("note-neural-network");
+    const canvas = network.getByTestId("note-network-canvas");
+    const chordPoint = await findCanvasNodePoint(canvas, "chord:C");
+
+    await page.mouse.move(chordPoint.x, chordPoint.y);
+    await page.mouse.down();
+    await page.waitForTimeout(575);
+    await expect(canvas).toHaveAttribute("data-pinned-nodes", /chord:C/);
+    await page.mouse.up();
+    await expect(network.getByTestId("network-pin-status")).toContainText("C · Pinned");
+
+    const pinnedPointBeforeCollapse = await findCanvasNodePoint(canvas, "chord:C");
+    const canvasBoxBeforeCollapse = await canvas.boundingBox();
+    expect(canvasBoxBeforeCollapse).not.toBeNull();
+    const disclosure = page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first();
+    await disclosure.click();
+    await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    await disclosure.click();
+    await expect(canvas).toBeVisible();
+    await expect(canvas).toHaveAttribute("data-pinned-nodes", /chord:C/);
+    const pinnedPointAfterReopen = await findCanvasNodePoint(canvas, "chord:C");
+    const canvasBoxAfterReopen = await canvas.boundingBox();
+    expect(canvasBoxAfterReopen).not.toBeNull();
+    expect(pinnedPointAfterReopen.x - canvasBoxAfterReopen!.x)
+      .toBeCloseTo(pinnedPointBeforeCollapse.x - canvasBoxBeforeCollapse!.x, 0);
+    expect(pinnedPointAfterReopen.y - canvasBoxAfterReopen!.y)
+      .toBeCloseTo(pinnedPointBeforeCollapse.y - canvasBoxBeforeCollapse!.y, 0);
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    await expect(network.getByTestId("note-network-canvas")).toHaveCount(0);
+    await expect(network.getByTestId("mode-network-graph-scroller"))
+      .toHaveAttribute("data-graph-projection", "mobile-static");
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect(canvas).toBeVisible();
+    await expect(canvas).toHaveAttribute("data-pinned-nodes", /chord:C/);
+
+    await network.getByRole("list", { name: "Network nodes" })
+      .getByRole("button", { name: /chord · C · Pinned/ }).click();
+    const unpin = network.getByRole("button", { name: "Unpin node" });
+    await expect(unpin).toHaveAttribute("aria-pressed", "true");
+    await unpin.click();
+    await expect(canvas).toHaveAttribute("data-pinned-nodes", "[]");
+    await expect(network.getByTestId("network-pin-status")).toContainText("C · Unpinned");
+
+    const cancelledPoint = await findCanvasNodePoint(canvas, "chord:F");
+    await page.mouse.move(cancelledPoint.x, cancelledPoint.y);
+    await page.mouse.down();
+    await page.mouse.move(cancelledPoint.x + 24, cancelledPoint.y, { steps: 2 });
+    await page.mouse.up();
+    await page.waitForTimeout(575);
+    await expect(canvas).toHaveAttribute("data-pinned-nodes", "[]");
+
+    const pointerCancelPoint = await findCanvasNodePoint(canvas, "chord:G");
+    await page.mouse.move(pointerCancelPoint.x, pointerCancelPoint.y);
+    await page.mouse.down();
+    await canvas.dispatchEvent("pointercancel", {
+      bubbles: true,
+      button: 0,
+      clientX: pointerCancelPoint.x,
+      clientY: pointerCancelPoint.y,
+      pointerId: 1,
+      pointerType: "mouse",
+    });
+    await page.mouse.up();
+    await page.waitForTimeout(575);
+    await expect(canvas).toHaveAttribute("data-pinned-nodes", "[]");
+    expect(issues).toEqual([]);
+  });
+
+  test("preserves exploration, pins, and selection across a Circle insight round trip", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openNetwork(page);
+    const network = page.getByTestId("note-neural-network");
+    const nodes = network.getByRole("list", { name: "Network nodes" });
+    const cChord = nodes.locator('[data-network-node="chord:C"]');
+
+    await cChord.click();
+    await network.getByRole("button", { name: "Expand connections" }).click();
+    await network.getByRole("button", { name: "Pin node" }).click();
+    await nodes.locator('[data-network-node="scale:D:dorian"]').click();
+    await network.getByRole("button", { name: "Pan right" }).click();
+    const originalCameraPan = await network.getByTestId("note-network-canvas")
+      .getAttribute("data-camera-pan-x");
+    const originalPinnedPoint = await findCanvasNodePoint(
+      network.getByTestId("note-network-canvas"),
+      "chord:C",
+    );
+    const originalCanvasBox = await network.getByTestId("note-network-canvas").boundingBox();
+    expect(originalCanvasBox).not.toBeNull();
+    await expect(network).toHaveAttribute("data-exploration-count", "1");
+    await expect(cChord).toHaveAttribute("data-network-pinned", "true");
+    await expect(nodes.locator('[data-network-node="scale:D:dorian"]'))
+      .toHaveAttribute("aria-pressed", "true");
+
+    const circleDisclosure = page.locator('button[aria-controls="theory-tool-circle"]');
+    if (await circleDisclosure.getAttribute("aria-expanded") !== "true") {
+      await circleDisclosure.click();
+    }
+    await page.getByTestId("circle-mode-insights")
+      .locator('[data-insight-id="dorian"]')
+      .click();
+    await expect(page.locator("#theory-scale")).toHaveValue("dorian");
+    await expect(network).toHaveAttribute("data-exploration-count", "0");
+    await expect(network.getByTestId("note-network-canvas")).toHaveAttribute("data-pinned-nodes", "[]");
+    await expect(nodes.locator('[data-network-node="scale:C:dorian"]'))
+      .toHaveAttribute("aria-pressed", "true");
+
+    const targetChord = nodes.locator('[data-network-kind="chord"]').first();
+    await targetChord.click();
+    await network.getByRole("button", { name: "Expand connections" }).click();
+    await expect(network).toHaveAttribute("data-exploration-count", "1");
+
+    await page.locator("#theory-scale").selectOption("major");
+    await expect(network).toHaveAttribute("data-exploration-count", "1");
+    await expect(cChord).toHaveAttribute("data-network-pinned", "true");
+    await expect(network.getByTestId("note-network-canvas"))
+      .toHaveAttribute("data-camera-pan-x", originalCameraPan ?? "42.00");
+    const restoredPinnedPoint = await findCanvasNodePoint(
+      network.getByTestId("note-network-canvas"),
+      "chord:C",
+    );
+    const restoredCanvasBox = await network.getByTestId("note-network-canvas").boundingBox();
+    expect(restoredCanvasBox).not.toBeNull();
+    expect(restoredPinnedPoint.x - restoredCanvasBox!.x)
+      .toBeCloseTo(originalPinnedPoint.x - originalCanvasBox!.x, 0);
+    expect(restoredPinnedPoint.y - restoredCanvasBox!.y)
+      .toBeCloseTo(originalPinnedPoint.y - originalCanvasBox!.y, 0);
+    await expect(nodes.locator('[data-network-node="scale:D:dorian"]'))
+      .toHaveAttribute("aria-pressed", "true");
+
+    await network.getByRole("button", { name: "Make center" }).click();
+    await expect(page.locator("#theory-root")).toHaveValue("D");
+    await expect(page.locator("#theory-scale")).toHaveValue("dorian");
+    await expect(network).toHaveAttribute("data-exploration-count", "0");
+    await expect(network.getByTestId("note-network-canvas")).toHaveAttribute("data-pinned-nodes", "[]");
+
+    await page.locator("#theory-root").selectOption("C");
+    await page.locator("#theory-scale").selectOption("major");
+    await expect(network).toHaveAttribute("data-exploration-count", "0");
+    await expect(network.getByTestId("note-network-canvas")).toHaveAttribute("data-pinned-nodes", "[]");
+    await expect(nodes.locator('[data-network-node="scale:C:major"]'))
+      .toHaveAttribute("aria-pressed", "true");
+    expect(issues).toEqual([]);
+  });
+
+  test("explains the graph in a focus-restoring accessible dialog", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await openNetwork(page);
+    const network = page.getByTestId("note-neural-network");
+    const trigger = network.getByRole("button", { name: "About NOTE NEURAL NETWORK" });
+    await trigger.click();
+    const dialog = page.getByRole("dialog", { name: "How NOTE NEURAL NETWORK works" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("Scales use a double ring");
+    await expect(dialog).toContainText("Hold a stationary node for 550ms");
+    await expect(dialog).toContainText("Relative compares modes");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
     expect(issues).toEqual([]);
   });
 
@@ -206,6 +387,25 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await expect(canvas).toHaveAttribute("data-dragged-node", "");
     await expect.poll(async () => Number(await canvas.getAttribute("data-simulation-energy")))
       .toBeGreaterThan(0);
+
+    const interruptedPoint = await findCanvasNodePoint(canvas, "chord:F");
+    await page.mouse.move(interruptedPoint.x, interruptedPoint.y);
+    await page.mouse.down();
+    await page.mouse.move(interruptedPoint.x + 36, interruptedPoint.y - 18, { steps: 3 });
+    await expect(canvas).toHaveAttribute("data-dragged-node", "chord:F");
+    const disclosure = page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first();
+    await disclosure.evaluate((element: HTMLButtonElement) => element.click());
+    await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    await page.mouse.up();
+    await disclosure.click();
+    await expect(canvas).toBeVisible();
+    await expect(canvas).toHaveAttribute("data-dragged-node", "");
+    const resumedPoint = await findCanvasNodePoint(canvas, "chord:F");
+    await page.mouse.move(resumedPoint.x, resumedPoint.y);
+    await page.mouse.down();
+    await page.mouse.move(resumedPoint.x - 30, resumedPoint.y + 12, { steps: 3 });
+    await page.mouse.up();
+    await expect(canvas).toHaveAttribute("data-dragged-node", "");
 
     await network.getByRole("button", { name: "Reset network view" }).click();
     const canvasBox = await canvas.boundingBox();
@@ -289,6 +489,10 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     const dorian = nodes.filter({ hasText: "D Dorian" });
     await dorian.focus();
     await dorian.press("Enter");
+    await expect(page.locator("#theory-root")).toHaveValue("C");
+    await expect(page.locator("#theory-scale")).toHaveValue("major");
+    await expect(network).toHaveAttribute("data-exploration-count", "1");
+    await network.getByRole("button", { name: "Make center" }).click();
     await expect(page.locator("#theory-root")).toHaveValue("D");
     await expect(page.locator("#theory-scale")).toHaveValue("dorian");
     expect(issues).toEqual([]);
@@ -328,8 +532,9 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await expect(network.getByRole("img", { name: "D relationship network" })).toBeVisible();
     const semanticNodes = network.getByRole("list", { name: "Network nodes" }).getByRole("button");
     await semanticNodes.nth(2).click();
-    const selectedName = (await network.getByRole("list", { name: "Network nodes" })
-      .locator('li > button[aria-pressed="true"]').first().innerText()).trim();
+    const selectedId = await network.getByRole("list", { name: "Network nodes" })
+      .locator('li > button[aria-pressed="true"]').first().getAttribute("data-network-node");
+    expect(selectedId).not.toBeNull();
     const selectedRoot = await page.locator("#theory-root").inputValue();
 
     await page.getByRole("button", { name: "HASHER", exact: true }).click();
@@ -338,7 +543,8 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     await expect(disclosure).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator("#theory-root")).toHaveValue(selectedRoot);
     await expect(network).toBeVisible();
-    await expect(semanticNodes.filter({ hasText: selectedName })).toHaveAttribute("aria-pressed", "true");
+    await expect(network.getByRole("list", { name: "Network nodes" })
+      .locator(`[data-network-node="${selectedId}"]`)).toHaveAttribute("aria-pressed", "true");
     expect(issues).toEqual([]);
   });
 
@@ -379,6 +585,16 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
         expect(bottomNodeBox!.y + bottomNodeBox!.height)
           .toBeLessThanOrEqual(graphBox!.y + graphBox!.height + 1);
         await expect(graph).toHaveAttribute("data-graph-motion", "static");
+        await network.getByRole("list", { name: "Network nodes" })
+          .locator('[data-network-node="chord:C"]').click();
+        await network.getByRole("button", { name: "Expand connections" }).click();
+        await expect(network).toHaveAttribute("data-exploration-count", "1");
+        await expect.poll(async () => network.getByRole("list", { name: "Network nodes" })
+          .getByRole("button").count()).toBeGreaterThan(18);
+        await expect(graph.locator("[data-network-node]")).toHaveCount(11);
+        await expect(network.getByTestId("note-network-canvas")).toHaveCount(0);
+        await expect(network.getByRole("button", { name: "Pin node" })).toHaveCount(0);
+        await expect(network).toContainText("mobile keeps a static graph to conserve resources");
       } else {
         const graph = network.getByTestId("mode-network-graph-scroller");
         const canvas = network.getByTestId("note-network-canvas");

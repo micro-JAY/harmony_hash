@@ -202,10 +202,13 @@ export {
   moveNoteNetworkNode,
   noteNetworkNodeRadius,
   NOTE_NETWORK_PHYSICS,
+  pinNoteNetworkNode,
+  reconcileNoteNetworkSimulation,
   releaseNoteNetworkNode,
   resizeNoteNetworkSimulation,
   settleNoteNetworkSimulation,
   stepNoteNetworkSimulation,
+  unpinNoteNetworkNode,
   wakeNoteNetworkSimulation,
 } from "./noteNetworkPhysics";
 export type {
@@ -214,3 +217,26 @@ export type {
   NoteNetworkPhysicsNode,
   NoteNetworkSimulation,
 } from "./noteNetworkPhysics";
+
+export {
+  buildNoteNetworkKnowledgeCatalog,
+  clearNoteNetworkExploration,
+  collapseNoteNetworkKnowledgeBranch,
+  createNoteNetworkExplorationState,
+  expandNoteNetworkKnowledge,
+  NOTE_NETWORK_EDGE_STYLES,
+  NOTE_NETWORK_MAX_EDGES,
+  NOTE_NETWORK_MAX_EXPANSIONS,
+  NOTE_NETWORK_MAX_NODES,
+} from "./noteNetworkKnowledge";
+export type {
+  NoteNetworkEdgeStyle,
+  NoteNetworkExplorationState,
+  NoteNetworkKnowledgeBranch,
+  NoteNetworkKnowledgeCatalog,
+  NoteNetworkKnowledgeCluster,
+  NoteNetworkKnowledgeEdge,
+  NoteNetworkKnowledgeNode,
+  NoteNetworkKnowledgeNodeKind,
+  NoteNetworkKnowledgeRelationshipKind,
+} from "./noteNetworkKnowledge";

@@ -16,6 +16,11 @@ import {
   type CircleKey,
   type ScaleFormulaType,
 } from "../lib/theory";
+import {
+  circleInsightsFor,
+  formatCircleRootLabel,
+  formatSelectedCircleRootLabel,
+} from "../lib/theory/circleOfFifths";
 import { useLocale, useT } from "../i18n/I18nContext";
 import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 
@@ -24,6 +29,7 @@ interface CircleOfFifthsProps {
   selectedRoot?: string;
   selectedScaleId?: ScaleFormulaType;
   onRootChange?: (root: string) => void;
+  onInsightSelect?: (root: string, scaleId: ScaleFormulaType) => void;
   onOpenImprov?: (root: string, returnFocusId?: string) => void;
   embedded?: boolean;
 }
@@ -77,21 +83,12 @@ function ringSegmentPath(index: number, innerRadius: number, outerRadius: number
   ].join(" ");
 }
 
-function modulationArcPath(fromIndex: number, toIndex: number): string {
-  const fromAngle = -90 + fromIndex * SECTOR_DEGREES;
-  const toAngle = -90 + toIndex * SECTOR_DEGREES;
-  const from = pointAt(306, fromAngle);
-  const to = pointAt(306, toAngle);
-  const control = pointAt(342, (fromAngle + toAngle) / 2);
-  return `M ${from.x} ${from.y} Q ${control.x} ${control.y} ${to.x} ${to.y}`;
-}
-
 function displayRoot(key: CircleKey): string {
-  return key.major.replace(" major", "");
+  return formatCircleRootLabel(key.major);
 }
 
 function displayMinorRoot(key: CircleKey): string {
-  return key.relativeMinor.replace(" minor", "");
+  return formatCircleRootLabel(key.relativeMinor);
 }
 
 function circleIndexForRoot(root: string): number {
@@ -108,6 +105,7 @@ export default function CircleOfFifths({
   selectedRoot,
   selectedScaleId = "major",
   onRootChange,
+  onInsightSelect,
   onOpenImprov,
   embedded = false,
 }: CircleOfFifthsProps) {
@@ -136,6 +134,7 @@ export default function CircleOfFifths({
   }));
   const relationshipNodes = new Map(relationshipCatalog.nodes.map((node) => [node.id, node]));
   const contextRelationships = selectCircleRelationshipEdges(relationshipCatalog);
+  const insights = circleInsightsFor(relationshipRoot);
   const diatonicChordRows = contextNotes.flatMap((note) => {
     const edge = relationshipCatalog.edges.find((candidate) => (
       candidate.kind === "diatonic_function"
@@ -184,7 +183,7 @@ export default function CircleOfFifths({
       {embedded ? null : (
         <WorkspaceHeader
           titleId="circle-title"
-          title="Circle of Fifths"
+          title="The Circle"
           description="Move by fifths to compare keys, relatives, and nearby modulation paths."
         />
       )}
@@ -202,19 +201,6 @@ export default function CircleOfFifths({
             data-reduced-motion={reduceMotion ? "true" : "false"}
           >
             <circle cx={CENTER} cy={CENTER} r={OUTER_RADIUS} fill="var(--surface-sunken)" />
-            {[selectedIndex - 1, selectedIndex + 1].map((targetIndex, arcIndex) => (
-              <path
-                key={targetIndex}
-                d={modulationArcPath(selectedIndex, targetIndex)}
-                className="circle-modulation-arc"
-                data-reduced-motion={reduceMotion ? "true" : "false"}
-                fill="none"
-                stroke={arcIndex === 0 ? "var(--text-academy)" : "var(--text-accent)"}
-                strokeWidth="3"
-                strokeDasharray="8 8"
-                aria-hidden="true"
-              />
-            ))}
 
             {CIRCLE_KEYS.map((key, index) => {
               const selected = index === selectedIndex;
@@ -230,8 +216,8 @@ export default function CircleOfFifths({
                   role="option"
                   aria-selected={selected}
                   aria-label={locale === "ja"
-                    ? `${t(key.major)}、${t("Relative")}：${t(key.relativeMinor)}、${t(key.signature)}`
-                    : `${key.major}, relative ${key.relativeMinor}, ${key.signature}`}
+                    ? `${displayRoot(key)} ${t("major")}、${t("Relative")}：${displayMinorRoot(key)} ${t("minor")}、${t(key.signature)}`
+                    : `${displayRoot(key)} major, relative ${displayMinorRoot(key)} minor, ${key.signature}`}
                   tabIndex={selected ? 0 : -1}
                   className="circle-key-sector"
                   onClick={() => selectIndex(index)}
@@ -307,7 +293,7 @@ export default function CircleOfFifths({
 
             <circle cx={CENTER} cy={CENTER} r="108" fill="var(--surface-raised)" stroke="var(--border-subtle)" />
             <text x={CENTER} y={CENTER - 8} textAnchor="middle" fill="var(--text-primary)" fontFamily="var(--font-display)" fontSize="31" fontWeight="700">
-              {displayRoot(selectedKey)}
+              {formatSelectedCircleRootLabel(selectedKey.major, relationshipRoot)}
             </text>
             <text x={CENTER} y={CENTER + 27} textAnchor="middle" fill="var(--text-secondary)" fontFamily="var(--font-mono)" fontSize="13">
               {t(selectedKey.signature)}
@@ -395,7 +381,7 @@ export default function CircleOfFifths({
                   }}
                 >
                   <ArrowRight size={17} aria-hidden="true" />
-                  <span>{t(key.major)}</span>
+                  <span>{displayRoot(key)} {t("major")}</span>
                 </button>
               ))}
             </div>
@@ -439,10 +425,96 @@ export default function CircleOfFifths({
         <section
           className="border-t p-6 lg:col-span-2 lg:p-8"
           style={{ borderColor: "var(--border-default)" }}
+          data-testid="circle-insights"
+          aria-labelledby="circle-insights-heading"
+        >
+          <h3 id="circle-insights-heading" style={{ fontSize: "var(--text-lg)" }}>
+            {t("Explore further")}
+          </h3>
+
+          <div className="mt-4 grid gap-6 lg:grid-cols-2 lg:gap-8">
+            <section aria-labelledby="circle-mode-insights-heading">
+              <h4 id="circle-mode-insights-heading" className="label-caps" style={{ color: "var(--text-secondary)" }}>
+                {t("Popular modes")}
+              </h4>
+              <div className="mt-2 grid gap-2" data-testid="circle-mode-insights">
+                {insights.modes.map((insight) => (
+                  <button
+                    key={insight.id}
+                    type="button"
+                    data-circle-insight="mode"
+                    data-insight-id={insight.insightId}
+                    onClick={() => onInsightSelect?.(insight.root, insight.scaleId)}
+                    className="rounded-lg px-3 py-2 text-left transition-colors"
+                    style={{
+                      backgroundColor: "var(--interactive-secondary-bg)",
+                      border: "1px solid var(--border-subtle)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                      <span style={{ fontWeight: "var(--weight-semibold)" }}>{t(insight.label)}</span>
+                      <span className="readout" style={{ color: "var(--text-academy)", fontSize: "var(--text-xs)" }}>
+                        {t(insight.characteristicKey)}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-xs" style={{ color: "var(--text-secondary)" }}>
+                      {t(insight.useKey)} · {insight.romanExample}
+                    </span>
+                    <span className="mt-1 block readout" style={{ color: "var(--text-primary)", fontSize: "var(--text-xs)" }}>
+                      {insight.example.join(" → ")}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section aria-labelledby="circle-key-change-insights-heading">
+              <h4 id="circle-key-change-insights-heading" className="label-caps" style={{ color: "var(--text-secondary)" }}>
+                {t("Common key changes")}
+              </h4>
+              <div className="mt-2 grid gap-2" data-testid="circle-key-change-insights">
+                {insights.keyChanges.map((insight) => (
+                  <button
+                    key={insight.id}
+                    type="button"
+                    data-circle-insight="key-change"
+                    data-insight-id={insight.insightId}
+                    onClick={() => onInsightSelect?.(insight.targetRoot, insight.targetScaleId)}
+                    className="rounded-lg px-3 py-2 text-left transition-colors"
+                    style={{
+                      backgroundColor: "var(--surface-overlay)",
+                      border: "1px solid var(--border-subtle)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                      <span style={{ fontWeight: "var(--weight-semibold)" }}>{t(insight.labelKey)}</span>
+                      <span className="readout" style={{ color: "var(--text-accent)", fontSize: "var(--text-xs)" }}>
+                        {insight.sourceRoot} → {insight.targetRootLabel}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-xs" style={{ color: "var(--text-secondary)" }}>
+                      {t(insight.explanationKey)}
+                      {insight.evidence ? ` ${t("Common tone")}: ${insight.evidence}.` : null}
+                    </span>
+                    <span className="mt-1 block readout" style={{ color: "var(--text-primary)", fontSize: "var(--text-xs)" }}>
+                      {insight.romanExample} · {insight.example.join(" → ")}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section
+          className="border-t p-6 lg:col-span-2 lg:p-8"
+          style={{ borderColor: "var(--border-default)" }}
           aria-labelledby="circle-relationships-heading"
         >
           <h3 id="circle-relationships-heading" style={{ fontSize: "var(--text-lg)" }}>{t("Relationships")}</h3>
-          <ul className="mt-3 grid gap-x-8 gap-y-3 sm:grid-cols-2 xl:grid-cols-4">
+          <ul className="mt-3 grid gap-x-8 gap-y-3 md:grid-cols-2 xl:grid-cols-3">
             {contextRelationships.map((edge) => {
               const relatedId = edge.sourceId === relationshipCatalog.selectedNodeId
                 ? edge.targetId
@@ -452,11 +524,11 @@ export default function CircleOfFifths({
                 ? chordFamilyPresentation(related.chordSymbol)
                 : null;
               return (
-                <li key={edge.id} className="flex items-center justify-between gap-3 text-sm">
+                <li key={edge.id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
                   <span className="min-w-0">
                     <span
                       data-chord-family={relatedFamily?.family}
-                      className="inline-flex max-w-full truncate rounded px-1.5 py-0.5"
+                      className="inline-flex max-w-full break-words rounded px-1.5 py-0.5"
                       style={relatedFamily ? {
                         color: relatedFamily.color,
                         backgroundColor: relatedFamily.backgroundColor,
@@ -470,12 +542,24 @@ export default function CircleOfFifths({
                       {t(edge.kind)}
                     </span>
                   </span>
-                  <span className="readout" style={{ color: edge.strength === 3
-                    ? "var(--text-accent)"
-                    : edge.strength === 2
-                      ? "var(--text-academy)"
-                      : "var(--text-muted)" }}>
-                    <span aria-hidden="true">{edge.strength === 3 ? "━━━" : edge.strength === 2 ? "━━" : "┄┄"}</span>{" "}
+                  <span
+                    className="readout inline-flex min-h-7 items-center justify-center rounded-full px-2 py-1 text-center"
+                    data-relationship-strength={edge.strengthLabel}
+                    style={{
+                      color: edge.strength === 3
+                        ? "var(--text-accent)"
+                        : edge.strength === 2
+                          ? "var(--text-academy)"
+                          : "var(--text-secondary)",
+                      backgroundColor: "var(--surface-overlay)",
+                      border: `1px solid ${edge.strength === 3
+                        ? "var(--interactive-accent-border)"
+                        : edge.strength === 2
+                          ? "var(--interactive-academy-border)"
+                          : "var(--border-subtle)"}`,
+                      fontSize: "var(--text-xs)",
+                    }}
+                  >
                     {t(`${edge.strengthLabel} relationship`)}
                   </span>
                 </li>
@@ -483,7 +567,7 @@ export default function CircleOfFifths({
             })}
           </ul>
           <p className="mt-4 text-xs" style={{ color: "var(--text-secondary)" }} aria-label={t("Relationship strength legend")}>
-            {t("Solid heavy lines are strong; medium lines are related; dashed lines are weak.")}
+            {t("Strong is closest; Medium is related; Weak is more distant.")}
           </p>
         </section>
       </div>

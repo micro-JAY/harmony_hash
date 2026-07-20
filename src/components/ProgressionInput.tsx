@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type MutableRefObject,
+  type ReactNode,
 } from "react";
 import type {
   IndexedChord,
@@ -44,6 +45,7 @@ interface ProgressionInputProps {
   timelineVersionRef: MutableRefObject<number>;
   onRequestVoice: () => void;
   onVoiceIntent: () => void;
+  outputTools?: ReactNode;
   contextLaunch?: {
     readonly key: string;
     readonly scaleType?: ScaleType;
@@ -91,6 +93,7 @@ export default function ProgressionInput({
   timelineVersionRef,
   onRequestVoice,
   onVoiceIntent,
+  outputTools,
   contextLaunch,
 }: ProgressionInputProps) {
   const t = useT();
@@ -499,6 +502,7 @@ export default function ProgressionInput({
             handleComposerRemove(composedItems.length - 1);
           }}
           keyContext={{ key: activeKey, scaleType: activeScaleType }}
+          leadingContent={outputTools}
         />
       </div>
 

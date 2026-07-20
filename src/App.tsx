@@ -19,6 +19,8 @@ import type {
   Workspace,
 } from "./lib/types";
 import Header from "./components/Header";
+import HasherIntervalLegend from "./components/HasherIntervalLegend";
+import InstrumentToggle from "./components/InstrumentToggle";
 import GuidedTour, { type GuidedTourStep } from "./components/GuidedTour";
 import OnboardingModal from "./components/OnboardingModal";
 import type { NoteNeuralNetworkState } from "./components/NoteNeuralNetwork";
@@ -212,8 +214,8 @@ function App() {
     DEFAULT_THEORY_CONTEXT,
   );
   const [theoryDisclosures, setTheoryDisclosures] = useState<TheoryDisclosures>({
-    circle: true,
-    scales: false,
+    circle: false,
+    scales: true,
     network: false,
   });
   const [hasherContextLaunch, setHasherContextLaunch] = useState<{
@@ -732,16 +734,16 @@ function App() {
       body: t("Use PLAY to hear the full progression. RANDOMIZE (UNLOCKED VOICES) gives unlocked guitar variants or piano voicings a fresh performance without changing your chords."),
     },
     {
-      id: "circle",
-      targetSelector: '[data-testid="circle-of-fifths"]',
-      title: t("Explore the Circle of Fifths"),
-      body: t("Compare neighboring keys, borrow a progression, or open IMPROV INSIGHT without leaving TUNE TOOLBOX."),
-    },
-    {
       id: "scales",
       targetSelector: '[data-testid="scale-synthesia"]',
       title: t("See a scale on the keyboard"),
       body: t("SCALE SYNTHESIA names each degree, shows its color, and can send a compatible root and mode back to HASHER."),
+    },
+    {
+      id: "circle",
+      targetSelector: '[data-testid="circle-of-fifths"]',
+      title: t("Explore The Circle"),
+      body: t("Compare neighboring keys, modes, and practical key changes or open IMPROV INSIGHT without leaving TUNE TOOLBOX."),
     },
     {
       id: "network",
@@ -814,8 +816,6 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header
-        instrument={instrument}
-        onInstrumentChange={handleInstrumentChange}
         workspace={workspace}
         onWorkspaceChange={setWorkspace}
         onOpenHelp={() => setOnboardingOpen(true)}
@@ -859,6 +859,17 @@ function App() {
               timelineVersionRef={timelineVersionRef}
               onRequestVoice={handleRequestVoice}
               onVoiceIntent={ensureVoiceRuntime}
+              outputTools={(
+                <div className="hh-output-learning-tools">
+                  <div data-tour="instrument-switcher">
+                    <InstrumentToggle
+                      instrument={instrument}
+                      onInstrumentChange={handleInstrumentChange}
+                    />
+                  </div>
+                  <HasherIntervalLegend />
+                </div>
+              )}
               contextLaunch={hasherContextLaunch}
             />
           </div>

@@ -148,9 +148,14 @@ export default function PianoKeyboard({
     return displayMode === "fingering" && rootMidi !== undefined && active.midi === rootMidi;
   }
 
+  function activeInterval(active: VoicedNote): number | null {
+    if (rootPitchClass === undefined) return null;
+    return ((active.pitchClass - rootPitchClass) % 12 + 12) % 12;
+  }
+
   function activeKeyColor(active: VoicedNote, rootFingerKey: boolean, isBlack: boolean): string {
-    if (colorMode === "interval" && rootPitchClass !== undefined) {
-      const interval = ((active.pitchClass - rootPitchClass) % 12 + 12) % 12;
+    const interval = activeInterval(active);
+    if (colorMode === "interval" && interval !== null) {
       return fretboardIntervalColor(interval);
     }
     if (rootFingerKey) return "var(--text-accent)";
@@ -181,12 +186,14 @@ export default function PianoKeyboard({
         const label = active ? getActiveLabel(active) : "";
         const rootFingerKey = active ? isRootFingerKey(active) : false;
         const rootNoteLabel = active ? isRootLabel(active) : false;
+        const interval = active ? activeInterval(active) : null;
 
         return (
           <div
             key={`w-${key.midi}`}
             data-midi={key.midi}
             data-key-kind="white"
+            data-note-interval={interval ?? undefined}
             className={active ? (active.hand === "left" ? "piano-key-active-lh" : "piano-key-active") : ""}
             style={{
               position: "absolute",
@@ -231,6 +238,7 @@ export default function PianoKeyboard({
         const label = active ? getActiveLabel(active) : "";
         const rootFingerKey = active ? isRootFingerKey(active) : false;
         const rootNoteLabel = active ? isRootLabel(active) : false;
+        const interval = active ? activeInterval(active) : null;
         const geometry = getBlackKeyGeometry(key.note, key.octave, size);
 
         return (
@@ -238,6 +246,7 @@ export default function PianoKeyboard({
             key={`b-${key.midi}`}
             data-midi={key.midi}
             data-key-kind="black"
+            data-note-interval={interval ?? undefined}
             className={active ? (active.hand === "left" ? "piano-key-active-lh" : "piano-key-active") : ""}
             style={{
               position: "absolute",

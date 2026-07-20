@@ -74,12 +74,15 @@ test("optional guided tour spotlights primary tools and supports screen and keyb
     .toBeVisible();
 
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("dialog", { name: "Explore the Circle of Fifths" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "See a scale on the keyboard" })).toBeVisible();
   await expect(page.locator('[data-tour="workspace-navigation"] button', { hasText: "TUNE TOOLBOX" }))
     .toHaveAttribute("aria-pressed", "true");
 
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("dialog", { name: "Explore THE CIRCLE" })).toBeVisible();
+
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: "Explore the Circle of Fifths" })).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "Explore THE CIRCLE" })).toBeHidden();
   await expect(page.getByRole("button", { name: "HASHER" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("chord-card")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Help / About" })).toBeFocused();

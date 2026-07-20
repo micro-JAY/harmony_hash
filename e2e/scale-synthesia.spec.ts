@@ -132,7 +132,7 @@ test.describe("SCALE SYNTHESIA in TUNE TOOLBOX", () => {
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
     await page.locator("#theory-root").selectOption("Eb");
     const disclosure = page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first();
-    await disclosure.click();
+    if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
     await page.getByRole("button", { name: "HASHER", exact: true }).click();
     await expect(page.getByTestId("chord-card")).toHaveCount(4);
     await expect(page.getByRole("heading", { name: "Cmaj7" })).toBeVisible();

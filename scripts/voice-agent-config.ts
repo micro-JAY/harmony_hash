@@ -6,6 +6,13 @@ import {
 
 export const DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";
 export const DEFAULT_TTS_MODEL_ID = "eleven_flash_v2";
+export const REQUIRED_VOICE_CLIENT_EVENTS = [
+  "audio",
+  "user_transcript",
+  "agent_response",
+  "agent_response_complete",
+  "interruption",
+] as const;
 
 const KNOWN_PROMPT_FIELDS = new Set([
   "prompt",
@@ -154,6 +161,8 @@ export interface AgentConfigurationSnapshot {
   voiceId: string;
   ttsModelId: string;
   ttsConfig: Record<string, unknown>;
+  conversationConfig: Record<string, unknown>;
+  clientEvents: string[];
   authEnabled: boolean;
   allowlist: string[];
   toolIds: string[];
@@ -228,7 +237,7 @@ export function buildCreatePayload(
       turn: { turn_eagerness: "normal", turn_timeout: 8 },
       conversation: {
         max_duration_seconds: 900,
-        client_events: ["agent_response_complete"],
+        client_events: [...REQUIRED_VOICE_CLIENT_EVENTS],
       },
     },
     platform_settings: {
@@ -240,11 +249,13 @@ export function buildCreatePayload(
 
 /**
  * Existing agents receive only fields owned by source control. Omitting name,
- * TTS, model, and conversation tuning preserves deliberate dashboard changes.
+ * model, and conversation tuning preserves deliberate dashboard changes. A
+ * supplied voice id is the sole TTS field this payload is allowed to patch.
  */
 export function buildUpdatePayload(
   systemPrompt: string,
   toolIds: readonly string[],
+  voiceId?: string,
 ) {
   return {
     conversation_config: {
@@ -254,6 +265,10 @@ export function buildUpdatePayload(
           tool_ids: exactSourceToolIds(toolIds),
           built_in_tools: {},
         },
+      },
+      ...(voiceId ? { tts: { voice_id: voiceId } } : {}),
+      conversation: {
+        client_events: [...REQUIRED_VOICE_CLIENT_EVENTS],
       },
     },
     platform_settings: {
@@ -678,6 +693,12 @@ export function readAgentConfiguration(
   const agent = nestedRecord(conversation, ["agent"]);
   const prompt = nestedRecord(agent, ["prompt"]);
   const tts = nestedRecord(conversation, ["tts"]);
+  const conversationSettings = conversation.conversation === undefined
+    ? {}
+    : recordAt(
+      conversation.conversation,
+      "conversation_config.conversation",
+    );
   const platform = nestedRecord(root, ["platform_settings"]);
   const auth = nestedRecord(platform, ["auth"]);
 
@@ -709,6 +730,12 @@ export function readAgentConfiguration(
     voiceId: stringAt(tts.voice_id, "conversation_config.tts.voice_id"),
     ttsModelId: stringAt(tts.model_id, "conversation_config.tts.model_id"),
     ttsConfig: tts,
+    conversationConfig: conversationSettings,
+    clientEvents: optionalStringArray(
+      conversationSettings,
+      "client_events",
+      "conversation_config.conversation.client_events",
+    ),
     authEnabled: booleanAt(
       auth.enable_auth,
       "platform_settings.auth.enable_auth",
@@ -950,6 +977,12 @@ export function assertLiveAgentConfiguration(
   if (snapshot.allowlist.length > 0) {
     throw new Error("Agent hostname allowlist must be empty for signed authentication");
   }
+  if (
+    JSON.stringify(sorted(snapshot.clientEvents)) !==
+    JSON.stringify(sorted(REQUIRED_VOICE_CLIENT_EVENTS))
+  ) {
+    throw new Error("Agent voice client events do not match the required inventory");
+  }
   assertAgentCanBeNarrowlyUpdated(snapshot);
 
   const uniqueToolIds = new Set(snapshot.toolIds);
@@ -970,6 +1003,7 @@ export function assertPreservedAgentUpdate(
   expectedAgentId: string,
   expectedSystemPrompt: string,
   linkedTools: readonly LinkedToolSnapshot[],
+  expectedVoiceId?: string,
 ): void {
   assertLiveAgentConfiguration(
     after,
@@ -980,7 +1014,6 @@ export function assertPreservedAgentUpdate(
 
   const preserved = [
     ["name", before.name, after.name],
-    ["voice id", before.voiceId, after.voiceId],
     ["TTS model", before.ttsModelId, after.ttsModelId],
   ] as const;
   for (const [label, previous, current] of preserved) {
@@ -988,10 +1021,35 @@ export function assertPreservedAgentUpdate(
       throw new Error(`Agent ${label} changed during narrow update`);
     }
   }
+
+  const requiredVoiceId = expectedVoiceId ?? before.voiceId;
+  if (after.voiceId !== requiredVoiceId) {
+    throw new Error(
+      expectedVoiceId
+        ? "Agent voice id does not match the explicit update"
+        : "Agent voice id changed during narrow update",
+    );
+  }
+
+  const withoutVoiceId = (ttsConfig: Record<string, unknown>) => {
+    const { voice_id: _voiceId, ...rest } = ttsConfig;
+    return canonicalize(rest);
+  };
   if (
-    JSON.stringify(canonicalize(before.ttsConfig)) !==
-    JSON.stringify(canonicalize(after.ttsConfig))
+    JSON.stringify(withoutVoiceId(before.ttsConfig)) !==
+    JSON.stringify(withoutVoiceId(after.ttsConfig))
   ) {
     throw new Error("Agent TTS configuration changed during narrow update");
+  }
+
+  const withoutClientEvents = (conversationConfig: Record<string, unknown>) => {
+    const { client_events: _clientEvents, ...rest } = conversationConfig;
+    return canonicalize(rest);
+  };
+  if (
+    JSON.stringify(withoutClientEvents(before.conversationConfig)) !==
+    JSON.stringify(withoutClientEvents(after.conversationConfig))
+  ) {
+    throw new Error("Agent conversation configuration changed outside client events");
   }
 }

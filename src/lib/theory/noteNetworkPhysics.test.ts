@@ -2,20 +2,29 @@ import { describe, expect, it } from "vitest";
 import { createTheoryContext } from "./theoryContext";
 import { buildTheoryRelationshipCatalog } from "./theoryRelationships";
 import {
+  buildNoteNetworkKnowledgeCatalog,
+  createNoteNetworkExplorationState,
+  expandNoteNetworkKnowledge,
+} from "./noteNetworkKnowledge";
+import {
   createNoteNetworkSimulation,
   moveNoteNetworkNode,
   noteNetworkNodeRadius,
+  pinNoteNetworkNode,
+  reconcileNoteNetworkSimulation,
   releaseNoteNetworkNode,
   resizeNoteNetworkSimulation,
   settleNoteNetworkSimulation,
   stepNoteNetworkSimulation,
+  unpinNoteNetworkNode,
   wakeNoteNetworkSimulation,
 } from "./noteNetworkPhysics";
 
-const catalog = buildTheoryRelationshipCatalog(createTheoryContext({
+const seed = buildTheoryRelationshipCatalog(createTheoryContext({
   root: "E",
   scaleId: "harmonic_minor",
 }));
+const catalog = buildNoteNetworkKnowledgeCatalog(seed, createNoteNetworkExplorationState(seed));
 
 function minimumNodeDistance(simulation: ReturnType<typeof createNoteNetworkSimulation>): number {
   let minimum = Number.POSITIVE_INFINITY;
@@ -95,6 +104,47 @@ describe("Note Neural Network physics", () => {
     releaseNoteNetworkNode(simulation, selected.id);
     expect(selected.x).toBe(410);
     expect(selected.y).toBe(310);
+  });
+
+  it("pins, repositions, and releases a non-center node without weakening the center anchor", () => {
+    const simulation = createNoteNetworkSimulation(catalog, 820, 620);
+    settleNoteNetworkSimulation(simulation);
+    const node = simulation.nodes.find((candidate) => !candidate.anchored)!;
+    pinNoteNetworkNode(simulation, node.id);
+    const pinned = { x: node.x, y: node.y };
+    for (let index = 0; index < 40; index += 1) stepNoteNetworkSimulation(simulation);
+    expect(node).toMatchObject({ pinned: true, pinnedX: pinned.x, pinnedY: pinned.y });
+    expect(node.x).toBe(pinned.x);
+    expect(node.y).toBe(pinned.y);
+
+    moveNoteNetworkNode(simulation, node.id, 610, 180);
+    releaseNoteNetworkNode(simulation, node.id);
+    expect(node).toMatchObject({ pinned: true, pinnedX: 610, pinnedY: 180 });
+    unpinNoteNetworkNode(simulation, node.id);
+    expect(node).toMatchObject({ pinned: false, pinnedX: null, pinnedY: null });
+    expect(simulation.nodes[simulation.selectedNodeIndex]).toMatchObject({ x: 410, y: 310 });
+  });
+
+  it("reconciles progressive growth without moving retained nodes or losing pins", () => {
+    const simulation = createNoteNetworkSimulation(catalog, 820, 620);
+    settleNoteNetworkSimulation(simulation);
+    const retained = simulation.nodes.find((candidate) => candidate.node.kind === "chord")!;
+    pinNoteNetworkNode(simulation, retained.id);
+    const before = { x: retained.x, y: retained.y };
+    const expandedState = expandNoteNetworkKnowledge(
+      seed,
+      createNoteNetworkExplorationState(seed),
+      seed.selectedNodeId,
+    );
+    const expandedCatalog = buildNoteNetworkKnowledgeCatalog(seed, expandedState);
+    const reconciled = reconcileNoteNetworkSimulation(simulation, expandedCatalog);
+    const after = reconciled.nodes.find((candidate) => candidate.id === retained.id)!;
+
+    expect(reconciled.nodes.length).toBeGreaterThan(simulation.nodes.length);
+    expect(after).toMatchObject({ x: before.x, y: before.y, pinned: true });
+    const newNode = reconciled.nodes.find((candidate) => candidate.id === "note:4")!;
+    const parent = reconciled.nodes.find((candidate) => candidate.id === seed.selectedNodeId)!;
+    expect(Math.hypot(newNode.x - parent.x, newNode.y - parent.y)).toBeLessThan(100);
   });
 
   it("settles deterministically and wakes without retaining residual velocity", () => {

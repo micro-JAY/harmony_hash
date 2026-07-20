@@ -12,8 +12,13 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
   const reduceMotion = useReducedMotion();
   return (
     <div
-      className="flex rounded-full p-1"
-      style={{ backgroundColor: "var(--surface-overlay)" }}
+      role="group"
+      aria-label={t("Instrument")}
+      className="inline-flex rounded-md p-1"
+      style={{
+        backgroundColor: "var(--surface-overlay)",
+        border: "1px solid var(--border-subtle)",
+      }}
     >
       {(["guitar", "piano"] as const).map((inst) => {
         const active = instrument === inst;
@@ -23,14 +28,14 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
             type="button"
             onClick={() => onInstrumentChange(inst)}
             aria-pressed={active}
-            className="rounded-full px-4 text-sm font-medium transition-all"
+            className="rounded-sm px-3 text-sm font-medium transition-all"
             style={{
               minHeight: "var(--control-min-height)",
               fontFamily: "var(--font-body)",
               fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
-              backgroundColor: active ? "var(--interactive-accent-bg)" : "transparent",
-              color: active ? "var(--interactive-accent-text)" : "var(--text-muted)",
-              border: active ? "1px solid var(--interactive-accent-border)" : "1px solid transparent",
+              backgroundColor: active ? "var(--interactive-primary-bg)" : "transparent",
+              color: active ? "var(--interactive-primary-text)" : "var(--text-muted)",
+              border: active ? "1px solid var(--interactive-primary-bg)" : "1px solid transparent",
               transitionDuration: reduceMotion ? "0ms" : "var(--duration-normal)",
               transitionTimingFunction: "var(--ease-out)",
             }}

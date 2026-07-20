@@ -11,6 +11,8 @@ Scale Synthesia currently offers only two arpeggio shapes at one implicit playba
 - Add fluid node dragging that leaves the rest of the graph physically active, empty-canvas panning, cursor-centered wheel zoom, and first-degree hover emphasis while retaining the existing Harmony Hash node/relationship colors.
 - Require a double click (or the keyboard semantic equivalent) on a related scale to make it the new center; a single click on a related chord changes only the existing detail panel.
 - Render a simplified, static, resource-light mobile graph while keeping scale information on the right at desktop and the existing information/semantic panel below the graph.
+- Grow Note Neural Network progressively: inspection selects one concept, expansion appends a bounded scale/chord/note neighborhood without discarding prior exploration, and an explicit Make Center action is the only operation that replaces the shared scale context.
+- Add advanced theory evidence, distinct node-kind cues, truthful Strong/Medium/Weak rendering, long-press plus accessible pin/unpin controls, and a complete localized help dialog for graph concepts and interactions.
 - Preserve the shared TUNE TOOLBOX context and explicitly leave HASHER and FRET FINDER source, behavior, and presentation unchanged.
 
 ## Capabilities
@@ -27,5 +29,6 @@ None.
 
 - Affects TUNE TOOLBOX components and shared theory helpers under `src/components/ScaleSynthesia.tsx`, `src/components/CircleOfFifths.tsx`, `src/components/TheoryWorkspace.tsx`, `src/components/NoteNeuralNetwork.tsx`, the focused desktop canvas renderer, and `src/lib/theory/`.
 - This force-canvas continuation changes only Note Neural Network source, theory helpers, localization, and focused tests; the already delivered Scale Synthesia/Circle work and all HASHER/FRET FINDER source remain untouched.
+- The progressive-knowledge continuation remains Note Neural Network-only and SHALL NOT change the shared relationship catalog consumed by THE CIRCLE.
 - Extends existing English/Japanese Toolbox copy and focused Vitest/Playwright coverage.
 - Does not add a runtime dependency, change Worker/API routes, or modify HASHER/FRET FINDER components.

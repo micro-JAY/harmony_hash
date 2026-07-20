@@ -18,6 +18,11 @@ export interface VoiceAgentContextValue {
   /** Optional; explicit `undefined` is allowed so the value can be spread from props. */
   signedUrlEndpoint?: string | undefined;
   transcript: TranscriptEntry[];
+  sessionKind: "voice" | "text" | null;
+  audioPacketCount: number;
+  agentReplyCount: number;
+  /** Audio packet count captured when the latest user turn began. */
+  agentReplyAudioBaseline: number;
 }
 
 export const VoiceAgentContext = createContext<VoiceAgentContextValue | null>(null);

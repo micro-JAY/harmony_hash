@@ -70,6 +70,28 @@ The hovered node and its first-degree neighbors/edges render at full brightness 
 
 At the existing small-screen boundary, keep the current static SVG projection, render no pan/zoom toolbar, and attach no graph pointer handlers. A pure projection keeps the centered scale plus up to six strongest scale/key relationships and four representative chord relationships, laid out on fixed rings inside a roughly square true-black surface. The complete node inventory remains in the semantic list below, so resource reduction does not remove accessible information. Mobile never initializes the canvas solver regardless of motion preference.
 
+### Progressive Note-only knowledge catalog
+
+Keep `buildTheoryRelationshipCatalog()` stable because THE CIRCLE consumes it. Add a Note Neural Network-only knowledge layer that starts from that deterministic seed and merges bounded neighborhoods for expanded scale or chord nodes. Scale expansion adds named pitch/degree nodes, diatonic chord evidence, same-collection versus parallel-mode comparisons, characteristic tones, and high-value resolution/pivot relationships. Chord expansion adds chord tones with roles, compatible scales with exact tone-fit counts, shared-tone voice-leading targets, and dominant resolution where truthfully derivable from existing chord/scale helpers.
+
+Every node and edge uses a stable semantic ID. Expansion is idempotent and capped; existing nodes/edges remain until Clear Exploration or Make Center. New nodes seed near the expanded parent, while reconciliation preserves existing coordinates, camera, inspected selection, and user pins. This richer catalog is private to Note Neural Network and does not alter THE CIRCLE's edge inventory.
+
+### Separate inspect, expand, center, and pin transactions
+
+Single click or semantic-list activation inspects only. Double click or `Expand connections` appends the node's bounded neighborhood without changing shared Root/Scale. `Make center` is an explicit scale-only action that changes shared theory context, clears prior branches and pins, and rebuilds around the new center. `Collapse branch` removes only descendants no longer shared by another expanded branch; `Clear exploration` returns to the seed catalog.
+
+A stationary press held for 550ms toggles a user pin. Pointer movement beyond the drag threshold cancels long-press recognition and begins ordinary drag. A pinned node stays at its released world coordinates while continuing to exert/receive spring and repulsion forces; dragging it updates its fixed position. Long press again or the detail/list `Unpin node` action releases it and wakes the solver. The context center remains a separate system anchor and cannot be accidentally uncentered.
+
+### Expert detail evidence and visible node taxonomy
+
+The detail panel opens with an explicit `Selected · SCALE`, `Selected · CHORD`, `Selected · NOTE`, or `Selected · INTERVAL` heading. Scale details show notes/formula, characteristic degree, diatonic vocabulary, same-note or changed-note comparisons, and named neighboring targets. Chord details show chord tones/roles, harmonic function, compatible-scale fit counts, shared tones, and concrete resolution or voice-leading evidence. Relationship rows always name the other node and explain why the edge exists instead of repeating a generic kind/strength string.
+
+Canvas nodes keep Harmony Hash colors but add redundant type shapes/glyphs: a double-ring scale, family-filled chord, small solid note, and outlined interval node. Context, inspected, expanded, and pinned states use distinct non-color rings/badges. Strong is bright heavy solid, Medium is visibly thinner solid, and Weak is thin long-dash; outbound edges add an arrowhead. The rendered legend uses the exact same stroke configuration as the canvas.
+
+### Contextual help dialog
+
+Reuse the accessible dialog/focus-return pattern from Improv Insight. A transparent 44px `?` trigger opens localized guidance covering node kinds, inspect/expand/center/clear, pan/zoom, drag/pin/unpin, relationship strength/direction, Relative versus Parallel, and the intentionally static mobile path. Escape, backdrop, and Close restore focus to the trigger.
+
 ### Visual and performance boundary
 
 Use literal `#000` only on the graph surface as the explicit user-approved design-system exception. All nodes, text, controls, borders, detail panels, focus states, and chord-family meanings continue to use existing semantic tokens. The physics engine is dependency-free, O(n²) over the current small catalog, fixed-step, allocation-light inside the hot loop, and ref-driven so frames do not trigger React renders.
@@ -80,6 +102,10 @@ Use literal `#000` only on the graph surface as the explicit user-approved desig
 - **[Risk] A continuous loop consumes CPU after the graph settles or while collapsed.** → Sleep the solver after a low-energy window, pause while inactive/hidden, resume on interaction, and assert frame/energy behavior in browser tests.
 - **[Risk] Pointer gestures conflict with document scrolling.** → Enable gesture capture only on the desktop canvas, use pointer capture for active drags, attach wheel as non-passive only to the canvas, and leave mobile to native page scrolling.
 - **[Risk] Double click is undiscoverable or inaccessible.** → Add localized instruction text and use Enter as the semantic-list activation equivalent while Space/single click remains inspection.
+- **[Risk] Progressive growth becomes a visually noisy “everything graph.”** → Rank and cap each neighborhood, deduplicate stable IDs, expose branch collapse/clear, and prove bounded node counts and containment.
+- **[Risk] Long press conflicts with drag or ordinary click.** → Require 550ms without threshold movement, cancel the timer on movement/cancel, and provide equivalent explicit Pin/Unpin actions.
+- **[Risk] Reconciliation loses existing positions or pins.** → Test that every retained ID keeps coordinates/pin state and seed only newly introduced IDs beside their parent.
+- **[Risk] Richer theory claims become vague or incorrect.** → Build evidence from existing spelling, interval, chord-tone, and dictionary helpers; show exact notes/counts and unit-test representative modal, dominant, and voice-leading cases.
 - **[Risk] Single-click inspection accidentally mutates the shared context.** → Split inspect and center functions and assert the shared Root/Scale controls remain unchanged after chord and scale single clicks.
 - **[Risk] Long note lengths make tests or collapse cleanup flaky.** → Test pure schedules directly, stub AudioContext in browser tests, and retain the existing immediate stop-on-collapse cleanup.
 - **[Risk] Mobile still pays for the desktop graph.** → Select one layout/render path from a small viewport subscription and do not mount desktop controls or animated SVG groups on mobile.

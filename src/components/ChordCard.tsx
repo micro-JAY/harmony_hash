@@ -266,6 +266,7 @@ export default function ChordCard({
                 displayMode="notes"
                 preferFlats={preferFlats}
                 rootNote={noteNames[0] ?? ""}
+                colorMode="interval"
               />
             </div>
             {/* Only styles with an in-range voicing are useful choices for this chord. */}

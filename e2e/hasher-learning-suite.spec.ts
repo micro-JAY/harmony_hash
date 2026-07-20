@@ -385,8 +385,8 @@ test.describe("HASHER learning suite", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await expect(page.getByRole("heading", { name: "TUNE TOOLBOX" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Circle of Fifths/ }).first()).toHaveAttribute("aria-expanded", "true");
-    await expect(page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first()).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("button", { name: /THE CIRCLE/ }).first()).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first()).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first()).toHaveAttribute("aria-expanded", "false");
 
     const root = page.locator("#theory-root");
@@ -397,7 +397,6 @@ test.describe("HASHER learning suite", () => {
     await expect(mood).toHaveValue("");
     await root.selectOption("D");
     await scale.selectOption("dorian");
-    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
     const synth = page.getByTestId("scale-synthesia");
     await expect(synth).toBeVisible();
     await expect(synth).toContainText("D Dorian");
@@ -441,7 +440,8 @@ test.describe("HASHER learning suite", () => {
     await mood.selectOption("");
     await expect(scale.locator("option")).toHaveCount(28);
 
-    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
+    const scaleDisclosure = page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first();
+    if (await scaleDisclosure.getAttribute("aria-expanded") !== "true") await scaleDisclosure.click();
     const synth = page.getByTestId("scale-synthesia");
     await expect(synth).toHaveAttribute("aria-labelledby", "theory-tool-scales-heading");
     await expect(page.locator("#theory-tool-scales-heading")).toHaveText("SCALE SYNTHESIA");
@@ -454,6 +454,8 @@ test.describe("HASHER learning suite", () => {
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await page.locator("#theory-root").selectOption("D");
     await page.locator("#theory-scale").selectOption("dorian");
+    const circleDisclosure = page.locator('button[aria-controls="theory-tool-circle"]');
+    if (await circleDisclosure.getAttribute("aria-expanded") !== "true") await circleDisclosure.click();
     const trigger = page.locator("#circle-improv-trigger");
     await trigger.click();
 

@@ -1,26 +1,28 @@
-import { buildNoteNetworkLayout } from "./noteNetworkLayout";
 import type {
-  TheoryRelationshipCatalog,
-  TheoryRelationshipEdge,
-  TheoryRelationshipNode,
-} from "./theoryRelationships";
+  NoteNetworkKnowledgeCatalog,
+  NoteNetworkKnowledgeEdge,
+  NoteNetworkKnowledgeNode,
+} from "./noteNetworkKnowledge";
 
 export interface NoteNetworkPhysicsNode {
   readonly id: string;
-  readonly node: TheoryRelationshipNode;
-  readonly radius: number;
-  readonly collisionRadius: number;
-  readonly connectionCount: number;
-  readonly anchored: boolean;
+  node: NoteNetworkKnowledgeNode;
+  radius: number;
+  collisionRadius: number;
+  connectionCount: number;
+  anchored: boolean;
   x: number;
   y: number;
   vx: number;
   vy: number;
   dragged: boolean;
+  pinned: boolean;
+  pinnedX: number | null;
+  pinnedY: number | null;
 }
 
 export interface NoteNetworkPhysicsEdge {
-  readonly edge: TheoryRelationshipEdge;
+  readonly edge: NoteNetworkKnowledgeEdge;
   readonly sourceIndex: number;
   readonly targetIndex: number;
   targetDistance: number;
@@ -81,7 +83,7 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value));
 }
 
-function connectionCounts(catalog: TheoryRelationshipCatalog): ReadonlyMap<string, number> {
+function connectionCounts(catalog: NoteNetworkKnowledgeCatalog): ReadonlyMap<string, number> {
   const counts = new Map(catalog.nodes.map((node) => [node.id, 0]));
   for (const edge of catalog.edges) {
     counts.set(edge.sourceId, (counts.get(edge.sourceId) ?? 0) + 1);
@@ -91,25 +93,26 @@ function connectionCounts(catalog: TheoryRelationshipCatalog): ReadonlyMap<strin
 }
 
 export function noteNetworkNodeRadius(
-  node: TheoryRelationshipNode,
+  node: NoteNetworkKnowledgeNode,
   connectionCount: number,
 ): number {
   if (!Number.isInteger(connectionCount) || connectionCount < 0) {
     throw new RangeError("Network connection count must be a non-negative integer");
   }
   if (node.selected) return SELECTED_RADIUS;
-  const base = node.chordSymbol ? 9.5 : 13;
-  const weighted = base + Math.sqrt(connectionCount + 1) * (node.chordSymbol ? 2.1 : 2.6);
+  const base = node.kind === "note" ? 7.5 : node.kind === "interval" ? 9 : node.chordSymbol ? 9.5 : 13;
+  const multiplier = node.kind === "note" ? 1.5 : node.kind === "interval" ? 1.8 : node.chordSymbol ? 2.1 : 2.6;
+  const weighted = base + Math.sqrt(connectionCount + 1) * multiplier;
   return clamp(weighted, MIN_RADIUS, MAX_RADIUS);
 }
 
-function labelCollisionPadding(node: TheoryRelationshipNode): number {
+function labelCollisionPadding(node: NoteNetworkKnowledgeNode): number {
   if (node.chordSymbol) return 8;
   return clamp(node.label.length * 0.48, 10, 24);
 }
 
 function targetDistance(
-  edge: TheoryRelationshipEdge,
+  edge: NoteNetworkKnowledgeEdge,
   width: number,
   height: number,
 ): number {
@@ -133,32 +136,38 @@ function clampNodeToBounds(
 }
 
 export function createNoteNetworkSimulation(
-  catalog: TheoryRelationshipCatalog,
+  catalog: NoteNetworkKnowledgeCatalog,
   width: number,
   height: number,
 ): NoteNetworkSimulation {
   assertSimulationSize(width, "Network simulation width");
   assertSimulationSize(height, "Network simulation height");
-  const seedLayout = buildNoteNetworkLayout(catalog, { width, reducedMotion: false });
-  const seedCenter = { x: seedLayout.width / 2, y: seedLayout.height / 2 };
   const center = { x: width / 2, y: height / 2 };
-  const scaleY = height / seedLayout.height;
   const counts = connectionCounts(catalog);
-  const nodes = seedLayout.nodes.map((layoutNode) => {
-    const connectionCount = counts.get(layoutNode.node.id) ?? 0;
-    const radius = noteNetworkNodeRadius(layoutNode.node, connectionCount);
+  const nonCenterCount = Math.max(1, catalog.nodes.length - 1);
+  let radialIndex = 0;
+  const nodes = catalog.nodes.map((catalogNode) => {
+    const connectionCount = counts.get(catalogNode.id) ?? 0;
+    const radius = noteNetworkNodeRadius(catalogNode, connectionCount);
+    const anchored = catalogNode.id === catalog.selectedNodeId;
+    const angle = Math.PI * 2 * radialIndex / nonCenterCount - Math.PI / 2;
+    const seedRadius = 22 + (radialIndex % 3) * 7;
+    if (!anchored) radialIndex += 1;
     const physicsNode: NoteNetworkPhysicsNode = {
-      id: layoutNode.node.id,
-      node: layoutNode.node,
+      id: catalogNode.id,
+      node: catalogNode,
       radius,
-      collisionRadius: radius + labelCollisionPadding(layoutNode.node),
+      collisionRadius: radius + labelCollisionPadding(catalogNode),
       connectionCount,
-      anchored: layoutNode.node.id === catalog.selectedNodeId,
-      x: center.x + (layoutNode.initialX - seedCenter.x),
-      y: center.y + (layoutNode.initialY - seedCenter.y) * scaleY,
+      anchored,
+      x: center.x + Math.cos(angle) * seedRadius,
+      y: center.y + Math.sin(angle) * seedRadius,
       vx: 0,
       vy: 0,
       dragged: false,
+      pinned: false,
+      pinnedX: null,
+      pinnedY: null,
     };
     if (physicsNode.anchored) {
       physicsNode.x = center.x;
@@ -281,6 +290,13 @@ function integrateSimulation(
       node.vy = 0;
       continue;
     }
+    if (node.pinned && node.pinnedX !== null && node.pinnedY !== null) {
+      node.x = node.pinnedX;
+      node.y = node.pinnedY;
+      node.vx = 0;
+      node.vy = 0;
+      continue;
+    }
     simulation.forcesX[index] += (centerX - node.x) * config.centerGravity;
     simulation.forcesY[index] += (centerY - node.y) * config.centerGravity;
     node.vx = (node.vx + simulation.forcesX[index]) * config.damping;
@@ -378,6 +394,10 @@ export function moveNoteNetworkNode(
   node.y = y;
   node.vx = 0;
   node.vy = 0;
+  if (node.pinned) {
+    node.pinnedX = node.x;
+    node.pinnedY = node.y;
+  }
   clampNodeToBounds(node, simulation.width, simulation.height, NOTE_NETWORK_PHYSICS.padding);
   wakeNoteNetworkSimulation(simulation);
   return node;
@@ -395,6 +415,9 @@ export function releaseNoteNetworkNode(
   if (node.anchored) {
     node.x = simulation.width / 2;
     node.y = simulation.height / 2;
+  } else if (node.pinned) {
+    node.pinnedX = node.x;
+    node.pinnedY = node.y;
   }
   wakeNoteNetworkSimulation(simulation);
   return node;
@@ -420,6 +443,10 @@ export function resizeNoteNetworkSimulation(
     node.y = nextCenterY + (node.y - previousCenterY) * scaleY;
     node.vx *= scaleX;
     node.vy *= scaleY;
+    if (node.pinnedX !== null && node.pinnedY !== null) {
+      node.pinnedX = nextCenterX + (node.pinnedX - previousCenterX) * scaleX;
+      node.pinnedY = nextCenterY + (node.pinnedY - previousCenterY) * scaleY;
+    }
     if (node.anchored && !node.dragged) {
       node.x = nextCenterX;
       node.y = nextCenterY;
@@ -432,4 +459,120 @@ export function resizeNoteNetworkSimulation(
     edge.targetDistance = targetDistance(edge.edge, width, height);
   }
   wakeNoteNetworkSimulation(simulation);
+}
+
+export function pinNoteNetworkNode(
+  simulation: NoteNetworkSimulation,
+  nodeId: string,
+): NoteNetworkPhysicsNode {
+  const node = simulation.nodes.find((candidate) => candidate.id === nodeId);
+  if (!node) throw new Error(`Unknown network node: ${nodeId}`);
+  if (node.anchored) return node;
+  node.pinned = true;
+  node.pinnedX = node.x;
+  node.pinnedY = node.y;
+  node.vx = 0;
+  node.vy = 0;
+  wakeNoteNetworkSimulation(simulation);
+  return node;
+}
+
+export function unpinNoteNetworkNode(
+  simulation: NoteNetworkSimulation,
+  nodeId: string,
+): NoteNetworkPhysicsNode {
+  const node = simulation.nodes.find((candidate) => candidate.id === nodeId);
+  if (!node) throw new Error(`Unknown network node: ${nodeId}`);
+  node.pinned = false;
+  node.pinnedX = null;
+  node.pinnedY = null;
+  wakeNoteNetworkSimulation(simulation);
+  return node;
+}
+
+function stableSeedAngle(id: string): number {
+  let hash = 2_166_136_261;
+  for (let index = 0; index < id.length; index += 1) {
+    hash ^= id.charCodeAt(index);
+    hash = Math.imul(hash, 16_777_619);
+  }
+  return ((hash >>> 0) / 4_294_967_295) * Math.PI * 2;
+}
+
+export function reconcileNoteNetworkSimulation(
+  simulation: NoteNetworkSimulation,
+  catalog: NoteNetworkKnowledgeCatalog,
+): NoteNetworkSimulation {
+  const retained = new Map(simulation.nodes.map((node) => [node.id, node]));
+  const counts = connectionCounts(catalog);
+  const center = { x: simulation.width / 2, y: simulation.height / 2 };
+  const nodes = catalog.nodes.map((catalogNode) => {
+    const existing = retained.get(catalogNode.id);
+    const connectionCount = counts.get(catalogNode.id) ?? 0;
+    const radius = noteNetworkNodeRadius(catalogNode, connectionCount);
+    if (existing) {
+      existing.node = catalogNode;
+      existing.radius = radius;
+      existing.collisionRadius = radius + labelCollisionPadding(catalogNode);
+      existing.connectionCount = connectionCount;
+      existing.anchored = catalogNode.id === catalog.selectedNodeId;
+      if (existing.anchored) {
+        existing.pinned = false;
+        existing.pinnedX = null;
+        existing.pinnedY = null;
+        existing.x = center.x;
+        existing.y = center.y;
+      }
+      clampNodeToBounds(existing, simulation.width, simulation.height, NOTE_NETWORK_PHYSICS.padding);
+      return existing;
+    }
+
+    const parent = catalogNode.introducedBy ? retained.get(catalogNode.introducedBy) : undefined;
+    const angle = stableSeedAngle(catalogNode.id);
+    const seedDistance = parent ? parent.collisionRadius + radius + 18 : 28;
+    const node: NoteNetworkPhysicsNode = {
+      id: catalogNode.id,
+      node: catalogNode,
+      radius,
+      collisionRadius: radius + labelCollisionPadding(catalogNode),
+      connectionCount,
+      anchored: catalogNode.id === catalog.selectedNodeId,
+      x: (parent?.x ?? center.x) + Math.cos(angle) * seedDistance,
+      y: (parent?.y ?? center.y) + Math.sin(angle) * seedDistance,
+      vx: 0,
+      vy: 0,
+      dragged: false,
+      pinned: false,
+      pinnedX: null,
+      pinnedY: null,
+    };
+    if (node.anchored) {
+      node.x = center.x;
+      node.y = center.y;
+    }
+    clampNodeToBounds(node, simulation.width, simulation.height, NOTE_NETWORK_PHYSICS.padding);
+    return node;
+  });
+  const indexes = new Map(nodes.map((node, index) => [node.id, index]));
+  const edges = catalog.edges.flatMap((edge) => {
+    const sourceIndex = indexes.get(edge.sourceId);
+    const targetIndex = indexes.get(edge.targetId);
+    if (sourceIndex === undefined || targetIndex === undefined) return [];
+    return [{ edge, sourceIndex, targetIndex, targetDistance: targetDistance(edge, simulation.width, simulation.height) }];
+  });
+  const selectedNodeIndex = nodes.findIndex((node) => node.id === catalog.selectedNodeId);
+  if (selectedNodeIndex < 0) throw new Error(`Missing selected physics node: ${catalog.selectedNodeId}`);
+  return {
+    width: simulation.width,
+    height: simulation.height,
+    nodes,
+    edges,
+    forcesX: new Float64Array(nodes.length),
+    forcesY: new Float64Array(nodes.length),
+    selectedNodeIndex,
+    frame: simulation.frame,
+    energy: Number.POSITIVE_INFINITY,
+    lowEnergyFrames: 0,
+    sleeping: false,
+  };
 }

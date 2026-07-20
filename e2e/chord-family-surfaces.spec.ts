@@ -144,6 +144,8 @@ test.describe("global chord-family presentation", () => {
   test("colors Circle diatonic chord labels without replacing relationship text", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
+    const circleDisclosure = page.locator('button[aria-controls="theory-tool-circle"]');
+    if (await circleDisclosure.getAttribute("aria-expanded") !== "true") await circleDisclosure.click();
     const list = page.getByRole("list", { name: "C Major (Ionian) Diatonic chords" });
     const labels = list.locator("[data-chord-family]");
     await expect(labels).toHaveCount(7);

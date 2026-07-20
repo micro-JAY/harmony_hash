@@ -41,7 +41,7 @@ test.describe("Theory mood lens separation", () => {
     await expect(page.getByRole("status").filter({ hasText: "Dark" }).first()).toBeVisible();
 
     const scaleDisclosure = page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first();
-    await scaleDisclosure.click();
+    if (await scaleDisclosure.getAttribute("aria-expanded") !== "true") await scaleDisclosure.click();
     await expect(page.getByRole("status").filter({ hasText: "Dark lens" })).toContainText("5 matching scales");
     await page.getByRole("button", { name: "HASHER", exact: true }).click();
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Cm7", "Fm7"]);

@@ -781,9 +781,11 @@ export default function NoteNeuralNetwork({
             ) : null}
           </aside>
         </div>
-        <p className="sr-only" role="status" aria-live="polite" data-testid="network-pin-status">
-          {pinAnnouncement}
-        </p>
+        {active ? (
+          <p className="sr-only" role="status" aria-live="polite" data-testid="network-pin-status">
+            {pinAnnouncement}
+          </p>
+        ) : null}
       </div>
 
       {helpOpen ? (

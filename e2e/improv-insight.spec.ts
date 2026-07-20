@@ -233,6 +233,8 @@ test.describe("IMPROV INSIGHT", () => {
     await page.locator("#theory-scale").selectOption("dorian");
     await page.locator("#theory-mood").selectOption("jazzy");
 
+    const circleDisclosure = page.locator('button[aria-controls="theory-tool-circle"]');
+    if (await circleDisclosure.getAttribute("aria-expanded") !== "true") await circleDisclosure.click();
     const circleLauncher = page.locator("#circle-improv-trigger");
     await expect(page.locator("#theory-circle-improv-trigger")).toHaveCount(0);
     await expectInsightActionPalette(circleLauncher);
@@ -263,6 +265,8 @@ test.describe("IMPROV INSIGHT", () => {
     await page.locator("#theory-root").selectOption("F");
     await page.locator("#theory-scale").selectOption("major_blues");
     await expect(page.locator("#theory-circle-improv-trigger")).toHaveCount(0);
+    const circleDisclosure = page.locator('button[aria-controls="theory-tool-circle"]');
+    if (await circleDisclosure.getAttribute("aria-expanded") !== "true") await circleDisclosure.click();
     await page.locator("#circle-improv-trigger").click();
 
     const improvAb = page.locator('[data-scale-result="F Major Blues"] [data-scale-note="Ab"]');
@@ -271,7 +275,8 @@ test.describe("IMPROV INSIGHT", () => {
     const improvColor = await improvAb.evaluate((element) => getComputedStyle(element).color);
 
     await page.getByTestId("improv-insight").getByRole("button", { name: "Close IMPROV INSIGHT" }).click();
-    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
+    const scaleDisclosure = page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first();
+    if (await scaleDisclosure.getAttribute("aria-expanded") !== "true") await scaleDisclosure.click();
     const synthAb = page.getByTestId("scale-synthesia")
       .getByRole("list", { name: "Scale notes" })
       .getByRole("listitem")

@@ -60,4 +60,4 @@
 - [x] 7.7 Add scale/chord/note/interval visual taxonomy, exact Strong/Medium/Weak/direction strokes and legend, and concrete connected-node evidence in the detail panel.
 - [x] 7.8 Add a localized accessible help dialog covering concepts/interactions/Parallel/Relative/mobile behavior with Escape/backdrop/close focus restoration.
 - [x] 7.9 Preserve bounded static mobile rendering without canvas/RAF and add focused unit/component/Playwright coverage for expansion, details, pinning, help, localization, accessibility, containment, and context isolation.
-- [ ] 7.10 Perform desktop/tablet/mobile rendered inspection, fix every material defect, run build/lint/all tests/strict OpenSpec/scope guards, commit the neural milestone, and publish exact-head CI evidence.
+- [x] 7.10 Perform desktop/tablet/mobile rendered inspection, fix every material defect, run build/lint/all tests/strict OpenSpec/scope guards, commit the neural milestone, and publish exact-head CI evidence.

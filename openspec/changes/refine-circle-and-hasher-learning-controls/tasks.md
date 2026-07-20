@@ -29,4 +29,4 @@
 - [x] 4.1 Visually inspect desktop, tablet, mobile, English, and Japanese Circle/HASHER states with clean console output and fix every material defect.
 - [x] 4.2 Prove NOTE NEURAL NETWORK and FRET FINDER source are unchanged by this change and run their focused regressions.
 - [x] 4.3 Run production build, lint, all Vitest, all Playwright, strict OpenSpec, diff hygiene, dependency audit, and Worker packaging gates.
-- [ ] 4.4 Reconcile long-horizon plan/log and acceptance evidence, commit the release ledger, publish the reviewed branch/PR, and require exact-head CI to pass.
+- [x] 4.4 Reconcile long-horizon plan/log and acceptance evidence, commit the release ledger, publish the reviewed branch/PR, and require exact-head CI to pass.

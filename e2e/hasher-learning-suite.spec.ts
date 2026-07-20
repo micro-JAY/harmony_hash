@@ -385,8 +385,8 @@ test.describe("HASHER learning suite", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await expect(page.getByRole("heading", { name: "TUNE TOOLBOX" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Circle of Fifths/ }).first()).toHaveAttribute("aria-expanded", "true");
-    await expect(page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first()).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("button", { name: /THE CIRCLE/ }).first()).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first()).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first()).toHaveAttribute("aria-expanded", "false");
 
     const root = page.locator("#theory-root");
@@ -397,7 +397,6 @@ test.describe("HASHER learning suite", () => {
     await expect(mood).toHaveValue("");
     await root.selectOption("D");
     await scale.selectOption("dorian");
-    await page.getByRole("button", { name: /SCALE SYNTHESIA/ }).first().click();
     const synth = page.getByTestId("scale-synthesia");
     await expect(synth).toBeVisible();
     await expect(synth).toContainText("D Dorian");

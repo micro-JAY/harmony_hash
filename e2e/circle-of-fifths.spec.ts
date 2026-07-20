@@ -19,7 +19,10 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 async function openCircle(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Circle of Fifths" })).toBeVisible();
+  const disclosure = page.locator('button[aria-controls="theory-tool-circle"]');
+  await expect(disclosure).toBeVisible();
+  if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
+  await expect(page.getByTestId("circle-of-fifths")).toBeVisible();
 }
 
 test.describe("Circle of Fifths", () => {
@@ -29,6 +32,16 @@ test.describe("Circle of Fifths", () => {
     const issues = collectBrowserIssues(page);
     await page.setViewportSize({ width: 1280, height: 960 });
     await openCircle(page);
+
+    await expect.poll(() => page.locator("[data-theory-tool]").evaluateAll((tools) => (
+      tools.map((tool) => tool.getAttribute("data-theory-tool"))
+    ))).toEqual(["scales", "circle", "network"]);
+    await expect(page.locator('button[aria-controls="theory-tool-scales"]'))
+      .toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator('button[aria-controls="theory-tool-circle"]'))
+      .toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator('button[aria-controls="theory-tool-network"]'))
+      .toHaveAttribute("aria-expanded", "false");
 
     const circle = page.getByRole("listbox", {
       name: "Major keys and relative minor keys around the Circle of Fifths",
@@ -45,7 +58,7 @@ test.describe("Circle of Fifths", () => {
         .getByRole("listitem")
         .locator(".readout"),
     ).toHaveText(["C", "Dm", "Em", "F", "G", "Am", "Bdim"]);
-    await expect(page).toHaveScreenshot("circle-of-fifths-desktop.png");
+    await expect(page.getByTestId("circle-of-fifths")).toHaveScreenshot("circle-of-fifths-desktop.png");
     expect(issues).toEqual([]);
   });
 
@@ -79,6 +92,77 @@ test.describe("Circle of Fifths", () => {
     await expect(cSharpDetails).toContainText("A# minor");
     await expect(cSharpDetails).toContainText("7 sharps");
     await expect(cSharpDetails).not.toContainText("5 flats");
+    await expect(circle.getByRole("option", { name: /F# \(Gb\) major, relative D# \(Eb\) minor/ }))
+      .toBeVisible();
+    expect(issues).toEqual([]);
+  });
+
+  test("offers actionable mode and modulation insights without decorative strength marks", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await page.setViewportSize({ width: 1280, height: 960 });
+    await openCircle(page);
+
+    const circleTool = page.getByTestId("circle-of-fifths");
+    await expect(circleTool.locator(".circle-modulation-arc")).toHaveCount(0);
+    await expect(circleTool.locator("[stroke-dasharray]")).toHaveCount(0);
+
+    const modeInsights = circleTool.getByTestId("circle-mode-insights");
+    const keyChangeInsights = circleTool.getByTestId("circle-key-change-insights");
+    await expect(modeInsights.locator('[data-circle-insight="mode"]')).toHaveCount(3);
+    await expect(keyChangeInsights.locator('[data-circle-insight="key-change"]')).toHaveCount(3);
+    await expect(modeInsights).toContainText("C Dorian");
+    await expect(modeInsights).toContainText("Cm7 → F7");
+    await expect(modeInsights).toContainText("Cmaj7 → D/C");
+    await expect(modeInsights).toContainText("C → Bb → F → C");
+    await expect(keyChangeInsights).toContainText("C → G → Cm → Ab");
+    await expect(keyChangeInsights).toContainText("C → F → A7 → D");
+    await expect(keyChangeInsights).toContainText("Cmaj7 → Emaj7");
+
+    const [panelBox, graphBox, detailsBox, insightsBox, modesBox, changesBox] = await Promise.all([
+      circleTool.locator(".hh-panel").first().boundingBox(),
+      circleTool.getByRole("listbox").boundingBox(),
+      circleTool.getByRole("complementary", { name: "C Major (Ionian) details" }).boundingBox(),
+      circleTool.getByTestId("circle-insights").boundingBox(),
+      modeInsights.boundingBox(),
+      keyChangeInsights.boundingBox(),
+    ]);
+    if (!panelBox || !graphBox || !detailsBox || !insightsBox || !modesBox || !changesBox) {
+      throw new Error("Circle insight layout targets must have rendered bounds.");
+    }
+    expect(Math.abs(insightsBox.x - panelBox.x)).toBeLessThanOrEqual(2);
+    expect(Math.abs(insightsBox.width - panelBox.width)).toBeLessThanOrEqual(3);
+    expect(insightsBox.y).toBeGreaterThanOrEqual(
+      Math.max(graphBox.y + graphBox.height, detailsBox.y + detailsBox.height) - 1,
+    );
+    expect(Math.abs(modesBox.y - changesBox.y)).toBeLessThanOrEqual(1);
+    expect(modesBox.x + modesBox.width).toBeLessThan(changesBox.x);
+
+    await modeInsights.locator('[data-insight-id="dorian"]').click();
+    await expect(page.locator("#theory-root")).toHaveValue("C");
+    await expect(page.locator("#theory-scale")).toHaveValue("dorian");
+    await expect(page.getByRole("complementary", { name: "C Dorian details" })).toBeVisible();
+
+    await page.locator("#theory-scale").selectOption("major");
+    await keyChangeInsights.locator('[data-insight-id="chromatic-mediant"]').click();
+    await expect(page.locator("#theory-root")).toHaveValue("E");
+    await expect(page.locator("#theory-scale")).toHaveValue("major");
+    await expect(page.getByRole("complementary", { name: "E Major (Ionian) details" })).toBeVisible();
+
+    const relationships = circleTool.getByRole("heading", { name: "Relationships" }).locator("..");
+    const strengthBadges = relationships.locator("[data-relationship-strength]");
+    await expect(strengthBadges).toHaveCount(8);
+    await expect(strengthBadges.filter({ hasText: "strong relationship" }).first()).toBeVisible();
+    await expect(strengthBadges.filter({ hasText: "medium relationship" }).first()).toBeVisible();
+    await expect(strengthBadges.filter({ hasText: "weak relationship" }).first()).toBeVisible();
+    expect(await relationships.textContent()).not.toMatch(/[━┄]/);
+    const badgesContained = await strengthBadges.evaluateAll((badges) => badges.every((badge) => {
+      const item = badge.closest("li");
+      if (!item) return false;
+      const badgeRect = badge.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      return badgeRect.left >= itemRect.left - 1 && badgeRect.right <= itemRect.right + 1;
+    }));
+    expect(badgesContained).toBe(true);
     expect(issues).toEqual([]);
   });
 
@@ -89,7 +173,9 @@ test.describe("Circle of Fifths", () => {
     const gMajor = page.getByRole("option", { name: /G major, relative E minor/ });
     await gMajor.focus();
     await gMajor.press("ArrowRight");
-    await page.getByRole("button", { name: "HASH it", exact: true }).click();
+    await page.getByTestId("circle-of-fifths")
+      .getByRole("button", { name: "HASH it", exact: true })
+      .click();
 
     await expect(page.getByRole("button", { name: "HASHER" })).toHaveAttribute(
       "aria-pressed",
@@ -125,6 +211,23 @@ test.describe("Circle of Fifths", () => {
       const circle = page.getByRole("listbox");
       await expect(circle).toBeVisible();
       await expect(page.getByRole("complementary", { name: "C Major (Ionian) details" })).toBeVisible();
+
+      const insights = page.getByTestId("circle-insights");
+      const [insightsBox, modesBox, changesBox] = await Promise.all([
+        insights.boundingBox(),
+        page.getByTestId("circle-mode-insights").boundingBox(),
+        page.getByTestId("circle-key-change-insights").boundingBox(),
+      ]);
+      if (!insightsBox || !modesBox || !changesBox) {
+        throw new Error("Responsive Circle insight layout targets must have rendered bounds.");
+      }
+      for (const columnBox of [modesBox, changesBox]) {
+        expect(columnBox.x).toBeGreaterThanOrEqual(insightsBox.x - 1);
+        expect(columnBox.x + columnBox.width).toBeLessThanOrEqual(insightsBox.x + insightsBox.width + 1);
+      }
+      if (viewport.name === "mobile") {
+        expect(changesBox.y).toBeGreaterThan(modesBox.y + modesBox.height);
+      }
 
       if (viewport.name === "mobile") {
         await expect(circle).toHaveAttribute("data-reduced-motion", "true");
@@ -177,7 +280,11 @@ test.describe("Circle of Fifths", () => {
     await started;
 
     await page.getByRole("button", { name: "TUNE TOOLBOX" }).click();
-    await page.getByRole("button", { name: "HASH it", exact: true }).click();
+    const circleDisclosure = page.locator('button[aria-controls="theory-tool-circle"]');
+    if (await circleDisclosure.getAttribute("aria-expanded") !== "true") await circleDisclosure.click();
+    await page.getByTestId("circle-of-fifths")
+      .getByRole("button", { name: "HASH it", exact: true })
+      .click();
     releaseResponse();
     await expect(page.getByTestId("chord-card")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "D/F#" })).toHaveCount(0);
@@ -210,18 +317,18 @@ test.describe("Circle of Fifths", () => {
 
     const labelledBy = await page.getByTestId("circle-of-fifths").getAttribute("aria-labelledby");
     expect(labelledBy).toBe("theory-tool-circle-heading");
-    await expect(page.locator(`#${labelledBy}`)).toHaveText("Circle of Fifths");
+    await expect(page.locator(`#${labelledBy}`)).toHaveText("THE CIRCLE");
     expect(issues).toEqual([]);
   });
 
   test("keeps one expanded-only HASH and IMPROV action", async ({ page }) => {
     await openCircle(page);
-    await expect(page.getByRole("button", { name: "HASH it", exact: true })).toHaveCount(1);
-    await expect(page.getByRole("button", { name: "IMPROV INSIGHT", exact: true })).toHaveCount(1);
-    await expect(page.getByRole("button", { name: "Open IMPROV INSIGHT", exact: true })).toHaveCount(0);
+    const circleTool = page.getByTestId("circle-of-fifths");
+    await expect(circleTool.getByRole("button", { name: "HASH it", exact: true })).toHaveCount(1);
+    await expect(circleTool.getByRole("button", { name: "IMPROV INSIGHT", exact: true })).toHaveCount(1);
+    await expect(circleTool.getByRole("button", { name: "Open IMPROV INSIGHT", exact: true })).toHaveCount(0);
 
-    await page.getByRole("button", { name: /Circle of Fifths/ }).first().click();
-    await expect(page.getByRole("button", { name: "HASH it", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "IMPROV INSIGHT", exact: true })).toHaveCount(0);
+    await page.locator('button[aria-controls="theory-tool-circle"]').click();
+    await expect(circleTool).toBeHidden();
   });
 });

@@ -147,6 +147,18 @@ export default function TheoryWorkspace({
     });
   }
 
+  function selectCircleInsight(nextRoot: string, scaleId: ScaleFormulaType): void {
+    const root = canonicalTheoryRoot(nextRoot);
+    const familyId = modeFamilyForScale(scaleId) ?? "major";
+    onContextChange({ ...context, root, scaleId });
+    onNetworkStateChange({
+      ...networkState,
+      root,
+      familyId,
+      selectedScaleId: scaleId,
+    });
+  }
+
   function updateNetwork(nextState: NoteNeuralNetworkState): void {
     const root = canonicalTheoryRoot(nextState.root);
     onNetworkStateChange({ ...nextState, root });
@@ -222,25 +234,6 @@ export default function TheoryWorkspace({
 
         <div className="grid gap-4">
           <TheoryToolSection
-            id="circle"
-            title="Circle of Fifths"
-            summary={contextSummary}
-            expanded={disclosures.circle}
-            onExpandedChange={(expanded) => onDisclosureChange("circle", expanded)}
-          >
-            <Suspense fallback={<span className="readout">{t("Loading Circle of Fifths…")}</span>}>
-              <CircleOfFifths
-                embedded
-                selectedRoot={context.root}
-                selectedScaleId={context.scaleId}
-                onRootChange={updateRoot}
-                onUseKey={onUseCircleKey}
-                onOpenImprov={onOpenImprov}
-              />
-            </Suspense>
-          </TheoryToolSection>
-
-          <TheoryToolSection
             id="scales"
             title="Scale Synthesia"
             summary={contextSummary}
@@ -261,6 +254,26 @@ export default function TheoryWorkspace({
                   mood: moodId ?? THEORY_MOOD_ANY,
                 })}
                 onUseInHasher={onUseScaleInHasher}
+              />
+            </Suspense>
+          </TheoryToolSection>
+
+          <TheoryToolSection
+            id="circle"
+            title="The Circle"
+            summary={contextSummary}
+            expanded={disclosures.circle}
+            onExpandedChange={(expanded) => onDisclosureChange("circle", expanded)}
+          >
+            <Suspense fallback={<span className="readout">{t("Loading The Circle…")}</span>}>
+              <CircleOfFifths
+                embedded
+                selectedRoot={context.root}
+                selectedScaleId={context.scaleId}
+                onRootChange={updateRoot}
+                onInsightSelect={selectCircleInsight}
+                onUseKey={onUseCircleKey}
+                onOpenImprov={onOpenImprov}
               />
             </Suspense>
           </TheoryToolSection>

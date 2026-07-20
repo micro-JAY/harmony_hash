@@ -48,9 +48,16 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await expect(page.getByRole("heading", { name: "五度圏", level: 2 })).toBeVisible();
   await page.locator("#theory-mood").selectOption("dark");
   await expect(page.locator("#theory-mood")).toHaveValue("dark");
+
+  const circleDisclosure = page.getByRole("button", { name: /五度圏/ }).first();
+  await expect(circleDisclosure).toHaveAttribute("aria-expanded", "false");
+  await circleDisclosure.click();
   const circleRelationships = page.getByTestId("circle-of-fifths")
     .getByRole("heading", { name: "関係" })
     .locator("..");
+  await expect(page.getByRole("option", {
+    name: "F# (Gb) メジャー、平行調：D# (Eb) マイナー、♯6個／♭6個",
+  })).toBeVisible();
   await expect(circleRelationships).toContainText("中程度の関係");
   await expect(circleRelationships).toContainText("弱い関係");
   await expect(circleRelationships).not.toContainText(/medium|weak|高適合/);
@@ -59,7 +66,7 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await page.locator("#theory-root").selectOption("C");
 
   const scaleDisclosure = page.getByRole("button", { name: /スケール・シンセシア/ }).first();
-  await scaleDisclosure.click();
+  await expect(scaleDisclosure).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByTestId("scale-synthesia")).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "ムード・レンズ：暗い" })).toBeVisible();
   const networkDisclosure = page.getByRole("button", { name: /ノート・ニューラル・ネットワーク/ }).first();

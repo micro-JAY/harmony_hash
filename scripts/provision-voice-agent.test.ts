@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { TOOL_SCHEMAS } from "../src/voice/toolSchemas";
-import { buildClientToolPayload } from "./voice-agent-config";
+import {
+  buildClientToolPayload,
+  REQUIRED_VOICE_CLIENT_EVENTS,
+} from "./voice-agent-config";
 import {
   provisionVoiceAgent,
   type ProvisionVoiceAgentOptions,
@@ -93,6 +96,10 @@ function agentPayload(options: {
         stability: 0.4,
         speed: 1,
         ...options.tts,
+      },
+      conversation: {
+        max_duration_seconds: 300,
+        client_events: [...REQUIRED_VOICE_CLIENT_EVENTS],
       },
     },
     platform_settings: {
@@ -330,5 +337,40 @@ describe("voice agent provisioning orchestration", () => {
     ).rejects.toThrow("TTS configuration changed");
     expect(requests.some((request) => request.method === "PATCH")).toBe(true);
     expect(logs).not.toContain("Updated and verified existing agent");
+  });
+
+  it("updates an explicit voice id without changing other live TTS fields", async () => {
+    let patched = false;
+    const requestedVoiceId = "voice_requested";
+    const { fetchImpl, requests } = createMockFetch((request) => {
+      if (request.url === `${AGENTS_API}/${AGENT_ID}` && request.method === "GET") {
+        return jsonResponse(agentPayload({
+          tts: patched ? { voice_id: requestedVoiceId } : undefined,
+        }));
+      }
+      if (request.url === `${AGENTS_API}/${AGENT_ID}` && request.method === "PATCH") {
+        patched = true;
+        expect(request.body).toMatchObject({
+          conversation_config: {
+            tts: { voice_id: requestedVoiceId },
+          },
+        });
+        const payload = request.body as {
+          conversation_config: { tts: Record<string, unknown> };
+        };
+        expect(Object.keys(payload.conversation_config.tts)).toEqual(["voice_id"]);
+        return jsonResponse({});
+      }
+      const index = toolIndexFromUrl(request.url);
+      if (request.method === "GET" && index >= 0) {
+        return jsonResponse(toolRecord(index));
+      }
+      throw new Error(`Unexpected request: ${request.method} ${request.url}`);
+    });
+
+    await expect(
+      provisionVoiceAgent(provisionOptions(fetchImpl, { voiceId: requestedVoiceId })),
+    ).resolves.toEqual({ action: "updated", agentId: AGENT_ID });
+    expect(requests.some((request) => request.method === "PATCH")).toBe(true);
   });
 });

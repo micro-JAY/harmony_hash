@@ -36,6 +36,12 @@ export function VoiceAgentProvider({
   children,
 }: VoiceAgentProviderProps) {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
+  const [sessionKind, setSessionKind] = useState<"voice" | "text" | null>(null);
+  const [audioPacketCount, setAudioPacketCount] = useState(0);
+  const [agentReplyCount, setAgentReplyCount] = useState(0);
+  const [agentReplyAudioBaseline, setAgentReplyAudioBaseline] = useState(0);
+  const audioPacketCountRef = useRef(0);
+  const currentTurnAudioBaselineRef = useRef(0);
 
   // Monotonic transcript ids. `slice(-19)` caps the array at 20, so `prev.length`
   // would stick at 20 and hand React duplicate keys (stale/misordered rows in long
@@ -49,15 +55,59 @@ export function VoiceAgentProvider({
     (msg: { message: string; role: "user" | "agent" }) => {
       const text = msg.message?.trim();
       if (!text) return;
+      if (msg.role === "user") {
+        currentTurnAudioBaselineRef.current = audioPacketCountRef.current;
+      } else {
+        setAgentReplyAudioBaseline(currentTurnAudioBaselineRef.current);
+        setAgentReplyCount((count) => count + 1);
+      }
       const id = nextIdRef.current++;
       setTranscript((prev) => [...prev.slice(-19), { id, role: msg.role, text }]);
     },
     [],
   );
 
+  const handleConversationCreated = useCallback((conversation: { type: "voice" | "text" }) => {
+    audioPacketCountRef.current = 0;
+    currentTurnAudioBaselineRef.current = 0;
+    setAudioPacketCount(0);
+    setAgentReplyCount(0);
+    setAgentReplyAudioBaseline(0);
+    setSessionKind(conversation.type);
+  }, []);
+
+  const handleAudio = useCallback((base64Audio: string) => {
+    if (base64Audio.length === 0) return;
+    audioPacketCountRef.current += 1;
+    setAudioPacketCount(audioPacketCountRef.current);
+  }, []);
+
+  const providerOverrides = useMemo(
+    () => ({ conversation: { textOnly: false } }),
+    [],
+  );
+
   const value = useMemo<VoiceAgentContextValue>(
-    () => ({ bridge, agentId, signedUrlEndpoint, transcript }),
-    [bridge, agentId, signedUrlEndpoint, transcript],
+    () => ({
+      bridge,
+      agentId,
+      signedUrlEndpoint,
+      transcript,
+      sessionKind,
+      audioPacketCount,
+      agentReplyCount,
+      agentReplyAudioBaseline,
+    }),
+    [
+      bridge,
+      agentId,
+      signedUrlEndpoint,
+      transcript,
+      sessionKind,
+      audioPacketCount,
+      agentReplyCount,
+      agentReplyAudioBaseline,
+    ],
   );
 
   const clearFocusAfterSession = useCallback(async () => {
@@ -78,8 +128,15 @@ export function VoiceAgentProvider({
   return (
     <VoiceAgentContext.Provider value={value}>
       <ConversationProvider
+        textOnly={false}
+        overrides={providerOverrides}
+        onConversationCreated={handleConversationCreated}
+        onAudio={handleAudio}
         onMessage={handleMessage}
-        onDisconnect={() => void clearFocusAfterSession()}
+        onDisconnect={() => {
+          setSessionKind(null);
+          void clearFocusAfterSession();
+        }}
         onError={handleProviderError}
       >
         {children}

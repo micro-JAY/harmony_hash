@@ -172,6 +172,7 @@ function printSafeVerification(
     name: snapshot.name,
     voiceId: snapshot.voiceId,
     ttsModelId: snapshot.ttsModelId,
+    voiceClientEvents: snapshot.clientEvents,
     signedAuth: snapshot.authEnabled,
     allowlistEntries: snapshot.allowlist.length,
     linkedClientTools: linkedTools.map((tool) => tool.name).sort(),
@@ -223,7 +224,7 @@ export async function provisionVoiceAgent(
       `${AGENTS_API}/${encodeURIComponent(existingId)}`,
       "PATCH",
       "Update agent configuration",
-      buildUpdatePayload(options.systemPrompt, toolIds),
+      buildUpdatePayload(options.systemPrompt, toolIds, options.voiceId),
     );
     const afterState = await loadAgentState(call, existingId);
     assertPreservedAgentUpdate(
@@ -232,6 +233,7 @@ export async function provisionVoiceAgent(
       existingId,
       options.systemPrompt,
       afterState.linkedTools,
+      options.voiceId,
     );
     printSafeVerification(
       options.log,

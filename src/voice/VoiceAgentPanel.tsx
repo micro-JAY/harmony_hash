@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { useVoiceAgent } from "./voiceAgentContext";
 import { useProgressionAgentTools } from "./useProgressionAgentTools";
 import { endVoiceSession } from "./sessionLifecycle";
+import { voiceAudioHealthIssue } from "./audioHealth";
 import { useT } from "../i18n/I18nContext";
 
 /**
@@ -28,14 +29,24 @@ interface VoiceAgentPanelProps {
 
 export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   const t = useT();
-  const { bridge, agentId, signedUrlEndpoint, transcript } = useVoiceAgent();
-  const { startSession, endSession } = useConversationControls();
+  const {
+    bridge,
+    agentId,
+    signedUrlEndpoint,
+    transcript,
+    sessionKind,
+    audioPacketCount,
+    agentReplyCount,
+    agentReplyAudioBaseline,
+  } = useVoiceAgent();
+  const { startSession, endSession, setVolume } = useConversationControls();
   const { status, message } = useConversationStatus();
 
   // Register the progression-builder tools for the lifetime of this panel.
   useProgressionAgentTools(bridge);
 
   const [error, setError] = useState<string | null>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const connectionAttemptRef = useRef<AbortController | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -52,13 +63,22 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   // failed connection (denied mic, dropped session) surfaces via status — not
   // the handleStart catch. Fold it in so connection failures aren't silent.
   const displayError =
-    error ?? (status === "error" ? (message ?? t("The voice session ran into a problem.")) : null);
+    error ?? audioError ??
+    (status === "error" ? (message ?? t("The voice session ran into a problem.")) : null);
+
+  const createVoiceOptions = useCallback(() => ({
+    textOnly: false as const,
+    overrides: {
+      conversation: { textOnly: false },
+    },
+  }), []);
 
   const handleStart = useCallback(async () => {
     connectionAttemptRef.current?.abort();
     const controller = new AbortController();
     connectionAttemptRef.current = controller;
     setError(null);
+    setAudioError(null);
     setConnecting(true);
     try {
       if (signedUrlEndpoint) {
@@ -76,11 +96,11 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
           throw new Error(data.error ?? t("Couldn't start the voice session — please try again."));
         }
         if (controller.signal.aborted) return;
-        await startSession({ signedUrl: data.signedUrl });
+        startSession({ signedUrl: data.signedUrl, ...createVoiceOptions() });
       } else {
-        await startSession({ agentId });
+        startSession({ agentId, ...createVoiceOptions() });
       }
-      if (controller.signal.aborted) await endSession();
+      if (controller.signal.aborted) endSession();
     } catch (e) {
       if (controller.signal.aborted || (e instanceof Error && e.name === "AbortError")) return;
       setError(e instanceof Error ? e.message : t("Could not start the voice session"));
@@ -90,7 +110,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
         setConnecting(false);
       }
     }
-  }, [signedUrlEndpoint, agentId, endSession, startSession, t]);
+  }, [signedUrlEndpoint, agentId, createVoiceOptions, endSession, startSession, t]);
 
   const handleStop = useCallback(async () => {
     try {
@@ -104,7 +124,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
     connectionAttemptRef.current?.abort();
     connectionAttemptRef.current = null;
     setConnecting(false);
-    if (status === "connected" || status === "connecting") {
+    if (status === "connecting") {
       await handleStop();
     }
     onClose();
@@ -129,11 +149,45 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
       connectionAttemptRef.current?.abort();
       connectionAttemptRef.current = null;
       setConnecting(false);
-      if (status === "connected" || status === "connecting") void handleStop();
+      if (status === "connecting") void handleStop();
     }
   }, [handleStop, open, status]);
 
   useEffect(() => () => connectionAttemptRef.current?.abort(), []);
+
+  useEffect(() => {
+    if (!live) return;
+    setVolume({ volume: 1 });
+  }, [live, setVolume]);
+
+  useEffect(() => {
+    const issue = voiceAudioHealthIssue({
+      live,
+      agentReplyCount,
+      sessionKind,
+      audioPacketCount,
+      agentReplyAudioBaseline,
+    });
+    if (issue === null) {
+      setAudioError(null);
+      return;
+    }
+    if (issue === "text-only") {
+      setAudioError(t("Hanz connected in text-only mode. End the conversation and try again."));
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      setAudioError(t("Hanz replied, but no voice audio reached this browser. Check your output device and try again."));
+    }, 5_000);
+    return () => window.clearTimeout(timeout);
+  }, [
+    agentReplyAudioBaseline,
+    agentReplyCount,
+    audioPacketCount,
+    live,
+    sessionKind,
+    t,
+  ]);
 
   const statusColor =
     displayError
@@ -159,6 +213,8 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
       aria-modal="false"
       aria-labelledby="hanz-hasher-title"
       className="hhv hhv-popup hh-panel flex w-full max-w-md flex-col gap-4"
+      data-session-kind={sessionKind ?? "none"}
+      data-audio-packets={audioPacketCount}
       style={{
         position: "fixed",
         zIndex: 50,

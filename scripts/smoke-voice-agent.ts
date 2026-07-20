@@ -11,6 +11,7 @@ import { chromium } from "playwright";
 
 const appUrl = process.env.HH_VOICE_APP_URL ?? "http://127.0.0.1:8787";
 const replacement = ["Fmaj7", "Gm7", "C7", "Fmaj7"];
+const helpLabel = /Need help\?|Stuck\?|Writer's block got you down\?|Phone a friend/;
 
 async function main(): Promise<void> {
   const browser = await chromium.launch({
@@ -33,29 +34,45 @@ async function main(): Promise<void> {
     await page.addInitScript(`(() => {
       const NativeWebSocket = window.WebSocket;
       const sockets = [];
+      const events = [];
       Object.defineProperty(window, "__hhSmokeSockets", { value: sockets });
+      Object.defineProperty(window, "__hhSmokeEvents", { value: events });
       class CapturingWebSocket extends NativeWebSocket {
         constructor(...args) {
           super(...args);
           sockets.push(this);
+          this.addEventListener("message", (event) => {
+            if (typeof event.data !== "string") return;
+            try {
+              const payload = JSON.parse(event.data);
+              events.push({
+                type: payload.type ?? "unknown",
+                audioLength: payload.audio_event?.audio_base_64?.length ?? 0,
+              });
+            } catch {
+              events.push({ type: "non-json", audioLength: 0 });
+            }
+          });
         }
       }
       Object.defineProperty(window, "WebSocket", { value: CapturingWebSocket });
     })()`);
 
     await page.goto(appUrl, { waitUntil: "domcontentloaded" });
-    const freeInput = page.getByRole("textbox", { name: /Cmaj7 Dm7 G7 C/ });
-    await freeInput.fill("Cmaj7 Am7 Dm7 G7");
-    await freeInput.press("Enter");
-    await page.getByRole("heading", { name: "Cmaj7" }).waitFor();
-
-    await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
-    await page.getByRole("button", { name: /Talk to the companion/i }).click();
-    await page.getByText("Listening", { exact: true }).waitFor({ timeout: 20_000 });
-    await page.getByRole("button", { name: "Collapse Harmony Companion" }).click();
+    const onboardingClose = page.getByRole("button", { name: "Close Harmony Hash introduction" });
+    if (await onboardingClose.isVisible().catch(() => false)) await onboardingClose.click();
     await page
-      .getByRole("button", { name: "Expand Harmony Companion" })
-      .waitFor();
+      .getByRole("textbox", { name: "Describe the progression you want" })
+      .fill("Help me finish and understand this progression");
+    await page.getByRole("button", { name: helpLabel }).click();
+    const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+    await page.getByRole("button", { name: "Hanz, Help!" }).click();
+    await page.getByText("Listening", { exact: true }).waitFor({ timeout: 20_000 });
+    if ((await dialog.getAttribute("data-session-kind")) !== "voice") {
+      throw new Error("ElevenLabs created a text-only conversation instead of a voice conversation");
+    }
+    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: helpLabel }).click();
 
     await page.evaluate((chords) => {
       const sockets = Reflect.get(window, "__hhSmokeSockets");
@@ -74,17 +91,27 @@ async function main(): Promise<void> {
     for (const chord of new Set(replacement)) {
       await page.getByRole("heading", { name: chord }).first().waitFor({ timeout: 30_000 });
     }
+    try {
+      await page.waitForFunction(() => {
+        const panel = document.querySelector('[role="dialog"][aria-labelledby="hanz-hasher-title"]');
+        return Number(panel?.getAttribute("data-audio-packets") ?? 0) > 0;
+      }, undefined, { timeout: 30_000 });
+    } catch {
+      const eventInventory = await page.evaluate(() => Reflect.get(window, "__hhSmokeEvents"));
+      throw new Error(`Hanz produced no output audio. Socket events: ${JSON.stringify(eventInventory)}`);
+    }
     const rendered = await page.getByRole("heading", { level: 3 }).allTextContents();
     if (JSON.stringify(rendered) !== JSON.stringify(replacement)) {
       throw new Error(`Client tool rendered ${rendered.join(", ")} instead of ${replacement.join(", ")}`);
     }
 
-    await page.getByRole("button", { name: "Expand Harmony Companion" }).click();
     await page.getByRole("button", { name: "End conversation" }).click();
     await page.getByText("Offline", { exact: true }).waitFor({ timeout: 10_000 });
 
     console.log(JSON.stringify({
       connected: true,
+      sessionKind: "voice",
+      audioPackets: Number(await dialog.getAttribute("data-audio-packets")),
       clientToolMutation: rendered,
       disconnected: true,
     }));

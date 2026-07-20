@@ -5,6 +5,7 @@ import {
 } from "../src/voice/toolSchemas";
 import {
   DEFAULT_TTS_MODEL_ID,
+  REQUIRED_VOICE_CLIENT_EVENTS,
   assertAgentCanBeNarrowlyUpdated,
   assertLiveAgentConfiguration,
   assertPreservedAgentUpdate,
@@ -66,6 +67,10 @@ function livePayload(
       tts: {
         voice_id: "voice_custom",
         model_id: "eleven_v3_conversational",
+      },
+      conversation: {
+        max_duration_seconds: 300,
+        client_events: [...REQUIRED_VOICE_CLIENT_EVENTS],
       },
     },
     platform_settings: {
@@ -130,6 +135,9 @@ describe("voice agent payloads", () => {
         auth: { enable_auth: true, allowlist: [] },
       },
     });
+    expect(payload.conversation_config.conversation.client_events).toEqual(
+      REQUIRED_VOICE_CLIENT_EVENTS,
+    );
     expect(payload.conversation_config.agent.prompt).not.toHaveProperty("tools");
   });
 
@@ -153,11 +161,24 @@ describe("voice agent payloads", () => {
       enable_auth: true,
       allowlist: [],
     });
+    expect(payload.conversation_config.conversation.client_events).toEqual(
+      REQUIRED_VOICE_CLIENT_EVENTS,
+    );
     expect(JSON.stringify(payload)).not.toContain("voice_id");
     expect(JSON.stringify(payload)).not.toContain("model_id");
     expect(JSON.stringify(payload)).not.toContain("first_message");
     expect(JSON.stringify(payload)).not.toContain("temperature");
     expect(payload.conversation_config.agent.prompt).not.toHaveProperty("tools");
+  });
+
+  it("patches only the explicitly requested TTS voice on an existing agent", () => {
+    const payload = buildUpdatePayload(PROMPT, TOOL_IDS, "voice_requested");
+    expect(payload.conversation_config).toMatchObject({
+      tts: { voice_id: "voice_requested" },
+    });
+    expect(payload.conversation_config.tts).not.toHaveProperty("model_id");
+    expect(payload.conversation_config.tts).not.toHaveProperty("stability");
+    expect(payload.conversation_config.tts).not.toHaveProperty("speed");
   });
 
   it("rejects incomplete, duplicate, or empty source tool ids", () => {
@@ -189,6 +210,7 @@ describe("voice agent response parsing", () => {
       ttsModelId: "eleven_v3_conversational",
       authEnabled: true,
       allowlist: [],
+      clientEvents: REQUIRED_VOICE_CLIENT_EVENTS,
       toolIds: TOOL_IDS,
       builtInToolNames: [],
       mcpServerIds: ["mcp_workspace"],
@@ -306,6 +328,17 @@ describe("voice agent verification", () => {
         linkedTools(),
       ),
     ).toThrow("allowlist must be empty");
+  });
+
+  it("rejects a voice client-event inventory that cannot stream audio", () => {
+    expect(() =>
+      assertLiveAgentConfiguration(
+        snapshot({ clientEvents: ["agent_response", "agent_response_complete"] }),
+        "agent_test",
+        PROMPT,
+        linkedTools(),
+      ),
+    ).toThrow("voice client events do not match");
   });
 
   it("rejects unexpected linked tools and unresolved tool ids", () => {
@@ -749,6 +782,70 @@ describe("voice agent verification", () => {
         linkedTools(),
       ),
     ).toThrow("TTS configuration changed");
+  });
+
+  it("allows only an explicitly requested voice id to change", () => {
+    const before = snapshot();
+    const after = snapshot({
+      voiceId: "voice_requested",
+      ttsConfig: {
+        ...before.ttsConfig,
+        voice_id: "voice_requested",
+      },
+    });
+    expect(() =>
+      assertPreservedAgentUpdate(
+        before,
+        after,
+        "agent_test",
+        PROMPT,
+        linkedTools(),
+        "voice_requested",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertPreservedAgentUpdate(
+        before,
+        snapshot(),
+        "agent_test",
+        PROMPT,
+        linkedTools(),
+        "voice_requested",
+      ),
+    ).toThrow("does not match the explicit update");
+  });
+
+  it("allows only the client-event inventory to change in conversation settings", () => {
+    const before = snapshot({
+      clientEvents: ["agent_response_complete"],
+      conversationConfig: {
+        max_duration_seconds: 300,
+        client_events: ["agent_response_complete"],
+      },
+    });
+    expect(() =>
+      assertPreservedAgentUpdate(
+        before,
+        snapshot(),
+        "agent_test",
+        PROMPT,
+        linkedTools(),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertPreservedAgentUpdate(
+        before,
+        snapshot({
+          conversationConfig: {
+            max_duration_seconds: 600,
+            client_events: [...REQUIRED_VOICE_CLIENT_EVENTS],
+          },
+        }),
+        "agent_test",
+        PROMPT,
+        linkedTools(),
+      ),
+    ).toThrow("outside client events");
   });
 
   it("rejects post-update system-prompt drift", () => {

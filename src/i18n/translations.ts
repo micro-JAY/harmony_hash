@@ -825,6 +825,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     "The voice session ran into a problem.": "音声セッションで問題が発生しました。",
     "Couldn't start the voice session — please try again.": "音声セッションを開始できませんでした。もう一度お試しください。",
     "Could not start the voice session": "音声セッションを開始できませんでした",
+    "Hanz connected in text-only mode. End the conversation and try again.": "Hanzがテキスト専用モードで接続されました。会話を終了して、もう一度お試しください。",
+    "Hanz replied, but no voice audio reached this browser. Check your output device and try again.": "Hanzは返答しましたが、このブラウザに音声が届きませんでした。出力デバイスを確認して、もう一度お試しください。",
     "Could not end the session cleanly": "音声セッションを正常に終了できませんでした",
     "Talk through a chord progression, or get the theory behind the one on your timeline.": "コード進行を一緒に考えたり、タイムライン上の進行について理論を聞いたりできます。",
     "Ask for a progression, or have me explain the theory — keep it simple or go deep.": "進行を頼んだり、理論の説明を聞いたりできます。シンプルにも詳しくも対応します。",

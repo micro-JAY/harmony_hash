@@ -48,3 +48,16 @@
 - [x] 6.7 Add component and Playwright regressions for backing resolution, settling, drag elasticity, panning, cursor zoom, hover dimming, activation, mobile no-canvas behavior, containment, and interaction latency.
 - [x] 6.8 Compare the rendered desktop states against the supplied GIF and Tonari tokens, fix material visual/interaction mismatches, and commit the force-canvas milestone separately.
 - [x] 6.9 Run Browser QA plus build, lint, all Vitest, all Playwright, strict OpenSpec, Worker/dependency checks, and explicit HASHER/FRET FINDER source/test guards before publishing a focused draft PR.
+
+## 7. Progressive Expert Graph Continuation
+
+- [x] 7.1 Reopen the Note-only contract, capture current 18-node/right-panel/legend baselines, and strict-validate the progressive exploration addendum.
+- [ ] 7.2 Add a Note Neural Network-only knowledge catalog/reducer with stable IDs, bounded idempotent scale/chord expansion, named evidence, branch collapse, and clear exploration while leaving the shared Circle catalog unchanged.
+- [ ] 7.3 Add pure theory tests for modal shared/changed tones, characteristic degrees, chord tones/roles, compatible-scale fit counts, dominant resolutions, voice-leading evidence, caps, deduplication, and immutability.
+- [ ] 7.4 Reconcile expanded catalogs into the live force simulation while preserving retained positions/camera/pins and seeding only new nodes near their expanded parent.
+- [ ] 7.5 Add 550ms long-press pin/unpin, pinned dragging, cancellation safety, explicit semantic Pin/Unpin controls, non-color pin state, and physics tests.
+- [ ] 7.6 Separate Inspect, Expand connections, Make center, Collapse branch, and Clear exploration transactions across canvas, semantic list, and actionable detail panel.
+- [ ] 7.7 Add scale/chord/note/interval visual taxonomy, exact Strong/Medium/Weak/direction strokes and legend, and concrete connected-node evidence in the detail panel.
+- [ ] 7.8 Add a localized accessible help dialog covering concepts/interactions/Parallel/Relative/mobile behavior with Escape/backdrop/close focus restoration.
+- [ ] 7.9 Preserve bounded static mobile rendering without canvas/RAF and add focused unit/component/Playwright coverage for expansion, details, pinning, help, localization, accessibility, containment, and context isolation.
+- [ ] 7.10 Perform desktop/tablet/mobile rendered inspection, fix every material defect, run build/lint/all tests/strict OpenSpec/scope guards, commit the neural milestone, and publish exact-head CI evidence.

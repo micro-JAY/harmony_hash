@@ -93,7 +93,7 @@ Circle of Fifths SHALL expose an `IMPROV INSIGHT` action inside its expanded con
 - **THEN** focus SHALL return to the surviving Circle trigger
 
 ### Requirement: Fluid interactive Note Neural Network
-Note Neural Network SHALL render a true-black native-canvas relationship graph centered on the active scale, with lightweight force physics, protected labels, fluid desktop pointer navigation, deliberate scale activation, chord-only inspection, and an equivalent semantic list/detail path. The adjacent desktop scale information and the information panel below the graph SHALL retain their current placement.
+Note Neural Network SHALL render a true-black native-canvas relationship graph centered on the active scale, with lightweight force physics, protected labels, progressive expert-level relationship expansion, persistent user pins, actionable theory evidence, fluid desktop pointer navigation, deliberate context activation, and an equivalent semantic list/detail path. The adjacent desktop scale information and the information panel below the graph SHALL retain their current placement.
 
 #### Scenario: High-DPI responsive canvas
 - **WHEN** the desktop graph mounts or its parent size or device pixel ratio changes
@@ -112,7 +112,8 @@ Note Neural Network SHALL render a true-black native-canvas relationship graph c
 #### Scenario: Fluid node dragging
 - **WHEN** a desktop pointer user drags any graph node
 - **THEN** that node SHALL follow the world-space pointer with zero drag velocity while all other nodes continue responding through live forces
-- **AND** release SHALL return the node to normal physics, with the active scale restoring its center anchor
+- **AND** release SHALL return an unpinned node to normal physics while a pinned node SHALL remain at its released coordinates
+- **AND** the active context scale SHALL restore its separate center anchor
 
 #### Scenario: Empty-canvas pan and cursor zoom
 - **WHEN** a desktop pointer user drags empty canvas space or wheels over the graph
@@ -129,16 +130,60 @@ Note Neural Network SHALL render a true-black native-canvas relationship graph c
 - **THEN** they SHALL be filled circles with Tonari/Harmony token colors, bounded glow, and radius based on connection count
 - **AND** edges SHALL render behind nodes and labels
 
-#### Scenario: Scale inspection versus activation
+#### Scenario: Scale inspection, expansion, and centering
 - **WHEN** a user single-clicks a related scale/key node
-- **THEN** its details SHALL display without changing the shared Root or Scale/Mode
-- **AND WHEN** the user double-clicks that node or activates its semantic-list keyboard equivalent
-- **THEN** it SHALL become the centered active scale and its related scales/chords SHALL repopulate
+- **THEN** an explicit Selected Scale detail SHALL display without changing the shared Root or Scale/Mode
+- **AND WHEN** the user double-clicks that node or activates `Expand connections`
+- **THEN** its bounded related scale, chord, note, and interval neighborhood SHALL append without removing the existing graph or changing the shared context
+- **AND WHEN** the user activates `Make center`
+- **THEN** that scale SHALL become the centered shared context and prior exploration branches SHALL clear deliberately
 
-#### Scenario: Chord inspection only
+#### Scenario: Chord inspection and expansion
 - **WHEN** a user clicks a related chord node
-- **THEN** the existing detail panel SHALL show that chord's label, function, and relationships
-- **AND** the active graph center and shared Root/Scale SHALL remain unchanged
+- **THEN** the detail panel SHALL identify it as the selected Chord and show tones, roles, function, compatible scale fits, shared-tone evidence, and available resolution targets
+- **AND WHEN** the user double-clicks it or activates `Expand connections`
+- **THEN** its bounded note, scale, and chord neighborhood SHALL append while the active graph center and shared Root/Scale remain unchanged
+
+#### Scenario: Progressive graph reconciliation
+- **WHEN** a user expands a node in an existing exploration
+- **THEN** all retained node and edge IDs SHALL remain present with their current positions, camera, inspection, and pin state
+- **AND** only new nodes SHALL seed near the expanded parent
+- **AND** repeating the same expansion SHALL be idempotent
+
+#### Scenario: Branch cleanup
+- **WHEN** a user activates Collapse branch or Clear exploration
+- **THEN** only no-longer-shared descendants or all added exploration nodes respectively SHALL be removed
+- **AND** the centered seed catalog SHALL remain available
+
+#### Scenario: Long-press pinning
+- **WHEN** a pointer remains on a non-center node for at least 550ms without crossing the drag threshold
+- **THEN** the node SHALL toggle pinned state with a visible non-color pin cue and live announcement
+- **AND** dragging a pinned node SHALL update its fixed position while the rest of the physics graph reacts
+- **AND** pointer movement or cancellation before the threshold SHALL NOT toggle the pin
+
+#### Scenario: Accessible pin operation
+- **WHEN** a keyboard or screen-reader user inspects a pinnable node
+- **THEN** an explicit Pin node or Unpin node action SHALL provide the same behavior without requiring a long press
+
+#### Scenario: Actionable relationship evidence
+- **WHEN** any node is selected
+- **THEN** every listed relationship SHALL name the connected concept and concrete evidence such as shared notes, changed tones, scale-degree role, tone-fit count, common-tone voice leading, or resolution target
+- **AND** the panel SHALL NOT repeat only generic relationship kind and strength rows
+
+#### Scenario: Distinct node kinds and states
+- **WHEN** scale, chord, note, and interval nodes render
+- **THEN** type-specific glyphs/shapes and visible labels SHALL distinguish them without relying only on color
+- **AND** context, inspected, expanded, and pinned states SHALL remain mutually perceivable
+
+#### Scenario: Accurate relationship strength and direction
+- **WHEN** Strong, Medium, Weak, or outbound edges render
+- **THEN** Strong SHALL be bright heavy solid, Medium SHALL be visibly thinner solid, Weak SHALL be thin long-dash, and outbound SHALL include an arrowhead
+- **AND** the visible legend SHALL use the exact rendered stroke treatments
+
+#### Scenario: Network help
+- **WHEN** the user opens the Note Neural Network `?` help action
+- **THEN** a localized accessible dialog SHALL explain node kinds, inspect/expand/center/clear, drag/pin/unpin, pan/zoom, strength/direction, Relative versus Parallel, and mobile limitations
+- **AND** Escape, backdrop, or Close SHALL restore focus to the help trigger
 
 #### Scenario: Long labels
 - **WHEN** a scale or mode name exceeds a single-line node width
@@ -159,7 +204,7 @@ Note Neural Network SHALL render a true-black native-canvas relationship graph c
 #### Scenario: Keyboard semantic path
 - **WHEN** a keyboard or screen-reader user explores the network
 - **THEN** every catalog node and relationship SHALL remain reachable through a logical list/detail path without requiring spatial pointer navigation
-- **AND** Enter on a scale/key list item SHALL provide the deliberate centering equivalent to graph double click
+- **AND** Inspect, Expand, Make center, Collapse, Pin/Unpin, and Clear actions SHALL be operable with explicit accessible names
 
 #### Scenario: Reduced motion
 - **WHEN** reduced motion is requested on desktop
@@ -169,4 +214,4 @@ Note Neural Network SHALL render a true-black native-canvas relationship graph c
 - **WHEN** the graph is viewed at 375px width
 - **THEN** it SHALL render a bounded static projection with one centered active scale, up to six related scale/key nodes, and up to four representative chord nodes
 - **AND** it SHALL not mount the desktop canvas or physics loop
-- **AND** it SHALL omit graph pan, zoom, reset, drag, double-click, and animated behavior while retaining the full semantic list/detail path below
+- **AND** it SHALL omit graph pan, zoom, reset, drag, long-press, double-click, and animated behavior while retaining the full semantic list/detail and explicit expansion/pin-information path below

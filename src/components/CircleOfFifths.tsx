@@ -295,8 +295,8 @@ export default function CircleOfFifths({
             <text x={CENTER} y={CENTER - 8} textAnchor="middle" fill="var(--text-primary)" fontFamily="var(--font-display)" fontSize="31" fontWeight="700">
               {formatSelectedCircleRootLabel(selectedKey.major, relationshipRoot)}
             </text>
-            <text x={CENTER} y={CENTER + 27} textAnchor="middle" fill="var(--text-secondary)" fontFamily="var(--font-mono)" fontSize="13">
-              {t(selectedKey.signature)}
+            <text data-testid="circle-center-signature" x={CENTER} y={CENTER + 27} textAnchor="middle" fill="var(--text-secondary)" fontFamily="var(--font-mono)" fontSize="13">
+              {t(contextSignature)}
             </text>
           </svg>
         </div>

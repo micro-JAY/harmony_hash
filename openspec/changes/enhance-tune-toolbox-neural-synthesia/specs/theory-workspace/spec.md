@@ -144,6 +144,11 @@ Note Neural Network SHALL render a true-black native-canvas relationship graph c
 - **AND WHEN** the user double-clicks it or activates `Expand connections`
 - **THEN** its bounded note, scale, and chord neighborhood SHALL append while the active graph center and shared Root/Scale remain unchanged
 
+#### Scenario: Unsupported chord spelling remains inspection-only
+- **WHEN** a seed chord symbol such as `B#dim` cannot resolve through the shared chord dictionary
+- **THEN** the node SHALL remain available for inspection but SHALL NOT expose `Expand connections`
+- **AND** attempting to expand that node programmatically SHALL leave the exploration state unchanged
+
 #### Scenario: Progressive graph reconciliation
 - **WHEN** a user expands a node in an existing exploration
 - **THEN** all retained node and edge IDs SHALL remain present with their current positions, camera, inspection, and pin state

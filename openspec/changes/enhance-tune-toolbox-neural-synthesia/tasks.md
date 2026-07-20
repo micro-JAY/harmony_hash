@@ -61,3 +61,8 @@
 - [x] 7.8 Add a localized accessible help dialog covering concepts/interactions/Parallel/Relative/mobile behavior with Escape/backdrop/close focus restoration.
 - [x] 7.9 Preserve bounded static mobile rendering without canvas/RAF and add focused unit/component/Playwright coverage for expansion, details, pinning, help, localization, accessibility, containment, and context isolation.
 - [x] 7.10 Perform desktop/tablet/mobile rendered inspection, fix every material defect, run build/lint/all tests/strict OpenSpec/scope guards, commit the neural milestone, and publish exact-head CI evidence.
+
+## 8. Connector P2 Follow-Up
+
+- [x] 8.1 Gate seed-chord expandability on a successful shared-dictionary lookup so unsupported spellings remain inspection-only and cannot mutate exploration state.
+- [x] 8.2 Add C# Major `B#dim` unit/browser coverage and pass the focused plus full local release gates before publishing the clean follow-up PR for issue #80.

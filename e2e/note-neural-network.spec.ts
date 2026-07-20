@@ -350,6 +350,23 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     expect(issues).toEqual([]);
   });
 
+  test("keeps unresolved seed chords inspectable without offering expansion", async ({ page }) => {
+    const issues = collectBrowserIssues(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openNetwork(page, { root: "C#", scale: "major" });
+
+    const network = page.getByTestId("note-neural-network");
+    const leadingTone = network.getByRole("list", { name: "Network nodes" })
+      .locator('[data-network-node="chord:B#dim"]');
+    await expect(leadingTone).toBeVisible();
+    await leadingTone.click();
+    await expect(network.getByTestId("network-selection-kind")).toHaveText("Selected · CHORD");
+    await expect(network.getByRole("button", { name: "Expand connections" })).toHaveCount(0);
+    await expect(network).toHaveAttribute("data-exploration-count", "0");
+    expect(issues).toEqual([]);
+  });
+
   test("explains the graph in a focus-restoring accessible dialog", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await openNetwork(page);

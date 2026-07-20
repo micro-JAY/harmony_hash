@@ -78,7 +78,7 @@ describe("GuidedTour", () => {
   });
 
   it("ships natural Japanese labels and guidance for instrument, playback, and tool handoff", () => {
-    expect(translate("ja", "Show me around")).toBe("使い方を見る");
+    expect(translate("ja", "TAKE A TOUR")).toBe("ツアーを見る");
     expect(translate("ja", "Choose your instrument")).toBe("楽器を選ぶ");
     expect(translate("ja", "Play what you build")).toBe("作った進行を聴く");
     expect(translate("ja", "Carry ideas between tools")).toBe("ツール間でアイデアをつなぐ");

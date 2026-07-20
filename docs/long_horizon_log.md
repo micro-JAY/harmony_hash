@@ -913,3 +913,17 @@ Patched the two Codex-connector findings on clean follow-up branch `fix/theory-c
 **Rendered proof:** the in-app production preview selected `B#dim` as a chord with zero expansion actions and an unchanged exploration count, then selected the Db sector with `7 sharps` in both the Circle center and detail panel. Page identity, nonblank content, framework-overlay absence, interaction state, screenshot evidence, and warning/error console checks pass.
 
 **Local release verification:** production build and lint pass; Vitest passes 54 files / 1,311 tests; the focused Circle/Neural Chromium suites pass 24/24; the complete Chromium matrix passes 182/182 in 2.2 minutes; both affected OpenSpec changes strict-validate and diff hygiene passes. The follow-up source diff contains only `CircleOfFifths.tsx` and Note Neural Network knowledge logic plus their direct tests; no HASHER or FRET FINDER source changed. Next: publish the focused follow-up PR from `fix/theory-connector-p2`, link both issues for auto-close on merge, and require both exact-head build/test jobs, both Linux Playwright jobs, and Workers Builds to pass. No merge, deployment, live-agent mutation, or OpenSpec archive is authorized.
+
+---
+
+## 2026-07-21 08:19 JST — Welcome identity refresh local gate
+
+Created `refresh-welcome-logo-and-copy` for a strictly scoped first-visit/Help refresh. The supplied 1000×1000 canonical logo now drives the tracked welcome asset, 512×512 favicon, and 180×180 Apple touch icon. The desktop welcome visual is a full-coverage logo surface over the same black field as the rest of the modal; mobile keeps the visual and copy in the existing internal scroll region. The modal now reads `HARMONIOUS HARMONY` with the user-approved italic tagline *Harmony doesn't have to be hard.*, retains the existing description font size, renames the tour action to `TAKE A TOUR`, and uses minimal Wrench/Guitar destination symbols while keeping the original accessible text labels.
+
+**Verification:** build and lint pass; Vitest passes 54 files / 1,311 tests; focused onboarding/Japanese browser coverage passes 5/5; the complete Chromium matrix passes 182/182 in 2.3 minutes; strict OpenSpec and diff hygiene pass. Browser QA at desktop confirms the 17px italic tagline, full visual coverage, stable 1000px source decode, and empty warning/error console; mobile retains no document overflow and guided-tour/persistence/Help behavior is covered by the focused suite. The source diff is limited to welcome/logo assets, onboarding presentation/copy/localization, direct tests, and this OpenSpec/ledger record. No HASHER, TUNE TOOLBOX, FRET FINDER, voice, playback, or theory source changed.
+
+The finished `/Volumes/TONARI_DRIVE/Dev/tonarilabs/harmony_hash-hanz-spoken-theory` worktree was removed after confirming its repair is present in merged PR #79. The protected `.agents/` and `AGENTS.md` files remain untracked and untouched. Next: commit the dedicated feature branch, publish a draft PR, and require exact-head CI; no merge or deployment is authorized.
+
+### Exact-head welcome identity gate
+
+Published draft [#83](https://github.com/micro-JAY/harmony_hash/pull/83) at `2af9919`. Its GitHub build/type/test job and complete Playwright job both passed on that exact implementation head. No retry, skipped case, snapshot tolerance change, merge, or deployment was used. This documentation-only receipt will be pushed as the final head and rechecked before handoff; OpenSpec archive remains deferred until an approved merge.

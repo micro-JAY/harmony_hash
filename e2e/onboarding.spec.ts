@@ -5,7 +5,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test("first visit welcomes people with the logo and three destinations, persists dismissal, and reopens from Help", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "Find your harmony." });
+  const dialog = page.getByRole("dialog", { name: "HARMONIOUS HARMONY" });
   await expect(dialog).toBeVisible();
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/favicon.png");
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/apple-touch-icon.png");
@@ -14,11 +14,25 @@ test("first visit welcomes people with the logo and three destinations, persists
     "Interactive chord explorer. Discover harmony across keys and modes.",
   );
   await expect(dialog.locator('img[src="/hh_logo.png"]')).toBeVisible();
-  await expect(dialog).toContainText("Interactive chord explorer. Discover harmony across keys and modes.");
+  await expect(dialog.locator('[data-onboarding-destination-icon="toolbox"]')).toBeVisible();
+  await expect(dialog.locator('[data-onboarding-destination-icon="fret"]')).toBeVisible();
+  const [visualBox, logoBox] = await Promise.all([
+    dialog.locator('[data-onboarding-visual="true"]').boundingBox(),
+    dialog.locator('img[src="/hh_logo.png"]').boundingBox(),
+  ]);
+  expect(visualBox).not.toBeNull();
+  expect(logoBox).not.toBeNull();
+  expect(Math.abs(visualBox!.x - logoBox!.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visualBox!.y - logoBox!.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visualBox!.width - logoBox!.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visualBox!.height - logoBox!.height)).toBeLessThanOrEqual(1);
+  const tagline = dialog.getByText("Harmony doesn't have to be hard.", { exact: true });
+  await expect(tagline).toBeVisible();
+  await expect(tagline).toHaveCSS("font-style", "italic");
   await expect(dialog.getByRole("heading", { name: "HASHER" })).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "TUNE TOOLBOX" })).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Show me around" })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "TAKE A TOUR" })).toBeVisible();
   await expect(dialog).not.toContainText("send a scale back");
 
   await dialog.getByRole("button", { name: "START HASHING" }).click();
@@ -40,8 +54,8 @@ test("first visit welcomes people with the logo and three destinations, persists
 test("optional guided tour spotlights primary tools and supports screen and keyboard navigation", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const introduction = page.getByRole("dialog", { name: "Find your harmony." });
-  await introduction.getByRole("button", { name: "Show me around" }).click();
+  const introduction = page.getByRole("dialog", { name: "HARMONIOUS HARMONY" });
+  await introduction.getByRole("button", { name: "TAKE A TOUR" }).click();
   await expect(introduction).toBeHidden();
 
   const tour = page.getByRole("dialog", { name: "Choose a workspace" });
@@ -105,7 +119,7 @@ test("blocked storage remains usable and dismissal lasts for the page session", 
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "Find your harmony." });
+  const dialog = page.getByRole("dialog", { name: "HARMONIOUS HARMONY" });
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "START HASHING" }).click();
   await expect(dialog).toBeHidden();
@@ -121,7 +135,7 @@ test("onboarding is contained in a short mobile viewport and honors reduced moti
   await page.setViewportSize({ width: 375, height: 430 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "Find your harmony." });
+  const dialog = page.getByRole("dialog", { name: "HARMONIOUS HARMONY" });
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveAttribute("data-reduced-motion", "true");
   const box = await dialog.boundingBox();

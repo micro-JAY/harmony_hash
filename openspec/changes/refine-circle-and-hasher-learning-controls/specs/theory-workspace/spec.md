@@ -75,6 +75,11 @@ THE CIRCLE SHALL supplement its two adjacent keys with a bounded Popular modes s
 - **WHEN** a Circle sector has a common enharmonic alias
 - **THEN** its visible label SHALL use balanced parenthetical notation such as `F# (Gb)` while preserving its stable ID and canonical selection value
 
+#### Scenario: Enharmonic center signature consistency
+- **WHEN** selecting a flat-spelled sector canonicalizes the shared root to an enharmonic sharp spelling
+- **THEN** the Circle center label and center signature SHALL describe the same canonical context as the detail panel
+- **AND** the selected sector SHALL retain its original flat-spelled accessible identity
+
 #### Scenario: Bounded responsive guidance
 - **WHEN** THE CIRCLE renders at desktop, tablet, or 375px mobile width
 - **THEN** the insight cards SHALL wrap within the existing detail surface without horizontal document overflow

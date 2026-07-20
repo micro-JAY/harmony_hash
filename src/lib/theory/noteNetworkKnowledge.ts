@@ -189,6 +189,9 @@ function changedToneEvidence(
 
 function adaptSeedNode(node: TheoryRelationshipNode): NoteNetworkKnowledgeNode {
   const scale = Boolean(node.root && node.scaleId && !node.chordSymbol);
+  const expandable = node.chordSymbol
+    ? lookupChord(node.chordSymbol) !== undefined
+    : Boolean(node.root && node.scaleId);
   const evidence = scale && node.scaleId
     ? [`Characteristic color · ${characteristicIntervalFor(node.scaleId)}`]
     : node.functionKey ? [`Harmonic function · ${node.functionKey}`] : [];
@@ -202,7 +205,7 @@ function adaptSeedNode(node: TheoryRelationshipNode): NoteNetworkKnowledgeNode {
     chordSymbol: node.chordSymbol,
     functionKey: node.functionKey,
     selected: node.selected,
-    expandable: Boolean(node.chordSymbol || (node.root && node.scaleId)),
+    expandable,
     introducedBy: null,
     evidence: freezeStrings(evidence),
   });

@@ -161,6 +161,19 @@ describe("Note Neural Network progressive knowledge", () => {
     }));
   });
 
+  it("keeps unresolved seed-chord spellings inspection-only", () => {
+    const { seed, state } = setup({ root: "C#", scaleId: "major" });
+    const catalog = buildNoteNetworkKnowledgeCatalog(seed, state);
+    const leadingTone = catalog.nodes.find((node) => node.id === "chord:B#dim");
+
+    expect(leadingTone).toEqual(expect.objectContaining({
+      chordSymbol: "B#dim",
+      expandable: false,
+    }));
+    expect(expandNoteNetworkKnowledge(seed, state, "chord:B#dim")).toBe(state);
+    expect(catalog.expandedNodeIds).not.toContain("chord:B#dim");
+  });
+
   it("collapses unreachable descendants and clears back to the immutable seed", () => {
     const { seed, state } = setup({ root: "C", scaleId: "major" });
     const chordExpanded = expandNoteNetworkKnowledge(seed, state, "chord:C");

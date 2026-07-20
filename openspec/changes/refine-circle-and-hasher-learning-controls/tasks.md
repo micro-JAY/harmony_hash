@@ -30,3 +30,8 @@
 - [x] 4.2 Prove NOTE NEURAL NETWORK and FRET FINDER source are unchanged by this change and run their focused regressions.
 - [x] 4.3 Run production build, lint, all Vitest, all Playwright, strict OpenSpec, diff hygiene, dependency audit, and Worker packaging gates.
 - [x] 4.4 Reconcile long-horizon plan/log and acceptance evidence, commit the release ledger, publish the reviewed branch/PR, and require exact-head CI to pass.
+
+## 5. Connector P2 Follow-Up
+
+- [x] 5.1 Render the Circle center signature from the same canonical context used by its center label and detail panel.
+- [ ] 5.2 Add Db-to-C# rendered consistency coverage and run the focused plus release gates before updating PR #79 and issue #81.

@@ -92,6 +92,8 @@ test.describe("Circle of Fifths", () => {
     await expect(cSharpDetails).toContainText("A# minor");
     await expect(cSharpDetails).toContainText("7 sharps");
     await expect(cSharpDetails).not.toContainText("5 flats");
+    await expect(circle.getByTestId("circle-center-signature")).toHaveText("7 sharps");
+    await expect(circle.getByTestId("circle-center-signature")).not.toHaveText("5 flats");
     await expect(circle.getByRole("option", { name: /F# \(Gb\) major, relative D# \(Eb\) minor/ }))
       .toBeVisible();
     expect(issues).toEqual([]);

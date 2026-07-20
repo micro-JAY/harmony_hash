@@ -903,3 +903,13 @@ Production build and lint pass; Vitest passes 54 files / 1,310 tests; the focuse
 ### Exact-head Hanz integration gate
 
 Published draft PR [#79](https://github.com/micro-JAY/harmony_hash/pull/79) implementation head `fb9115d` with the Hanz root cause, scope, side-commit mapping, live-audio proof, and fail-closed provisioning behavior added to the PR contract. Both exact-head build/test jobs passed in 35s and 38s, both complete 181-scenario Linux Playwright jobs passed in 4m12s and 4m22s, and Cloudflare Workers build `ed8d9b49-7825-4656-9153-ce478e7624f9` passed. No retry, snapshot tolerance change, skip, CI-only behavior, merge, deployment, live-agent mutation, or OpenSpec archive was used. This receipt is documentation-only; its final PR head will be required to pass the same remote gate before handoff.
+
+---
+
+## 2026-07-21 06:04 JST — Connector P2 patch gate
+
+Patched the two Codex-connector findings against draft PR [#79](https://github.com/micro-JAY/harmony_hash/pull/79). Issue [#80](https://github.com/micro-JAY/harmony_hash/issues/80) now derives seed-chord expandability from a successful shared-dictionary lookup: C# Major's theoretically spelled `B#dim` remains inspectable, but exposes no `Expand connections` action and cannot enter the exploration ledger when its spelling is unsupported. Issue [#81](https://github.com/micro-JAY/harmony_hash/issues/81) now renders THE CIRCLE center signature from the same canonical context as its `C# (Db)` center label and C# detail panel, while the selected sector retains its accessible `Db major, relative Bb minor, 5 flats` identity.
+
+**Rendered proof:** the in-app production preview selected `B#dim` as a chord with zero expansion actions and an unchanged exploration count, then selected the Db sector with `7 sharps` in both the Circle center and detail panel. Page identity, nonblank content, framework-overlay absence, interaction state, screenshot evidence, and warning/error console checks pass.
+
+**Local release verification:** production build and lint pass; Vitest passes 54 files / 1,311 tests; the focused Circle/Neural Chromium suites pass 24/24; the complete Chromium matrix passes 182/182 in 2.2 minutes; both affected OpenSpec changes strict-validate and diff hygiene passes. The follow-up source diff contains only `CircleOfFifths.tsx` and Note Neural Network knowledge logic plus their direct tests; no HASHER or FRET FINDER source changed. Next: commit and push the focused patch, link both issues for auto-close on merge, and require both exact-head build/test jobs, both Linux Playwright jobs, and Workers Builds to pass. No merge, deployment, live-agent mutation, or OpenSpec archive is authorized.

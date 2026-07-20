@@ -9,7 +9,7 @@ import {
   type ComponentType,
   type ReactNode,
 } from "react";
-import { Play, Square } from "lucide-react";
+import { Guitar, Play, Square, Wrench } from "lucide-react";
 import type {
   Instrument,
   IndexedChord,
@@ -1115,11 +1115,11 @@ function App() {
       {onboardingOpen ? (
         <OnboardingModal
           brandLabel={t("HARMONY HASH — TONARI LABS")}
-          title={t("Find your harmony.")}
-          description={t("Interactive chord explorer. Discover harmony across keys and modes.")}
+          title={t("HARMONIOUS HARMONY")}
+          description={t("Harmony doesn't have to be hard.")}
           closeLabel={t("Close Harmony Hash introduction")}
           primaryActionLabel={t("START HASHING")}
-          secondaryActionLabel={t("Show me around")}
+          secondaryActionLabel={t("TAKE A TOUR")}
           onRequestClose={handleOnboardingClose}
           onSecondaryAction={handleStartTour}
           returnFocusRef={helpButtonRef}
@@ -1142,14 +1142,26 @@ function App() {
             </div>
           </section>
           <section className="hh-onboarding-destination hh-onboarding-destination--toolbox">
-            <span aria-hidden="true" className="hh-onboarding-destination-mark">◎</span>
+            <Wrench
+              aria-hidden="true"
+              className="hh-onboarding-destination-mark"
+              data-onboarding-destination-icon="toolbox"
+              size={24}
+              strokeWidth={1.75}
+            />
             <div>
               <h2>{t("Tune Toolbox")}</h2>
               <p>{t("Connect theory")}</p>
             </div>
           </section>
           <section className="hh-onboarding-destination hh-onboarding-destination--fret">
-            <span aria-hidden="true" className="hh-onboarding-destination-mark">▦</span>
+            <Guitar
+              aria-hidden="true"
+              className="hh-onboarding-destination-mark"
+              data-onboarding-destination-icon="fret"
+              size={24}
+              strokeWidth={1.75}
+            />
             <div>
               <h2>{t("Fret Finder")}</h2>
               <p>{t("Map the neck")}</p>

@@ -7,11 +7,11 @@ describe("OnboardingModal", () => {
     const markup = renderToStaticMarkup(
       <OnboardingModal
         brandLabel="HARMONY HASH — TONARI LABS"
-        title="Find your harmony."
-        description="Interactive chord explorer. Discover harmony across keys and modes."
+        title="HARMONIOUS HARMONY"
+        description="Harmony doesn't have to be hard."
         closeLabel="Close Harmony Hash introduction"
         primaryActionLabel="START HASHING"
-        secondaryActionLabel="Show me around"
+        secondaryActionLabel="TAKE A TOUR"
         onRequestClose={() => undefined}
         onSecondaryAction={() => undefined}
         visual={<img src="/hh_logo.png" alt="" />}
@@ -26,9 +26,10 @@ describe("OnboardingModal", () => {
     expect(markup).toMatch(/aria-describedby="[^"]+"/);
     expect(markup).toContain('aria-label="Close Harmony Hash introduction"');
     expect(markup).toContain('data-onboarding-scroll-region="true"');
+    expect(markup).toContain('data-onboarding-visual="true"');
     expect(markup).toContain("max-height:calc(100dvh - (2 * var(--space-4)))");
     expect(markup).toContain("START HASHING");
-    expect(markup).toContain("Show me around");
+    expect(markup).toContain("TAKE A TOUR");
     expect(markup).toContain('/hh_logo.png');
   });
 

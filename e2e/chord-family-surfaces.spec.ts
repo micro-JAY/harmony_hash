@@ -164,11 +164,48 @@ test.describe("global chord-family presentation", () => {
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first().click();
     const network = page.getByTestId("note-neural-network");
-    const chordNodes = network.locator("[data-network-node][data-chord-family]");
-    await expect(chordNodes).not.toHaveCount(0);
     const semanticChordLabels = network.getByRole("list", { name: "Network nodes" })
       .locator("[data-chord-family]");
     await expect(semanticChordLabels).not.toHaveCount(0);
+    const canvas = network.getByTestId("note-network-canvas");
+    await expect(canvas).toHaveAttribute("data-node-palette", /chord:/);
+    const canvasChordPalette = await canvas.evaluate((element) => {
+      const entries = JSON.parse(element.dataset.nodePalette ?? "[]") as Array<{
+        id: string;
+        background: string;
+        border: string;
+        text: string;
+      }>;
+      return entries.map((entry) => {
+        const probe = document.createElement("span");
+        probe.style.color = entry.text;
+        probe.style.backgroundColor = entry.background;
+        probe.style.border = `1px solid ${entry.border}`;
+        document.body.append(probe);
+        const style = getComputedStyle(probe);
+        const resolved = {
+          id: entry.id,
+          background: style.backgroundColor,
+          border: style.borderColor,
+          text: style.color,
+        };
+        probe.remove();
+        return resolved;
+      });
+    });
+    expect(canvasChordPalette).toHaveLength(await semanticChordLabels.count());
+    for (const entry of canvasChordPalette) {
+      const semanticNode = network.locator(`button[data-network-node="${entry.id}"]`);
+      const semanticColors = await semanticNode.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          background: style.backgroundColor,
+          border: style.borderColor,
+          text: style.color,
+        };
+      });
+      expect(entry).toMatchObject(semanticColors);
+    }
     await semanticChordLabels.first().click();
     await expect(network.locator("h2[data-chord-family]")).toBeVisible();
   });

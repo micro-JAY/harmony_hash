@@ -89,4 +89,11 @@ describe("ChordCard visual controls", () => {
     expect(pianoMarkup).not.toContain(">Fingering<");
     expect(pianoMarkup).not.toContain(">Intervals<");
   });
+
+  it("uses the shared interval palette on the primary piano keyboard", () => {
+    const pianoMarkup = renderChordCard({ instrument: "piano" });
+
+    expect(pianoMarkup).toContain('data-testid="piano-keyboard"');
+    expect(pianoMarkup).toContain('data-color-mode="interval"');
+  });
 });

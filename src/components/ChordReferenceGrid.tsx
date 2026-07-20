@@ -299,14 +299,14 @@ export default function ChordReferenceGrid({
   return (
     <div className="mt-3">
       {/* Toggle + Undo Row */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <div className="hh-chord-browser-toolbar">
         <button
           type="button"
           onClick={handleToggle}
           aria-expanded={isOpen}
           aria-controls={GRID_PANEL_ID}
-        className="hh-disclosure-toggle"
-        style={{
+          className="hh-disclosure-toggle"
+          style={{
             color: "var(--interactive-primary-text)",
             border: "1px solid var(--interactive-primary-bg)",
             background: "var(--interactive-primary-bg)",
@@ -326,13 +326,13 @@ export default function ChordReferenceGrid({
               exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -4 }}
               transition={{ duration: shouldReduceMotion ? 0 : 0.15 }}
               onClick={handleUndo}
+              className="hh-chord-browser-undo"
               style={{
                 background: "none",
                 border: "none",
                 fontSize: "var(--text-xs)",
                 color: "var(--text-muted)",
                 cursor: "pointer",
-                padding: 0,
                 fontFamily: "inherit",
               }}
               onMouseEnter={(e) => {
@@ -346,9 +346,8 @@ export default function ChordReferenceGrid({
             </motion.button>
           )}
         </AnimatePresence>
+        {leadingContent}
       </div>
-
-      {leadingContent}
 
       {/* Grid Panel */}
       <AnimatePresence initial={false}>

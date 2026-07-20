@@ -19,6 +19,8 @@ import type {
   Workspace,
 } from "./lib/types";
 import Header from "./components/Header";
+import HasherIntervalLegend from "./components/HasherIntervalLegend";
+import InstrumentToggle from "./components/InstrumentToggle";
 import GuidedTour, { type GuidedTourStep } from "./components/GuidedTour";
 import OnboardingModal from "./components/OnboardingModal";
 import type { NoteNeuralNetworkState } from "./components/NoteNeuralNetwork";
@@ -814,8 +816,6 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header
-        instrument={instrument}
-        onInstrumentChange={handleInstrumentChange}
         workspace={workspace}
         onWorkspaceChange={setWorkspace}
         onOpenHelp={() => setOnboardingOpen(true)}
@@ -859,6 +859,17 @@ function App() {
               timelineVersionRef={timelineVersionRef}
               onRequestVoice={handleRequestVoice}
               onVoiceIntent={ensureVoiceRuntime}
+              outputTools={(
+                <div className="hh-output-learning-tools">
+                  <div data-tour="instrument-switcher">
+                    <InstrumentToggle
+                      instrument={instrument}
+                      onInstrumentChange={handleInstrumentChange}
+                    />
+                  </div>
+                  <HasherIntervalLegend />
+                </div>
+              )}
               contextLaunch={hasherContextLaunch}
             />
           </div>

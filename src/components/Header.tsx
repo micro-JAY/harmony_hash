@@ -1,14 +1,11 @@
 import type { RefObject } from "react";
-import type { Instrument, Workspace } from "../lib/types";
+import type { Workspace } from "../lib/types";
 import { useReducedMotion } from "framer-motion";
 import { CircleHelp } from "lucide-react";
 import type { Locale } from "../i18n/translations";
 import { useLocale, useT } from "../i18n/I18nContext";
-import InstrumentToggle from "./InstrumentToggle";
 
 interface HeaderProps {
-  instrument: Instrument;
-  onInstrumentChange: (instrument: Instrument) => void;
   workspace: Workspace;
   onWorkspaceChange: (workspace: Workspace) => void;
   onOpenHelp: () => void;
@@ -21,8 +18,6 @@ const LOCALES: { value: Locale; label: string }[] = [
 ];
 
 export default function Header({
-  instrument,
-  onInstrumentChange,
   workspace,
   onWorkspaceChange,
   onOpenHelp,
@@ -86,12 +81,12 @@ export default function Header({
         })}
       </nav>
 
-      <div className="hh-app-header__utilities flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:w-auto sm:justify-end sm:gap-3">
+      <div className="hh-app-header__utilities flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:w-auto sm:justify-end">
         <button
           ref={helpButtonRef}
           type="button"
           onClick={onOpenHelp}
-          className="hh-action"
+          className="hh-action hh-app-header__help"
           style={{
             minHeight: "var(--control-min-height)",
             backgroundColor: "var(--interactive-secondary-bg)",
@@ -102,7 +97,11 @@ export default function Header({
           <CircleHelp size={16} aria-hidden="true" />
           {t("Help / About")}
         </button>
-        <div className="tonari-locale-switcher">
+        <div
+          className="tonari-locale-switcher hh-app-header__locales"
+          role="group"
+          aria-label={t("Language")}
+        >
           {LOCALES.map((loc) => {
             const active = locale === loc.value;
             return (
@@ -112,21 +111,13 @@ export default function Header({
                 onClick={() => setLocale(loc.value)}
                 className={`tonari-locale-switcher__btn${active ? " tonari-locale-switcher__btn--active" : ""}`}
                 aria-pressed={active}
+                style={{ minHeight: "var(--control-min-height)", minWidth: "2.75rem" }}
               >
                 {loc.label}
               </button>
             );
           })}
         </div>
-
-        {workspace === "builder" && (
-          <div data-tour="instrument-switcher">
-            <InstrumentToggle
-              instrument={instrument}
-              onInstrumentChange={onInstrumentChange}
-            />
-          </div>
-        )}
       </div>
     </header>
   );

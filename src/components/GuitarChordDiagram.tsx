@@ -3,11 +3,16 @@ import type { IndexedChord, GuitarDisplayMode } from "../lib/types";
 import {
   parseGuitarSvg,
   sanitizeGuitarSvg,
+  type ParsedDot,
   type ParsedGuitarSvg,
 } from "../lib/guitarSvgParser";
 import { deriveGuitarMidiVoicing, type GuitarMidiVoicing } from "../lib/guitarPlayback";
 import { noteToPitchClass } from "../lib/harmonyBrain";
 import { formatNoteForDisplay, parseNotes, getSvgPath } from "../lib/chordData";
+import {
+  guitarDegreePresentation,
+  type GuitarDegreePresentation,
+} from "./guitarChordVisuals";
 
 interface GuitarChordDiagramProps {
   chord: IndexedChord;
@@ -39,6 +44,47 @@ function buildNoteNameMap(
     if (pc >= 0) map.set(pc, formatNoteForDisplay(note, preferFlats));
   }
   return map;
+}
+
+function appendBarreDegreeMarker(
+  doc: Document,
+  svg: SVGSVGElement,
+  dot: ParsedDot,
+  presentation: GuitarDegreePresentation,
+  displayMode: GuitarDisplayMode,
+  label: string | undefined,
+): void {
+  const marker = doc.createElementNS("http://www.w3.org/2000/svg", "circle");
+  const markerRadius = displayMode === "fingering" ? Math.max(4, dot.r * 0.38) : dot.r * 0.78;
+  marker.setAttribute("cx", String(dot.cx));
+  marker.setAttribute("cy", String(dot.cy));
+  marker.setAttribute("r", String(markerRadius));
+  marker.setAttribute("fill", presentation.color);
+  marker.setAttribute("stroke", "var(--surface-base)");
+  marker.setAttribute("stroke-width", "1.5");
+  marker.setAttribute("pointer-events", "none");
+  marker.setAttribute("data-played-position", "true");
+  marker.setAttribute("data-position-source", "barre");
+  if (presentation.interval !== null) {
+    marker.setAttribute("data-note-interval", String(presentation.interval));
+  }
+  svg.appendChild(marker);
+
+  if (displayMode === "fingering" || label == null) return;
+
+  const text = doc.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("x", String(dot.cx));
+  text.setAttribute("y", String(dot.cy));
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("dominant-baseline", "central");
+  text.setAttribute("font-size", String(Math.round(markerRadius * 0.86)));
+  text.setAttribute("font-family", "var(--font-mono), monospace");
+  text.setAttribute("font-weight", "600");
+  text.setAttribute("fill", presentation.labelColor);
+  text.setAttribute("pointer-events", "none");
+  text.setAttribute("data-played-label", "true");
+  text.textContent = label;
+  svg.appendChild(text);
 }
 
 export default function GuitarChordDiagram({
@@ -158,7 +204,17 @@ export default function GuitarChordDiagram({
 
     // Process each parsed dot
     for (const dot of svgData.dots) {
-      const isRoot = rootPc >= 0 && dot.pitchClass === rootPc;
+      const presentation = guitarDegreePresentation(dot.pitchClass, rootPc);
+      const rawLabel = displayMode === "intervals"
+        ? intervalMap.get(dot.pitchClass)
+        : displayMode === "notes"
+          ? noteNameMap.get(dot.pitchClass)
+          : undefined;
+
+      if (dot.source === "barre") {
+        appendBarreDegreeMarker(doc, svgEl, dot, presentation, displayMode, rawLabel);
+        continue;
+      }
 
       // Find matching circle
       const matchingCircle = Array.from(circles).find((c) => {
@@ -169,16 +225,29 @@ export default function GuitarChordDiagram({
 
       // Recolor
       if (matchingCircle) {
-        matchingCircle.setAttribute("fill", isRoot ? "var(--text-accent)" : "#ffffff");
-        matchingCircle.setAttribute("stroke", "var(--border-default)");
+        matchingCircle.setAttribute("fill", presentation.color);
+        matchingCircle.setAttribute("stroke", "var(--surface-base)");
+        matchingCircle.setAttribute("data-played-position", "true");
+        matchingCircle.setAttribute("data-position-source", "circle");
+        if (presentation.interval !== null) {
+          matchingCircle.setAttribute("data-note-interval", String(presentation.interval));
+        }
+
+        if (displayMode === "fingering") {
+          const matchingFingeringText = Array.from(fingeringTexts).find((text) => {
+            const tx = parseFloat(text.getAttribute("x") || "0");
+            const ty = parseFloat(text.getAttribute("y") || "0");
+            return Math.abs(tx - (dot.cx - 4)) <= 2 && Math.abs(ty - (dot.cy + 5)) <= 2;
+          });
+          if (matchingFingeringText) {
+            matchingFingeringText.setAttribute("fill", presentation.labelColor);
+            matchingFingeringText.setAttribute("data-played-label", "true");
+          }
+        }
       }
 
       // Add text labels in intervals/notes modes
       if (displayMode !== "fingering") {
-        const rawLabel = displayMode === "intervals"
-          ? intervalMap.get(dot.pitchClass)
-          : noteNameMap.get(dot.pitchClass);
-
         if (rawLabel == null) continue; // no label for unmapped dots — skip silently
 
         const label = rawLabel;
@@ -191,8 +260,9 @@ export default function GuitarChordDiagram({
         textEl.setAttribute("font-size", String(Math.round(dot.r * 0.85)));
         textEl.setAttribute("font-family", "var(--font-mono), monospace");
         textEl.setAttribute("font-weight", "600");
-        textEl.setAttribute("fill", isRoot ? "var(--surface-base)" : "#1a1a1a");
+        textEl.setAttribute("fill", presentation.labelColor);
         textEl.setAttribute("pointer-events", "none");
+        textEl.setAttribute("data-played-label", "true");
         textEl.textContent = label;
         svgEl.appendChild(textEl);
       }
@@ -221,6 +291,7 @@ export default function GuitarChordDiagram({
     }
 
     for (const t of doc.querySelectorAll("text")) {
+      if (t.getAttribute("data-played-label") === "true") continue;
       const y = parseFloat(t.getAttribute("y") || "0");
       const fill = t.getAttribute("fill");
       if (y > 200 || (Math.abs(parseFloat(t.getAttribute("x") || "0") - 20) < 5 && fill === "black")) {
@@ -231,7 +302,8 @@ export default function GuitarChordDiagram({
       }
     }
 
-    // Barre rects — recolor for dark mode + root highlighting
+    // Barre geometry stays neutral because each covered string may sound a
+    // different chord degree. Per-string markers above carry the true colors.
     for (const rect of doc.querySelectorAll("rect")) {
       const rw = parseFloat(rect.getAttribute("width") || "0");
       const rh = parseFloat(rect.getAttribute("height") || "0");
@@ -239,11 +311,21 @@ export default function GuitarChordDiagram({
       if (rh > 40) continue;
 
       const rx = parseFloat(rect.getAttribute("x") || "0");
-      const barreCoversRoot = rootPc >= 0 && svgData.dots.some(
-        (d) => d.cx >= rx && d.cx <= rx + rw && d.pitchClass === rootPc
-      );
-      rect.setAttribute("fill", barreCoversRoot ? "var(--text-accent)" : "#ffffff");
-      rect.setAttribute("stroke", "var(--border-default)");
+      const ry = parseFloat(rect.getAttribute("y") || "0");
+      rect.setAttribute("fill", "var(--surface-overlay)");
+      rect.setAttribute("stroke", "var(--border-strong)");
+
+      for (const text of allTexts) {
+        const tx = parseFloat(text.getAttribute("x") || "0");
+        const ty = parseFloat(text.getAttribute("y") || "0");
+        const insideBarre = tx >= rx && tx <= rx + rw && ty >= ry && ty <= ry + rh;
+        if (!insideBarre) continue;
+        if (displayMode === "fingering") {
+          text.setAttribute("fill", "var(--text-primary)");
+        } else {
+          text.remove();
+        }
+      }
     }
 
     // Scale SVG to fill container width. Capture original dimensions before overriding.

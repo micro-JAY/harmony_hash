@@ -106,6 +106,20 @@ body {
   justify-self: end;
 }
 
+.hh-app-header__help {
+  padding-inline: var(--space-4);
+  white-space: nowrap;
+}
+
+.hh-app-header__locales {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-overlay);
+}
+
 :where(button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--interactive-focus-ring);
   outline-offset: 2px;
@@ -378,14 +392,38 @@ body {
 }
 
 .hh-disclosure-toggle {
-  min-height: 2rem;
-  padding: var(--space-1) var(--space-3);
+  min-height: var(--control-min-height);
+  padding: var(--space-2) var(--space-3);
   color: var(--text-muted);
   background: var(--surface-raised);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
   cursor: pointer;
+}
+
+.hh-chord-browser-undo {
+  min-height: var(--control-min-height);
+  min-width: var(--control-min-height);
+  padding: var(--space-2);
+}
+
+.hh-chord-browser-toolbar {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.hh-output-learning-tools {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 34rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2) var(--space-4);
 }
 
 .hh-action {
@@ -1282,6 +1320,15 @@ body {
 
   .hh-app-header__utilities {
     grid-row: 2;
+  }
+
+  .hh-app-header__help {
+    flex: 1 1 auto;
+  }
+
+  .hh-output-learning-tools {
+    flex-basis: 100%;
+    justify-content: flex-start;
   }
 
   .hh-app-header__nav {

@@ -17,6 +17,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Fret Finder": "FRET FINDER",
     "Note Neural Network": "NOTE NEURAL NETWORK",
     "Scale Synthesia": "SCALE SYNTHESIA",
+    "The Circle": "THE CIRCLE",
+    "Loading The Circle…": "Loading THE CIRCLE…",
+    Language: "Language",
+    "Instrument view": "Instrument view",
+    "Chord degree color legend": "Chord degree color legend",
+    "Chord degrees": "CHORD DEGREES",
     "Improv Insight": "IMPROV INSIGHT",
     "Show me around": "Show me around",
     "Guided tour": "Guided tour",
@@ -27,6 +33,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     Step: "Step",
     "Choose your instrument": "Choose your instrument",
     "Switch between guitar and piano without rebuilding your progression. The same chord timeline drives both views.": "Switch between guitar and piano without rebuilding your progression. The same chord timeline drives both views.",
+    "Explore The Circle": "Explore THE CIRCLE",
+    "Compare neighboring keys, modes, and practical key changes or open IMPROV INSIGHT without leaving TUNE TOOLBOX.": "Compare neighboring keys, modes, and practical key changes or open IMPROV INSIGHT without leaving TUNE TOOLBOX.",
     "Play what you build": "Play what you build",
     "Use PLAY to hear the full progression. RANDOMIZE (UNLOCKED VOICES) gives unlocked guitar variants or piano voicings a fresh performance without changing your chords.": "Use PLAY to hear the full progression. RANDOMIZE (UNLOCKED VOICES) gives unlocked guitar variants or piano voicings a fresh performance without changing your chords.",
     "Carry ideas between tools": "Carry ideas between tools",
@@ -70,6 +78,14 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Tune Toolbox": "チューン・ツールボックス",
     "Fret Finder": "フレット・ファインダー",
     "Help / About": "ヘルプ／概要",
+    Language: "言語",
+    "Instrument view": "楽器表示",
+    "Chord degree color legend": "コード度数カラー凡例",
+    "Chord degrees": "コード度数",
+    "Note colors": "音の色",
+    Tritone: "トライトーン",
+    "The Circle": "五度圏",
+    "Loading The Circle…": "五度圏を読み込み中…",
     "Find your harmony faster": "ハーモニーをもっと速く見つけよう",
     "Find your harmony.": "自分だけのハーモニーを見つけよう。",
     "Interactive chord explorer. Discover harmony across keys and modes.": "コードを自由に探りながら、キーやモードを越えてハーモニーを発見できます。",
@@ -105,6 +121,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Shape each chord": "各コードの響きを整える",
     "Each card renders the same chord for guitar or piano. Lock the voices you want to preserve and use MODIFY for alternatives.": "各カードは同じコードをギターまたはピアノで表示します。残したいボイスをロックし、別案は「変更」から選べます。",
     "Explore the Circle of Fifths": "五度圏を探る",
+    "Explore The Circle": "五度圏を探る",
+    "Compare neighboring keys, modes, and practical key changes or open IMPROV INSIGHT without leaving TUNE TOOLBOX.": "近いキー、モード、実用的な転調を比べたり、チューン・ツールボックスを離れずにインプロヴ・インサイトを開けます。",
     "Compare neighboring keys, borrow a progression, or open IMPROV INSIGHT without leaving TUNE TOOLBOX.": "近いキーを比べ、コード進行を取り込み、チューン・ツールボックスを離れずにインプロ・インサイトを開けます。",
     "See a scale on the keyboard": "鍵盤でスケールを見る",
     "SCALE SYNTHESIA names each degree, shows its color, and can send a compatible root and mode back to HASHER.": "スケール・シンセシアは各度数の名前と色を示し、対応するルートとモードをハッシャーへ送れます。",
@@ -469,6 +487,23 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Diatonic chords": "ダイアトニック・コード",
     "Circle key signature": "五度圏の調号",
     "Nearby keys": "近いキー",
+    "Explore further": "さらに探る",
+    "Popular modes": "よく使われるモード",
+    "Common key changes": "よく使われる転調",
+    "Natural 6": "ナチュラル6",
+    "Raised 4": "シャープ4",
+    "Flat 7": "フラット7",
+    "Minor-seventh vamp": "マイナー7thのヴァンプ",
+    "Major sharp-eleven color": "メジャー♯11の響き",
+    "Dominant and rock cadence": "ドミナント／ロックのカデンツ",
+    "Parallel shift": "同主調への転調",
+    "Whole-step lift": "全音上への転調",
+    "Chromatic mediant": "クロマティック・メディアント",
+    "Borrow the parallel tonic quality.": "同じ主音の長短を借用します。",
+    "Use the new key's dominant to land one whole step higher.": "新しいキーのドミナントを使い、全音上へ着地します。",
+    "Hold a common tone through a direct major-third shift.": "共通音を保ちながら、長3度離れたキーへ直接移ります。",
+    "Common tone": "共通音",
+    "Strong is closest; Medium is related; Weak is more distant.": "強は最も近く、中は関連があり、弱はより遠い関係です。",
     "Use arrow keys to move around the circle.": "矢印キーで五度圏を移動できます。",
     Details: "詳細",
     details: "詳細",
@@ -479,12 +514,14 @@ export const translations: Record<Locale, Record<string, string>> = {
     "4 sharps": "♯4個",
     "5 sharps": "♯5個",
     "6 sharps": "♯6個",
+    "6 sharps / 6 flats": "♯6個／♭6個",
     "7 sharps": "♯7個",
     "1 flat": "♭1個",
     "2 flats": "♭2個",
     "3 flats": "♭3個",
     "4 flats": "♭4個",
     "Note Neural Network": "ノート・ニューラル・ネットワーク",
+    "About Note Neural Network": "ノート・ニューラル・ネットワークについて",
     "See how modes connect without losing the notes beneath your hands.": "押さえている音を見失わずに、モード同士のつながりを確認できます。",
     "Mode network controls": "モード・ネットワーク設定",
     "Network viewport controls": "ネットワーク表示の操作",
@@ -624,6 +661,33 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Single click inspects a node. Double click a scale to move it to the center.": "シングルクリックでノードを確認し、スケールをダブルクリックすると中央へ移動します。",
     "Static overview for mobile. Use the complete node list below to inspect or recenter.": "モバイル用の静的表示です。確認や中央への移動には下のノード一覧を使います。",
     "Drag nodes to reshape the network. Drag empty space to pan, scroll to zoom, hover to isolate connections, and double click a scale to center it.": "ノードをドラッグしてネットワークを動かせます。空白をドラッグして移動、スクロールで拡大縮小、ホバーで接続を強調し、スケールをダブルクリックすると中央に移動します。",
+    "Static overview for mobile. Use the complete node list below to inspect and expand; make a scale center from its details.": "モバイルでは静的な概要を表示します。下の完全なノード一覧で詳細を確認・展開し、スケールの詳細から中心に設定できます。",
+    "Drag nodes to reshape the network. Drag empty space to pan, scroll to zoom, hover to isolate, double click to expand, or hold a node for 550ms to pin it.": "ノードをドラッグしてネットワークを整えます。空白をドラッグして移動、スクロールで拡大縮小、ホバーで関係を絞り込み、ダブルクリックで展開、ノードを550ミリ秒長押しして固定できます。",
+    "Arrow points toward the relationship target": "矢印は関係の向きを示します",
+    Pinned: "固定中",
+    Unpinned: "固定解除",
+    Expanded: "展開済み",
+    Selected: "選択中",
+    Evidence: "根拠",
+    "Selected node actions": "選択したノードの操作",
+    "Expand connections": "関係を展開",
+    "Collapse branch": "枝を折りたたむ",
+    "Make center": "中心に設定",
+    "Pin node": "ノードを固定",
+    "Unpin node": "固定を解除",
+    "Clear exploration": "探索をクリア",
+    "Pinning and direct graph gestures are available on larger screens; mobile keeps a static graph to conserve resources.": "ノードの固定とグラフ上の直接操作は大きな画面で利用できます。モバイルでは負荷を抑えるため静的グラフを表示します。",
+    "How Note Neural Network works": "ノート・ニューラル・ネットワークの使い方",
+    "A guide to graph concepts, relationships, and controls.": "グラフの概念、関係、操作方法のガイドです。",
+    "Close Note Neural Network help": "ノート・ニューラル・ネットワークの説明を閉じる",
+    "Node kinds and exploration": "ノードの種類と探索",
+    "Scales use a double ring, chords a triangle, notes a solid dot, and intervals an outlined square. Inspect selects one concept; Expand adds its connections; Make center changes the shared scale; Collapse and Clear remove exploration branches.": "スケールは二重リング、コードは三角形、音は塗りつぶした丸、音程は輪郭だけの四角で示します。確認では概念を1つ選び、展開では関係を追加し、中心に設定では共有スケールを変更します。折りたたむとクリアで探索の枝を取り除けます。",
+    "Move and pin": "移動と固定",
+    "Drag a node while the network reacts, drag empty space to pan, and scroll to zoom. Hold a stationary node for 550ms to pin or unpin it; moving or cancelling first leaves its pin unchanged.": "ネットワークの反応を保ったままノードをドラッグできます。空白のドラッグで移動し、スクロールで拡大縮小します。静止したノードを550ミリ秒長押しすると固定／解除でき、先に動かすか操作を中止した場合は固定状態を変えません。",
+    "Strength and direction": "強さと向き",
+    "Strong links are heavy and bright, Medium links are thinner, and Weak links use a long dash. An arrow points toward the relationship target; details name the musical evidence.": "強い関係は太く明るい線、中程度は細い線、弱い関係は長い破線で示します。矢印は関係の向きを示し、詳細には音楽的な根拠を表示します。",
+    "Relative, Parallel, and mobile": "平行調、同主調、モバイル",
+    "Relative compares modes that share a parent collection; Parallel compares modes on the same root. Mobile keeps a static graph and exposes every concept and action through the list and detail panel.": "平行調は同じ音集合を共有するモードを比較し、同主調は同じルート上のモードを比較します。モバイルでは静的グラフを保ち、一覧と詳細パネルからすべての概念と操作を利用できます。",
     "Use the complete node list below to inspect every relationship.": "すべての関係を確認するには、下のノード一覧を使います。",
     "Play scale": "スケールを再生",
     "Stop scale": "再生を停止",
@@ -796,6 +860,45 @@ function translateDynamicJapanese(value: string): string | undefined {
   if (match) return `${match[1]}をコード進行から削除しました。`;
   match = value.match(/^(.+) relationship network$/);
   if (match) return `${match[1]}の関係ネットワーク`;
+  if (value === "Related scale context") return "関連するスケールの背景";
+  if (value === "Related theory context") return "関連する音楽理論の背景";
+  match = value.match(/^Characteristic color · (.+)$/);
+  if (match) return `特徴的な響き・${translate("ja", match[1])}`;
+  match = value.match(/^Harmonic function · (.+)$/);
+  if (match) return `和声機能・${translate("ja", match[1])}`;
+  match = value.match(/^Roots move by a perfect fifth · (.+) ↔ (.+)$/);
+  if (match) return `ルートが完全5度で移動・${match[1]} ↔ ${match[2]}`;
+  match = value.match(/^Same (\d+) notes · tonal center (.+) → (.+)$/);
+  if (match) return `同じ${match[1]}音・中心音${match[2]} → ${match[3]}`;
+  match = value.match(/^Shares (\d+)\/(\d+) notes(?: · (.+) → (.+))?$/);
+  if (match) {
+    const change = match[3] && match[4] ? `・${match[3]} → ${match[4]}` : "";
+    return `${match[2]}音中${match[1]}音を共有${change}`;
+  }
+  match = value.match(/^(.+) belongs to (.+) · (.+)$/);
+  if (match) return `${match[1]}は${match[2]}に含まれます・${translate("ja", match[3])}`;
+  match = value.match(/^(.+) resolves by fifth to (.+)$/);
+  if (match) return `${match[1]}から${match[2]}へ5度進行で解決`;
+  match = value.match(/^Roots are a tritone apart · (.+) ↔ (.+)$/);
+  if (match) return `ルートがトライトーン離れています・${match[1]} ↔ ${match[2]}`;
+  match = value.match(/^Pitch class (\d+)$/);
+  if (match) return `ピッチクラス${match[1]}`;
+  match = value.match(/^Chord family · (.+)$/);
+  if (match) return `コード・ファミリー・${translate("ja", match[1])}`;
+  match = value.match(/^Common-tone voice leading · shares (.+)$/);
+  if (match) return `共通音によるボイス・リーディング・${match[1]}を共有`;
+  match = value.match(/^In (.+)$/);
+  if (match) return `${match[1]}内`;
+  match = value.match(/^(.+) is spelled (.+) in (.+)$/);
+  if (match) return `${match[1]}は${match[3]}で${match[2]}と表記`;
+  match = value.match(/^Dominant resolution · (.+) → (.+)$/);
+  if (match) return `ドミナント解決・${match[1]} → ${match[2]}`;
+  match = value.match(/^(.+) is the (.+) of (.+)$/);
+  if (match) return `${match[1]}は${match[3]}の${match[2]}度`;
+  match = value.match(/^(\d+)\/(\d+) chord tones fit (.+)$/);
+  if (match) return `${match[3]}にコードトーン${match[2]}音中${match[1]}音が適合`;
+  match = value.match(/^([b#]*\d+) · (.+)$/);
+  if (match) return `${match[1]}・${translate("ja", match[2])}`;
   match = value.match(/^(.+) is not a Hasher preset mode\. Root (.+), formula (.+), and notes (.+) were kept for Free Input\.$/);
   if (match) return `${match[1]}はHasherのプリセット・モードではありません。ルート${match[2]}、構成${match[3]}、音${match[4]}をフリー入力用に保持しました。`;
   match = value.match(/^(\d+) over the (\d+)-character limit$/);

@@ -856,6 +856,22 @@ Published `feat/note-neural-network-force-canvas` and opened draft [#78](https:/
 
 ---
 
+## 2026-07-20 22:58 JST — Hanz spoken-output root cause and repair
+
+Reproduced the reported state in a real signed ElevenLabs session: Hanz connected in voice mode, returned `agent_response` text, and executed the `replace_progression` client tool, but the raw WebSocket inventory contained no `audio` event. The provider conversation record confirmed `text_only: false` alongside zero TTS seconds and zero voice usage. The source provisioner was requesting only `agent_response_complete`; for WebSocket sessions ElevenLabs requires the `audio` client event to generate and stream base64 voice output.
+
+Commit `80cc877` makes the exact source-owned event inventory `audio`, `user_transcript`, `agent_response`, `agent_response_complete`, and `interruption`, with readback proving every other conversation and TTS field is preserved. The client explicitly starts a voice conversation, sets normal output volume, counts real audio packets separately from transcript messages, preserves a live session when the popup closes, and reports a bounded voice-output error if Hanz answers without audio. Existing-agent provisioning can now apply an explicit `HH_VOICE_ID` without overwriting the TTS model or any other TTS setting. Voice selection stays server-managed because the agent deliberately blocks browser voice overrides.
+
+The live agent `agent_2501ksecrah0epa92phh1fh5ymxp` now has signed authentication enabled, an empty allowlist, the verified `nzeAacJi50IvxcyDnMXa` voice on `eleven_v3_conversational`, the required five client events, and exactly nine source-owned client tools. The final exact-tree signed browser smoke connected in voice mode, received 10 non-empty output-audio packets, replaced the timeline with `Fmaj7`, `Gm7`, `C7`, `Fmaj7`, and disconnected cleanly.
+
+**Verification:** production build passes; Vitest passes 50 files / 1,291 tests; the focused Hanz, HASHER layout/smoke, and FRET FINDER Chromium matrix passes 25/25; strict OpenSpec and diff hygiene pass. Lint has no error and retains one pre-existing NOTE NEURAL NETWORK exhaustive-deps warning outside this branch's diff. The separate main worktree and its user/parent-owned changes remain untouched.
+
+**Theory-cost direction:** `docs/hanz-theory-context-architecture.md` recommends a follow-up deterministic browser `get_harmony_context` client tool plus one to three locally tagged teaching cards. It caps continuation candidates and sends compact verified facts only for theory/continuation/improv turns. MCP is deferred until multiple products need the same remote harmony service; vector retrieval is deferred until deterministic card tags stop scaling.
+
+**Current state:** local branch `feat/hanz-spoken-theory` is committed through `80cc877`. No push, PR, merge, app deployment, or OpenSpec archive occurred. The live ElevenLabs configuration repair is complete and independently verify-only read back.
+
+---
+
 ## 2026-07-20 23:45 JST — Progressive neural, Circle, and HASHER local release gate
 
 Extended NOTE NEURAL NETWORK from the force-canvas baseline into a progressive expert graph. Scale and chord branches expand idempotently into bounded, evidence-backed relationships; inspection, expansion, centering, branch collapse, and clearing remain distinct transactions. Context-keyed memory restores simulation positions, camera, selected node, and pins across disclosure, workspace, Circle-insight, and desktop/mobile round trips. Desktop supports 550ms stationary long-press plus explicit pin controls, drag release/cancellation safety, and live force reconciliation for newly added nodes. Mobile remains a static non-canvas graph with the complete semantic/detail path. The graph now distinguishes scale, chord, note, and interval concepts with redundant shapes and exact relationship-strength/direction cues, and its localized help dialog restores focus.

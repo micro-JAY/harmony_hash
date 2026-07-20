@@ -24,4 +24,4 @@
 
 - [x] 5.1 Run strict OpenSpec validation, focused voice tests, build, lint, and the full unit suite.
 - [x] 5.2 Run a real browser voice session with fake media and prove the session is voice-mode with incoming agent audio packets.
-- [ ] 5.3 Audit the final diff for voice-only scope, record milestone evidence, and commit the validated repair on its isolated feature branch.
+- [x] 5.3 Audit the final diff for voice-only scope, record milestone evidence, and commit the validated repair on its isolated feature branch.

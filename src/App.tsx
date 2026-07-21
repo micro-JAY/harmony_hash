@@ -19,7 +19,6 @@ import type {
   Workspace,
 } from "./lib/types";
 import Header from "./components/Header";
-import HasherIntervalLegend from "./components/HasherIntervalLegend";
 import InstrumentToggle from "./components/InstrumentToggle";
 import GuidedTour, { type GuidedTourStep } from "./components/GuidedTour";
 import OnboardingModal from "./components/OnboardingModal";
@@ -95,7 +94,7 @@ function loadVoiceAgentRuntime() {
   return voiceRuntimePromise;
 }
 
-const PLAYBACK_BPM = 80;
+const PLAYBACK_BPM = 110;
 
 function TheoryImprovFocusRegion({ children }: { children: ReactNode }) {
   const regionRef = useRef<HTMLElement>(null);
@@ -151,9 +150,12 @@ function App() {
   );
   const [workspace, setWorkspace] = useState<Workspace>("builder");
   const helpButtonRef = useRef<HTMLButtonElement>(null);
-  const [onboardingOpen, setOnboardingOpen] = useState(
-    () => !onboardingPersistence.isDismissed(),
-  );
+  const [onboardingOpen, setOnboardingOpen] = useState(() => {
+    // Keep the returning-visitor fixture useful for automated flows while the
+    // real app intentionally introduces the welcome screen on every visit.
+    if (import.meta.env.VITE_HH_E2E === "true") return !onboardingPersistence.isDismissed();
+    return true;
+  });
   const [tourOpen, setTourOpen] = useState(false);
   const tourRestoreRef = useRef<{
     workspace: Workspace;
@@ -707,7 +709,7 @@ function App() {
       id: "describe",
       targetSelector: '[data-tour="hasher-describe"]',
       title: t("Describe what you hear"),
-      body: t("Describe a mood or progression and run the builder. If you get stuck, the small help prompt is the only place to call Hanz."),
+      body: t("Describe a mood or progression and run the builder. If you get stuck, check the small help prompt; Hanz Hasher has you covered."),
     },
     {
       id: "composer",
@@ -742,7 +744,7 @@ function App() {
     {
       id: "circle",
       targetSelector: '[data-testid="circle-of-fifths"]',
-      title: t("Explore The Circle"),
+      title: t("THE CIRCLE"),
       body: t("Compare neighboring keys, modes, and practical key changes or open IMPROV INSIGHT without leaving TUNE TOOLBOX."),
     },
     {
@@ -860,14 +862,11 @@ function App() {
               onRequestVoice={handleRequestVoice}
               onVoiceIntent={ensureVoiceRuntime}
               outputTools={(
-                <div className="hh-output-learning-tools">
-                  <div data-tour="instrument-switcher">
-                    <InstrumentToggle
-                      instrument={instrument}
-                      onInstrumentChange={handleInstrumentChange}
-                    />
-                  </div>
-                  <HasherIntervalLegend />
+                <div data-tour="instrument-switcher" className="hh-instrument-picker-slot">
+                  <InstrumentToggle
+                    instrument={instrument}
+                    onInstrumentChange={handleInstrumentChange}
+                  />
                 </div>
               )}
               contextLaunch={hasherContextLaunch}
@@ -1089,7 +1088,7 @@ function App() {
               {t("emptyStateHint")}
               <br />
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)" }}>
-                {t("Try: Cmaj7 Am9 Dm7 G7")}
+                {t("Don't know where to start? Try a preset!s")}
               </span>
             </p>
           </div>
@@ -1115,7 +1114,7 @@ function App() {
       {onboardingOpen ? (
         <OnboardingModal
           brandLabel={t("HARMONY HASH — TONARI LABS")}
-          title={t("HARMONIOUS HARMONY")}
+          title={t("HARMONY HASH")}
           description={t("Harmony doesn't have to be hard.")}
           closeLabel={t("Close Harmony Hash introduction")}
           primaryActionLabel={t("START HASHING")}

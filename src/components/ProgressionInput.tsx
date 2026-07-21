@@ -448,7 +448,7 @@ export default function ProgressionInput({
           <h2 id="hasher-compose-title" className="hh-builder-step__title">
             {t("Build your own")}
           </h2>
-          <div className="flex flex-col items-stretch gap-3 sm:flex-row">
+          <div className="hh-composer-row">
             <ProgressionTimelineComposer
               items={composedItems}
               insertionBoundary={Math.min(insertionBoundary, composedItems.length)}
@@ -457,27 +457,29 @@ export default function ProgressionInput({
               onMove={handleComposerMove}
               onRemove={handleComposerRemove}
             />
-            <button
-              type="button"
-              onClick={handleComposerSubmit}
-              aria-label={t("Run chord composer")}
-              disabled={!canRunComposer}
-              className="hh-action w-full transition-all sm:w-auto"
-              style={{
-                backgroundColor: canRunComposer
-                  ? "var(--interactive-accent-bg)"
-                  : "var(--interactive-disabled-bg)",
-                color: canRunComposer
-                  ? "var(--interactive-accent-text)"
-                  : "var(--interactive-disabled-text)",
-                border: `1px solid ${canRunComposer
-                  ? "var(--interactive-accent-border)"
-                  : "var(--interactive-disabled-border)"}`,
-                cursor: canRunComposer ? "pointer" : "not-allowed",
-              }}
-            >
-              {t("Run")}
-            </button>
+            <div className="hh-composer-actions">
+              <button
+                type="button"
+                onClick={handleComposerSubmit}
+                aria-label={t("Run chord composer")}
+                disabled={!canRunComposer}
+                className="hh-action w-full transition-all"
+                style={{
+                  backgroundColor: canRunComposer
+                    ? "var(--interactive-accent-bg)"
+                    : "var(--interactive-disabled-bg)",
+                  color: canRunComposer
+                    ? "var(--interactive-accent-text)"
+                    : "var(--interactive-disabled-text)",
+                  border: `1px solid ${canRunComposer
+                    ? "var(--interactive-accent-border)"
+                    : "var(--interactive-disabled-border)"}`,
+                  cursor: canRunComposer ? "pointer" : "not-allowed",
+                }}
+              >
+                {t("Run")}
+              </button>
+            </div>
           </div>
 
           {composerWasRebased && composerDraft.dirty ? (
@@ -501,8 +503,8 @@ export default function ProgressionInput({
             if (composedItems.length === 0) return;
             handleComposerRemove(composedItems.length - 1);
           }}
-          keyContext={{ key: activeKey, scaleType: activeScaleType }}
           leadingContent={outputTools}
+          keyContext={{ key: activeKey, scaleType: activeScaleType }}
         />
       </div>
 

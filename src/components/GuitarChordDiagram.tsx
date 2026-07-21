@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type PointerEvent,
+} from "react";
 import type { IndexedChord, GuitarDisplayMode } from "../lib/types";
 import {
   parseGuitarSvg,
@@ -13,6 +20,14 @@ import {
   guitarDegreePresentation,
   type GuitarDegreePresentation,
 } from "./guitarChordVisuals";
+import { chordIntervalPresentation } from "../lib/visual/chordIntervals";
+import { useT } from "../i18n/I18nContext";
+import NoteRoleTooltip from "./NoteRoleTooltip";
+import {
+  noteRoleTooltipLabel,
+  tooltipStateForTarget,
+  type NoteRoleTooltipState,
+} from "./noteRoleTooltipState";
 
 interface GuitarChordDiagramProps {
   chord: IndexedChord;
@@ -53,6 +68,8 @@ function appendBarreDegreeMarker(
   presentation: GuitarDegreePresentation,
   displayMode: GuitarDisplayMode,
   label: string | undefined,
+  note: string | undefined,
+  translatedRole: string | undefined,
 ): void {
   const marker = doc.createElementNS("http://www.w3.org/2000/svg", "circle");
   const markerRadius = displayMode === "fingering" ? Math.max(4, dot.r * 0.38) : dot.r * 0.78;
@@ -62,12 +79,13 @@ function appendBarreDegreeMarker(
   marker.setAttribute("fill", presentation.color);
   marker.setAttribute("stroke", "var(--surface-base)");
   marker.setAttribute("stroke-width", "1.5");
-  marker.setAttribute("pointer-events", "none");
+  marker.setAttribute("pointer-events", "all");
   marker.setAttribute("data-played-position", "true");
   marker.setAttribute("data-position-source", "barre");
   if (presentation.interval !== null) {
     marker.setAttribute("data-note-interval", String(presentation.interval));
   }
+  annotatePlayedPosition(marker, presentation, note, translatedRole);
   svg.appendChild(marker);
 
   if (displayMode === "fingering" || label == null) return;
@@ -87,6 +105,26 @@ function appendBarreDegreeMarker(
   svg.appendChild(text);
 }
 
+function annotatePlayedPosition(
+  target: SVGElement,
+  presentation: GuitarDegreePresentation,
+  note: string | undefined,
+  translatedRole: string | undefined,
+): void {
+  if (presentation.interval === null || !note || !translatedRole) return;
+  const interval = chordIntervalPresentation(presentation.interval);
+  if (!interval) return;
+
+  target.setAttribute("data-note-tooltip", "true");
+  target.setAttribute("data-tooltip-note", note);
+  target.setAttribute("data-tooltip-degree", interval.degree);
+  target.setAttribute("data-tooltip-role", interval.name);
+  target.setAttribute("aria-label", noteRoleTooltipLabel(note, interval.degree, translatedRole));
+  target.setAttribute("role", "img");
+  target.setAttribute("tabindex", "0");
+  target.style.cursor = "help";
+}
+
 export default function GuitarChordDiagram({
   chord,
   variant,
@@ -94,12 +132,15 @@ export default function GuitarChordDiagram({
   preferFlats,
   onPlaybackVoicingChange,
 }: GuitarChordDiagramProps) {
+  const t = useT();
   const cacheRef = useRef<Map<string, ParsedGuitarSvg>>(new Map());
   const playbackCallbackRef = useRef(onPlaybackVoicingChange);
   const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [svgData, setSvgData] = useState<ParsedGuitarSvg | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const [tooltip, setTooltip] = useState<NoteRoleTooltipState | null>(null);
 
   const svgUrl = getSvgPath(chord, variant);
 
@@ -210,9 +251,23 @@ export default function GuitarChordDiagram({
         : displayMode === "notes"
           ? noteNameMap.get(dot.pitchClass)
           : undefined;
+      const note = noteNameMap.get(dot.pitchClass);
+      const interval = presentation.interval === null
+        ? null
+        : chordIntervalPresentation(presentation.interval);
+      const translatedRole = interval ? t(interval.name) : undefined;
 
       if (dot.source === "barre") {
-        appendBarreDegreeMarker(doc, svgEl, dot, presentation, displayMode, rawLabel);
+        appendBarreDegreeMarker(
+          doc,
+          svgEl,
+          dot,
+          presentation,
+          displayMode,
+          rawLabel,
+          note,
+          translatedRole,
+        );
         continue;
       }
 
@@ -232,6 +287,7 @@ export default function GuitarChordDiagram({
         if (presentation.interval !== null) {
           matchingCircle.setAttribute("data-note-interval", String(presentation.interval));
         }
+        annotatePlayedPosition(matchingCircle, presentation, note, translatedRole);
 
         if (displayMode === "fingering") {
           const matchingFingeringText = Array.from(fingeringTexts).find((text) => {
@@ -339,7 +395,7 @@ export default function GuitarChordDiagram({
     svgEl.style.height = "auto";
 
     containerRef.current.replaceChildren(svgEl);
-  }, [svgData, displayMode, preferFlats, chord.entry]);
+  }, [svgData, displayMode, preferFlats, chord.entry, t]);
 
   useEffect(() => {
     applyOverlays();
@@ -367,12 +423,47 @@ export default function GuitarChordDiagram({
     );
   }
 
+  const tooltipTarget = (target: EventTarget | null): Element | null => (
+    target instanceof Element ? target.closest('[data-note-tooltip="true"]') : null
+  );
+
+  const showTooltip = (target: Element | null) => {
+    if (!target || !wrapperRef.current) return;
+    setTooltip(tooltipStateForTarget(target, wrapperRef.current));
+  };
+
+  const handlePointerOver = (event: PointerEvent<HTMLDivElement>) => {
+    showTooltip(tooltipTarget(event.target));
+  };
+
+  const handlePointerOut = (event: PointerEvent<HTMLDivElement>) => {
+    const target = tooltipTarget(event.target);
+    if (!target) return;
+    if (event.relatedTarget instanceof Node && target.contains(event.relatedTarget)) return;
+    setTooltip(null);
+  };
+
+  const handleFocus = (event: FocusEvent<HTMLDivElement>) => {
+    showTooltip(tooltipTarget(event.target));
+  };
+
+  const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (tooltipTarget(event.target)) setTooltip(null);
+  };
+
   return (
     <div
-      ref={containerRef}
+      ref={wrapperRef}
       data-testid="guitar-chord-diagram"
-      className="w-44 h-auto"
+      className="relative w-44 h-auto"
       style={{ display: "flex", justifyContent: "center" }}
-    />
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
+      onFocusCapture={handleFocus}
+      onBlurCapture={handleBlur}
+    >
+      <div ref={containerRef} className="w-full" />
+      <NoteRoleTooltip tooltip={tooltip} />
+    </div>
   );
 }

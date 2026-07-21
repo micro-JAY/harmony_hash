@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import type { PianoDisplayMode, VoicedNote } from "../lib/types";
 import { formatNoteForDisplay } from "../lib/chordData";
 import { useT } from "../i18n/I18nContext";
@@ -8,6 +9,13 @@ import {
   getWhiteKeyGeometry,
   type PianoKeyboardSize,
 } from "./pianoKeyboardGeometry";
+import { chordIntervalPresentation } from "../lib/visual/chordIntervals";
+import NoteRoleTooltip from "./NoteRoleTooltip";
+import {
+  noteRoleTooltipLabel,
+  tooltipStateForTarget,
+  type NoteRoleTooltipState,
+} from "./noteRoleTooltipState";
 
 interface PianoKeyboardProps {
   voicedNotes: VoicedNote[];
@@ -111,6 +119,8 @@ export default function PianoKeyboard({
   colorMode = "hand",
 }: PianoKeyboardProps) {
   const t = useT();
+  const keyboardRef = useRef<HTMLDivElement>(null);
+  const [tooltip, setTooltip] = useState<NoteRoleTooltipState | null>(null);
   const activeSet = new Map<number, VoicedNote>();
   for (const note of voicedNotes) {
     activeSet.set(note.midi, note);
@@ -168,13 +178,32 @@ export default function PianoKeyboard({
   const blackKeyH = compact ? 40 : 60;
   const maxWidth = getKeyboardMaxWidth(size);
 
+  function tooltipAttributes(active: VoicedNote) {
+    const intervalValue = activeInterval(active);
+    const interval = intervalValue === null ? null : chordIntervalPresentation(intervalValue);
+    if (!interval) return null;
+    const note = `${formatNoteForDisplay(active.name, preferFlats)}${active.octave}`;
+    return {
+      note,
+      degree: interval.degree,
+      role: interval.name,
+      label: noteRoleTooltipLabel(note, interval.degree, t(interval.name)),
+    };
+  }
+
+  function showTooltip(target: HTMLElement) {
+    if (!keyboardRef.current) return;
+    setTooltip(tooltipStateForTarget(target, keyboardRef.current));
+  }
+
   return (
     <div
+      ref={keyboardRef}
       data-testid="piano-keyboard"
       data-size={size}
       data-color-mode={colorMode}
       data-active-midis={activeMidis.join(",")}
-      role="img"
+      role="group"
       aria-label={t(`Piano voicing: ${voicedNoteLabel || "no notes"}`)}
       className="relative mx-auto"
       style={{ width: "100%", maxWidth, height: whiteKeyH }}
@@ -187,6 +216,7 @@ export default function PianoKeyboard({
         const rootFingerKey = active ? isRootFingerKey(active) : false;
         const rootNoteLabel = active ? isRootLabel(active) : false;
         const interval = active ? activeInterval(active) : null;
+        const tooltipData = active ? tooltipAttributes(active) : null;
 
         return (
           <div
@@ -194,6 +224,17 @@ export default function PianoKeyboard({
             data-midi={key.midi}
             data-key-kind="white"
             data-note-interval={interval ?? undefined}
+            data-note-tooltip={tooltipData ? "true" : undefined}
+            data-tooltip-note={tooltipData?.note}
+            data-tooltip-degree={tooltipData?.degree}
+            data-tooltip-role={tooltipData?.role}
+            role={tooltipData ? "img" : undefined}
+            aria-label={tooltipData?.label}
+            tabIndex={tooltipData ? 0 : undefined}
+            onPointerEnter={tooltipData ? (event) => showTooltip(event.currentTarget) : undefined}
+            onPointerLeave={tooltipData ? () => setTooltip(null) : undefined}
+            onFocus={tooltipData ? (event) => showTooltip(event.currentTarget) : undefined}
+            onBlur={tooltipData ? () => setTooltip(null) : undefined}
             className={active ? (active.hand === "left" ? "piano-key-active-lh" : "piano-key-active") : ""}
             style={{
               position: "absolute",
@@ -239,6 +280,7 @@ export default function PianoKeyboard({
         const rootFingerKey = active ? isRootFingerKey(active) : false;
         const rootNoteLabel = active ? isRootLabel(active) : false;
         const interval = active ? activeInterval(active) : null;
+        const tooltipData = active ? tooltipAttributes(active) : null;
         const geometry = getBlackKeyGeometry(key.note, key.octave, size);
 
         return (
@@ -247,6 +289,17 @@ export default function PianoKeyboard({
             data-midi={key.midi}
             data-key-kind="black"
             data-note-interval={interval ?? undefined}
+            data-note-tooltip={tooltipData ? "true" : undefined}
+            data-tooltip-note={tooltipData?.note}
+            data-tooltip-degree={tooltipData?.degree}
+            data-tooltip-role={tooltipData?.role}
+            role={tooltipData ? "img" : undefined}
+            aria-label={tooltipData?.label}
+            tabIndex={tooltipData ? 0 : undefined}
+            onPointerEnter={tooltipData ? (event) => showTooltip(event.currentTarget) : undefined}
+            onPointerLeave={tooltipData ? () => setTooltip(null) : undefined}
+            onFocus={tooltipData ? (event) => showTooltip(event.currentTarget) : undefined}
+            onBlur={tooltipData ? () => setTooltip(null) : undefined}
             className={active ? (active.hand === "left" ? "piano-key-active-lh" : "piano-key-active") : ""}
             style={{
               position: "absolute",
@@ -285,6 +338,7 @@ export default function PianoKeyboard({
           </div>
         );
       })}
+      <NoteRoleTooltip tooltip={tooltip} />
     </div>
   );
 }

@@ -86,6 +86,27 @@ test("compact action toolbar keeps cards adjacent and opens Hanz from prompt hel
   await expect(dialog).toHaveCount(0);
 });
 
+test("aligns Browse chords with the instrument picker and composer Run width", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const browse = page.getByRole("button", { name: "Browse chords ↓", exact: true });
+  const picker = page.locator(".hh-instrument-picker-slot");
+  const composerRun = page.getByRole("button", { name: "Run chord composer" });
+  const [browseBox, pickerBox, composerRunBox] = await Promise.all([
+    browse.boundingBox(),
+    picker.boundingBox(),
+    composerRun.boundingBox(),
+  ]);
+
+  expect(browseBox).not.toBeNull();
+  expect(pickerBox).not.toBeNull();
+  expect(composerRunBox).not.toBeNull();
+  const browseCenter = browseBox!.y + browseBox!.height / 2;
+  const pickerCenter = pickerBox!.y + pickerBox!.height / 2;
+  expect(Math.abs(browseCenter - pickerCenter)).toBeLessThanOrEqual(1);
+  expect(Math.abs(pickerBox!.width - composerRunBox!.width)).toBeLessThanOrEqual(1);
+});
+
 test.describe("800px tablet layout", () => {
   test.use({ viewport: { width: 800, height: 900 } });
 

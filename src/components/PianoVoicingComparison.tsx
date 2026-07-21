@@ -209,7 +209,7 @@ export default function PianoVoicingComparison({
                     </span>
                   </span>
 
-                  <div className="w-full min-w-0 overflow-hidden">
+                  <div className="w-full min-w-0 overflow-visible">
                     <PianoKeyboard
                       voicedNotes={voicing.notes}
                       displayMode="notes"

@@ -27,7 +27,9 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
 
   await page.getByRole("button", { name: "ヘルプ／概要" }).click();
   const introduction = page.getByRole("dialog", { name: "HARMONY HASH" });
-  await expect(introduction).toContainText("ハーモニーは難しくなくていい。");
+  await expect(introduction).toContainText(
+    /ハーモニーは難しくなくていい。|コードの一つひとつにあるハーモニーを見つけよう。|コードから始めて、その行き先を探してみましょう。/,
+  );
   await expect(introduction.getByRole("button", { name: "ハッシュを始める" })).toBeVisible();
   await expect(introduction.getByRole("button", { name: "ツアーを見る" })).toBeVisible();
   await introduction.getByRole("button", { name: "Harmony Hashの紹介を閉じる" }).click();

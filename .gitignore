@@ -1,8 +1,10 @@
-# Init docs, tools
+# Local source material and agent tooling
 .DS_Store
 initial_data/
 .claude/
 .codex/
+.agent/skills/
+.agents/skills/
 
 
 node_modules/
@@ -17,18 +19,19 @@ dist/
 !.env.example
 
 
-# long-horizon files
+# Local planning and design material. The four public reference documents stay
+# tracked because the app or ongoing music-theory work depends on them.
 preflight.log
-docs/inspiration/*
-!docs/inspiration/README.md
+docs/*
+!docs/hh-library.md
+!docs/hh-minor-blend.md
+!docs/long_horizon_log.md
+!docs/hanz-theory-context-architecture.md
 
-# Playwright MCP scratch (manual-smoke output; Playwright harness will land
-# its own committed __screenshots__/ baselines in milestone 1.2).
+# Playwright scratch/runtime output. Golden images under e2e/__screenshots__/
+# remain tracked because Playwright uses them for visual regression assertions.
 .playwright-mcp/
 v2-voice-leading-piano-*.png
-
-# Playwright runtime outputs — committed baseline screenshots in
-# e2e/<spec>.spec.ts-snapshots/ remain tracked.
 playwright-report/
 test-results/
 .playwright/

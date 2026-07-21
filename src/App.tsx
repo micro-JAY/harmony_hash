@@ -862,7 +862,7 @@ function App() {
               onRequestVoice={handleRequestVoice}
               onVoiceIntent={ensureVoiceRuntime}
               outputTools={(
-                <div data-tour="instrument-switcher">
+                <div data-tour="instrument-switcher" className="hh-instrument-picker-slot">
                   <InstrumentToggle
                     instrument={instrument}
                     onInstrumentChange={handleInstrumentChange}

@@ -479,7 +479,6 @@ export default function ProgressionInput({
               >
                 {t("Run")}
               </button>
-              {outputTools}
             </div>
           </div>
 
@@ -504,6 +503,7 @@ export default function ProgressionInput({
             if (composedItems.length === 0) return;
             handleComposerRemove(composedItems.length - 1);
           }}
+          leadingContent={outputTools}
           keyContext={{ key: activeKey, scaleType: activeScaleType }}
         />
       </div>

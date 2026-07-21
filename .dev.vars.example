@@ -1,5 +1,8 @@
 # Copy this file to `.dev.vars` at the repository root for local development.
 # `.dev.vars*` is gitignored — never commit real keys.
+# Wrangler's `secrets.required` filter loads only the provider keys below from
+# this file. Run `npm run dev:worker` to forward the optional non-secret values
+# below as supported `wrangler dev --var` overrides.
 OPENAI_API_KEY=
 
 # Optional. The production origin (https://harmony.tonari.ai) and localhost

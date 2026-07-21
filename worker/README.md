@@ -37,7 +37,9 @@ Both files live at the **repo root** (alongside `wrangler.jsonc`), not inside `w
    ```
    OPENAI_API_KEY=sk-...
    ```
-3. Run `npx wrangler dev` from the repo root. Wrangler picks up `.dev.vars` automatically.
+3. Run `npm run dev:worker` from the repo root. The launcher lets Wrangler load
+   the required provider secrets and forwards optional `ALLOWED_ORIGIN` and
+   `HH_VOICE_AGENT_ID` values from `.dev.vars` as supported `--var` overrides.
 
 `.dev.vars*` is gitignored.
 
@@ -77,8 +79,9 @@ From the repo root:
 # Build the SPA once so the assets binding has something to serve.
 npm run build
 
-# Start the Worker + asset server.
-npx wrangler dev
+# Start the Worker + asset server. This preserves optional local bindings while
+# keeping Wrangler's required-secret validation enabled.
+npm run dev:worker
 ```
 
 The Worker listens on `http://localhost:8787` by default.

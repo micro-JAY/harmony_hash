@@ -26,7 +26,9 @@ test("first visit welcomes people with the logo and three destinations, persists
   expect(Math.abs(visualBox!.y - logoBox!.y)).toBeLessThanOrEqual(1);
   expect(Math.abs(visualBox!.width - logoBox!.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(visualBox!.height - logoBox!.height)).toBeLessThanOrEqual(1);
-  const tagline = dialog.getByText("Harmony doesn't have to be hard.", { exact: true });
+  const tagline = dialog.getByText(
+    /^(Harmony doesn't have to be hard\.|Find the harmony inside every chord\.|Start with a chord\. Discover where it wants to go\.)$/,
+  );
   await expect(tagline).toBeVisible();
   await expect(tagline).toHaveCSS("font-style", "italic");
   await expect(dialog.getByRole("heading", { name: "HASHER" })).toBeVisible();

@@ -96,6 +96,18 @@ function loadVoiceAgentRuntime() {
 
 const PLAYBACK_BPM = 110;
 
+const ONBOARDING_DESCRIPTION_KEYS = [
+  "Harmony doesn't have to be hard.",
+  "Find the harmony inside every chord.",
+  "Start with a chord. Discover where it wants to go.",
+] as const;
+
+function randomOnboardingDescription() {
+  return ONBOARDING_DESCRIPTION_KEYS[
+    Math.floor(Math.random() * ONBOARDING_DESCRIPTION_KEYS.length)
+  ] ?? ONBOARDING_DESCRIPTION_KEYS[0];
+}
+
 function TheoryImprovFocusRegion({ children }: { children: ReactNode }) {
   const regionRef = useRef<HTMLElement>(null);
 
@@ -156,6 +168,9 @@ function App() {
     if (import.meta.env.VITE_HH_E2E === "true") return !onboardingPersistence.isDismissed();
     return true;
   });
+  const [onboardingDescriptionKey, setOnboardingDescriptionKey] = useState(
+    randomOnboardingDescription,
+  );
   const [tourOpen, setTourOpen] = useState(false);
   const tourRestoreRef = useRef<{
     workspace: Workspace;
@@ -820,7 +835,10 @@ function App() {
       <Header
         workspace={workspace}
         onWorkspaceChange={setWorkspace}
-        onOpenHelp={() => setOnboardingOpen(true)}
+        onOpenHelp={() => {
+          setOnboardingDescriptionKey(randomOnboardingDescription());
+          setOnboardingOpen(true);
+        }}
         helpButtonRef={helpButtonRef}
       />
 
@@ -1088,7 +1106,7 @@ function App() {
               {t("emptyStateHint")}
               <br />
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)" }}>
-                {t("Don't know where to start? Try a preset!s")}
+                {t("Don't know where to start? Try a preset!")}
               </span>
             </p>
           </div>
@@ -1115,7 +1133,7 @@ function App() {
         <OnboardingModal
           brandLabel={t("HARMONY HASH — TONARI LABS")}
           title={t("HARMONY HASH")}
-          description={t("Harmony doesn't have to be hard.")}
+          description={t(onboardingDescriptionKey)}
           closeLabel={t("Close Harmony Hash introduction")}
           primaryActionLabel={t("START HASHING")}
           secondaryActionLabel={t("TAKE A TOUR")}

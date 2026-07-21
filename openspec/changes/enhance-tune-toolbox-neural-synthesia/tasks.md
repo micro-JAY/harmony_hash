@@ -29,7 +29,7 @@
 - [x] 4.2 Run the exact full gate: production build, lint, all Vitest, all Playwright, strict OpenSpec, and dependency/Worker packaging checks applicable to the diff.
 - [x] 4.3 Prove no HASHER or FRET FINDER source file changed from the branch base and run their focused existing Playwright regressions plus the full suite.
 - [x] 4.4 Audit the final diff for design-system, React performance, accessibility, localization, snapshot, debug-artifact, and unrelated-scope regressions.
-- [x] 4.5 Reconcile `docs/long_horizon_plan.md` and `docs/long_horizon_log.md` with exact test/browser evidence and commit the validation ledger separately.
+- [x] 4.5 Reconcile `docs/long_horizon_log.md` with exact test/browser evidence, keep the local planning ledger private, and commit the public validation log separately.
 
 ## 5. Publication And Branch Hygiene
 

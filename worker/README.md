@@ -26,6 +26,8 @@ Validation:
 
 The progression route requires `OPENAI_API_KEY`. The voice signed-URL route requires `ELEVENLABS_API_KEY` and `HH_VOICE_AGENT_ID`. Never commit either API key and never expose them through `VITE_` variables.
 
+`wrangler.jsonc` declares both provider keys under `secrets.required`. Wrangler uploads and deployments must fail before release when either encrypted binding is unavailable; do not remove or bypass that guard to make a build pass.
+
 ### Local development
 
 Both files live at the **repo root** (alongside `wrangler.jsonc`), not inside `worker/`.
@@ -47,6 +49,8 @@ npx wrangler versions secret put ELEVENLABS_API_KEY
 ```
 
 Wrangler prompts for each value and creates a new Worker version carrying the encrypted secret. Deploy that exact version after verification. `HH_VOICE_AGENT_ID` is non-secret and belongs in `wrangler.jsonc`.
+
+If both provider routes return configuration errors while the SPA and `/api/health` remain reachable, inspect secret **names only** with `wrangler versions view <version-id>`. Restore only the missing provider bindings, verify the replacement version lists both required names, and deploy that exact version. Never print, log, or commit the values.
 
 ## CORS
 

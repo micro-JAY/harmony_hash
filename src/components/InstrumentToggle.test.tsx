@@ -22,7 +22,7 @@ describe("InstrumentToggle", () => {
     expect(markup).toContain('data-instrument-option="piano"');
     expect(markup).toContain("var(--interactive-primary-bg)");
     expect(markup).toContain("lucide-guitar");
-    expect(markup).toContain("lucide-keyboard");
+    expect(markup).toContain("lucide-piano");
     expect(markup).not.toContain(">Guitar</button>");
     expect(markup).not.toContain(">Piano</button>");
   });

@@ -1,6 +1,6 @@
 import type { Instrument } from "../lib/types";
 import { useReducedMotion } from "framer-motion";
-import { Guitar, Keyboard } from "lucide-react";
+import { Guitar, Piano } from "lucide-react";
 import { useT } from "../i18n/I18nContext";
 
 interface InstrumentToggleProps {
@@ -13,7 +13,7 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
   const reduceMotion = useReducedMotion();
   const options = [
     { value: "guitar", label: "Guitar", Icon: Guitar },
-    { value: "piano", label: "Piano", Icon: Keyboard },
+    { value: "piano", label: "Piano", Icon: Piano },
   ] as const;
 
   return (

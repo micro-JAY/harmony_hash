@@ -1,5 +1,6 @@
 import type { Instrument } from "../lib/types";
 import { useReducedMotion } from "framer-motion";
+import { Guitar, Keyboard } from "lucide-react";
 import { useT } from "../i18n/I18nContext";
 
 interface InstrumentToggleProps {
@@ -10,6 +11,11 @@ interface InstrumentToggleProps {
 export default function InstrumentToggle({ instrument, onInstrumentChange }: InstrumentToggleProps) {
   const t = useT();
   const reduceMotion = useReducedMotion();
+  const options = [
+    { value: "guitar", label: "Guitar", Icon: Guitar },
+    { value: "piano", label: "Piano", Icon: Keyboard },
+  ] as const;
+
   return (
     <div
       role="group"
@@ -20,19 +26,23 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
         border: "1px solid var(--border-subtle)",
       }}
     >
-      {(["guitar", "piano"] as const).map((inst) => {
-        const active = instrument === inst;
+      {options.map(({ value, label, Icon }) => {
+        const active = instrument === value;
+        const accessibleLabel = t(label);
         return (
           <button
-            key={inst}
+            key={value}
             type="button"
-            onClick={() => onInstrumentChange(inst)}
+            onClick={() => onInstrumentChange(value)}
             aria-pressed={active}
-            className="rounded-sm px-3 text-sm font-medium transition-all"
+            aria-label={accessibleLabel}
+            title={accessibleLabel}
+            data-instrument-option={value}
+            className="inline-flex items-center justify-center rounded-sm transition-all"
             style={{
               minHeight: "var(--control-min-height)",
-              fontFamily: "var(--font-body)",
-              fontWeight: active ? "var(--weight-semibold)" : "var(--weight-regular)",
+              minWidth: "var(--control-min-height)",
+              padding: "var(--space-2)",
               backgroundColor: active ? "var(--interactive-primary-bg)" : "transparent",
               color: active ? "var(--interactive-primary-text)" : "var(--text-muted)",
               border: active ? "1px solid var(--interactive-primary-bg)" : "1px solid transparent",
@@ -40,7 +50,7 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
               transitionTimingFunction: "var(--ease-out)",
             }}
           >
-            {t(inst)}
+            <Icon size={21} strokeWidth={1.8} aria-hidden="true" />
           </button>
         );
       })}

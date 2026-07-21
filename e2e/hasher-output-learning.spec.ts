@@ -54,20 +54,22 @@ async function expectContained(page: Page, locator: Locator): Promise<void> {
 }
 
 test.describe("HASHER output learning controls", () => {
-  test("keeps the relocated instrument and degree legend usable across widths and workspaces", async ({ page }) => {
+  test("keeps the icon instrument selector beneath Run across widths and workspaces", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "G7"]);
 
     const header = page.locator("header").first();
     const navigation = page.getByRole("navigation", { name: "Workspace" });
-    const toolbar = page.locator(".hh-chord-browser-toolbar");
     const instrument = page.getByRole("group", { name: "Instrument" });
-    const legend = page.getByTestId("hasher-interval-legend");
+    const run = page.getByRole("button", { name: "Run chord composer" });
     const browse = page.getByRole("button", { name: /Browse chords/ });
     const undo = page.getByRole("button", { name: /undo/i });
 
     await expect(header.getByRole("group", { name: "Instrument" })).toHaveCount(0);
-    await expect(legend.locator("[data-note-interval]")).toHaveCount(12);
+    await expect(page.getByTestId("hasher-interval-legend")).toHaveCount(0);
+    await expect(instrument.getByRole("button", { name: "Guitar" })).toHaveText("");
+    await expect(instrument.getByRole("button", { name: "Piano" })).toHaveText("");
+    await expect(instrument.locator("svg")).toHaveCount(2);
     await expect(browse).toHaveCSS("min-height", "44px");
     await expect(undo).toHaveCSS("min-height", "44px");
 
@@ -77,28 +79,21 @@ test.describe("HASHER output learning controls", () => {
       { width: 375, height: 812 },
     ]) {
       await page.setViewportSize(viewport);
-      await expectContained(page, toolbar);
       await expectContained(page, instrument);
-      await expectContained(page, legend);
-      const [navigationBox, instrumentBox, legendBox] = await Promise.all([
+      const [navigationBox, instrumentBox, runBox] = await Promise.all([
         navigation.boundingBox(),
         instrument.boundingBox(),
-        legend.boundingBox(),
+        run.boundingBox(),
       ]);
       expect(navigationBox).not.toBeNull();
       expect(Math.abs(navigationBox!.x + navigationBox!.width / 2 - viewport.width / 2))
         .toBeLessThanOrEqual(2);
-      const sameRow = legendBox!.y < instrumentBox!.y + instrumentBox!.height
-        && instrumentBox!.y < legendBox!.y + legendBox!.height;
-      const followsInReadingOrder = sameRow
-        ? legendBox!.x >= instrumentBox!.x + instrumentBox!.width - 1
-        : legendBox!.y >= instrumentBox!.y + instrumentBox!.height - 1;
-      expect(followsInReadingOrder).toBe(true);
+      expect(instrumentBox!.y).toBeGreaterThanOrEqual(runBox!.y + runBox!.height - 1);
+      expect(Math.abs(instrumentBox!.x + instrumentBox!.width - (runBox!.x + runBox!.width)))
+        .toBeLessThanOrEqual(1);
     }
 
     await page.getByRole("button", { name: "JP", exact: true }).click();
-    await expect(page.getByTestId("hasher-interval-legend")).toContainText("音の色");
-    await expectContained(page, toolbar);
     await page.getByRole("button", { name: "ピアノ", exact: true }).click();
     await page.getByRole("button", { name: "チューン・ツールボックス", exact: true }).click();
     await page.getByRole("button", { name: "ハッシャー", exact: true }).click();
@@ -107,7 +102,7 @@ test.describe("HASHER output learning controls", () => {
     await expect(page.getByTestId("chord-card")).toHaveCount(2);
   });
 
-  test("uses exact shared degree colors for high-fret and barre Guitar positions and Piano keys", async ({ page }) => {
+  test("shows note-role tooltips on Guitar positions and Piano keys", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Bsus4"]);
 
@@ -116,16 +111,29 @@ test.describe("HASHER output learning controls", () => {
     await expect(diagram.locator('[data-position-source="circle"]')).not.toHaveCount(0);
     await expect(diagram.locator('[data-position-source="barre"]')).not.toHaveCount(0);
     await expect(diagram.locator('text[x="20"]')).toHaveText(["2", "3", "4", "5"]);
+    await expect(diagram.locator('[data-note-tooltip="true"]')).not.toHaveCount(0);
 
     for (const mode of ["Fingering", "Intervals", "Notes"]) {
       await card.getByRole("button", { name: mode, exact: true }).click();
       await expectIntervalPaint(diagram.locator("[data-played-position][data-note-interval]"), "fill");
     }
 
+    const guitarRoot = diagram.locator('[data-tooltip-degree="1"]').first();
+    await guitarRoot.hover();
+    await expect(diagram.getByTestId("note-role-tooltip")).toContainText("1");
+    await expect(diagram.getByTestId("note-role-tooltip")).toContainText("Root");
+    await guitarRoot.focus();
+    await expect(guitarRoot).toHaveAttribute("aria-label", /· 1 · Root$/);
+
     await page.getByRole("button", { name: "Piano", exact: true }).click();
     const keyboard = card.getByTestId("piano-keyboard");
     await expect(keyboard).toHaveAttribute("data-color-mode", "interval");
     const activeKeys = keyboard.locator('[data-note-interval][class*="piano-key-active"]');
     await expectIntervalPaint(activeKeys, "backgroundColor");
+    const perfectFourth = keyboard.locator('[data-tooltip-degree="4"]').first();
+    await perfectFourth.hover();
+    await expect(keyboard.getByTestId("note-role-tooltip")).toContainText("Perfect fourth");
+    await perfectFourth.focus();
+    await expect(perfectFourth).toHaveAttribute("aria-label", /· 4 · Perfect fourth$/);
   });
 });

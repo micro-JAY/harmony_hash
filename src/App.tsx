@@ -19,7 +19,6 @@ import type {
   Workspace,
 } from "./lib/types";
 import Header from "./components/Header";
-import HasherIntervalLegend from "./components/HasherIntervalLegend";
 import InstrumentToggle from "./components/InstrumentToggle";
 import GuidedTour, { type GuidedTourStep } from "./components/GuidedTour";
 import OnboardingModal from "./components/OnboardingModal";
@@ -860,14 +859,11 @@ function App() {
               onRequestVoice={handleRequestVoice}
               onVoiceIntent={ensureVoiceRuntime}
               outputTools={(
-                <div className="hh-output-learning-tools">
-                  <div data-tour="instrument-switcher">
-                    <InstrumentToggle
-                      instrument={instrument}
-                      onInstrumentChange={handleInstrumentChange}
-                    />
-                  </div>
-                  <HasherIntervalLegend />
+                <div data-tour="instrument-switcher">
+                  <InstrumentToggle
+                    instrument={instrument}
+                    onInstrumentChange={handleInstrumentChange}
+                  />
                 </div>
               )}
               contextLaunch={hasherContextLaunch}

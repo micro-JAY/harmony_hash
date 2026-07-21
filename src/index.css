@@ -416,14 +416,63 @@ body {
   gap: var(--space-2) var(--space-3);
 }
 
-.hh-output-learning-tools {
+.hh-composer-row {
   display: flex;
   min-width: 0;
-  flex: 1 1 34rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.hh-composer-actions {
+  display: flex;
+  width: 100%;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.hh-note-role-tooltip {
+  position: absolute;
+  z-index: 20;
+  display: inline-flex;
+  width: max-content;
+  max-width: min(11rem, calc(100% - var(--space-2)));
   align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2) var(--space-4);
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-primary);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+[data-note-tooltip="true"]:focus-visible {
+  outline: 2px solid var(--interactive-focus-ring);
+  outline-offset: 2px;
+}
+
+svg [data-note-tooltip="true"]:focus-visible {
+  stroke: var(--palette-white);
+  stroke-width: 3px;
+}
+
+@media (min-width: 640px) {
+  .hh-composer-row {
+    flex-direction: row;
+  }
+
+  .hh-composer-actions {
+    width: 6.5rem;
+  }
 }
 
 .hh-action {
@@ -1319,11 +1368,6 @@ body {
 
   .hh-app-header__help {
     flex: 1 1 auto;
-  }
-
-  .hh-output-learning-tools {
-    flex-basis: 100%;
-    justify-content: flex-start;
   }
 
   .hh-app-header__nav {

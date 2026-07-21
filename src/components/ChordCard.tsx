@@ -260,7 +260,7 @@ export default function ChordCard({
           </>
         ) : (
           <>
-            <div className="w-full max-w-full overflow-hidden">
+            <div className="w-full max-w-full overflow-visible">
               <PianoKeyboard
                 voicedNotes={voicing.notes}
                 displayMode="notes"

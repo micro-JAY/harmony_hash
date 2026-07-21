@@ -7,7 +7,7 @@ describe("OnboardingModal", () => {
     const markup = renderToStaticMarkup(
       <OnboardingModal
         brandLabel="HARMONY HASH — TONARI LABS"
-        title="HARMONIOUS HARMONY"
+        title="HARMONY HASH"
         description="Harmony doesn't have to be hard."
         closeLabel="Close Harmony Hash introduction"
         primaryActionLabel="START HASHING"

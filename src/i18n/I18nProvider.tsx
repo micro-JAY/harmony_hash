@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { Locale } from "./translations";
 import { translate } from "./translations";
 import { I18nContext } from "./I18nContext";
+import { detectInitialLocale } from "./locale";
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("en");
+  const [locale, setLocale] = useState<Locale>(detectInitialLocale);
 
   const t = useCallback(
     (key: string): string => translate(locale, key),

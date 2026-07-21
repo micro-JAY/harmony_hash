@@ -5,7 +5,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test("first visit welcomes people with the logo and three destinations, persists dismissal, and reopens from Help", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "HARMONIOUS HARMONY" });
+  const dialog = page.getByRole("dialog", { name: "HARMONY HASH" });
   await expect(dialog).toBeVisible();
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/favicon.png");
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/apple-touch-icon.png");
@@ -54,7 +54,7 @@ test("first visit welcomes people with the logo and three destinations, persists
 test("optional guided tour spotlights primary tools and supports screen and keyboard navigation", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const introduction = page.getByRole("dialog", { name: "HARMONIOUS HARMONY" });
+  const introduction = page.getByRole("dialog", { name: "HARMONY HASH" });
   await introduction.getByRole("button", { name: "TAKE A TOUR" }).click();
   await expect(introduction).toBeHidden();
 
@@ -93,10 +93,10 @@ test("optional guided tour spotlights primary tools and supports screen and keyb
     .toHaveAttribute("aria-pressed", "true");
 
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("dialog", { name: "Explore THE CIRCLE" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "THE CIRCLE" })).toBeVisible();
 
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: "Explore THE CIRCLE" })).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "THE CIRCLE" })).toBeHidden();
   await expect(page.getByRole("button", { name: "HASHER" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("chord-card")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Help / About" })).toBeFocused();
@@ -119,7 +119,7 @@ test("blocked storage remains usable and dismissal lasts for the page session", 
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "HARMONIOUS HARMONY" });
+  const dialog = page.getByRole("dialog", { name: "HARMONY HASH" });
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "START HASHING" }).click();
   await expect(dialog).toBeHidden();
@@ -135,7 +135,7 @@ test("onboarding is contained in a short mobile viewport and honors reduced moti
   await page.setViewportSize({ width: 375, height: 430 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const dialog = page.getByRole("dialog", { name: "HARMONIOUS HARMONY" });
+  const dialog = page.getByRole("dialog", { name: "HARMONY HASH" });
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveAttribute("data-reduced-motion", "true");
   const box = await dialog.boundingBox();

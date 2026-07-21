@@ -204,7 +204,7 @@ export default function OnboardingModal({
           className="hh-onboarding-scroll-region"
         >
           <div className="hh-onboarding-hero">
-            <div className="hh-onboarding-visual">{visual}</div>
+            <div data-onboarding-visual="true" className="hh-onboarding-visual">{visual}</div>
             <header className="hh-onboarding-copy">
               <p className="hh-onboarding-brand">{brandLabel}</p>
               <h1 id={titleId} className="hh-onboarding-title">{title}</h1>

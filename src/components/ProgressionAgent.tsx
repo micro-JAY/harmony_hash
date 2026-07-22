@@ -189,7 +189,7 @@ export default function ProgressionAgent({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 items-stretch sm:flex-row">
+      <div className="hh-entry-row">
         <textarea
           value={prompt}
           onChange={(e) => handlePromptChange(e.target.value)}
@@ -197,7 +197,7 @@ export default function ProgressionAgent({
           rows={1}
           placeholder={placeholder ?? t("Describe a progression…")}
           disabled={loading}
-          className="w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
+          className="hh-entry-input w-full min-w-0 flex-1 px-4 py-3 rounded-lg text-base outline-none transition-all resize-none"
           style={{
             backgroundColor: "var(--surface-overlay)",
             color: "var(--text-primary)",
@@ -216,7 +216,7 @@ export default function ProgressionAgent({
           onClick={handleSubmit}
           aria-label={t("Run progression agent")}
           disabled={!canSubmit}
-          className="w-full px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2 sm:w-auto sm:min-w-[7rem]"
+          className="hh-entry-action w-full px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2"
           style={{
             backgroundColor: canSubmit
               ? "var(--interactive-accent-bg)"

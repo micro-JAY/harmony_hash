@@ -12,7 +12,7 @@ describe("InstrumentToggle", () => {
     );
 
     expect(markup).toContain('role="group" aria-label="Instrument"');
-    expect(markup.match(/min-height:var\(--control-min-height\)/g)).toHaveLength(2);
+    expect(markup.match(/min-height:var\(--control-min-height\)/g)).toHaveLength(3);
     expect(markup.match(/min-width:var\(--control-min-height\)/g)).toHaveLength(2);
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain('aria-pressed="false"');
@@ -21,6 +21,8 @@ describe("InstrumentToggle", () => {
     expect(markup).toContain('data-instrument-option="guitar"');
     expect(markup).toContain('data-instrument-option="piano"');
     expect(markup).toContain("var(--interactive-primary-bg)");
+    expect(markup).toContain("inset 0 0 0 1px var(--border-subtle)");
+    expect(markup).not.toContain("rounded-sm");
     expect(markup).toContain("lucide-guitar");
     expect(markup).toContain("lucide-piano");
     expect(markup).not.toContain(">Guitar</button>");

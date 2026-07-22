@@ -20,10 +20,13 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
     <div
       role="group"
       aria-label={t("Instrument")}
-      className="inline-flex rounded-md p-1"
+      className="inline-flex overflow-hidden rounded-md"
       style={{
+        height: "var(--control-min-height)",
+        minHeight: "var(--control-min-height)",
         backgroundColor: "var(--surface-overlay)",
-        border: "1px solid var(--border-subtle)",
+        border: "none",
+        boxShadow: "inset 0 0 0 1px var(--border-subtle)",
       }}
     >
       {options.map(({ value, label, Icon }) => {
@@ -38,14 +41,15 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
             aria-label={accessibleLabel}
             title={accessibleLabel}
             data-instrument-option={value}
-            className="inline-flex items-center justify-center rounded-sm transition-all"
+            className="inline-flex items-center justify-center transition-all"
             style={{
               minHeight: "var(--control-min-height)",
+              height: "var(--control-min-height)",
               minWidth: "var(--control-min-height)",
               padding: "var(--space-2)",
               backgroundColor: active ? "var(--interactive-primary-bg)" : "transparent",
               color: active ? "var(--interactive-primary-text)" : "var(--text-muted)",
-              border: active ? "1px solid var(--interactive-primary-bg)" : "1px solid transparent",
+              border: "1px solid transparent",
               transitionDuration: reduceMotion ? "0ms" : "var(--duration-normal)",
               transitionTimingFunction: "var(--ease-out)",
             }}

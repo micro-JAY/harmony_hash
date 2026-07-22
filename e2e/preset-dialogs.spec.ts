@@ -73,7 +73,7 @@ test.describe("complete preset dialogs and centered header", () => {
       });
       expect(centerDelta).toBeLessThanOrEqual(1);
 
-      await page.getByRole("button", { name: "JP", exact: true }).click();
+      await page.getByRole("button", { name: "Switch language to Japanese" }).click();
       const japaneseNavigation = page.getByRole("navigation", { name: "ワークスペース" });
       const japaneseCenterDelta = await japaneseNavigation.evaluate((element) => {
         const bounds = element.getBoundingClientRect();
@@ -202,7 +202,7 @@ test.describe("375px preset dialogs", () => {
 
   test("contains every category dialog and presents natural Japanese labels", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "JP", exact: true }).click();
+    await page.getByRole("button", { name: "Switch language to Japanese" }).click();
 
     const japaneseCategories = [
       { label: "メジャー", dialog: "メジャーのプリセット", count: 23 },

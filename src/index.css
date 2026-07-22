@@ -111,13 +111,30 @@ body {
   white-space: nowrap;
 }
 
-.hh-app-header__locales {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px;
-  border: 1px solid var(--border-subtle);
+.hh-locale-toggle {
+  display: grid;
+  width: var(--control-min-height);
+  height: var(--control-min-height);
+  flex: 0 0 var(--control-min-height);
+  place-items: center;
+  padding: 0;
+  color: var(--text-accent);
+  background: var(--interactive-accent-bg);
+  border: 1px solid var(--interactive-accent-border);
   border-radius: var(--radius-md);
-  background: var(--surface-overlay);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  transition: color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.hh-locale-toggle:hover {
+  color: var(--text-primary);
+  background: var(--interactive-accent-bg-hover);
 }
 
 :where(button, input, select, textarea, summary, [tabindex]):focus-visible {
@@ -418,10 +435,9 @@ body {
 
 .hh-instrument-picker-slot {
   display: flex;
-  width: 6.5rem;
-  flex: 0 0 6.5rem;
+  width: 7rem;
+  flex: 0 0 7rem;
   margin-left: auto;
-  align-self: flex-start;
 }
 
 .hh-instrument-picker-slot > [role="group"] {
@@ -438,6 +454,24 @@ body {
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-3);
+}
+
+.hh-entry-row {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.hh-entry-input,
+.hh-composer {
+  min-height: 3rem;
+}
+
+.hh-entry-action,
+.hh-composer-actions > .hh-action {
+  min-height: 3rem;
 }
 
 .hh-composer-actions {
@@ -482,12 +516,15 @@ svg [data-note-tooltip="true"]:focus-visible {
 }
 
 @media (min-width: 640px) {
-  .hh-composer-row {
+  .hh-composer-row,
+  .hh-entry-row {
     flex-direction: row;
   }
 
-  .hh-composer-actions {
-    width: 6.5rem;
+  .hh-composer-actions,
+  .hh-entry-action {
+    width: 7rem;
+    flex: 0 0 7rem;
   }
 }
 
@@ -677,8 +714,9 @@ svg [data-note-tooltip="true"]:focus-visible {
 }
 
 .hh-composer {
-  min-height: 3.5rem;
-  padding: var(--space-2) var(--space-3);
+  min-height: 3rem;
+  box-sizing: border-box;
+  padding: 0 var(--space-3);
   color: var(--text-primary);
   background: var(--surface-overlay);
   border: 1px solid var(--border-default);

@@ -86,25 +86,58 @@ test("compact action toolbar keeps cards adjacent and opens Hanz from prompt hel
   await expect(dialog).toHaveCount(0);
 });
 
-test("aligns Browse chords with the instrument picker and composer Run width", async ({ page }) => {
+test("aligns HASHER entry rows and companion controls", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
+  const agentPrompt = page.getByRole("textbox", { name: "Describe the progression you want" });
+  const agentRun = page.getByRole("button", { name: "Run progression agent" });
+  const composer = page.getByTestId("chord-composer");
   const browse = page.getByRole("button", { name: "Browse chords ↓", exact: true });
   const picker = page.locator(".hh-instrument-picker-slot");
   const composerRun = page.getByRole("button", { name: "Run chord composer" });
-  const [browseBox, pickerBox, composerRunBox] = await Promise.all([
+  const [agentPromptBox, agentRunBox, composerBox, browseBox, pickerBox, composerRunBox] = await Promise.all([
+    agentPrompt.boundingBox(),
+    agentRun.boundingBox(),
+    composer.boundingBox(),
     browse.boundingBox(),
     picker.boundingBox(),
     composerRun.boundingBox(),
   ]);
 
+  expect(agentPromptBox).not.toBeNull();
+  expect(agentRunBox).not.toBeNull();
+  expect(composerBox).not.toBeNull();
   expect(browseBox).not.toBeNull();
   expect(pickerBox).not.toBeNull();
   expect(composerRunBox).not.toBeNull();
+  expect(Math.abs(agentPromptBox!.height - composerBox!.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(agentRunBox!.width - composerRunBox!.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(agentRunBox!.height - composerRunBox!.height)).toBeLessThanOrEqual(1);
   const browseCenter = browseBox!.y + browseBox!.height / 2;
   const pickerCenter = pickerBox!.y + pickerBox!.height / 2;
   expect(Math.abs(browseCenter - pickerCenter)).toBeLessThanOrEqual(1);
+  expect(Math.abs(browseBox!.height - pickerBox!.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(browseBox!.width - pickerBox!.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(pickerBox!.width - composerRunBox!.width)).toBeLessThanOrEqual(1);
+});
+
+test("uses one square locale toggle aligned with Help / About", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const help = page.getByRole("button", { name: "Help / About" });
+  const locale = page.getByRole("button", { name: "Switch language to Japanese" });
+  const [helpBox, localeBox] = await Promise.all([help.boundingBox(), locale.boundingBox()]);
+
+  expect(helpBox).not.toBeNull();
+  expect(localeBox).not.toBeNull();
+  expect(Math.abs(helpBox!.y + helpBox!.height / 2 - (localeBox!.y + localeBox!.height / 2)))
+    .toBeLessThanOrEqual(1);
+  expect(Math.abs(localeBox!.width - localeBox!.height)).toBeLessThanOrEqual(1);
+  expect(localeBox!.width).toBeGreaterThanOrEqual(44);
+
+  await locale.click();
+  await expect(page.getByRole("button", { name: "英語に切り替える" })).toHaveText("EN");
+  await expect(page.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
 });
 
 test.describe("800px tablet layout", () => {

@@ -12,11 +12,6 @@ interface HeaderProps {
   helpButtonRef: RefObject<HTMLButtonElement | null>;
 }
 
-const LOCALES: { value: Locale; label: string }[] = [
-  { value: "en", label: "EN" },
-  { value: "ja", label: "JP" },
-];
-
 export default function Header({
   workspace,
   onWorkspaceChange,
@@ -30,6 +25,11 @@ export default function Header({
     || workspace === "circle"
     || workspace === "scales"
     || workspace === "network";
+  const nextLocale: Locale = locale === "en" ? "ja" : "en";
+  const nextLocaleLabel = locale === "en" ? "JP" : "EN";
+  const nextLocaleAction = locale === "en"
+    ? t("Switch language to Japanese")
+    : t("Switch language to English");
   const destinations = [
     { workspace: "builder", label: "Hasher" },
     { workspace: "theory", label: "Tune Toolbox" },
@@ -97,27 +97,15 @@ export default function Header({
           <CircleHelp size={16} aria-hidden="true" />
           {t("Help / About")}
         </button>
-        <div
-          className="tonari-locale-switcher hh-app-header__locales"
-          role="group"
-          aria-label={t("Language")}
+        <button
+          type="button"
+          onClick={() => setLocale(nextLocale)}
+          className="hh-locale-toggle"
+          aria-label={nextLocaleAction}
+          aria-pressed={locale === "ja"}
         >
-          {LOCALES.map((loc) => {
-            const active = locale === loc.value;
-            return (
-              <button
-                key={loc.value}
-                type="button"
-                onClick={() => setLocale(loc.value)}
-                className={`tonari-locale-switcher__btn${active ? " tonari-locale-switcher__btn--active" : ""}`}
-                aria-pressed={active}
-                style={{ minHeight: "var(--control-min-height)", minWidth: "2.75rem" }}
-              >
-                {loc.label}
-              </button>
-            );
-          })}
-        </div>
+          {nextLocaleLabel}
+        </button>
       </div>
     </header>
   );

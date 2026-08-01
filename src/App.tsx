@@ -28,6 +28,7 @@ import type {
   TheoryWorkspaceContext,
 } from "./components/TheoryWorkspace";
 import ProgressionInput from "./components/ProgressionInput";
+import PrivacyPolicy from "./components/PrivacyPolicy";
 import ShareProgression from "./components/ShareProgression";
 import ChordCard from "./components/ChordCard";
 import { useT } from "./i18n/I18nContext";
@@ -1112,6 +1113,7 @@ function App() {
           </div>
           )}
       </main>
+      <PrivacyPolicy />
       {voiceRuntimeRequested ? (
         VoiceAgentRuntime ? (
           <VoiceAgentRuntime

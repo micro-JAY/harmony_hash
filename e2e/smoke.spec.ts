@@ -196,3 +196,46 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     expect(signedUrlRequests).toBe(0);
   });
 });
+
+test.describe("Privacy policy", () => {
+  test("opens the complete policy and restores focus on Escape", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const openButton = page.getByRole("button", { name: "Privacy Policy" });
+    await openButton.click();
+
+    const dialog = page.getByRole("dialog", { name: "Privacy Policy" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator("h3")).toHaveCount(17);
+    await expect(dialog).toContainText("store:false");
+    await expect(dialog).toContainText("zero-day retention");
+    await expect(dialog).toContainText("Japan APPI");
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(openButton).toBeFocused();
+  });
+
+  test("keeps the policy inside a narrow viewport", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.getByRole("button", { name: "Privacy Policy" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Privacy Policy" });
+    const geometry = await dialog.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const scroll = element.querySelector<HTMLElement>('[data-dialog-scroll-region="true"]');
+      return {
+        left: rect.left,
+        right: rect.right,
+        viewportWidth: window.innerWidth,
+        documentOverflow: document.documentElement.scrollWidth - window.innerWidth,
+        contentScrolls: Boolean(scroll && scroll.scrollHeight > scroll.clientHeight),
+      };
+    });
+
+    expect(geometry.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth);
+    expect(geometry.documentOverflow).toBeLessThanOrEqual(0);
+    expect(geometry.contentScrolls).toBe(true);
+  });
+});

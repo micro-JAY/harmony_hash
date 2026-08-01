@@ -175,6 +175,7 @@ function printSafeVerification(
     voiceClientEvents: snapshot.clientEvents,
     signedAuth: snapshot.authEnabled,
     allowlistEntries: snapshot.allowlist.length,
+    privacy: snapshot.privacySettings,
     linkedClientTools: linkedTools.map((tool) => tool.name).sort(),
     linkedToolCount: linkedTools.length,
     legacyClientMirrorCount: snapshot.legacyClientTools.length,

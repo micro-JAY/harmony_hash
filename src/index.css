@@ -1518,3 +1518,78 @@ svg [data-note-tooltip="true"]:focus-visible {
     transition: none !important;
   }
 }
+/* Global privacy surface */
+.hh-privacy-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) clamp(var(--space-4), 4vw, var(--space-8));
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+}
+
+.hh-privacy-button {
+  min-height: var(--control-min-height);
+  padding: 0 var(--space-3);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font: inherit;
+}
+
+.hh-privacy-button:hover,
+.hh-privacy-button:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  background: var(--surface-overlay);
+}
+
+.hh-privacy-content {
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.hh-privacy-effective {
+  margin: 0 0 var(--space-5);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.hh-privacy-sections {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.hh-privacy-sections h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+}
+
+.hh-privacy-sections p,
+.hh-privacy-contact {
+  margin: 0;
+}
+
+.hh-privacy-contact {
+  margin-top: var(--space-6);
+}
+
+.hh-privacy-contact a {
+  color: var(--accent-primary);
+}
+
+@media (max-width: 32rem) {
+  .hh-privacy-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

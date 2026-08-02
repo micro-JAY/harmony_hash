@@ -5,7 +5,7 @@ The Worker SHALL expose `POST /api/voice/client-secret` that mints a short-lived
 
 #### Scenario: Client secret success
 - **WHEN** a permitted browser origin POSTs an empty request to `/api/voice/client-secret` and the OpenAI key, limiter, and provider are available
-- **THEN** the Worker SHALL return HTTP 200 with a non-empty short-lived `clientSecret`, numeric `expiresAt`, and provider-confirmed `sessionEndsAt` no more than 300 seconds in the future
+- **THEN** the Worker SHALL return HTTP 200 with a non-empty short-lived `clientSecret`, numeric `expiresAt`, a numeric `serverNow` reference, and provider-confirmed `sessionEndsAt` no more than 300 seconds after `serverNow`
 - **AND** the response SHALL NOT contain the standard API key or complete server session configuration
 
 #### Scenario: Missing server key

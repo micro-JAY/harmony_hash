@@ -448,6 +448,7 @@ describe("POST /api/voice/client-secret", () => {
     expect(await response.json()).toEqual({
       clientSecret: "ek_test_ephemeral_value",
       expiresAt: now + 60,
+      serverNow: now,
       sessionEndsAt: now + 300,
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);

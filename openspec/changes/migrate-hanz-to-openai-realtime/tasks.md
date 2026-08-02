@@ -8,16 +8,16 @@
 
 ## 2. Browser Realtime Runtime
 
-- [ ] 2.1 Implement the abortable WebRTC start path with client-secret minting before microphone permission, SDP exchange, data-channel lifecycle, remote-track playback, and rollback of every partially acquired resource.
-- [ ] 2.2 Implement one opening response per new session, item-id transcript assembly, inbound RTP audio-health sampling plus playback rejection detection, interruption event handling, explicit stop, unmount cleanup, and the 300-second monotonic deadline.
-- [ ] 2.3 Replace the provider SDK state with the source-owned React context while retaining the existing lazy-load boundary, permanent mount, panel markup, labels, CSS, accessibility, focus restoration, and close/reopen continuity.
+- [x] 2.1 Implement the abortable WebRTC start path with client-secret minting before microphone permission, SDP exchange, data-channel lifecycle, remote-track playback, and rollback of every partially acquired resource.
+- [x] 2.2 Implement one opening response per new session, item-id transcript assembly, inbound RTP audio-health sampling plus playback rejection detection, interruption event handling, explicit stop, unmount cleanup, and the 300-second monotonic deadline.
+- [x] 2.3 Replace the provider SDK state with the source-owned React context while retaining the existing lazy-load boundary, permanent mount, panel markup, labels, CSS, accessibility, focus restoration, and close/reopen continuity.
 - [ ] 2.4 Add focused runtime/provider tests for successful connection, mint/media/SDP/data-channel failures, out-of-order transcripts, missing audio, interruption, stop, deadline, navigation cleanup, and Strict Mode safety.
 
 ## 3. Progression Tool Bridge
 
-- [ ] 3.1 Replace provider hook registration with one dispatcher for the exact nine names, strict JSON/object/chord validation, serialized success/failure outputs, and fingerprinted `call_id` deduplication that fails closed on conflicting reuse.
-- [ ] 3.2 Return each tool result through `function_call_output` and request the next model response without permitting unknown tools or arbitrary application actions.
-- [ ] 3.3 Add tests for every valid tool plus malformed JSON, unknown names, extra fields, invalid bounds, bridge failures, duplicate `call_id`, and both guitar and piano playback semantics.
+- [x] 3.1 Replace provider hook registration with one dispatcher for the exact nine names, strict JSON/object/chord validation, serialized success/failure outputs, and fingerprinted `call_id` deduplication that fails closed on conflicting reuse.
+- [x] 3.2 Return each tool result through `function_call_output` and request the next model response without permitting unknown tools or arbitrary application actions.
+- [x] 3.3 Add tests for every valid tool plus malformed JSON, unknown names, extra fields, invalid bounds, bridge failures, duplicate `call_id`, and both guitar and piano playback semantics.
 
 ## 4. Provider Cleanup And Browser Coverage
 

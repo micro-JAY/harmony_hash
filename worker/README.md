@@ -8,7 +8,7 @@ Backend for the Progression Builder and Hanz voice companion. It runs a bounded 
 | --- | --- | --- |
 | GET | `/api/health` | Returns OpenAI binding readiness without exposing the key. |
 | POST | `/api/progression` | Body: `{ "prompt": string }`. Returns `{ chords: string[3..8], key, rationale }`. |
-| POST | `/api/voice/client-secret` | Empty body. Returns short-lived `{ clientSecret, expiresAt, sessionEndsAt }` values for one fixed Hanz Realtime session. |
+| POST | `/api/voice/client-secret` | Empty body. Returns short-lived `{ clientSecret, expiresAt, serverNow, sessionEndsAt }` values for one fixed Hanz Realtime session. |
 | OPTIONS | `/api/*` | CORS preflight for the API routes. |
 
 Validation:

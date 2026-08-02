@@ -20,6 +20,7 @@ describe("InstrumentToggle", () => {
     expect(markup).toContain('aria-label="Piano"');
     expect(markup).toContain('data-instrument-option="guitar"');
     expect(markup).toContain('data-instrument-option="piano"');
+    expect(markup).toContain("hh-instrument-toggle__option");
     expect(markup).toContain("var(--interactive-primary-bg)");
     expect(markup).toContain("inset 0 0 0 1px var(--border-subtle)");
     expect(markup).not.toContain("rounded-sm");

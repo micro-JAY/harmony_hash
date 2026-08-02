@@ -102,7 +102,6 @@ export default function Header({
           onClick={() => setLocale(nextLocale)}
           className="hh-locale-toggle"
           aria-label={nextLocaleAction}
-          aria-pressed={locale === "ja"}
         >
           {nextLocaleLabel}
         </button>

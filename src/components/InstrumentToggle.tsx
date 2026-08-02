@@ -41,7 +41,7 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
             aria-label={accessibleLabel}
             title={accessibleLabel}
             data-instrument-option={value}
-            className="inline-flex items-center justify-center transition-all"
+            className="hh-instrument-toggle__option inline-flex items-center justify-center transition-all"
             style={{
               minHeight: "var(--control-min-height)",
               height: "var(--control-min-height)",

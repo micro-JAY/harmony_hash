@@ -119,6 +119,9 @@ test("aligns HASHER entry rows and companion controls", async ({ page }) => {
   expect(Math.abs(browseBox!.height - pickerBox!.height)).toBeLessThanOrEqual(1);
   expect(Math.abs(browseBox!.width - pickerBox!.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(pickerBox!.width - composerRunBox!.width)).toBeLessThanOrEqual(1);
+  const guitarOption = picker.getByRole("button", { name: "Guitar" });
+  await guitarOption.focus();
+  await expect(guitarOption).toHaveCSS("outline-offset", "-3px");
 });
 
 test("uses one square locale toggle aligned with Help / About", async ({ page }) => {
@@ -134,9 +137,12 @@ test("uses one square locale toggle aligned with Help / About", async ({ page })
     .toBeLessThanOrEqual(1);
   expect(Math.abs(localeBox!.width - localeBox!.height)).toBeLessThanOrEqual(1);
   expect(localeBox!.width).toBeGreaterThanOrEqual(44);
+  await expect(locale).not.toHaveAttribute("aria-pressed");
 
   await locale.click();
-  await expect(page.getByRole("button", { name: "英語に切り替える" })).toHaveText("EN");
+  const englishLocale = page.getByRole("button", { name: "英語に切り替える" });
+  await expect(englishLocale).toHaveText("EN");
+  await expect(englishLocale).not.toHaveAttribute("aria-pressed");
   await expect(page.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
 });
 

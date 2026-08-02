@@ -6,7 +6,6 @@ import {
 import {
   DEFAULT_TTS_MODEL_ID,
   REQUIRED_VOICE_CLIENT_EVENTS,
-  SOURCE_PRIVACY_SETTINGS,
   assertAgentCanBeNarrowlyUpdated,
   assertLiveAgentConfiguration,
   assertPreservedAgentUpdate,
@@ -79,7 +78,6 @@ function livePayload(
         enable_auth: true,
         allowlist: [],
       },
-      privacy: { ...SOURCE_PRIVACY_SETTINGS },
     },
     ...rootOverrides,
   };
@@ -135,7 +133,6 @@ describe("voice agent payloads", () => {
       },
       platform_settings: {
         auth: { enable_auth: true, allowlist: [] },
-        privacy: SOURCE_PRIVACY_SETTINGS,
       },
     });
     expect(payload.conversation_config.conversation.client_events).toEqual(
@@ -144,7 +141,7 @@ describe("voice agent payloads", () => {
     expect(payload.conversation_config.agent.prompt).not.toHaveProperty("tools");
   });
 
-  it("updates only source-owned prompt, modern tools, signed auth, and privacy", () => {
+  it("updates only source-owned prompt, modern tools, and signed auth", () => {
     const payload = buildUpdatePayload(PROMPT, TOOL_IDS);
     expect(Object.keys(payload).sort()).toEqual([
       "conversation_config",
@@ -164,7 +161,6 @@ describe("voice agent payloads", () => {
       enable_auth: true,
       allowlist: [],
     });
-    expect(payload.platform_settings.privacy).toEqual(SOURCE_PRIVACY_SETTINGS);
     expect(payload.conversation_config.conversation.client_events).toEqual(
       REQUIRED_VOICE_CLIENT_EVENTS,
     );
@@ -214,12 +210,6 @@ describe("voice agent response parsing", () => {
       ttsModelId: "eleven_v3_conversational",
       authEnabled: true,
       allowlist: [],
-      privacySettings: {
-        recordVoice: false,
-        retentionDays: 0,
-        deleteTranscriptAndPii: true,
-        deleteAudio: true,
-      },
       clientEvents: REQUIRED_VOICE_CLIENT_EVENTS,
       toolIds: TOOL_IDS,
       builtInToolNames: [],
@@ -338,24 +328,6 @@ describe("voice agent verification", () => {
         linkedTools(),
       ),
     ).toThrow("allowlist must be empty");
-  });
-
-  it("rejects privacy retention drift", () => {
-    expect(() =>
-      assertLiveAgentConfiguration(
-        snapshot({
-          privacySettings: {
-            recordVoice: true,
-            retentionDays: -1,
-            deleteTranscriptAndPii: false,
-            deleteAudio: false,
-          },
-        }),
-        "agent_test",
-        PROMPT,
-        linkedTools(),
-      ),
-    ).toThrow("privacy settings do not match source");
   });
 
   it("rejects a voice client-event inventory that cannot stream audio", () => {

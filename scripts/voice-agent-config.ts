@@ -14,13 +14,6 @@ export const REQUIRED_VOICE_CLIENT_EVENTS = [
   "interruption",
 ] as const;
 
-export const SOURCE_PRIVACY_SETTINGS = {
-  record_voice: false,
-  retention_days: 0,
-  delete_transcript_and_pii: true,
-  delete_audio: true,
-} as const;
-
 const KNOWN_PROMPT_FIELDS = new Set([
   "prompt",
   "llm",
@@ -172,12 +165,6 @@ export interface AgentConfigurationSnapshot {
   clientEvents: string[];
   authEnabled: boolean;
   allowlist: string[];
-  privacySettings: {
-    recordVoice: boolean;
-    retentionDays: number;
-    deleteTranscriptAndPii: boolean;
-    deleteAudio: boolean;
-  } | null;
   toolIds: string[];
   builtInToolNames: string[];
   mcpServerIds: string[];
@@ -256,7 +243,6 @@ export function buildCreatePayload(
     platform_settings: {
       summary_language: "en",
       auth: { enable_auth: true, allowlist: [] as string[] },
-      privacy: { ...SOURCE_PRIVACY_SETTINGS },
     },
   };
 }
@@ -289,7 +275,6 @@ export function buildUpdatePayload(
       // Signed URLs and hostname allowlists are mutually exclusive. An explicit
       // empty list clears a stale allowlist during the nested PATCH merge.
       auth: { enable_auth: true, allowlist: [] as string[] },
-      privacy: { ...SOURCE_PRIVACY_SETTINGS },
     },
   };
 }
@@ -316,11 +301,6 @@ function stringAt(value: unknown, path: string): string {
 function booleanAt(value: unknown, path: string): boolean {
   if (typeof value !== "boolean") throw new Error(`${path} must be a boolean`);
   return value;
-}
-
-function integerAt(value: unknown, path: string): number {
-  if (!Number.isInteger(value)) throw new Error(`${path} must be an integer`);
-  return value as number;
 }
 
 function nestedRecord(
@@ -721,9 +701,6 @@ export function readAgentConfiguration(
     );
   const platform = nestedRecord(root, ["platform_settings"]);
   const auth = nestedRecord(platform, ["auth"]);
-  const privacy = platform.privacy === undefined
-    ? null
-    : recordAt(platform.privacy, "platform_settings.privacy");
 
   if (!Array.isArray(auth.allowlist)) {
     throw new Error("platform_settings.auth.allowlist must be an array");
@@ -764,26 +741,6 @@ export function readAgentConfiguration(
       "platform_settings.auth.enable_auth",
     ),
     allowlist,
-    privacySettings: privacy
-      ? {
-          recordVoice: booleanAt(
-            privacy.record_voice,
-            "platform_settings.privacy.record_voice",
-          ),
-          retentionDays: integerAt(
-            privacy.retention_days,
-            "platform_settings.privacy.retention_days",
-          ),
-          deleteTranscriptAndPii: booleanAt(
-            privacy.delete_transcript_and_pii,
-            "platform_settings.privacy.delete_transcript_and_pii",
-          ),
-          deleteAudio: booleanAt(
-            privacy.delete_audio,
-            "platform_settings.privacy.delete_audio",
-          ),
-        }
-      : null,
     toolIds: optionalStringArray(
       prompt,
       "tool_ids",
@@ -1019,16 +976,6 @@ export function assertLiveAgentConfiguration(
   }
   if (snapshot.allowlist.length > 0) {
     throw new Error("Agent hostname allowlist must be empty for signed authentication");
-  }
-  if (
-    snapshot.privacySettings === null ||
-    snapshot.privacySettings.recordVoice !== SOURCE_PRIVACY_SETTINGS.record_voice ||
-    snapshot.privacySettings.retentionDays !== SOURCE_PRIVACY_SETTINGS.retention_days ||
-    snapshot.privacySettings.deleteTranscriptAndPii !==
-      SOURCE_PRIVACY_SETTINGS.delete_transcript_and_pii ||
-    snapshot.privacySettings.deleteAudio !== SOURCE_PRIVACY_SETTINGS.delete_audio
-  ) {
-    throw new Error("Agent privacy settings do not match source");
   }
   if (
     JSON.stringify(sorted(snapshot.clientEvents)) !==

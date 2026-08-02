@@ -11,6 +11,11 @@ The direct composer and Progression Agent SHALL use matching input/action geomet
 - **WHEN** the direct composer renders with Browse Chords and the instrument selector
 - **THEN** Browse Chords and the selector SHALL remain visually aligned on the shared rail and the selector SHALL preserve a rounded outer boundary around its active item
 
+#### Scenario: Instrument keyboard focus
+
+- **WHEN** a keyboard user focuses either instrument option
+- **THEN** a complete focus-visible outline SHALL remain visible inside the selector's rounded clipped boundary
+
 #### Scenario: Responsive containment
 - **WHEN** the viewport is narrower than 640px
 - **THEN** the direct composer and Progression Agent controls SHALL remain stacked, usable, and free of horizontal document overflow

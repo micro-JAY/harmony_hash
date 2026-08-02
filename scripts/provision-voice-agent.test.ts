@@ -3,7 +3,6 @@ import { TOOL_SCHEMAS } from "../src/voice/toolSchemas";
 import {
   buildClientToolPayload,
   REQUIRED_VOICE_CLIENT_EVENTS,
-  SOURCE_PRIVACY_SETTINGS,
 } from "./voice-agent-config";
 import {
   provisionVoiceAgent,
@@ -105,7 +104,6 @@ function agentPayload(options: {
     },
     platform_settings: {
       auth: { enable_auth: true, allowlist: [] },
-      privacy: { ...SOURCE_PRIVACY_SETTINGS },
       overrides: options.overrides,
     },
     workflow: options.workflow,

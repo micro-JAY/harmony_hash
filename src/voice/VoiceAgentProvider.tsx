@@ -68,8 +68,6 @@ export function VoiceAgentProvider({
   );
 
   const handleConversationCreated = useCallback((conversation: { type: "voice" | "text" }) => {
-    nextIdRef.current = 0;
-    setTranscript([]);
     audioPacketCountRef.current = 0;
     currentTurnAudioBaselineRef.current = 0;
     setAudioPacketCount(0);
@@ -136,8 +134,6 @@ export function VoiceAgentProvider({
         onAudio={handleAudio}
         onMessage={handleMessage}
         onDisconnect={() => {
-          nextIdRef.current = 0;
-          setTranscript([]);
           setSessionKind(null);
           void clearFocusAfterSession();
         }}

@@ -17,4 +17,4 @@
 
 - [x] 4.1 Remove the locale toggle's misleading pressed state, preserve the instrument focus ring, and replace duplicated control geometry with named tokens.
 - [x] 4.2 Add a localized Note Neural Network `EARLY PREVIEW` badge and replace millisecond-based user guidance with press-and-hold language.
-- [ ] 4.3 Pass focused/full validation and rendered desktop/mobile QA, then confirm the updated PR has no new actionable Codex feedback.
+- [x] 4.3 Pass focused/full validation and rendered desktop/mobile QA, then confirm the updated PR has no new actionable Codex feedback.

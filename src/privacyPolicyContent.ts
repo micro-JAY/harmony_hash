@@ -42,7 +42,7 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
       },
       {
         title: "5. Hanz voice companion",
-        body: "Hanz starts only when you choose the voice feature and grant microphone access. Audio is streamed to ElevenLabs for real-time speech recognition and response generation, and musical client tools exchange chord and progression state. Tonari does not create or keep an audio recording or transcript. For new conversations, the source-controlled agent disables voice recording and requests zero-day retention plus deletion of audio, transcript, and detected PII. Short-lived processing, security logs, and legal exceptions may still apply at the provider.",
+        body: "Hanz starts only when you choose the voice feature and grant microphone access. Audio is streamed to ElevenLabs for real-time speech recognition and response generation, and musical client tools exchange chord and progression state. To display the conversation, this browser tab keeps up to 20 recent user and Hanz messages in React memory; they are cleared when a conversation starts or disconnects, and Tonari does not persist them in browser storage or an application database. Tonari does not create or keep an audio recording. For new conversations, the source-controlled agent disables voice recording and requests zero-day retention plus deletion of audio, transcript, and detected PII. Short-lived processing, security logs, and legal exceptions may still apply at the provider.",
       },
       {
         title: "6. Purposes and legal bases",
@@ -50,7 +50,7 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
       },
       {
         title: "7. Providers and disclosures",
-        body: "Cloudflare hosts, secures, rate-limits, and may provide privacy-focused web analytics; OpenAI processes progression prompts; ElevenLabs processes Hanz conversations; Google Fonts may receive browser request data; and email providers handle privacy correspondence. We may disclose information to advisers, authorities, or a successor when reasonably necessary and lawful. We do not sell personal information or use it for cross-context behavioral advertising.",
+        body: "Cloudflare hosts, secures, rate-limits, and may provide privacy-focused web analytics; OpenAI processes progression prompts; ElevenLabs processes Hanz conversations; and email providers handle privacy correspondence. We may disclose information to advisers, authorities, or a successor when reasonably necessary and lawful. We do not sell personal information or use it for cross-context behavioral advertising.",
       },
       {
         title: "8. Retention",
@@ -106,9 +106,9 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
       { title: "2. 取り扱う情報と取得元", body: "コード、キー、モード、楽器、ボイシング、進行状態等の音楽上の選択、進行ビルダーへ入力した文章、Hanzを開始した場合のライブマイク音声と会話テキスト、端末言語とオンボーディング状態、IPアドレス、ブラウザ、URL、時刻、おおよその地域、セキュリティイベント、診断情報等を処理します。" },
       { title: "3. 端末内の音楽データ", body: "コード選択、再生状態、ワークスペース操作の大部分はブラウザメモリ内に留まります。共有リンクにはコピーを選択した進行がURLとして含まれます。オンボーディング設定はlocalStorageまたはsessionStorageへ保存する場合があります。Tonariは進行を保存するアカウントデータベースを運営しません。" },
       { title: "4. AI進行ビルダー", body: "説明を送信すると、プロンプトと関連する音楽情報がCloudflare Workerを経由してOpenAI Responses APIへ送られます。リクエストはstore:falseでアプリケーション状態の保存を要求しませんが、承認済みデータ管理設定がない場合、標準の不正利用監視ログに事業者所定の期間保存される可能性があります。Tonari独自モデルの学習には利用しません。" },
-      { title: "5. Hanz音声コンパニオン", body: "Hanzは音声機能を選択しマイクを許可した場合のみ開始します。音声はリアルタイム認識と応答生成のためElevenLabsへ送信され、音楽クライアントツールはコード・進行状態を交換します。Tonariは音声録音や文字起こしを作成・保存しません。新規会話について、ソース管理された設定で録音を無効化し、保存0日ならびに音声・文字起こし・検出PIIの削除を要求します。事業者の短時間処理、セキュリティログ、法的例外は残る場合があります。" },
+      { title: "5. Hanz音声コンパニオン", body: "Hanzは音声機能を選択しマイクを許可した場合のみ開始します。音声はリアルタイム認識と応答生成のためElevenLabsへ送信され、音楽クライアントツールはコード・進行状態を交換します。会話表示のため、このブラウザタブは利用者とHanzの直近20件までのメッセージをReactのメモリ内に一時保持しますが、会話の開始時または切断時に消去し、ブラウザストレージやTonariのアプリケーションデータベースには保存しません。Tonariは音声録音を作成・保存しません。新規会話について、ソース管理された設定で録音を無効化し、保存0日ならびに音声・文字起こし・検出PIIの削除を要求します。事業者の短時間処理、セキュリティログ、法的例外は残る場合があります。" },
       { title: "6. 利用目的と法的根拠", body: "要求された音楽機能、進行生成、Hanz、設定保存、セキュリティ、診断、不正防止、集計された信頼性把握、法令遵守、紛争対応に利用します。GDPR等が適用される場合、要求機能は依頼の履行または契約前手続、必要な安全管理・診断・改善は正当な利益、法令対応は法的義務、法令上必要な非必須保存・分析は同意に基づきます。" },
-      { title: "7. 委託先と開示", body: "Cloudflareはホスティング、保護、レート制限、プライバシー重視の分析、OpenAIは進行プロンプト、ElevenLabsはHanz会話、Google Fontsはフォント要求、メール事業者はお問い合わせを処理します。適法かつ合理的に必要な場合、専門家、当局、事業承継先へ開示することがあります。個人情報を販売せず、クロスコンテキスト行動広告に利用しません。" },
+      { title: "7. 委託先と開示", body: "Cloudflareはホスティング、保護、レート制限、プライバシー重視の分析、OpenAIは進行プロンプト、ElevenLabsはHanz会話、メール事業者はお問い合わせを処理します。適法かつ合理的に必要な場合、専門家、当局、事業承継先へ開示することがあります。個人情報を販売せず、クロスコンテキスト行動広告に利用しません。" },
       { title: "8. 保存期間", body: "ブラウザメモリ内の音楽状態はページを閉じるか更新すると終了し、端末設定は変更または削除まで残ります。Tonariの進行エンドポイントはプロンプトDBを作成しません。将来のHanz会話は録音無効・保存0日に設定し、過去の事業者記録を遡って削除しません。基盤、セキュリティ、メール、法令上必要な記録には各設定または必要期間が適用されます。" },
       { title: "9. Cookie、端末設定、プライバシー信号", body: "必要な設定にブラウザストレージを利用し、Cloudflareのセキュリティ技術が動作する場合があります。ブラウザからマイク許可を取り消し、サイトデータを削除できます。適用される有効なGlobal Privacy Control信号は販売・共有からのオプトアウトとして扱いますが、本サービスに当該販売・広告共有はありません。Do Not Trackには統一基準がないため個別に応答しません。" },
       { title: "10. 国外移転", body: "Tonari Labsは日本から運営し、委託先は日本、米国、EEAその他の国で処理する場合があります。必要に応じ、十分性認定、標準契約条項その他の適法な保護措置を利用します。適用される保護措置の情報を請求できます。" },

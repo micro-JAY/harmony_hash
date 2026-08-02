@@ -12,6 +12,17 @@ Harmony Hash currently has no in-product privacy notice even though the progress
 - Provision Hanz with voice recording disabled and new-conversation retention set to zero.
 - Verify the source-owned privacy configuration in provisioning tests and live-agent audits.
 
+## Capabilities
+
+### New Capabilities
+
+None.
+
+### Modified Capabilities
+
+- `app-shell`: Add a localized, globally available privacy notice that identifies the operator and accurately describes each product data flow.
+- `voice-companion`: Minimize provider retention and clear the browser-held Hanz transcript at conversation boundaries.
+
 ## Impact
 
 - Affected specs: `app-shell`, `voice-companion`

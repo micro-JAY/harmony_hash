@@ -19,4 +19,4 @@
 
 - [x] 4.1 Clear the temporary browser transcript at conversation boundaries and correct the localized disclosure and provider list.
 - [x] 4.2 Reconcile proposal capabilities, operator requirements, semantic link styling, and layout tokens with repository conventions.
-- [ ] 4.3 Pass focused privacy/provider tests, full validation, and rendered policy QA on the split privacy branch.
+- [x] 4.3 Pass focused privacy/provider tests, full validation, and rendered policy QA on the split privacy branch.

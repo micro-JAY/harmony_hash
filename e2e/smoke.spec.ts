@@ -206,6 +206,12 @@ test.describe("Privacy policy", () => {
     const dialog = page.getByRole("dialog", { name: "Privacy Policy" });
     await expect(dialog).toBeVisible();
     await expect(dialog.locator("h3")).toHaveCount(17);
+    await expect(dialog).toContainText("Jana Jennings");
+    await expect(dialog).toContainText("Last updated August 1, 2026");
+    await expect(dialog.getByRole("link", { name: /privacy@tonari\.ai/ })).toHaveAttribute(
+      "href",
+      "mailto:privacy@tonari.ai",
+    );
     await expect(dialog).toContainText("store:false");
     await expect(dialog).toContainText("zero-day retention");
     await expect(dialog).toContainText("Japan APPI");

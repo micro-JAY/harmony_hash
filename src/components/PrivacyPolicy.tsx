@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
             ))}
           </div>
           <p className="hh-privacy-contact">
-            <a href="mailto:hello@tonari.ai">{copy.contact}</a>
+            <a href="mailto:privacy@tonari.ai">{copy.contact}</a>
           </p>
         </AccessibleDialog>
       ) : null}

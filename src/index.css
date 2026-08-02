@@ -1482,10 +1482,9 @@ svg [data-note-tooltip="true"]:focus-visible {
 }
 /* Global privacy surface */
 .hh-privacy-footer {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  flex-wrap: wrap;
-  justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-4) clamp(var(--space-4), 4vw, var(--space-8));
   color: var(--text-muted);
@@ -1504,6 +1503,7 @@ svg [data-note-tooltip="true"]:focus-visible {
   border-radius: var(--radius-md);
   cursor: pointer;
   font: inherit;
+  white-space: nowrap;
 }
 
 .hh-privacy-button:hover,

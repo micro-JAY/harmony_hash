@@ -20,13 +20,13 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
     button: "Privacy Policy",
     title: "Privacy Policy",
     close: "Close privacy policy",
-    effective: "Effective August 2, 2026",
+    effective: "Effective December 13, 2025 · Last updated August 1, 2026",
     intro: "This notice explains how Harmony Hash processes musical, technical, prompt, and live voice information, including the choices and rights available in the EEA, United Kingdom, United States, Japan, and other regions.",
-    contact: "Questions and rights requests: hello@tonari.ai",
+    contact: "Questions and rights requests: privacy@tonari.ai",
     sections: [
       {
         title: "1. Scope and operator",
-        body: "This notice applies to Harmony Hash. Tonari Labs, Japan, determines the purposes described below. Postal address and any required representative details: [to be supplied by the operator before final publication]. Linked sites publish their own notices.",
+        body: "This notice applies to Harmony Hash. Tonari Labs is the trade name used by Jana Jennings (ジェニングス ジャナ), an individual operator in Japan who determines the purposes described below and is responsible for the personal information processing described in this notice. Contact: privacy@tonari.ai. The operator's private residential address is not published for personal safety; where applicable law requires it, the address will be provided without delay upon request at privacy@tonari.ai. Linked sites publish their own notices.",
       },
       {
         title: "2. Information and sources",
@@ -90,7 +90,7 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
       },
       {
         title: "17. Changes and contact",
-        body: "We may update this notice when features, providers, settings, or laws change. The effective date identifies the current version and material changes will receive proportionate notice. Send requests to hello@tonari.ai and identify Harmony Hash and the right you want to exercise.",
+        body: "We may update this notice when features, providers, settings, or laws change. The effective and last-updated dates identify the current version and material changes will receive proportionate notice. Send requests to privacy@tonari.ai and identify Harmony Hash and the right you want to exercise.",
       },
     ],
   },
@@ -98,11 +98,11 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
     button: "プライバシーポリシー",
     title: "プライバシーポリシー",
     close: "プライバシーポリシーを閉じる",
-    effective: "施行日：2026年8月2日",
+    effective: "施行日：2025年12月13日・最終更新日：2026年8月1日",
     intro: "本通知では、Harmony Hashが取り扱う音楽情報、技術情報、プロンプト、ライブ音声と、EEA、英国、米国、日本その他の地域で利用できる選択肢および権利を説明します。",
-    contact: "ご質問・権利請求：hello@tonari.ai",
+    contact: "ご質問・権利請求：privacy@tonari.ai",
     sections: [
-      { title: "1. 適用範囲と運営者", body: "本通知はHarmony Hashに適用されます。下記の目的を定める運営者はTonari Labs（日本）です。所在地および必要な代理人情報：[最終公開前に運営者が記載します]。リンク先には各運営者の通知が適用されます。" },
+      { title: "1. 適用範囲と運営者", body: "本通知はHarmony Hashに適用されます。Tonari Labsは、日本在住の個人運営者ジェニングス ジャナ（Jana Jennings）が使用する屋号です。下記の利用目的を定め、本通知に記載する個人情報の取扱いに責任を負う者はジェニングス ジャナです。連絡先：privacy@tonari.ai。個人の安全確保のため私的な居住住所はウェブ上に掲載しませんが、適用法令上必要な場合、privacy@tonari.aiへの請求に対し遅滞なく回答します。リンク先には各運営者の通知が適用されます。" },
       { title: "2. 取り扱う情報と取得元", body: "コード、キー、モード、楽器、ボイシング、進行状態等の音楽上の選択、進行ビルダーへ入力した文章、Hanzを開始した場合のライブマイク音声と会話テキスト、端末言語とオンボーディング状態、IPアドレス、ブラウザ、URL、時刻、おおよその地域、セキュリティイベント、診断情報等を処理します。" },
       { title: "3. 端末内の音楽データ", body: "コード選択、再生状態、ワークスペース操作の大部分はブラウザメモリ内に留まります。共有リンクにはコピーを選択した進行がURLとして含まれます。オンボーディング設定はlocalStorageまたはsessionStorageへ保存する場合があります。Tonariは進行を保存するアカウントデータベースを運営しません。" },
       { title: "4. AI進行ビルダー", body: "説明を送信すると、プロンプトと関連する音楽情報がCloudflare Workerを経由してOpenAI Responses APIへ送られます。リクエストはstore:falseでアプリケーション状態の保存を要求しませんが、承認済みデータ管理設定がない場合、標準の不正利用監視ログに事業者所定の期間保存される可能性があります。Tonari独自モデルの学習には利用しません。" },
@@ -118,7 +118,7 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
       { title: "14. 自動処理", body: "AI提案とHanzの応答は音楽学習を支援するもので、誤る場合があります。法的効果または同様の重大な影響を生じる決定を行わず、雇用、信用、保険、住宅、重要サービスへのアクセス判断には利用しません。" },
       { title: "15. 安全管理とインシデント", body: "HTTPS、署名付き音声セッションURL、サーバー側事業者キー、レート制限、アクセス制御、データ最小化、委託先のセキュリティ機能を利用します。完全な安全性は保証できません。通知対象の事案を調査・軽減し、法令に従って本人と当局へ通知します。" },
       { title: "16. 子ども", body: "Harmony Hashは一般向け音楽ツールで、米国の13歳未満または各地域の同等の最低年齢未満を対象とせず、その個人情報を故意に収集しません。子どもが情報を提供したと思われる場合はご連絡ください。" },
-      { title: "17. 変更と連絡先", body: "機能、委託先、設定、法令の変更に応じて更新します。施行日が現行版を示し、重要な変更には相応の通知を行います。Harmony Hashと行使したい権利を明記してhello@tonari.aiへお送りください。" },
+      { title: "17. 変更と連絡先", body: "機能、委託先、設定、法令の変更に応じて更新します。施行日と最終更新日が現行版を示し、重要な変更には相応の通知を行います。Harmony Hashと行使したい権利を明記してprivacy@tonari.aiへお送りください。" },
     ],
   },
 };

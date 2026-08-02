@@ -1,6 +1,6 @@
 # harmony_hash Worker
 
-Backend for the Progression Builder and Harmony Companion. It runs a bounded OpenAI Responses API tool loop against the shared Harmony Hash chord dictionary, mints ElevenLabs signed URLs, reports service readiness, and serves the built SPA through the assets binding.
+Backend for the Progression Builder and Hanz voice companion. It runs a bounded OpenAI Responses API tool loop against the shared Harmony Hash chord dictionary, mints server-configured OpenAI Realtime client secrets, reports service readiness, and serves the built SPA through the assets binding.
 
 ## Endpoints
 
@@ -8,7 +8,7 @@ Backend for the Progression Builder and Harmony Companion. It runs a bounded Ope
 | --- | --- | --- |
 | GET | `/api/health` | Returns OpenAI binding readiness without exposing the key. |
 | POST | `/api/progression` | Body: `{ "prompt": string }`. Returns `{ chords: string[3..8], key, rationale }`. |
-| POST | `/api/voice/signed-url` | Returns a short-lived ElevenLabs `{ signedUrl }`. |
+| POST | `/api/voice/client-secret` | Empty body. Returns short-lived `{ clientSecret, expiresAt, sessionEndsAt }` values for one fixed Hanz Realtime session. |
 | OPTIONS | `/api/*` | CORS preflight for the API routes. |
 
 Validation:
@@ -24,9 +24,9 @@ Validation:
 
 ## Secrets
 
-The progression route requires `OPENAI_API_KEY`. The voice signed-URL route requires `ELEVENLABS_API_KEY` and `HH_VOICE_AGENT_ID`. Never commit either API key and never expose them through `VITE_` variables.
+Both provider routes require the same server-held `OPENAI_API_KEY`. Never commit it and never expose it through a `VITE_` variable. The Realtime route returns only an ephemeral client secret and expiry metadata; it never returns the standard key or the full fixed session configuration.
 
-`wrangler.jsonc` declares both provider keys under `secrets.required`. Wrangler uploads and deployments must fail before release when either encrypted binding is unavailable; do not remove or bypass that guard to make a build pass.
+`wrangler.jsonc` declares `OPENAI_API_KEY` under `secrets.required`. Wrangler uploads and deployments must fail before release when the encrypted binding is unavailable; do not remove or bypass that guard to make a build pass.
 
 ### Local development
 
@@ -38,8 +38,8 @@ Both files live at the **repo root** (alongside `wrangler.jsonc`), not inside `w
    OPENAI_API_KEY=sk-...
    ```
 3. Run `npm run dev:worker` from the repo root. The launcher lets Wrangler load
-   the required provider secrets and forwards optional `ALLOWED_ORIGIN` and
-   `HH_VOICE_AGENT_ID` values from `.dev.vars` as supported `--var` overrides.
+   the required provider secret and forwards optional `ALLOWED_ORIGIN` from
+   `.dev.vars` as a supported `--var` override.
 
 `.dev.vars*` is gitignored.
 
@@ -47,12 +47,11 @@ Both files live at the **repo root** (alongside `wrangler.jsonc`), not inside `w
 
 ```sh
 npx wrangler versions secret put OPENAI_API_KEY
-npx wrangler versions secret put ELEVENLABS_API_KEY
 ```
 
-Wrangler prompts for each value and creates a new Worker version carrying the encrypted secret. Deploy that exact version after verification. `HH_VOICE_AGENT_ID` is non-secret and belongs in `wrangler.jsonc`.
+Wrangler prompts for the value and creates a new Worker version carrying the encrypted secret. Deploy that exact version after verification.
 
-If both provider routes return configuration errors while the SPA and `/api/health` remain reachable, inspect secret **names only** with `wrangler versions view <version-id>`. Restore only the missing provider bindings, verify the replacement version lists both required names, and deploy that exact version. Never print, log, or commit the values.
+If both provider routes return configuration errors while the SPA and `/api/health` remain reachable, inspect secret **names only** with `wrangler versions view <version-id>`. Restore the missing OpenAI binding, verify the replacement version lists the required name, and deploy that exact version. Never print, log, or commit the value.
 
 ## CORS
 
@@ -60,7 +59,7 @@ The Worker **fails closed** for cross-origin browser requests. `https://harmony.
 
 - **Local Worker:** localhost and `127.0.0.1` browser origins are accepted only when the Worker URL is itself local.
 - **Deployed Worker:** the canonical production origin plus entries in the comma-separated allowlist are accepted. `*` is supported as an explicit opt-in.
-- **No `Origin` header:** same-origin requests and non-browser callers are accepted; CORS is not request authentication.
+- **No `Origin` header:** the paid voice client-secret route rejects the request. Other same-origin routes keep their documented behavior; CORS is not general request authentication.
 
 Add an extra origin only when needed:
 
@@ -86,22 +85,15 @@ npm run dev:worker
 
 The Worker listens on `http://localhost:8787` by default.
 
-## Voice agent maintenance
+## Voice verification
 
-The updater reads the prompt and canonical nine-tool schema, resolves the modern toolbox records behind `prompt.tool_ids`, and reuses only exact contracts. A missing or drifted contract gets a new toolbox record that is re-read before attachment; shared records are never patched or deleted. Before any agent write, the updater fails closed on built-ins, MCP attachments, workflows, nested tool overrides, legacy non-client tools, task-execution authority, and unknown provider capability fields. It then patches only the source-owned prompt/tool ids plus signed auth and proves the live name and complete TTS configuration were preserved. `--verify` performs read-only checks.
-
-```sh
-node --env-file=.dev.vars --import tsx scripts/provision-voice-agent.ts
-node --env-file=.dev.vars --import tsx scripts/provision-voice-agent.ts --verify
-```
-
-With the full Worker running, the live smoke uses Chromium's silent synthetic media device, establishes a real signed ElevenLabs session, asks the real agent to call `replace_progression`, verifies the visible timeline mutation, and disconnects:
+With the full Worker running, the live smoke uses Chromium's silent synthetic media device, establishes a real OpenAI WebRTC session, asks Hanz to call `replace_progression`, verifies received remote audio and the visible timeline mutation, and disconnects:
 
 ```sh
 npx tsx scripts/smoke-voice-agent.ts
 ```
 
-The synthetic device prevents an automated run from capturing ambient microphone audio. A user can still verify their physical microphone through the normal **Talk to the companion** action.
+The synthetic device prevents an automated run from capturing ambient microphone audio. A user can still verify their physical microphone through the normal Hanz start action.
 
 ## Quick curl tests
 

@@ -1,21 +1,21 @@
 ## 1. Realtime Session Boundary
 
-- [ ] 1.1 Move the existing Hanz instructions into one importable source constant and map the exact nine tool schemas to strict OpenAI Realtime function definitions.
-- [ ] 1.2 Implement a bounded OpenAI Realtime client-secret helper that validates successful and malformed provider responses and sanitizes timeout/upstream failures.
-- [ ] 1.3 Replace `/api/voice/signed-url` with the empty-body `/api/voice/client-secret` route while preserving required Origin admission, hashed caller rate limiting, CORS, and fail-closed error semantics.
-- [ ] 1.4 Update Worker tests to prove the fixed model/prompt/voice/VAD/transcription/tool configuration, body rejection, missing binding, admission failures, malformed provider responses, timeouts, and secret redaction.
-- [ ] 1.5 Remove the ElevenLabs binding and public agent id from Wrangler/local configuration and update Worker configuration tests and deployment documentation to require only `OPENAI_API_KEY`.
+- [x] 1.1 Move the existing Hanz instructions and first message into importable source constants and map the exact nine tool schemas to strict OpenAI Realtime function definitions.
+- [x] 1.2 Implement a bounded OpenAI Realtime client-secret helper with provider-enforced 300-second expiry that validates successful and malformed provider responses and sanitizes timeout/upstream failures.
+- [x] 1.3 Replace `/api/voice/signed-url` with the empty-body `/api/voice/client-secret` route while preserving required Origin admission, hashed caller rate limiting, CORS, and fail-closed error semantics.
+- [x] 1.4 Update Worker tests to prove the fixed model/prompt/voice/VAD/transcription/tool configuration, body rejection, missing binding, admission failures, malformed provider responses, timeouts, and secret redaction.
+- [x] 1.5 Remove the ElevenLabs binding and public agent id from Wrangler/local configuration and update Worker configuration tests and deployment documentation to require only `OPENAI_API_KEY`.
 
 ## 2. Browser Realtime Runtime
 
 - [ ] 2.1 Implement the abortable WebRTC start path with client-secret minting before microphone permission, SDP exchange, data-channel lifecycle, remote-track playback, and rollback of every partially acquired resource.
-- [ ] 2.2 Implement item-id transcript assembly, inbound RTP audio-health sampling, interruption event handling, explicit stop, unmount cleanup, and the 300-second monotonic deadline.
+- [ ] 2.2 Implement one opening response per new session, item-id transcript assembly, inbound RTP audio-health sampling plus playback rejection detection, interruption event handling, explicit stop, unmount cleanup, and the 300-second monotonic deadline.
 - [ ] 2.3 Replace the provider SDK state with the source-owned React context while retaining the existing lazy-load boundary, permanent mount, panel markup, labels, CSS, accessibility, focus restoration, and close/reopen continuity.
 - [ ] 2.4 Add focused runtime/provider tests for successful connection, mint/media/SDP/data-channel failures, out-of-order transcripts, missing audio, interruption, stop, deadline, navigation cleanup, and Strict Mode safety.
 
 ## 3. Progression Tool Bridge
 
-- [ ] 3.1 Replace provider hook registration with one dispatcher for the exact nine names, strict JSON/object/chord validation, serialized success/failure outputs, and `call_id` deduplication.
+- [ ] 3.1 Replace provider hook registration with one dispatcher for the exact nine names, strict JSON/object/chord validation, serialized success/failure outputs, and fingerprinted `call_id` deduplication that fails closed on conflicting reuse.
 - [ ] 3.2 Return each tool result through `function_call_output` and request the next model response without permitting unknown tools or arbitrary application actions.
 - [ ] 3.3 Add tests for every valid tool plus malformed JSON, unknown names, extra fields, invalid bounds, bridge failures, duplicate `call_id`, and both guitar and piano playback semantics.
 

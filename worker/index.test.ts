@@ -352,41 +352,37 @@ describe("POST /api/progression", () => {
   });
 });
 
-function voiceRequest(origin: string | null = "https://harmony.tonari.ai"): Request {
+function voiceRequest(
+  origin: string | null = "https://harmony.tonari.ai",
+  body?: string,
+): Request {
   const headers = new Headers({ "CF-Connecting-IP": "203.0.113.10" });
   if (origin) headers.set("Origin", origin);
-  return new Request("https://harmony.tonari.ai/api/voice/signed-url", {
+  return new Request("https://harmony.tonari.ai/api/voice/client-secret", {
     method: "POST",
     headers,
+    body,
   });
 }
 
-describe("POST /api/voice/signed-url", () => {
-  it("fails closed when either server binding is missing", async () => {
-    const missingKey = await worker.fetch(
-      voiceRequest(),
-      env({ HH_VOICE_AGENT_ID: "agent_test" }),
-    );
+describe("POST /api/voice/client-secret", () => {
+  it("fails closed when the server key is missing", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const missingKey = await worker.fetch(voiceRequest(), env({ OPENAI_API_KEY: undefined }));
     expect(missingKey.status).toBe(500);
     expect(await missingKey.text()).toContain("voice companion is unavailable");
-
-    const missingAgent = await worker.fetch(
-      voiceRequest(),
-      env({ ELEVENLABS_API_KEY: "xi-test-key" }),
-    );
-    expect(missingAgent.status).toBe(500);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("rejects a disallowed browser origin before calling ElevenLabs", async () => {
+  it("rejects a disallowed browser origin before calling OpenAI", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     vi.stubGlobal("fetch", fetchMock);
 
     const response = await worker.fetch(
       voiceRequest("https://attacker.example"),
-      env({
-        ELEVENLABS_API_KEY: "xi-test-key",
-        HH_VOICE_AGENT_ID: "agent_test",
-      }),
+      env(),
     );
 
     expect(response.status).toBe(403);
@@ -402,8 +398,6 @@ describe("POST /api/voice/signed-url", () => {
     const missingOrigin = await worker.fetch(
       voiceRequest(null),
       env({
-        ELEVENLABS_API_KEY: "xi-test-key",
-        HH_VOICE_AGENT_ID: "agent_test",
         VOICE_RATE_LIMITER: { limit: voiceLimit },
       }),
     );
@@ -413,8 +407,6 @@ describe("POST /api/voice/signed-url", () => {
     const rateLimited = await worker.fetch(
       voiceRequest(),
       env({
-        ELEVENLABS_API_KEY: "xi-test-key",
-        HH_VOICE_AGENT_ID: "agent_test",
         PROGRESSION_RATE_LIMITER: { limit: progressionLimit },
         VOICE_RATE_LIMITER: { limit: voiceLimit },
       }),
@@ -426,56 +418,157 @@ describe("POST /api/voice/signed-url", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("mints a signed URL and returns only the browser-safe field", async () => {
+  it("rejects a non-empty body before calling OpenAI", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await worker.fetch(voiceRequest(undefined, "{}"), env());
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("must be empty");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("mints a fixed Realtime session and returns only browser-safe fields", async () => {
+    const now = Math.floor(Date.now() / 1_000);
+    vi.spyOn(Date, "now").mockReturnValue(now * 1_000);
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
-      Response.json({ signed_url: "wss://api.elevenlabs.io/session/signed" }),
+      Response.json({
+        value: "ek_test_ephemeral_value",
+        expires_at: now + 60,
+        session: { expires_at: now + 300 },
+      }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const response = await worker.fetch(
-      voiceRequest(),
-      env({
-        ELEVENLABS_API_KEY: "xi-test-key",
-        HH_VOICE_AGENT_ID: "agent_test",
-      }),
-    );
+    const response = await worker.fetch(voiceRequest(), env());
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
     expect(await response.json()).toEqual({
-      signedUrl: "wss://api.elevenlabs.io/session/signed",
+      clientSecret: "ek_test_ephemeral_value",
+      expiresAt: now + 60,
+      sessionEndsAt: now + 300,
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const [url, request] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe("https://api.openai.com/v1/realtime/client_secrets");
+    expect(request).toMatchObject({ method: "POST" });
+    expect(new Headers(request?.headers).get("Authorization")).toBe(
+      "Bearer sk-worker-test-key",
+    );
+    const providerBody = JSON.parse(String(request?.body)) as {
+      session: Record<string, unknown>;
+    };
+    expect(providerBody.session).toMatchObject({
+      type: "realtime",
+      model: "gpt-realtime-2.1",
+      output_modalities: ["audio"],
+      reasoning: { effort: "low" },
+      tool_choice: "auto",
+      max_output_tokens: 1_024,
+      expires_at: now + 300,
+      tracing: null,
+      audio: {
+        input: {
+          noise_reduction: { type: "near_field" },
+          transcription: { model: "gpt-live-transcribe" },
+          turn_detection: {
+            type: "semantic_vad",
+            eagerness: "low",
+            create_response: true,
+            interrupt_response: true,
+          },
+        },
+        output: { voice: "marin", speed: 1 },
+      },
+    });
+    expect(providerBody.session.instructions).toContain("You are Hanz Hasher");
+    const tools = providerBody.session.tools as Array<Record<string, unknown>>;
+    expect(tools.map((tool) => tool.name)).toEqual([
+      "get_progression",
+      "analyze_progression",
+      "add_chords",
+      "replace_progression",
+      "remove_chord",
+      "clear_progression",
+      "play_progression",
+      "randomize_progression",
+      "highlight_chord",
+    ]);
+    for (const tool of tools) {
+      expect(tool.type).toBe("function");
+      expect(tool.parameters).toMatchObject({
+        type: "object",
+        required: expect.any(Array),
+        additionalProperties: false,
+      });
+    }
   });
 
-  it("returns a generic 502 and sanitizes upstream detail in logs", async () => {
+  it("rejects malformed, expired, and overlong session credentials", async () => {
+    const now = Math.floor(Date.now() / 1_000);
+    vi.spyOn(Date, "now").mockReturnValue(now * 1_000);
+    const responses = [
+      new Response("not-json"),
+      Response.json({ value: "", expires_at: now + 60, session: { expires_at: now + 300 } }),
+      Response.json({ value: "ek_expired_value", expires_at: now - 1, session: { expires_at: now + 300 } }),
+      Response.json({ value: "ek_long_session", expires_at: now + 60, session: { expires_at: now + 301 } }),
+    ];
+    const fetchMock = vi.fn<typeof fetch>();
+    for (const providerResponse of responses) {
+      fetchMock.mockResolvedValueOnce(providerResponse);
+    }
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    for (const expectedStatus of responses.map(() => 502)) {
+      const response = await worker.fetch(voiceRequest(), env());
+      expect(response.status).toBe(expectedStatus);
+      expect(await response.text()).toContain("Could not start a voice session");
+    }
+  });
+
+  it("maps provider timeouts to a generic 504", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockRejectedValueOnce(new DOMException("provider timed out", "TimeoutError")),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const response = await worker.fetch(voiceRequest(), env());
+
+    expect(response.status).toBe(504);
+    expect(await response.json()).toEqual({ error: "Voice session request timed out" });
+  });
+
+  it("returns a generic 502 and sanitizes OpenAI detail in logs", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
-      new Response(
-        "rejected sk_eleven_secret_123456 Bearer opaque.voice.token " +
-          "wss://voice.example/session?conversation_signature=signed-secret " +
-          "xi-api-key: opaque-header",
+      Response.json(
+        {
+          error: {
+            message:
+              "rejected sk-openai-secret-123456 ek_client_secret_123456 " +
+              "Bearer opaque.voice.token rtc_call_secret_123456",
+          },
+        },
         { status: 401 },
       ),
     );
     vi.stubGlobal("fetch", fetchMock);
     const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    const response = await worker.fetch(
-      voiceRequest(),
-      env({
-        ELEVENLABS_API_KEY: "xi-test-key",
-        HH_VOICE_AGENT_ID: "agent_test",
-      }),
-    );
+    const response = await worker.fetch(voiceRequest(), env());
     const body = await response.text();
 
     expect(response.status).toBe(502);
     expect(body).toContain("Could not start a voice session");
-    expect(body).not.toContain("sk_eleven_secret_123456");
+    expect(body).not.toContain("sk-openai-secret-123456");
     expect(log).toHaveBeenCalledWith(
-      "[harmony-voice] signed-url:",
-      "ElevenLabs get-signed-url returned 401: rejected [redacted] " +
-        "Bearer [redacted] " +
-        "[signed-url redacted] xi-api-key: [redacted]",
+      "[harmony-voice] client-secret:",
+      "OpenAI client-secret endpoint returned 401: rejected [redacted] " +
+        "[client-secret redacted] Bearer [redacted] [call-id redacted]",
     );
   });
 });

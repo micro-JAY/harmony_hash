@@ -5,7 +5,7 @@ The Worker SHALL expose `POST /api/voice/client-secret` that mints a short-lived
 
 #### Scenario: Client secret success
 - **WHEN** a permitted browser origin POSTs an empty request to `/api/voice/client-secret` and the OpenAI key, limiter, and provider are available
-- **THEN** the Worker SHALL return HTTP 200 with a non-empty short-lived `clientSecret` and numeric `expiresAt`
+- **THEN** the Worker SHALL return HTTP 200 with a non-empty short-lived `clientSecret`, numeric `expiresAt`, and provider-confirmed `sessionEndsAt` no more than 300 seconds in the future
 - **AND** the response SHALL NOT contain the standard API key or complete server session configuration
 
 #### Scenario: Missing server key
@@ -26,13 +26,18 @@ The Worker SHALL expose `POST /api/voice/client-secret` that mints a short-lived
 - **THEN** the Worker SHALL return a generic retryable 502 or 504 response
 - **AND** server logs SHALL redact credentials, authorization values, client secrets, SDP, and provider detail that could grant access
 
-### Requirement: Server-owned Realtime session configuration
-The Worker SHALL mint every Hanz session for `gpt-realtime-2.1` with audio output, the source-owned Hanz instructions, the fixed `marin` voice, near-field input noise reduction, input transcription, low-eagerness semantic VAD with automatic responses and interruption, automatic tool choice, bounded output tokens, and exactly the nine source-owned progression function schemas. The browser SHALL NOT be able to override the model, prompt, voice, VAD, tool definitions, or tool policy.
+### Requirement: Source-owned Realtime session configuration
+The Worker SHALL mint every Hanz session for `gpt-realtime-2.1` with audio output, the source-owned Hanz instructions, the fixed `marin` voice, near-field input noise reduction, input transcription, low-eagerness semantic VAD with automatic responses and interruption, automatic tool choice, bounded output tokens, a provider-enforced 300-second expiry, and exactly the nine source-owned progression function schemas. The mint endpoint SHALL accept no browser configuration, and the shipped browser runtime SHALL send no model, prompt, voice, VAD, tool, tool-policy, expiry, or other `session.update` override.
 
 #### Scenario: Fixed configuration sent upstream
 - **WHEN** the Worker mints a Hanz client secret
 - **THEN** the OpenAI request SHALL contain the complete fixed Hanz session configuration
 - **AND** every function parameters object SHALL reject additional properties
+
+#### Scenario: Shipped browser retains minted configuration
+- **WHEN** the shipped browser connects with the client secret
+- **THEN** it SHALL use the minted session without sending a `session.update` event
+- **AND** user-controlled data SHALL NOT be interpreted as session configuration
 
 #### Scenario: No provider-side agent provisioning
 - **WHEN** the app builds, starts locally, or prepares a deployment
@@ -45,6 +50,11 @@ The browser SHALL use WebRTC for Hanz input and output: it SHALL attach one expl
 #### Scenario: Explicit start establishes voice transport
 - **WHEN** the user starts Hanz and client-secret minting succeeds
 - **THEN** the browser SHALL request microphone permission, create the peer connection and data channel, exchange SDP, attach remote audio playback, and move the existing panel from connecting to listening
+
+#### Scenario: Opening greeting occurs once
+- **WHEN** a newly created Realtime session first reaches ready state
+- **THEN** the browser SHALL request one opening response using the current source-owned first-message wording
+- **AND** closing and reopening the panel during that session SHALL NOT request another opening response
 
 #### Scenario: Mint fails before microphone access
 - **WHEN** client-secret minting fails or the panel closes while minting is pending
@@ -61,7 +71,7 @@ The browser SHALL use WebRTC for Hanz input and output: it SHALL attach one expl
 - **AND** the client SHALL NOT manually truncate the conversation item
 
 #### Scenario: Explicit stop or deadline
-- **WHEN** the user ends the conversation or 300 seconds elapse after connection
+- **WHEN** the user ends the conversation, the monotonic browser deadline is reached, or the provider-enforced session expiry closes the call
 - **THEN** the browser SHALL cancel active output when possible, clear buffered output when possible, stop every microphone track, close the data channel and peer connection, detach remote media, clear the deadline, and return the panel to offline
 
 #### Scenario: Transcript completion order
@@ -73,6 +83,11 @@ The browser SHALL use WebRTC for Hanz input and output: it SHALL attach one expl
 - **WHEN** an assistant transcript completes during a live voice session
 - **THEN** the runtime SHALL compare inbound audio RTP progress with the turn baseline
 - **AND** the existing delayed no-audio warning SHALL appear only if no remote audio packets arrive
+
+#### Scenario: Remote playback is blocked
+- **WHEN** remote audio packets arrive but the browser rejects playback
+- **THEN** the existing panel SHALL expose a retryable output-audio error
+- **AND** SHALL NOT report audio health solely from packet receipt
 
 ## MODIFIED Requirements
 
@@ -128,6 +143,11 @@ The voice agent SHALL be limited to browser tools the app genuinely backs: `get_
 - **WHEN** an already completed `call_id` is delivered again
 - **THEN** the browser SHALL NOT execute its bridge mutation again
 - **AND** SHALL return the previously serialized output for that call
+
+#### Scenario: Conflicting call id reuse
+- **WHEN** a previously observed `call_id` is reused with a different tool name or argument payload
+- **THEN** the browser SHALL fail closed without another bridge mutation or function output
+- **AND** SHALL surface the provider protocol error through sanitized session diagnostics
 
 ### Requirement: Voice edits drive the live builder
 Voice tool calls SHALL read and mutate the same progression state as manual input, through a bridge that always observes the current timeline. An unresolved chord name SHALL surface a clear error to the agent rather than being silently dropped.

@@ -28,7 +28,7 @@ The replacement must run in a browser, request microphone access only after the 
 
 `POST /api/voice/client-secret` will keep the existing required browser-Origin check, hashed caller admission, and dedicated voice rate limiter. It will reject bodies, require only `OPENAI_API_KEY`, and call OpenAI's `/v1/realtime/client_secrets` endpoint with a fixed session object. The browser receives only the short-lived secret value and expiry.
 
-The fixed configuration uses `gpt-realtime-2.1`, audio output, the source-owned Hanz instructions, `marin`, near-field input noise reduction, input transcription, low-eagerness semantic VAD with automatic response creation and interruption, automatic tool choice, bounded output tokens, and the exact source-owned nine function schemas. Browser input cannot override the model, prompt, voice, tools, or turn policy.
+The fixed configuration uses `gpt-realtime-2.1`, audio output, the source-owned Hanz instructions, `marin`, near-field input noise reduction, input transcription, low-eagerness semantic VAD with automatic response creation and interruption, automatic tool choice, bounded output tokens, a provider-enforced 300-second expiry, and the exact source-owned nine function schemas. The mint endpoint accepts no browser configuration, and the shipped browser runtime sends no `session.update` overrides.
 
 An explicit fetch helper is preferred over using a browser SDK or undocumented SDK surface because the client-secret REST boundary is small, directly testable, and Worker-compatible. Provider responses are shape-checked; timeouts and non-OK responses become sanitized, generic failures.
 
@@ -36,7 +36,9 @@ An explicit fetch helper is preferred over using a browser SDK or undocumented S
 
 A source-owned runtime will create an `RTCPeerConnection`, attach the microphone track, create the `oai-events` data channel, exchange SDP with `/v1/realtime/calls`, and play the remote media stream through an autoplay audio element. No provider package is needed in the browser. The runtime exposes the same high-level status, start, stop, transcript, reply, and audio-health state through the existing React context so panel markup and styling remain unchanged.
 
-Client-secret minting happens before microphone acquisition. Every partial start owns an abort signal and deterministic rollback: stop acquired tracks, clear timers/listeners, close the data channel and peer connection, detach remote media, and clear Hanz focus. Explicit stop additionally sends `response.cancel` and `output_audio_buffer.clear` when the channel is open. A 300-second monotonic client deadline invokes the same stop path.
+After the first session reaches ready state, the runtime will request exactly one opening response using the current source-owned first-message wording. Closing and reopening the panel will not create another greeting because it does not create another session.
+
+Client-secret minting happens before microphone acquisition. Every partial start owns an abort signal and deterministic rollback: stop acquired tracks, clear timers/listeners, close the data channel and peer connection, detach remote media, and clear Hanz focus. Explicit stop additionally sends `response.cancel` and `output_audio_buffer.clear` when the channel is open. The provider session expiry is authoritative; a monotonic browser deadline derived from the returned server deadline invokes the same stop path as a second guard.
 
 Browser WebRTC is preferred over a browser WebSocket because OpenAI recommends WebRTC for client voice sessions and the remote track handles output buffering and interruption. The runtime will not reconstruct provider audio deltas or manually truncate conversation items.
 
@@ -44,11 +46,11 @@ Browser WebRTC is preferred over a browser WebSocket because OpenAI recommends W
 
 The runtime records item order from conversation events and stores transcript text by `item_id`. User transcription completion and assistant output-audio transcript completion update their matching items, so out-of-order completion cannot reorder speakers. Mutable deltas may update an in-memory preview, but only completed text enters the durable React transcript list; failures surface as session diagnostics rather than fabricated text. The existing twenty-entry cap and six-row panel view remain.
 
-Remote audio health will use inbound audio RTP statistics (`packetsReceived`) rather than base64 SDK callbacks. The existing reply baseline check therefore continues to detect a transcript reply with no received audio without decoding or persisting audio.
+Remote audio health will use inbound audio RTP statistics (`packetsReceived`) rather than base64 SDK callbacks. The existing reply baseline check therefore continues to detect a transcript reply with no received audio without decoding or persisting audio. Remote playback rejection is tracked separately because packets can arrive even when browser autoplay or the selected output path cannot play them.
 
 ### Execute tools through one validated dispatcher
 
-The provider-specific registration hook will become a provider-neutral dispatcher derived from `TOOL_SCHEMAS`. It accepts only the exact nine names, parses JSON without evaluation, validates object shapes and existing chord bounds, and serializes explicit success or failure output. A `call_id` ledger prevents repeated application mutations. Every accepted or rejected call produces a `function_call_output`; the runtime then requests the model's next response. The bridge remains the sole UI mutation authority.
+The provider-specific registration hook will become a provider-neutral dispatcher derived from `TOOL_SCHEMAS`. It accepts only the exact nine names, parses JSON without evaluation, validates object shapes and existing chord bounds, and serializes explicit success or failure output. A `call_id` ledger stores the call fingerprint and one shared output promise so repeated events cannot execute a mutation or emit an output twice. Reuse of the same id with different names or arguments fails closed. Every accepted or rejected call produces one `function_call_output`; the runtime then requests the model's next response. The bridge remains the sole UI mutation authority.
 
 The JSON Schemas will set `additionalProperties: false` and accurate required fields. Current app behavior is authoritative for playback: both guitar and piano can start, and the returned `started`, `already_playing`, `empty`, `cancelled`, or `unavailable` status is relayed exactly.
 
@@ -61,7 +63,7 @@ The current prompt text will move into an importable source constant used direct
 - **Browser media implementations differ** -> Cover mocked lifecycle failures plus Chromium synthetic-media browser tests; keep clear retryable messages and deterministic cleanup.
 - **Realtime events can complete out of order or repeat** -> Index transcripts by item id and deduplicate tools by call id, with focused event-sequence tests.
 - **A transcript can arrive without audible output** -> Poll inbound audio RTP statistics and keep the current delayed health warning.
-- **A client-only deadline cannot terminate a deliberately detached network session** -> Close all resources on deadline, stop, navigation, and unmount; Harmony stores no server transcript or privileged sideband state. Tutor's separate migration owns server-side finalization.
+- **An ephemeral client can technically send Realtime `session.update` events** -> Accept no configuration at the mint endpoint, send no updates from the shipped runtime, bound each admitted session to 300 seconds at creation, and keep all application mutation authority in the strict local dispatcher. A trusted sideband/proxy is intentionally reserved for Tutor's separate server-authoritative workflow.
 - **OpenAI session schemas can evolve** -> Keep one typed/validated server request and response helper, fail closed on malformed responses, and exercise the current contract in a live smoke before release.
 - **Removing provider provisioning reduces instant rollback after deployment** -> Retain the old immutable deployment and provider secret during the normal rollback window; source rollback restores the former path.
 

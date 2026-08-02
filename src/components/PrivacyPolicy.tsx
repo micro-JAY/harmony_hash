@@ -28,7 +28,7 @@ export default function PrivacyPolicy() {
           closeLabel={copy.close}
           onRequestClose={() => setOpen(false)}
           returnFocusRef={buttonRef}
-          maxWidth="54rem"
+          maxWidth="var(--layout-copy-max)"
           contentClassName="hh-privacy-content"
           description={copy.intro}
         >

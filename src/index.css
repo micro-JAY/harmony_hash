@@ -1484,6 +1484,7 @@ svg [data-note-tooltip="true"]:focus-visible {
 .hh-privacy-footer {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-4) clamp(var(--space-4), 4vw, var(--space-8));
@@ -1546,12 +1547,8 @@ svg [data-note-tooltip="true"]:focus-visible {
 }
 
 .hh-privacy-contact a {
-  color: var(--accent-primary);
-}
-
-@media (max-width: 32rem) {
-  .hh-privacy-footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+  color: var(--text-accent);
+  text-decoration: underline;
+  text-decoration-color: var(--border-accent);
+  text-underline-offset: 0.2em;
 }

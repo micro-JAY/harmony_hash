@@ -19,7 +19,7 @@ The application SHALL expose a privacy-policy control from every workspace and S
 
 ### Requirement: Regional and product-specific disclosure
 
-The notice SHALL identify the operator placeholder, contact channel, processed categories, purposes, legal bases, recipients, retention, international transfers, regional rights, security, children, and automated-decision practices.
+The notice SHALL identify Jana Jennings as the individual operator behind the Tonari Labs trade name, along with the contact channel, processed categories, purposes, legal bases, recipients, retention, international transfers, regional rights, security, children, and automated-decision practices.
 
 #### Scenario: Review AI data flows
 

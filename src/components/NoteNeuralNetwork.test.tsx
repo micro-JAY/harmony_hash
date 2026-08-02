@@ -34,7 +34,8 @@ describe("NoteNeuralNetwork", () => {
     expect(markup).toContain('data-relationship-strength="weak"');
     expect(markup).toContain('<canvas');
     expect(markup).toContain('data-graph-projection="desktop-force-canvas"');
-    expect(markup).toContain("Drag nodes to reshape the network");
+    expect(markup).toContain("Explore the map: drag a node to move it");
+    expect(markup).not.toContain("550ms");
     expect(markup).toContain('aria-label="About NOTE NEURAL NETWORK"');
     expect(markup).toContain('data-testid="network-selection-kind"');
     expect(markup).toContain("Selected · SCALE");

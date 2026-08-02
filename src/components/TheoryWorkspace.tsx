@@ -46,6 +46,7 @@ interface TheoryToolSectionProps {
   id: TheoryToolId;
   title: string;
   summary: string;
+  badge?: string;
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
   children: ReactNode;
@@ -55,6 +56,7 @@ function TheoryToolSection({
   id,
   title,
   summary,
+  badge,
   expanded,
   onExpandedChange,
   children,
@@ -89,6 +91,27 @@ function TheoryToolSection({
             </span>
           </span>
         </button>
+        {badge ? (
+          <span
+            className="inline-flex shrink-0 items-center"
+            style={{
+              padding: "var(--space-1) var(--space-3)",
+              color: "var(--text-soft)",
+              background: "var(--status-info-bg)",
+              border: "1px solid var(--status-info-border)",
+              borderRadius: "var(--radius-full)",
+              fontFamily: "var(--font-body)",
+              fontSize: "var(--text-xs)",
+              fontWeight: "var(--weight-semibold)",
+              letterSpacing: "var(--tracking-caps)",
+              lineHeight: 1,
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {t(badge)}
+          </span>
+        ) : null}
       </header>
       <div
         id={bodyId}
@@ -282,6 +305,7 @@ export default function TheoryWorkspace({
             id="network"
             title="Note Neural Network"
             summary={contextSummary}
+            badge="Early preview"
             expanded={disclosures.network}
             onExpandedChange={(expanded) => onDisclosureChange("network", expanded)}
           >

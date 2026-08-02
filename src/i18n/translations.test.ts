@@ -16,6 +16,7 @@ describe("Japanese translations", () => {
     expect(translate("ja", "Perfect fifth")).toBe("完全5度");
     expect(translate("ja", "Scale learning guide")).toBe("スケール学習ガイド");
     expect(translate("ja", "Hanz Hasher")).toBe("Hanz Hasher");
+    expect(translate("ja", "Early preview")).toBe("早期プレビュー");
     expect(translate("ja", "E Harmonic Minor")).toBe("E ハーモニック・マイナー");
     expect(translate("ja", "Raised seventh over a minor sixth")).toBe("短6度と導音（長7度）の対比");
     expect(translate("ja", "7/7 unique progression tones covered")).toBe(
@@ -28,6 +29,7 @@ describe("Japanese translations", () => {
     expect(translate("en", "Open Improv Insight")).toBe("Open IMPROV INSIGHT");
     expect(translate("en", "Open in Scale Synthesia")).toBe("Open in SCALE SYNTHESIA");
     expect(translate("en", "Hanz Hasher")).toBe("Hanz Hasher");
+    expect(translate("en", "Early preview")).toBe("EARLY PREVIEW");
     expect(translate("en", "Ask Hanz Hasher about Improv Insight")).toBe(
       "Ask Hanz Hasher about IMPROV INSIGHT",
     );

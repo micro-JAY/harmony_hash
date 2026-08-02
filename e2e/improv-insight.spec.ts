@@ -333,7 +333,7 @@ test.describe("IMPROV INSIGHT", () => {
       await expect(results).toHaveCount(6);
       await expect(results.first().getByRole("meter")).toBeVisible();
       if (viewport.name === "mobile") {
-        await page.getByRole("button", { name: "JP", exact: true }).click();
+        await page.getByRole("button", { name: "Switch language to Japanese" }).click();
         const help = page.getByRole("button", { name: "Improv Insightの用語について" });
         await help.click();
         const glossary = page.getByRole("dialog", { name: "用語について" });

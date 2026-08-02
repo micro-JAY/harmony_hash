@@ -2,8 +2,8 @@
 
 ## Decision
 
-Keep the current repair on ElevenLabs' conversational agent and browser client
-tools. Do not add an MCP server, hosted vector database, or a second LLM call.
+Keep the current OpenAI Realtime companion and its source-owned browser tools.
+Do not add an MCP server, hosted vector database, or a second LLM call.
 The browser already owns the authoritative timeline, so a local deterministic
 tool is both cheaper and more accurate than serializing the same state through
 another service.

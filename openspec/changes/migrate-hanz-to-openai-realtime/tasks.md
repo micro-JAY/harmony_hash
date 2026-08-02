@@ -21,7 +21,7 @@
 
 ## 4. Provider Cleanup And Browser Coverage
 
-- [ ] 4.1 Remove `@elevenlabs/react`, the signed-URL helper/tests, provider provisioning/configuration code/tests, public agent variables, and stale provider documentation without changing unrelated dependencies or UI assets.
+- [x] 4.1 Remove `@elevenlabs/react`, the signed-URL helper/tests, provider provisioning/configuration code/tests, public agent variables, and stale provider documentation without changing unrelated dependencies or UI assets.
 - [ ] 4.2 Update Playwright coverage for runtime lazy loading, client-secret failures, pre-mint close, post-mint partial cleanup, no pre-start microphone request, live close/reopen continuity, focus restoration, and short-viewport reachability.
 - [ ] 4.3 Rewrite the live voice smoke for synthetic microphone media, a real OpenAI WebRTC session, received remote audio, a real `replace_progression` call, visible timeline mutation, close/reopen continuity, and clean disconnect.
 - [ ] 4.4 Record the provider migration, credential boundary, verification evidence, rollback boundary, and remaining deployment-only actions in `docs/long_horizon_log.md`.

@@ -14,7 +14,7 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await composeProgression(page, ["Cmaj7"]);
 
-  await page.getByRole("button", { name: "JP", exact: true }).click();
+  await page.getByRole("button", { name: "Switch language to Japanese" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   const nav = page.getByRole("navigation", { name: "ワークスペース" });
   await expect(nav.getByRole("button")).toHaveCount(3);

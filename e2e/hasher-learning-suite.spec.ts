@@ -475,7 +475,7 @@ test.describe("HASHER learning suite", () => {
   test("localizes the new destinations and Toolbox chrome in Japanese", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "JP", exact: true }).click();
+    await page.getByRole("button", { name: "Switch language to Japanese" }).click();
     const nav = page.getByRole("navigation", { name: "ワークスペース" });
     await expect(nav.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
     await expect(nav.getByRole("button", { name: "チューン・ツールボックス", exact: true })).toBeVisible();

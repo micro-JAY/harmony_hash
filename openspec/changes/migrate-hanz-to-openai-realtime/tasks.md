@@ -11,7 +11,7 @@
 - [x] 2.1 Implement the abortable WebRTC start path with client-secret minting before microphone permission, SDP exchange, data-channel lifecycle, remote-track playback, and rollback of every partially acquired resource.
 - [x] 2.2 Implement one opening response per new session, item-id transcript assembly, inbound RTP audio-health sampling plus playback rejection detection, interruption event handling, explicit stop, unmount cleanup, and the 300-second monotonic deadline.
 - [x] 2.3 Replace the provider SDK state with the source-owned React context while retaining the existing lazy-load boundary, permanent mount, panel markup, labels, CSS, accessibility, focus restoration, and close/reopen continuity.
-- [ ] 2.4 Add focused runtime/provider tests for successful connection, mint/media/SDP/data-channel failures, out-of-order transcripts, missing audio, interruption, stop, deadline, navigation cleanup, and Strict Mode safety.
+- [x] 2.4 Add focused runtime/provider tests for successful connection, mint/media/SDP/data-channel failures, out-of-order transcripts, missing audio, interruption, stop, deadline, navigation cleanup, and Strict Mode safety.
 
 ## 3. Progression Tool Bridge
 
@@ -22,7 +22,7 @@
 ## 4. Provider Cleanup And Browser Coverage
 
 - [x] 4.1 Remove `@elevenlabs/react`, the signed-URL helper/tests, provider provisioning/configuration code/tests, public agent variables, and stale provider documentation without changing unrelated dependencies or UI assets.
-- [ ] 4.2 Update Playwright coverage for runtime lazy loading, client-secret failures, pre-mint close, post-mint partial cleanup, no pre-start microphone request, live close/reopen continuity, focus restoration, and short-viewport reachability.
+- [x] 4.2 Update Playwright coverage for runtime lazy loading, client-secret failures, pre-mint close, post-mint partial cleanup, no pre-start microphone request, live close/reopen continuity, focus restoration, and short-viewport reachability.
 - [ ] 4.3 Rewrite the live voice smoke for synthetic microphone media, a real OpenAI WebRTC session, received remote audio, a real `replace_progression` call, visible timeline mutation, close/reopen continuity, and clean disconnect.
 - [ ] 4.4 Record the provider migration, credential boundary, verification evidence, rollback boundary, and remaining deployment-only actions in `docs/long_horizon_log.md`.
 

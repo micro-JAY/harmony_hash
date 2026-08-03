@@ -432,13 +432,16 @@ describe("POST /api/voice/client-secret", () => {
   it("mints a fixed Realtime session and returns only browser-safe fields", async () => {
     const now = Math.floor(Date.now() / 1_000);
     vi.spyOn(Date, "now").mockReturnValue(now * 1_000);
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
-      Response.json({
+    const fetchMock = vi.fn<typeof fetch>().mockImplementationOnce(async (_url, init) => {
+      const { session } = JSON.parse(String(init?.body)) as {
+        session: Record<string, unknown>;
+      };
+      return Response.json({
         value: "ek_test_ephemeral_value",
         expires_at: now + 60,
-        session: { expires_at: now + 300 },
-      }),
-    );
+        session: { object: "realtime.session", ...session },
+      });
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     const response = await worker.fetch(voiceRequest(), env());
@@ -460,8 +463,13 @@ describe("POST /api/voice/client-secret", () => {
       "Bearer sk-worker-test-key",
     );
     const providerBody = JSON.parse(String(request?.body)) as {
+      expires_after: Record<string, unknown>;
       session: Record<string, unknown>;
     };
+    expect(providerBody.expires_after).toEqual({
+      anchor: "created_at",
+      seconds: 60,
+    });
     expect(providerBody.session).toMatchObject({
       type: "realtime",
       model: "gpt-realtime-2.1",
@@ -469,7 +477,6 @@ describe("POST /api/voice/client-secret", () => {
       reasoning: { effort: "low" },
       tool_choice: "auto",
       max_output_tokens: 1_024,
-      expires_at: now + 300,
       tracing: null,
       audio: {
         input: {
@@ -508,19 +515,39 @@ describe("POST /api/voice/client-secret", () => {
     }
   });
 
-  it("rejects malformed, expired, and overlong session credentials", async () => {
+  it("rejects malformed, expired, overlong, and configuration-drifted credentials", async () => {
     const now = Math.floor(Date.now() / 1_000);
     vi.spyOn(Date, "now").mockReturnValue(now * 1_000);
-    const responses = [
-      new Response("not-json"),
-      Response.json({ value: "", expires_at: now + 60, session: { expires_at: now + 300 } }),
-      Response.json({ value: "ek_expired_value", expires_at: now - 1, session: { expires_at: now + 300 } }),
-      Response.json({ value: "ek_long_session", expires_at: now + 60, session: { expires_at: now + 301 } }),
+    const responses: Array<(session: Record<string, unknown>) => Response> = [
+      () => new Response("not-json"),
+      (session) => Response.json({
+        value: "",
+        expires_at: now + 60,
+        session: { object: "realtime.session", ...session },
+      }),
+      (session) => Response.json({
+        value: "ek_expired_value",
+        expires_at: now - 1,
+        session: { object: "realtime.session", ...session },
+      }),
+      (session) => Response.json({
+        value: "ek_long_lived_secret",
+        expires_at: now + 61,
+        session: { object: "realtime.session", ...session },
+      }),
+      (session) => Response.json({
+        value: "ek_drifted_session",
+        expires_at: now + 60,
+        session: { object: "realtime.session", ...session, model: "gpt-realtime" },
+      }),
     ];
-    const fetchMock = vi.fn<typeof fetch>();
-    for (const providerResponse of responses) {
-      fetchMock.mockResolvedValueOnce(providerResponse);
-    }
+    let responseIndex = 0;
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (_url, init) => {
+      const { session } = JSON.parse(String(init?.body)) as {
+        session: Record<string, unknown>;
+      };
+      return responses[responseIndex++](session);
+    });
     vi.stubGlobal("fetch", fetchMock);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
 

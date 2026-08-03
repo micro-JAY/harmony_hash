@@ -5,7 +5,7 @@ The Worker SHALL expose `POST /api/voice/client-secret` that mints a short-lived
 
 #### Scenario: Client secret success
 - **WHEN** a permitted browser origin POSTs an empty request to `/api/voice/client-secret` and the OpenAI key, limiter, and provider are available
-- **THEN** the Worker SHALL return HTTP 200 with a non-empty short-lived `clientSecret`, numeric `expiresAt`, a numeric `serverNow` reference, and provider-confirmed `sessionEndsAt` no more than 300 seconds after `serverNow`
+- **THEN** the Worker SHALL return HTTP 200 with a non-empty short-lived `clientSecret`, numeric `expiresAt`, a numeric `serverNow` reference, and a source-owned `sessionEndsAt` no more than 300 seconds after `serverNow`
 - **AND** the response SHALL NOT contain the standard API key or complete server session configuration
 
 #### Scenario: Missing server key
@@ -27,7 +27,7 @@ The Worker SHALL expose `POST /api/voice/client-secret` that mints a short-lived
 - **AND** server logs SHALL redact credentials, authorization values, client secrets, SDP, and provider detail that could grant access
 
 ### Requirement: Source-owned Realtime session configuration
-The Worker SHALL mint every Hanz session for `gpt-realtime-2.1` with audio output, the source-owned Hanz instructions, the fixed `marin` voice, near-field input noise reduction, input transcription, low-eagerness semantic VAD with automatic responses and interruption, automatic tool choice, bounded output tokens, a provider-enforced 300-second expiry, and exactly the nine source-owned progression function schemas. The mint endpoint SHALL accept no browser configuration, and the shipped browser runtime SHALL send no model, prompt, voice, VAD, tool, tool-policy, expiry, or other `session.update` override.
+The Worker SHALL mint every Hanz session for `gpt-realtime-2.1` with audio output, the source-owned Hanz instructions, the fixed `marin` voice, near-field input noise reduction, input transcription, low-eagerness semantic VAD with automatic responses and interruption, automatic tool choice, bounded output tokens, a 60-second client-secret TTL, and exactly the nine source-owned progression function schemas. The Worker SHALL derive a 300-second application deadline from its server clock. The mint endpoint SHALL accept no browser configuration, and the shipped browser runtime SHALL send no model, prompt, voice, VAD, tool, tool-policy, expiry, or other `session.update` override.
 
 #### Scenario: Fixed configuration sent upstream
 - **WHEN** the Worker mints a Hanz client secret
@@ -71,7 +71,7 @@ The browser SHALL use WebRTC for Hanz input and output: it SHALL attach one expl
 - **AND** the client SHALL NOT manually truncate the conversation item
 
 #### Scenario: Explicit stop or deadline
-- **WHEN** the user ends the conversation, the monotonic browser deadline is reached, or the provider-enforced session expiry closes the call
+- **WHEN** the user ends the conversation or the monotonic browser deadline is reached
 - **THEN** the browser SHALL cancel active output when possible, clear buffered output when possible, stop every microphone track, close the data channel and peer connection, detach remote media, clear the deadline, and return the panel to offline
 
 #### Scenario: Transcript completion order

@@ -118,7 +118,7 @@ async function handleVoiceClientSecret(request: Request, env: Env): Promise<Resp
     {
       clientSecret: outcome.clientSecret,
       expiresAt: outcome.expiresAt,
-      serverNow: Math.floor(Date.now() / 1_000),
+      serverNow: outcome.serverNow,
       sessionEndsAt: outcome.sessionEndsAt,
     },
     200,

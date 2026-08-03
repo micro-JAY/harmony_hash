@@ -4,7 +4,7 @@ import { TOOL_SCHEMAS } from "./toolSchemas";
 export const HANZ_REALTIME_MODEL = "gpt-realtime-2.1";
 export const HANZ_REALTIME_VOICE = "marin";
 export const HANZ_MAX_SESSION_MS = 300_000;
-export const HANZ_MAX_SESSION_SECONDS = HANZ_MAX_SESSION_MS / 1_000;
+export const HANZ_CLIENT_SECRET_TTL_SECONDS = 60;
 
 export const HANZ_REALTIME_TOOLS = TOOL_SCHEMAS.map((tool) => ({
   type: "function" as const,
@@ -17,9 +17,7 @@ export const HANZ_REALTIME_TOOLS = TOOL_SCHEMAS.map((tool) => ({
   },
 }));
 
-export function createHanzRealtimeSession(
-  nowEpochSeconds = Math.floor(Date.now() / 1_000),
-) {
+export function createHanzRealtimeSession() {
   return {
     type: "realtime" as const,
     model: HANZ_REALTIME_MODEL,
@@ -45,7 +43,6 @@ export function createHanzRealtimeSession(
     tools: HANZ_REALTIME_TOOLS,
     tool_choice: "auto" as const,
     max_output_tokens: 1_024,
-    expires_at: nowEpochSeconds + HANZ_MAX_SESSION_SECONDS,
     tracing: null,
   };
 }

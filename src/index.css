@@ -1558,7 +1558,7 @@ svg [data-note-tooltip="true"]:focus-visible {
 
 .hh-privacy-content {
   color: var(--text-secondary);
-  line-height: var(--leading-relaxed);
+  line-height: var(--leading-loose);
 }
 
 .hh-privacy-effective {

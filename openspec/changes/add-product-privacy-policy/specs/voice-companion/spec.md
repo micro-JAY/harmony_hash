@@ -2,30 +2,28 @@
 
 ### Requirement: Privacy-minimized Hanz conversations
 
-Source-controlled Hanz provisioning SHALL disable voice recording and SHALL configure zero-day retention and deletion of transcript, PII, and audio for new conversations.
+The source-configured Hanz session SHALL use OpenAI Realtime to process live microphone audio and conversation text for transcription and response generation.
 
-The browser SHALL keep no more than 20 recent transcript messages in memory for the active conversation UI and SHALL clear them whenever a conversation starts or disconnects.
+The browser SHALL keep no more than 20 recent transcript messages in memory for the active conversation UI and SHALL clear them whenever a session starts or disconnects.
 
-#### Scenario: Create or update the agent
+Tonari SHALL NOT persist Hanz audio or transcript messages in browser storage or an application database. The notice SHALL disclose that provider security, abuse-monitoring, or legally required processing and logs may apply, and SHALL NOT promise provider-side retention or deletion controls.
 
-- **WHEN** the provisioning workflow creates or updates Hanz
-- **THEN** the payload sets `record_voice` to false
-- **AND** sets `retention_days` to zero
-- **AND** enables transcript/PII and audio deletion
+This requirement originally covered source-controlled ElevenLabs recording, retention, and deletion flags. The OpenAI Realtime migration removed provider-agent provisioning; the privacy objective now rests on app-owned data minimization and accurate provider disclosure.
 
-#### Scenario: Preserve historical records
+#### Scenario: Process a live Hanz session
 
-- **WHEN** the privacy settings are applied
-- **THEN** the workflow SHALL NOT request retroactive deletion of existing conversations
+- **WHEN** a user explicitly starts Hanz and grants microphone access
+- **THEN** live audio and conversation text SHALL be processed through OpenAI Realtime
+- **AND** the application SHALL retain at most 20 recent transcript messages in memory for the active UI
 
 #### Scenario: Clear temporary browser transcript
 
-- **WHEN** a Hanz conversation starts or disconnects
+- **WHEN** a Hanz session starts or disconnects
 - **THEN** the in-memory browser transcript SHALL be cleared
 - **AND** no transcript SHALL be persisted by Tonari in browser storage or an application database
 
-#### Scenario: Audit the live configuration
+#### Scenario: Disclose the provider boundary
 
-- **WHEN** the agent configuration is read back
-- **THEN** the audit snapshot exposes the four privacy fields
-- **AND** verification fails if they drift from source control
+- **WHEN** a user reviews the privacy notice
+- **THEN** it SHALL identify OpenAI Realtime as the processor of Hanz live audio and conversation text
+- **AND** it SHALL acknowledge possible provider security, abuse-monitoring, or legally required processing and logs without asserting provider-side retention or deletion guarantees

@@ -200,6 +200,50 @@ describe("VoiceAgentEventCoordinator", () => {
     expect(state.sessionKind).toBeNull();
   });
 
+  it("clears the in-memory transcript whenever a Realtime session starts or restarts", async () => {
+    const { bridge, coordinator, state } = coordinatorFixture();
+
+    await coordinator.handleEvent(realtimeEvent({
+      type: "conversation.item.input_audio_transcription.completed",
+      event_id: "evt-private-first-session-done",
+      item_id: "item-private-first-session",
+      transcript: "Clear this when the next session starts.",
+    }));
+    await coordinator.handleEvent(realtimeEvent({
+      type: "conversation.item.added",
+      event_id: "evt-private-first-session-order",
+      previous_item_id: null,
+      item: { id: "item-private-first-session", role: "user" },
+    }));
+
+    expect(state.transcript).toHaveLength(1);
+
+    coordinator.beginSession(bridge);
+
+    expect(state.transcript).toEqual([]);
+
+    await coordinator.handleEvent(realtimeEvent({
+      type: "conversation.item.input_audio_transcription.completed",
+      event_id: "evt-private-restarted-session-done",
+      item_id: "item-private-restarted-session",
+      transcript: "This belongs only to the restarted session.",
+    }));
+    await coordinator.handleEvent(realtimeEvent({
+      type: "conversation.item.added",
+      event_id: "evt-private-restarted-session-order",
+      previous_item_id: null,
+      item: { id: "item-private-restarted-session", role: "user" },
+    }));
+
+    expect(state.transcript).toEqual([
+      { id: 0, role: "user", text: "This belongs only to the restarted session." },
+    ]);
+
+    coordinator.beginSession(bridge);
+
+    expect(state.transcript).toEqual([]);
+  });
+
   it("executes a retried tool call once, emits one output, and continues once", async () => {
     let releaseMutation: (() => void) | undefined;
     const addChords = vi.fn(() => new Promise<void>((resolve) => {

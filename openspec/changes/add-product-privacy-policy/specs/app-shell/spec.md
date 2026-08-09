@@ -24,4 +24,5 @@ The notice SHALL identify Jana Jennings as the individual operator behind the To
 #### Scenario: Review AI data flows
 
 - **WHEN** a user reviews the notice
-- **THEN** it separately explains local musical data, progression-builder prompts, and Hanz live audio processing
+- **THEN** it separately explains local musical data, progression-builder prompts, and OpenAI Realtime processing of Hanz live audio and conversation text
+- **AND** it distinguishes Tonari's bounded in-memory transcript from possible provider security, abuse-monitoring, or legally required processing and logs

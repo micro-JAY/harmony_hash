@@ -8,4 +8,4 @@
 
 ## 2. Release Verification
 
-- [ ] 2.1 Run strict change/all OpenSpec validation, lint, unit tests, production build, complete browser tests, and desktop/mobile dialog QA, then record the verified completion state.
+- [x] 2.1 Run strict change/all OpenSpec validation, lint, unit tests, production build, complete browser tests, and desktop/mobile dialog QA, then record the verified completion state.

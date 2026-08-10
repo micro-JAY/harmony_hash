@@ -6,7 +6,7 @@ The workspace-level `../AGENTS.md` defines the Tonari Labs stack and design-syst
 
 ## Current focus
 
-Harmony Hash has shipped the piano-voicing and learning-suite roadmap: piano/guitar parity, Note Neural Network, Improv Insight, Scale Synthesia, Circle of Fifths, mood filtering, the first-class fretboard, and the ElevenLabs voice companion.
+Harmony Hash has shipped the piano-voicing and learning-suite roadmap: piano/guitar parity, Note Neural Network, Improv Insight, Scale Synthesia, Circle of Fifths, mood filtering, the first-class fretboard, and the OpenAI Realtime voice companion.
 
 The public source of truth now lives in:
 
@@ -60,13 +60,8 @@ npm run test         # vitest run
 npm run test:watch   # vitest in watch mode
 npx vitest run src/lib/harmonyBrain.test.ts   # single test file
 npx wrangler dev     # Worker + static assets at http://localhost:8787 (run `npm run build` first)
+npx tsx scripts/smoke-voice-agent.ts # live OpenAI WebRTC smoke with synthetic media
 npm run deploy       # build, then deploy Worker `harmony` with assets binding
-
-# Voice companion: create/update the ElevenLabs agent from agent/system-prompt.md
-# + the trimmed tool set. Needs ELEVENLABS_API_KEY; prints the agent id. Re-run
-# after editing the prompt or src/voice/toolSchemas.ts.
-ELEVENLABS_API_KEY=sk_... HH_ALLOWED_HOSTS=harmony.tonari.ai,localhost \
-  npx tsx scripts/provision-voice-agent.ts
 ```
 
 CI (`.github/workflows/ci.yml`) runs `npm run build` then `npm run test` on every push.
@@ -87,7 +82,7 @@ This means the chord dictionary, root normalization, and lookup logic are the **
 
 ### Request routing
 
-`wrangler.jsonc` uses `run_worker_first: ["/api/*"]` with `not_found_handling: "single-page-application"`. The Worker handles `/api/progression`, `/api/health`, and `/api/voice/signed-url` itself and falls through to `env.ASSETS.fetch(request)` for everything else. SPA client-side routes resolve via the assets binding's SPA fallback.
+`wrangler.jsonc` uses `run_worker_first: ["/api/*"]` with `not_found_handling: "single-page-application"`. The Worker handles `/api/progression`, `/api/health`, and `/api/voice/client-secret` itself and falls through to `env.ASSETS.fetch(request)` for everything else. SPA client-side routes resolve via the assets binding's SPA fallback.
 
 ### Progression agent flow
 
@@ -107,21 +102,19 @@ Error contract: 400 (bad input), 403 (CORS origin), 500 (config / validation), 5
 
 ### Voice companion (`src/voice/`)
 
-A real-time ElevenLabs voice agent — a voice-native sibling of the text progression agent. A musician talks through what they want (the companion builds/edits the timeline) and asks for the theory behind it. The agent runs on the ElevenLabs Agents platform and drives the builder through **client tools**. Canonical spec: `openspec/specs/voice-companion/spec.md`.
+A source-owned OpenAI Realtime voice companion — a voice-native sibling of the text progression agent. A musician talks through what they want (the companion builds/edits the timeline) and asks for the theory behind it. The browser uses WebRTC for audio and drives the builder through the exact nine local tools. Canonical spec: `openspec/specs/voice-companion/spec.md`.
 
-- **Bridge over a ref-mirror, not a store.** `src/voice/progressionBridge.ts` (`createProgressionBridge(deps)`) implements the `ProgressionBridge` contract (`src/voice/types.ts`). `App.tsx` builds it **once** (`useMemo`) over refs that mirror `chords` / `instrument` / `activeChordIndex` plus the `randomizeAll` / playback closures (updated in a no-deps effect), so ElevenLabs tool callbacks — which fire *outside* React's render cycle — always read fresh state. Don't lift the progression into Zustand for this; the ref-mirror is the deliberate, low-blast-radius choice. (It carries the repo's only `eslint-disable` — a reasoned `react-hooks/refs` suppression, since the rule can't see that the ref reads are deferred to callback time.)
-- **Tool surface = 9 client tools**, defined once in `src/voice/toolSchemas.ts` (shared by the browser hook `src/voice/useProgressionAgentTools.ts` *and* the provisioning script). `toolSchemas.ts`, the hook, and `agent/system-prompt.md` must always agree on the same names. The agent only gets what the app genuinely backs — there are **no** key-setting, suggestion-mode, or next-chord tools, because `harmonyBrain.ts` does not detect keys, derive numerals, rank scales, or suggest next chords. `analyze_progression` returns chord symbols + tones (`parseNotes`) + the voice-led voicing (`computeVoiceLedProgression`) only; the system prompt forbids the agent claiming the app computed a key/numerals/scales. `randomize_progression` reshuffles existing voicings/variants — it does not generate chords.
-- **Signed-URL auth.** The provisioned agent has auth enabled, so the browser never connects with a bare agent id. `POST /api/voice/signed-url` (in `worker/index.ts`, backed by `src/lib/elevenLabsAuth.ts`) mints a short-lived signed URL with the server-held key, mirroring `/api/progression`'s CORS/allowlist/error contract (403 bad origin, 500 missing config, 502 + server-log on an upstream failure, 200 `{ signedUrl }`). The agent highlight (`highlightedChordIndex` in `App.tsx`) is kept **separate** from the `activeChordIndex` playback cursor — don't merge them.
-- **Provider/panel.** `src/voice/VoiceAgentProvider.tsx` wraps the ElevenLabs `ConversationProvider`; `src/voice/voiceAgentContext.ts` holds the context + `useVoiceAgent` hook (split out so the provider file is component-only, per react-refresh, mirroring `I18nContext.ts`/`I18nProvider.tsx`). `VoiceAgentPanel.tsx` is permanently mounted in the action toolbar but collapsed by default; hiding its orb/transcript/controls must never unmount the SDK session or `useProgressionAgentTools`. It is styled with inline CSS-variable tokens — no per-component stylesheet. The package's `voice-agent.css` / `exampleAdapter.ts` / `signedUrlRoute.ts` and the `@elevenlabs/elevenlabs-js` SDK were intentionally **not** adopted (raw `fetch` instead).
+- **Bridge over a ref-mirror, not a store.** `src/voice/progressionBridge.ts` (`createProgressionBridge(deps)`) implements the `ProgressionBridge` contract (`src/voice/types.ts`). `App.tsx` builds it **once** (`useMemo`) over refs that mirror `chords` / `instrument` / `activeChordIndex` plus the `randomizeAll` / playback closures (updated in a no-deps effect), so Realtime tool calls — which fire *outside* React's render cycle — always read fresh state. Don't lift the progression into Zustand for this; the ref-mirror is the deliberate, low-blast-radius choice. (It carries the repo's only `eslint-disable` — a reasoned `react-hooks/refs` suppression, since the rule can't see that the ref reads are deferred to callback time.)
+- **Tool surface = 9 client tools**, defined once in `src/voice/toolSchemas.ts`, converted to strict Realtime function definitions by `src/voice/realtimeSessionConfig.ts`, and executed by `src/voice/progressionAgentTools.ts`. Those files and `src/voice/hanzSystemPrompt.ts` must always agree on the same names. The agent only gets what the app genuinely backs — there are **no** key-setting, suggestion-mode, or next-chord tools, because `harmonyBrain.ts` does not detect keys, derive numerals, rank scales, or suggest next chords. `analyze_progression` returns chord symbols + tones (`parseNotes`) + the voice-led voicing (`computeVoiceLedProgression`) only; the system prompt forbids the agent claiming the app computed a key/numerals/scales. `randomize_progression` reshuffles existing voicings/variants — it does not generate chords.
+- **Client-secret auth.** `POST /api/voice/client-secret` (in `worker/index.ts`, backed by `src/lib/openAIRealtimeAuth.ts`) mints a short-lived credential for one fixed 300-second session. The endpoint accepts an empty body only, keeps the standard API key server-side, and preserves required Origin admission, a dedicated rate limiter, sanitized provider failures, and `no-store` responses. The agent highlight (`highlightedChordIndex` in `App.tsx`) is kept **separate** from the `activeChordIndex` playback cursor — don't merge them.
+- **Provider/panel.** `src/voice/openAIRealtimeSession.ts` owns the WebRTC peer, remote audio, data channel, monotonic deadline, and cleanup. `src/voice/VoiceAgentProvider.tsx` and `src/voice/voiceAgentContext.ts` adapt that transport into React state and the validated tool/transcript coordinator. `VoiceAgentPanel.tsx` is permanently mounted in the action toolbar but collapsed by default; hiding its orb/transcript/controls must never end or unmount a connected session. It is styled with inline CSS-variable tokens — no per-component stylesheet.
 
 ## Worker configuration
 
 Both `.dev.vars` and `wrangler.jsonc` live at the **repo root** (not in `worker/`).
 
-- `OPENAI_API_KEY` — required for the progression builder. Local: repo-root `.dev.vars` (gitignored). Prod: `npx wrangler versions secret put OPENAI_API_KEY`.
+- `OPENAI_API_KEY` — required for both the progression builder and Hanz client-secret route. Local: repo-root `.dev.vars` (gitignored). Prod: `npx wrangler versions secret put OPENAI_API_KEY`. **Worker/CLI only — never a `VITE_`-prefixed variable or committed file.**
 - `ALLOWED_ORIGIN` — optional comma-separated additive origin allowlist; supports `*`. The canonical production origin is built in, and localhost origins are accepted only when the Worker itself is local.
-- `ELEVENLABS_API_KEY` — required for the voice companion's signed-URL route. Local: `.dev.vars` (gitignored). Prod: `npx wrangler secret put ELEVENLABS_API_KEY`. **Worker/CLI only — never a `VITE_`-prefixed var, never a committed file.**
-- `HH_VOICE_AGENT_ID` — the provisioned voice agent id (non-secret). `.dev.vars` locally; a plain `vars` entry in `wrangler.jsonc` for prod. The browser reads the *same* id via `import.meta.env.VITE_HH_VOICE_AGENT_ID` (`.env` / committed `.env.example`).
 
 See `worker/README.md` for full deploy/secrets details and curl examples.
 

@@ -666,7 +666,7 @@ function App() {
   });
 
   // Built once and stable. Every method reads live state through the refs above
-  // and runs only when an ElevenLabs tool callback fires — outside React's render
+  // and runs only when a Realtime tool callback fires — outside React's render
   // cycle — and the bridge renders nothing. The react-hooks/refs rule can't see
   // that these reads are deferred, so it's disabled on this construction only.
   const voiceBridge = useMemo(
@@ -1118,8 +1118,7 @@ function App() {
         VoiceAgentRuntime ? (
           <VoiceAgentRuntime
             bridge={voiceBridge}
-            agentId={import.meta.env.VITE_HH_VOICE_AGENT_ID ?? ""}
-            signedUrlEndpoint="/api/voice/signed-url"
+            clientSecretEndpoint="/api/voice/client-secret"
             open={hanzOpen}
             onClose={handleCloseHanz}
           />

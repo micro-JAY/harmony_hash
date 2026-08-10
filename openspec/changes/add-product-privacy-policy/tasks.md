@@ -4,11 +4,11 @@
 - [x] 1.2 Add app-specific and regional privacy disclosures.
 - [x] 1.3 Add component and browser coverage.
 
-## 2. Hanz retention
+## 2. Hanz data minimization
 
-- [x] 2.1 Add source-owned privacy settings to create and update payloads.
-- [x] 2.2 Parse and verify the live agent privacy snapshot.
-- [x] 2.3 Apply and read back the future-conversation privacy settings without deleting historical records.
+- [x] 2.1 Keep no more than 20 recent transcript messages in application memory and clear them at session start and disconnect.
+- [x] 2.2 Disclose OpenAI Realtime audio/transcript processing and possible provider security, abuse-monitoring, or legally required logs without promising provider-side retention or deletion controls.
+- [x] 2.3 Reconcile the original ElevenLabs privacy rationale with the migration that removed provider-agent provisioning.
 
 ## 3. Validation
 
@@ -17,6 +17,6 @@
 
 ## 4. Review Follow-up
 
-- [x] 4.1 Clear the temporary browser transcript at conversation boundaries and correct the localized disclosure and provider list.
+- [x] 4.1 Clear the temporary browser transcript at session boundaries and correct the localized OpenAI Realtime disclosure and provider list.
 - [x] 4.2 Reconcile proposal capabilities, operator requirements, semantic link styling, and layout tokens with repository conventions.
-- [x] 4.3 Pass focused privacy/provider tests, full validation, and rendered policy QA on the split privacy branch.
+- [x] 4.3 Pass focused privacy/Realtime tests, full validation, and rendered policy QA on the split privacy branch.

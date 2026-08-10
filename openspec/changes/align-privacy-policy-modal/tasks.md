@@ -4,7 +4,7 @@
 
 ## 1. Privacy Content
 
-- [ ] 1.1 Update and focused-test the English dialog heading, effective/update date, operator/contact invariants, and repository-supported Cloudflare wording without changing the existing modal layout.
+- [x] 1.1 Update and focused-test the English dialog heading, effective/update date, operator/contact invariants, and repository-supported Cloudflare wording without changing the existing modal layout.
 
 ## 2. Release Verification
 

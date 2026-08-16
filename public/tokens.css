@@ -291,6 +291,11 @@
   --radius-full: 9999px;
 
 
+  /* Harmony Hash pairs its primary entry controls on one shared geometry rail. */
+  --control-entry-height: 3rem;
+  --control-action-width: 7rem;
+
+
   /* ----------------------------------------------------------
      SHADOW & GLOW
      ---------------------------------------------------------- */

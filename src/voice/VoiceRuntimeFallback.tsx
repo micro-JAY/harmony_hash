@@ -8,7 +8,7 @@ interface VoiceRuntimeFallbackProps {
   onReload: () => void;
 }
 
-/** Lightweight shell shown while the optional ElevenLabs chunk loads. */
+/** Lightweight shell shown while the optional Realtime runtime chunk loads. */
 export default function VoiceRuntimeFallback({
   failed,
   onClose,

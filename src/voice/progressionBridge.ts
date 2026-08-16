@@ -1,7 +1,7 @@
 /**
  * The real ProgressionBridge for Harmony Hash.
  *
- * The voice tool layer calls these methods from ElevenLabs callbacks that fire
+ * The voice tool layer calls these methods from Realtime events that fire
  * OUTSIDE React's render cycle, so the bridge must never close over a snapshot
  * of state. App.tsx supplies `deps` built over refs + stable callbacks (a
  * ref-mirror) so every call reads the live timeline. See progressionBridge in

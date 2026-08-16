@@ -1,97 +1,133 @@
-import { ConversationProvider } from "@elevenlabs/react";
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  OpenAIRealtimeSession,
+  type RealtimeConnectionStatus,
+} from "./openAIRealtimeSession";
 import type { ProgressionBridge } from "./types";
-import { sanitizeProviderDetail } from "../lib/sanitizeProviderDetail";
 import {
   VoiceAgentContext,
+  VoiceAgentEventCoordinator,
   type TranscriptEntry,
   type VoiceAgentContextValue,
 } from "./voiceAgentContext";
-import { clearVoiceFocus } from "./sessionLifecycle";
 
 export interface VoiceAgentProviderProps {
   /** Adapter over the host app's progression-builder state (see progressionBridge.ts). */
   bridge: ProgressionBridge;
-  /** ElevenLabs agent id printed by scripts/provision-voice-agent.ts. */
-  agentId: string;
-  /**
-   * Endpoint that mints a short-lived signed URL (the Worker's
-   * /api/voice/signed-url). Required because the provisioned agent has
-   * authentication enabled. Omit only for a public dev agent, in which case the
-   * bare agentId is used to connect.
-   */
-  signedUrlEndpoint?: string;
+  /** Worker route that mints a short-lived, fixed-configuration Realtime client secret. */
+  clientSecretEndpoint: string;
   children: ReactNode;
 }
 
-/**
- * Wraps the ElevenLabs ConversationProvider and exposes the progression bridge
- * plus a running transcript to the voice UI. Mount this once around the part of
- * the app that contains <VoiceAgentPanel/>.
- */
+/** Owns one OpenAI Realtime transport while its popup can open and close freely. */
 export function VoiceAgentProvider({
   bridge,
-  agentId,
-  signedUrlEndpoint,
+  clientSecretEndpoint,
   children,
 }: VoiceAgentProviderProps) {
+  const [status, setStatus] = useState<RealtimeConnectionStatus>("disconnected");
+  const [message, setMessage] = useState<string | null>(null);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [sessionKind, setSessionKind] = useState<"voice" | "text" | null>(null);
   const [audioPacketCount, setAudioPacketCount] = useState(0);
   const [agentReplyCount, setAgentReplyCount] = useState(0);
   const [agentReplyAudioBaseline, setAgentReplyAudioBaseline] = useState(0);
-  const audioPacketCountRef = useRef(0);
-  const currentTurnAudioBaselineRef = useRef(0);
 
-  // Monotonic transcript ids. `slice(-19)` caps the array at 20, so `prev.length`
-  // would stick at 20 and hand React duplicate keys (stale/misordered rows in long
-  // sessions). Increment a ref OUTSIDE the setState updater — the updater can run
-  // twice under StrictMode, but an event handler runs once.
-  const nextIdRef = useRef(0);
-
-  // onMessage receives ElevenLabs' MessagePayload. Verified against the installed
-  // @elevenlabs/react 1.6.3 / @elevenlabs/client: { message, role, ... }.
-  const handleMessage = useCallback(
-    (msg: { message: string; role: "user" | "agent" }) => {
-      const text = msg.message?.trim();
-      if (!text) return;
-      if (msg.role === "user") {
-        currentTurnAudioBaselineRef.current = audioPacketCountRef.current;
-      } else {
-        setAgentReplyAudioBaseline(currentTurnAudioBaselineRef.current);
-        setAgentReplyCount((count) => count + 1);
-      }
-      const id = nextIdRef.current++;
-      setTranscript((prev) => [...prev.slice(-19), { id, role: msg.role, text }]);
-    },
-    [],
+  const [coordinator] = useState(
+    () => new VoiceAgentEventCoordinator(bridge, {
+      setTranscript,
+      setSessionKind,
+      setAudioPacketCount,
+      setAgentReplyCount,
+      setAgentReplyAudioBaseline,
+      setFatalError: (errorMessage) => {
+        setSessionKind(null);
+        setMessage(errorMessage);
+        setStatus("error");
+      },
+    }),
   );
 
-  const handleConversationCreated = useCallback((conversation: { type: "voice" | "text" }) => {
-    audioPacketCountRef.current = 0;
-    currentTurnAudioBaselineRef.current = 0;
-    setAudioPacketCount(0);
-    setAgentReplyCount(0);
-    setAgentReplyAudioBaseline(0);
-    setSessionKind(conversation.type);
-  }, []);
+  const [session] = useState(() => {
+    const realtimeSession = new OpenAIRealtimeSession({
+      onStatus: (nextStatus, nextMessage) => {
+        setStatus(nextStatus);
+        setMessage(nextMessage);
+        if (nextStatus === "connected") coordinator.handleConnected();
+        if (nextStatus === "error") coordinator.handleDisconnected();
+      },
+      onEvent: (event) => coordinator.handleEvent(event),
+      onPacketCount: (packetCount) => coordinator.handlePacketCount(packetCount),
+      onPlaybackError: setPlaybackError,
+      onDisconnected: () => coordinator.handleDisconnected(),
+    });
+    coordinator.attachTransport(realtimeSession);
+    return realtimeSession;
+  });
 
-  const handleAudio = useCallback((base64Audio: string) => {
-    if (base64Audio.length === 0) return;
-    audioPacketCountRef.current += 1;
-    setAudioPacketCount(audioPacketCountRef.current);
-  }, []);
+  const startSession = useCallback(async (signal?: AbortSignal) => {
+    if (
+      session.connectionStatus === "connecting"
+      || session.connectionStatus === "connected"
+    ) {
+      return;
+    }
+    coordinator.beginSession(bridge);
+    await session.start(clientSecretEndpoint, signal);
+  }, [bridge, clientSecretEndpoint, coordinator, session]);
 
-  const providerOverrides = useMemo(
-    () => ({ conversation: { textOnly: false } }),
-    [],
-  );
+  const endSession = useCallback(async () => {
+    try {
+      await session.stop();
+    } finally {
+      await coordinator.clearFocus();
+    }
+  }, [coordinator, session]);
+
+  const setVolume = useCallback(({ volume }: { volume: number }) => {
+    session.setVolume(volume);
+  }, [session]);
+
+  useEffect(() => {
+    const handlePageHide = () => {
+      void endSession();
+    };
+    const handlePageShow = () => session.checkDeadline();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") session.checkDeadline();
+    };
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("pageshow", handlePageShow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [endSession, session]);
+
+  useEffect(() => () => {
+    void session.dispose();
+    void coordinator.clearFocus();
+  }, [coordinator, session]);
 
   const value = useMemo<VoiceAgentContextValue>(
     () => ({
       bridge,
-      agentId,
-      signedUrlEndpoint,
+      clientSecretEndpoint,
+      status,
+      message,
+      playbackError,
+      startSession,
+      endSession,
+      setVolume,
       transcript,
       sessionKind,
       audioPacketCount,
@@ -100,8 +136,13 @@ export function VoiceAgentProvider({
     }),
     [
       bridge,
-      agentId,
-      signedUrlEndpoint,
+      clientSecretEndpoint,
+      status,
+      message,
+      playbackError,
+      startSession,
+      endSession,
+      setVolume,
       transcript,
       sessionKind,
       audioPacketCount,
@@ -110,37 +151,9 @@ export function VoiceAgentProvider({
     ],
   );
 
-  const clearFocusAfterSession = useCallback(async () => {
-    try {
-      await clearVoiceFocus(bridge);
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
-      console.error("[harmony-hash-voice] Could not clear Hanz focus", sanitizeProviderDetail(detail));
-    }
-  }, [bridge]);
-
-  const handleProviderError = useCallback((error: unknown) => {
-    const detail = error instanceof Error ? error.message : String(error);
-    console.error("[harmony-hash-voice]", sanitizeProviderDetail(detail));
-    void clearFocusAfterSession();
-  }, [clearFocusAfterSession]);
-
   return (
     <VoiceAgentContext.Provider value={value}>
-      <ConversationProvider
-        textOnly={false}
-        overrides={providerOverrides}
-        onConversationCreated={handleConversationCreated}
-        onAudio={handleAudio}
-        onMessage={handleMessage}
-        onDisconnect={() => {
-          setSessionKind(null);
-          void clearFocusAfterSession();
-        }}
-        onError={handleProviderError}
-      >
-        {children}
-      </ConversationProvider>
+      {children}
     </VoiceAgentContext.Provider>
   );
 }

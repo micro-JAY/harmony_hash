@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
-const OPTIONAL_LOCAL_BINDINGS = ["ALLOWED_ORIGIN", "HH_VOICE_AGENT_ID"] as const;
+const OPTIONAL_LOCAL_BINDINGS = ["ALLOWED_ORIGIN"] as const;
 
 type LocalEnvironment = Record<string, string | undefined>;
 

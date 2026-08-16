@@ -1,4 +1,6 @@
 const API_KEY_PATTERN = /\bsk[-_][A-Za-z0-9_-]{8,}\b/gi;
+const EPHEMERAL_KEY_PATTERN = /\bek[-_][A-Za-z0-9_-]{8,}\b/gi;
+const REALTIME_CALL_ID_PATTERN = /\brtc_[A-Za-z0-9_-]{8,}\b/gi;
 const BEARER_PATTERN = /\bBearer\s+[^\s,;)}\]]+/gi;
 const SIGNED_WEBSOCKET_PATTERN = /\bwss:\/\/[^\s"'<>]+/gi;
 const SENSITIVE_QUERY_PATTERN =
@@ -13,6 +15,8 @@ export function sanitizeProviderDetail(
 ): string {
   return detail
     .replace(API_KEY_PATTERN, "[redacted]")
+    .replace(EPHEMERAL_KEY_PATTERN, "[client-secret redacted]")
+    .replace(REALTIME_CALL_ID_PATTERN, "[call-id redacted]")
     .replace(BEARER_PATTERN, "Bearer [redacted]")
     .replace(SIGNED_WEBSOCKET_PATTERN, "[signed-url redacted]")
     .replace(SENSITIVE_QUERY_PATTERN, "$1[redacted]")

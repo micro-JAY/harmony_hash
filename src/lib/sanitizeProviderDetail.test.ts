@@ -32,6 +32,14 @@ describe("sanitizeProviderDetail", () => {
     );
   });
 
+  it("redacts OpenAI Realtime client secrets and call identifiers", () => {
+    expect(
+      sanitizeProviderDetail(
+        "client ek_live_secret_123456789 call rtc_session_secret_123456789",
+      ),
+    ).toBe("client [client-secret redacted] call [call-id redacted]");
+  });
+
   it("redacts provider environment labels and multiword authorization values", () => {
     expect(
       sanitizeProviderDetail(

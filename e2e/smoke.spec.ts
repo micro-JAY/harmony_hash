@@ -170,14 +170,14 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
   });
 
   test("opens Hanz only after prompt help and restores focus on Escape", async ({ page }) => {
-    let signedUrlRequests = 0;
-    await page.route("**/api/voice/signed-url", async (route) => {
-      signedUrlRequests += 1;
+    let clientSecretRequests = 0;
+    await page.route("**/api/voice/client-secret", async (route) => {
+      clientSecretRequests += 1;
       await route.abort();
     });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
-    expect(signedUrlRequests).toBe(0);
+    expect(clientSecretRequests).toBe(0);
 
     const prompt = page.getByRole("textbox", { name: "Describe the progression you want" });
     await prompt.fill("help me finish this progression");
@@ -188,11 +188,77 @@ test.describe("Piano voice leading — visual + DOM regression", () => {
     await help.press("Enter");
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
-    expect(signedUrlRequests).toBe(0);
+    expect(clientSecretRequests).toBe(0);
 
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
     await expect(help).toBeFocused();
-    expect(signedUrlRequests).toBe(0);
+    expect(clientSecretRequests).toBe(0);
+  });
+});
+
+test.describe("Privacy policy", () => {
+  test("opens the complete policy and restores focus on Escape", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const openButton = page.getByRole("button", { name: "Privacy Policy" });
+    await openButton.click();
+
+    const dialog = page.getByRole("dialog", { name: "PRIVACY POLICY", exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "PRIVACY POLICY", level: 2 })).toBeVisible();
+    await expect(dialog.locator("h3")).toHaveCount(17);
+    await expect(dialog).toContainText("Jana Jennings");
+    await expect(dialog).toContainText("Last updated August 10, 2026");
+    await expect(dialog.getByRole("link", { name: /privacy@tonari\.ai/ })).toHaveAttribute(
+      "href",
+      "mailto:privacy@tonari.ai",
+    );
+    await expect(dialog).toContainText("store:false");
+    await expect(dialog).toContainText("OpenAI Realtime");
+    await expect(dialog).toContainText("request logs");
+    await expect(dialog).toContainText("technical observability");
+    await expect(dialog).not.toContainText("hello@tonari.ai");
+    await expect(dialog).not.toContainText(/\bG-[A-Z0-9]+\b/);
+    await expect(dialog).not.toContainText("web analytics");
+    await expect(dialog).not.toContainText("ElevenLabs");
+    await expect(dialog).not.toContainText("zero-day retention");
+    await expect(dialog).toContainText("Japan APPI");
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(openButton).toBeFocused();
+
+    await openButton.click();
+    const reopenedDialog = page.getByRole("dialog", { name: "PRIVACY POLICY", exact: true });
+    await expect(reopenedDialog).toBeVisible();
+    await reopenedDialog.getByRole("button", { name: "Close privacy policy" }).click();
+    await expect(reopenedDialog).toHaveCount(0);
+    await expect(openButton).toBeFocused();
+  });
+
+  test("keeps the policy inside a narrow viewport", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.getByRole("button", { name: "Privacy Policy" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "PRIVACY POLICY", exact: true });
+    const geometry = await dialog.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const scroll = element.querySelector<HTMLElement>('[data-dialog-scroll-region="true"]');
+      return {
+        left: rect.left,
+        right: rect.right,
+        viewportWidth: window.innerWidth,
+        documentOverflow: document.documentElement.scrollWidth - window.innerWidth,
+        contentScrolls: Boolean(scroll && scroll.scrollHeight > scroll.clientHeight),
+        backgroundLocked: document.body.style.overflow === "hidden",
+      };
+    });
+
+    expect(geometry.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth);
+    expect(geometry.documentOverflow).toBeLessThanOrEqual(0);
+    expect(geometry.contentScrolls).toBe(true);
+    expect(geometry.backgroundLocked).toBe(true);
   });
 });

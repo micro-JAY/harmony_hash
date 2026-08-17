@@ -22,7 +22,12 @@ The system SHALL provide a Modify action for a non-empty, agent-supported timeli
 - **AND** SHALL reject a response whose chord count differs from the supplied sequence
 
 ### Requirement: Explicit new-progression generation
-The system SHALL provide a Re-run action that submits the prompt without existing-timeline context and generates a fresh progression through the existing endpoint.
+The system SHALL provide a stateful new-progression action that submits the prompt without existing-timeline context and generates a fresh progression through the existing endpoint. The action SHALL be labeled Run when no chord cards are displayed and Re-run when one or more chord cards are displayed.
+
+#### Scenario: Initial generation has an unambiguous label
+- **WHEN** no chords are present in the timeline
+- **THEN** the fresh-generation action SHALL be labeled Run
+- **AND** its accessible name and keyboard-hint copy SHALL identify it as Run
 
 #### Scenario: Re-run discards current timeline context
 - **WHEN** the timeline contains chords and the user selects Re-run

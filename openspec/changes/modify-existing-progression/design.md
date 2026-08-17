@@ -7,7 +7,7 @@
 **Goals:**
 
 - Make a targeted natural-language edit apply to the current resolved timeline.
-- Make starting over an explicit Re-run action that does not include current-timeline context.
+- Make starting over an explicit Run action before a timeline exists and Re-run action afterwards, neither of which includes current-timeline context.
 - Preserve the existing client timeout, request abortion, stale-response checks, dictionary validation, and output path.
 - Keep both controls usable at narrow widths and distinguish Modify using existing academy status tokens.
 
@@ -32,11 +32,11 @@ Alternative considered: return a patch of chord indexes. That needs a new patch 
 
 ### D3 — Timeline is passed as props, not mirrored in component state
 
-`ProgressionInput` derives ordered names from its committed `timeline` and passes them to `ProgressionAgent`. Modify is disabled when no timeline exists; Re-run stays available. Existing timeline and cancellation versions capture the request snapshot and prevent a late result from overwriting a newer edit.
+`ProgressionInput` derives ordered names from its committed `timeline` and passes them to `ProgressionAgent`. Modify is disabled when no timeline exists; the no-context generation action stays available and is labeled Run before chord cards exist, then Re-run afterwards. Existing timeline and cancellation versions capture the request snapshot and prevent a late result from overwriting a newer edit.
 
 ### D4 — Button semantics and tokens are explicit
 
-The original accent action becomes Re-run and invokes the existing no-context generation path. The adjacent Modify action uses `--status-academy-bg`, `--status-academy-text`, and `--status-academy-border`, with the same disabled/loading semantics. The keyboard shortcut continues to invoke Re-run because it is the original build shortcut.
+The original accent action invokes the existing no-context generation path. It is labeled Run when no chord cards are displayed and Re-run once a timeline exists; its accessible name and keyboard-hint copy follow the same state. The adjacent Modify action uses `--status-academy-bg`, `--status-academy-text`, and `--status-academy-border`, with the same disabled/loading semantics. The keyboard shortcut continues to invoke this no-context generation action.
 
 ## Risks / Trade-offs
 

@@ -111,6 +111,11 @@ export default function ProgressionAgent({
     canSubmit &&
     currentChords.length >= 3 &&
     currentChords.length <= 8;
+  const hasTimeline = currentChords.length > 0;
+  const generationActionLabel = hasTimeline ? t("Re-run") : t("Run");
+  const generationActionAriaLabel = hasTimeline
+    ? t("Re-run progression agent")
+    : t("Run progression agent");
 
   async function handleSubmit(existingChords?: readonly string[]) {
     const requestExistingChords = existingChords ? [...existingChords] : undefined;
@@ -272,7 +277,7 @@ export default function ProgressionAgent({
           </button>
           <button
             onClick={handleRerun}
-            aria-label={t("Re-run progression agent")}
+            aria-label={generationActionAriaLabel}
             disabled={!canSubmit}
             className="min-w-0 flex-1 px-6 py-3 rounded-lg font-semibold transition-all sm:min-w-[7rem]"
             style={{
@@ -316,7 +321,7 @@ export default function ProgressionAgent({
                 <span>{t("Building…")}</span>
               </>
             ) : (
-              <span>{t("Re-run")}</span>
+              <span>{generationActionLabel}</span>
             )}
           </button>
         </div>
@@ -371,7 +376,7 @@ export default function ProgressionAgent({
             className="hidden text-xs sm:inline"
             style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
           >
-            {t("⌘↵ to re-run")}
+            {t(hasTimeline ? "⌘↵ to re-run" : "⌘↵ to run")}
           </span>
         </div>
       </div>

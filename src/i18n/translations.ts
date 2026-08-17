@@ -221,6 +221,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "API is reachable and configured": "APIに接続でき、設定も完了しています",
     "API is unreachable or missing required config": "APIに接続できないか、必要な設定がありません",
     "⌘↵ to build": "⌘↵ で作成",
+    "⌘↵ to run": "⌘↵ で実行",
     "⌘↵ to re-run": "⌘↵ で再実行",
     Retry: "再試行",
     "Chord progression composer": "コード進行コンポーザー",

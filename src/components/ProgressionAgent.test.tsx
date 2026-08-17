@@ -19,13 +19,22 @@ function renderAgent(currentChords: readonly string[]): string {
 }
 
 describe("ProgressionAgent actions", () => {
-  it("renders distinct Modify and Re-run controls with academy styling", () => {
+  it("labels fresh generation as Re-run when a timeline exists", () => {
     const markup = renderAgent(["Cmaj7", "Am7", "Dm7", "G7"]);
 
     expect(markup).toContain('aria-label="Modify current progression"');
     expect(markup).toContain('aria-label="Re-run progression agent"');
     expect(markup).toContain('role="group" aria-label="Progression agent actions"');
     expect(markup).toContain('class="flex w-full shrink-0 gap-3 sm:w-auto"');
+  });
+
+  it("labels fresh generation as Run before a timeline exists", () => {
+    const markup = renderAgent([]);
+
+    expect(markup).toContain('aria-label="Run progression agent"');
+    expect(markup).toContain(">Run</span>");
+    expect(markup).toContain("⌘↵ to run");
+    expect(markup).not.toContain('aria-label="Re-run progression agent"');
   });
 
   it("keeps Modify unavailable without a current timeline", () => {

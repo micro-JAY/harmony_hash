@@ -66,7 +66,7 @@ test("shares a private snapshot, copies it, restores focus, and imports guitar/p
   expect(shareLink).toContain("G7%239");
   expect(parsed.hash).toBe("");
   expect(page.url()).toBe(sourceUrl);
-  await expect(panel).toContainText("Hanz conversations and prompts stay private.");
+  await expect(panel).toContainText("Harmony conversations and prompts stay private.");
 
   await page.getByRole("button", { name: "Copy link" }).click();
   await expect(page.getByRole("status", { name: "" }).filter({ hasText: "Link copied." })).toBeVisible();

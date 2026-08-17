@@ -40,7 +40,7 @@ export default function VoiceRuntimeFallback({
     <section
       role="dialog"
       aria-modal="false"
-      aria-label={t("Hanz Hasher")}
+      aria-label={t("Harmony")}
       className="hhv-popup flex w-full max-w-md flex-col gap-4 rounded-xl"
       style={{
         position: "fixed",
@@ -67,12 +67,12 @@ export default function VoiceRuntimeFallback({
             color: "var(--text-secondary)",
           }}
         >
-          {t("Hanz Hasher")}
+          {t("Harmony")}
         </span>
         <button
           ref={closeRef}
           type="button"
-          aria-label={t("Close Hanz Hasher")}
+          aria-label={t("Close Harmony")}
           onClick={handleClose}
           className="grid place-items-center rounded-md"
           style={{

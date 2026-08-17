@@ -604,7 +604,7 @@ describe("OpenAIRealtimeSession", () => {
 
     expect(fixture.session.connectionStatus).toBe("connected");
     expect(fixture.callbacks.onPlaybackError).toHaveBeenLastCalledWith(
-      "Hanz audio could not play in this browser. Check your output device and try again.",
+      "Harmony audio could not play in this browser. Check your output device and try again.",
     );
 
     await fixture.session.stop();

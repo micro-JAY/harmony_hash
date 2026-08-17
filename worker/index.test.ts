@@ -39,6 +39,7 @@ function env(overrides: Partial<Env> = {}): Env {
 function progressionRequest(
   prompt = "warm soul progression",
   origin?: string,
+  existingChords?: readonly string[],
 ): Request {
   const headers = new Headers({ "Content-Type": "application/json" });
   headers.set("CF-Connecting-IP", "203.0.113.10");
@@ -46,7 +47,7 @@ function progressionRequest(
   return new Request("https://harmony.tonari.ai/api/progression", {
     method: "POST",
     headers,
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify(existingChords ? { prompt, existingChords } : { prompt }),
   });
 }
 
@@ -153,6 +154,39 @@ describe("POST /api/progression", () => {
       timeout: 30_000,
     });
     expect(openaiMock.create).toHaveBeenCalledTimes(2);
+  });
+
+  it("accepts a valid existing timeline and supplies it as edit context", async () => {
+    openaiMock.create
+      .mockResolvedValueOnce(toolTurn())
+      .mockResolvedValueOnce(finalTurn());
+
+    const response = await worker.fetch(
+      progressionRequest(
+        "change the voicing of the second chord",
+        undefined,
+        ["Cmaj7", "Am7", "Dm7", "G7"],
+      ),
+      env(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(openaiMock.create.mock.calls[0]?.[0].input).toContainEqual(
+      expect.objectContaining({
+        content: expect.stringContaining("Existing timeline, in order: Cmaj7 | Am7 | Dm7 | G7"),
+      }),
+    );
+  });
+
+  it("rejects malformed, unsupported, and out-of-range existing timelines before OpenAI", async () => {
+    for (const existingChords of [["Cmaj7", "Am7"], ["Cmaj7", "NotAChord", "G7"], ["Cmaj7", 4, "G7"]]) {
+      const response = await worker.fetch(
+        progressionRequest("edit this", undefined, existingChords as string[]),
+        env(),
+      );
+      expect(response.status).toBe(400);
+    }
+    expect(openaiMock.create).not.toHaveBeenCalled();
   });
 
   it("validates JSON, prompt bounds, methods, and OpenAI configuration", async () => {
@@ -492,7 +526,7 @@ describe("POST /api/voice/client-secret", () => {
         output: { voice: "marin", speed: 1 },
       },
     });
-    expect(providerBody.session.instructions).toContain("You are Hanz Hasher");
+    expect(providerBody.session.instructions).toContain("You are Harmony");
     const tools = providerBody.session.tools as Array<Record<string, unknown>>;
     expect(tools.map((tool) => tool.name)).toEqual([
       "get_progression",

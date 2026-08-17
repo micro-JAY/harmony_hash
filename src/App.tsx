@@ -725,7 +725,7 @@ function App() {
       id: "describe",
       targetSelector: '[data-tour="hasher-describe"]',
       title: t("Describe what you hear"),
-      body: t("Describe a mood or progression and run the builder. If you get stuck, check the small help prompt; Hanz Hasher has you covered."),
+      body: t("Describe a mood or progression and run the builder. If you get stuck, check the small help prompt; Harmony has you covered."),
     },
     {
       id: "composer",

@@ -95,7 +95,7 @@ export default function ChordCardFrame({
         {isAgentHighlighted && (
           <span
             role="status"
-            aria-label={t(`Hanz is focusing on ${displayName}`)}
+            aria-label={t(`Harmony is focusing on ${displayName}`)}
             className="mx-auto mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5"
             style={{
               backgroundColor: "var(--status-academy-bg)",
@@ -109,7 +109,7 @@ export default function ChordCardFrame({
             }}
           >
             <AudioLines size={12} aria-hidden="true" />
-            {t("Hanz focus")}
+            {t("Harmony focus")}
           </span>
         )}
         {localizedUsageNotes && (

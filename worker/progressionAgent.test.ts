@@ -163,6 +163,44 @@ describe("runProgressionAgent", () => {
     expect(signals).toEqual([signal, signal]);
   });
 
+  it("uses existing timeline context and requires the same number of returned chords", async () => {
+    const existingChords = ["Em9", "Cmaj7", "Gadd9", "A7sus4"];
+    const { client, requests } = fakeClient(
+      {
+        output: [functionCall("call_1", "Em9")],
+        output_text: "",
+        status: "completed",
+      },
+      finalTurn(["Em9", "Cmaj7", "Gadd9", "A7sus4"]),
+    );
+
+    await runProgressionAgent(
+      "change the voicing of the second chord",
+      client,
+      undefined,
+      existingChords,
+    );
+
+    expect(requests[0].input).toContainEqual(
+      expect.objectContaining({
+        role: "user",
+        content: expect.stringContaining("Existing timeline, in order: Em9 | Cmaj7 | Gadd9 | A7sus4"),
+      }),
+    );
+    expect(requests[0].text).toMatchObject({
+      format: { schema: { properties: { chords: { minItems: 4, maxItems: 4 } } } },
+    });
+
+    await expect(
+      runProgressionAgent(
+        "change the second chord",
+        fakeClient(finalTurn(["Em9", "Cmaj7", "Gadd9"])).client,
+        undefined,
+        existingChords,
+      ),
+    ).rejects.toThrow("exactly 4 entries");
+  });
+
   it("rejects malformed and unknown function calls", async () => {
     const malformed = fakeClient({
       output: [

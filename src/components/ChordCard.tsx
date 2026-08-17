@@ -38,7 +38,7 @@ interface ChordCardProps {
   timelineChords?: ReadonlyArray<IndexedChord>;
   /** True when this card is the currently-sounding chord during playback. */
   isPlaying?: boolean;
-  /** True when Hanz is calling attention to this chord during a voice session. */
+  /** True when Harmony is calling attention to this chord during a voice session. */
   isAgentHighlighted?: boolean;
 }
 

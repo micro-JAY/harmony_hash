@@ -8,21 +8,21 @@ import {
 
 const HELP_LABEL = /Need help\?|Stuck\?|Writer's block got you down\?|Phone a friend/;
 
-async function openHanz(page: Page): Promise<void> {
+async function openHarmony(page: Page): Promise<void> {
   await page
     .getByRole("textbox", { name: "Describe the progression you want" })
     .fill("I need another perspective");
   await page.getByRole("button", { name: HELP_LABEL }).click();
-  await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Harmony" })).toBeVisible();
 }
 
-async function connectHanz(page: Page): Promise<void> {
-  await openHanz(page);
-  await page.getByRole("button", { name: "Hanz, Help!" }).click();
+async function connectHarmony(page: Page): Promise<void> {
+  await openHarmony(page);
+  await page.getByRole("button", { name: "Harmony, Help!" }).click();
   await expect(page.getByText("Listening", { exact: true })).toBeVisible();
 }
 
-test.describe("Hanz Hasher voice sessions", () => {
+test.describe("Harmony voice sessions", () => {
   test("loads the voice runtime on help intent and reuses it after closing", async ({
     page,
   }) => {
@@ -38,16 +38,16 @@ test.describe("Hanz Hasher voice sessions", () => {
 
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
-      .fill("preload Hanz when I show intent");
+      .fill("preload Harmony when I show intent");
     const help = page.getByRole("button", { name: HELP_LABEL });
     await help.focus();
     await expect.poll(() => voiceRuntimeRequests.length).toBe(1);
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
 
     await help.click();
-    const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+    const dialog = page.getByRole("dialog", { name: "Harmony" });
     await expect(dialog).toBeVisible();
-    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: "Close Harmony" }).click();
     await expect(dialog).toHaveCount(0);
 
     await help.click();
@@ -65,7 +65,7 @@ test.describe("Hanz Hasher voice sessions", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
-      .fill("recover Hanz without losing the HASHER");
+      .fill("recover Harmony without losing the HASHER");
     await page.getByRole("button", { name: HELP_LABEL }).click();
 
     await expect(page.getByRole("alert")).toHaveText(
@@ -81,21 +81,21 @@ test.describe("Hanz Hasher voice sessions", () => {
       clientSecretError: "Could not start a voice session",
     });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await openHanz(page);
+    await openHarmony(page);
     expect(mock.clientSecretRequests).toBe(0);
     expect((await realtimeVoiceMockState(page)).micRequests).toBe(0);
 
-    await page.getByRole("button", { name: "Hanz, Help!" }).click();
+    await page.getByRole("button", { name: "Harmony, Help!" }).click();
 
     await expect(page.getByRole("alert")).toHaveText("Could not start a voice session");
-    await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Harmony, Help!" })).toBeEnabled();
     await expect(page.getByText("Needs attention", { exact: true })).toBeVisible();
     expect(mock.clientSecretRequests).toBe(1);
     expect(mock.clientSecretBodies).toEqual([null]);
     expect(mock.realtimeCallRequests).toBe(0);
     expect((await realtimeVoiceMockState(page)).micRequests).toBe(0);
 
-    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: "Close Harmony" }).click();
     await page.getByRole("button", { name: HELP_LABEL }).click();
     await expect(page.getByRole("alert")).toHaveText("Could not start a voice session");
     expect(mock.clientSecretRequests).toBe(1);
@@ -106,19 +106,19 @@ test.describe("Hanz Hasher voice sessions", () => {
   }) => {
     const mock = await installRealtimeVoiceMock(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
 
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("help me choose the next chord");
     const help = page.getByRole("button", { name: HELP_LABEL });
     await help.click();
-    await expect(page.getByRole("button", { name: "Close Hanz Hasher" })).toBeFocused();
+    await expect(page.getByRole("button", { name: "Close Harmony" })).toBeFocused();
     expect(mock.clientSecretRequests).toBe(0);
     expect((await realtimeVoiceMockState(page)).micRequests).toBe(0);
 
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
     await expect(help).toBeFocused();
     expect(mock.clientSecretRequests).toBe(0);
   });
@@ -126,14 +126,14 @@ test.describe("Hanz Hasher voice sessions", () => {
   test("aborts a pre-mint start when the popup closes", async ({ page }) => {
     const mock = await installRealtimeVoiceMock(page, { holdClientSecret: true });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await openHanz(page);
+    await openHarmony(page);
     const help = page.getByRole("button", { name: HELP_LABEL });
-    await page.getByRole("button", { name: "Hanz, Help!" }).click();
+    await page.getByRole("button", { name: "Harmony, Help!" }).click();
     await expect.poll(() => mock.clientSecretRequests).toBe(1);
 
-    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: "Close Harmony" }).click();
     mock.releaseClientSecret();
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
     await expect(help).toBeFocused();
     await expect.poll(async () => (await realtimeVoiceMockState(page)).micRequests).toBe(0);
   });
@@ -141,11 +141,11 @@ test.describe("Hanz Hasher voice sessions", () => {
   test("stops media acquired after a post-mint close", async ({ page }) => {
     await installRealtimeVoiceMock(page, { holdMicrophone: true });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await openHanz(page);
-    await page.getByRole("button", { name: "Hanz, Help!" }).click();
+    await openHarmony(page);
+    await page.getByRole("button", { name: "Harmony, Help!" }).click();
     await expect.poll(async () => (await realtimeVoiceMockState(page)).micRequests).toBe(1);
 
-    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: "Close Harmony" }).click();
     await resolveMockMicrophone(page);
     await expect.poll(async () => (await realtimeVoiceMockState(page)).micTrackStops).toBe(1);
     expect((await realtimeVoiceMockState(page)).peerConnections).toBe(0);
@@ -154,8 +154,8 @@ test.describe("Hanz Hasher voice sessions", () => {
   test("cleans partial media and peer state when SDP exchange fails", async ({ page }) => {
     await installRealtimeVoiceMock(page, { realtimeCallStatus: 502 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await openHanz(page);
-    await page.getByRole("button", { name: "Hanz, Help!" }).click();
+    await openHarmony(page);
+    await page.getByRole("button", { name: "Harmony, Help!" }).click();
 
     await expect(page.getByRole("alert")).toHaveText(
       "The voice service could not start this session. Please try again.",
@@ -170,8 +170,8 @@ test.describe("Hanz Hasher voice sessions", () => {
   test("keeps one live Realtime session and transcript across close and reopen", async ({ page }) => {
     const mock = await installRealtimeVoiceMock(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await connectHanz(page);
-    const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+    await connectHarmony(page);
+    const dialog = page.getByRole("dialog", { name: "Harmony" });
 
     await emitRealtimeEvent(page, {
       type: "conversation.item.added",
@@ -206,7 +206,7 @@ test.describe("Hanz Hasher voice sessions", () => {
     expect(mock.realtimeCallRequests).toBe(1);
     expect(mock.sawRealtimeAuthorization).toBe(true);
 
-    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: "Close Harmony" }).click();
     expect((await realtimeVoiceMockState(page)).peerCloses).toBe(0);
     await page.getByRole("button", { name: HELP_LABEL }).click();
     await expect(page.getByText("Listening", { exact: true })).toBeVisible();
@@ -226,7 +226,7 @@ test.describe("Hanz Hasher voice sessions", () => {
   test("executes a completed Realtime tool call against the visible timeline", async ({ page }) => {
     await installRealtimeVoiceMock(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await connectHanz(page);
+    await connectHarmony(page);
 
     const replacement = ["Fmaj7", "Gm7", "C7", "Fmaj7"];
     await emitRealtimeEvent(page, {
@@ -261,7 +261,7 @@ test.describe("Hanz Hasher voice sessions", () => {
   test("cleans up the live session on pagehide without Strict Mode duplication", async ({ page }) => {
     const mock = await installRealtimeVoiceMock(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await connectHanz(page);
+    await connectHarmony(page);
     expect(mock.clientSecretRequests).toBe(1);
     expect((await realtimeVoiceMockState(page)).peerConnections).toBe(1);
 
@@ -276,10 +276,10 @@ test.describe("Hanz Hasher voice sessions", () => {
   test("keeps the popup reachable in a short landscape viewport", async ({ page }) => {
     await page.setViewportSize({ width: 812, height: 375 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await openHanz(page);
-    await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
+    await openHarmony(page);
+    await expect(page.getByRole("button", { name: "Harmony, Help!" })).toBeVisible();
 
-    const bounds = await page.getByRole("dialog", { name: "Hanz Hasher" }).evaluate((element) => {
+    const bounds = await page.getByRole("dialog", { name: "Harmony" }).evaluate((element) => {
       const rect = element.getBoundingClientRect();
       const style = getComputedStyle(element);
       return {
@@ -293,6 +293,6 @@ test.describe("Hanz Hasher voice sessions", () => {
     expect(bounds.bottom).toBeLessThanOrEqual(375);
     expect(bounds.maxHeight).not.toBe("none");
     expect(bounds.overflowY).toBe("auto");
-    await expect(page.getByRole("button", { name: "Close Hanz Hasher" })).toBeFocused();
+    await expect(page.getByRole("button", { name: "Close Harmony" })).toBeFocused();
   });
 });

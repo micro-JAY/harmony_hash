@@ -15,7 +15,7 @@ describe("Japanese translations", () => {
     expect(translate("ja", "Major Pentatonic")).toBe("メジャー・ペンタトニック");
     expect(translate("ja", "Perfect fifth")).toBe("完全5度");
     expect(translate("ja", "Scale learning guide")).toBe("スケール学習ガイド");
-    expect(translate("ja", "Hanz Hasher")).toBe("Hanz Hasher");
+    expect(translate("ja", "Harmony")).toBe("Harmony");
     expect(translate("ja", "Early preview")).toBe("早期プレビュー");
     expect(translate("ja", "E Harmonic Minor")).toBe("E ハーモニック・マイナー");
     expect(translate("ja", "Raised seventh over a minor sixth")).toBe("短6度と導音（長7度）の対比");
@@ -24,14 +24,14 @@ describe("Japanese translations", () => {
     );
   });
 
-  it("capitalizes English tool names without changing Hanz Hasher's name", () => {
+  it("capitalizes English tool names without changing Harmony's name", () => {
     expect(translate("en", "Hasher")).toBe("HASHER");
     expect(translate("en", "Open Improv Insight")).toBe("Open IMPROV INSIGHT");
     expect(translate("en", "Open in Scale Synthesia")).toBe("Open in SCALE SYNTHESIA");
-    expect(translate("en", "Hanz Hasher")).toBe("Hanz Hasher");
+    expect(translate("en", "Harmony")).toBe("Harmony");
     expect(translate("en", "Early preview")).toBe("EARLY PREVIEW");
-    expect(translate("en", "Ask Hanz Hasher about Improv Insight")).toBe(
-      "Ask Hanz Hasher about IMPROV INSIGHT",
+    expect(translate("en", "Ask Harmony about Improv Insight")).toBe(
+      "Ask Harmony about IMPROV INSIGHT",
     );
   });
 

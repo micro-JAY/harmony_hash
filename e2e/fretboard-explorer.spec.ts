@@ -215,7 +215,7 @@ test.describe("Fretboard Explorer", () => {
   test("supports spatial focus without exposing the builder-only companion", async ({ page }) => {
     const browserIssues = collectBrowserIssues(page);
     await openFretboard(page);
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
 
     const firstNote = page.getByRole("button", {
       name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3, All positions pattern tone",

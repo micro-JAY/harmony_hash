@@ -4,9 +4,9 @@ The voice companion's Hanz Hasher identity conflicts with the Harmony Hash produ
 
 ## What Changes
 
-- Rename the provisioned and visible voice companion identity to **Harmony**.
+- Rename the OpenAI Realtime and visible voice companion identity to **Harmony**.
 - Tighten the source prompt: after one short initial greeting, answer only the asked question or requested action; do not volunteer capabilities, adjacent topics, suggestions, or follow-up questions unless necessary to resolve ambiguity.
-- Update the UI, localization, provisioner expectations, smoke checks, and tests to use Harmony consistently.
+- Update the UI, localization, Realtime session expectations, smoke checks, and tests to use Harmony consistently.
 
 ## Capabilities
 
@@ -16,9 +16,9 @@ The voice companion's Hanz Hasher identity conflicts with the Harmony Hash produ
 
 ### Modified Capabilities
 
-- `voice-companion`: The companion's identity and response-boundary behavior change, including the provisioned agent configuration and visible panel identity.
+- `voice-companion`: The companion's identity and response-boundary behavior change, including the Realtime session configuration and visible panel identity.
 
 ## Impact
 
-- `agent/system-prompt.md`, the ElevenLabs provisioning configuration, voice-panel copy, localization, tests, and smoke checks.
+- `src/voice/hanzSystemPrompt.ts`, the OpenAI Realtime session configuration, voice-panel copy, localization, tests, and smoke checks.
 - No tool-surface, authentication, or timeline-mutation behavior changes.

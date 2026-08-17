@@ -1,12 +1,12 @@
 ## Context
 
-The ElevenLabs companion is source-configured through `agent/system-prompt.md` and `scripts/voice-agent-config.ts`, while its visible name is localized in the mounted panel and fallback. Its current prompt encourages broad co-writing, capability offers, and depth-check questions after a response.
+The OpenAI Realtime companion is source-configured through `src/voice/hanzSystemPrompt.ts` and its session configuration, while its visible name is localized in the mounted panel and fallback. Its current prompt encourages broad co-writing, capability offers, and depth-check questions after a response.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Make the provisioned and visible identity Harmony.
+- Make the Realtime and visible identity Harmony.
 - Keep the first greeting brief, then constrain every later turn to the direct answer or requested action.
 - Preserve tool grounding, safety, and the existing nine-tool contract.
 
@@ -23,9 +23,9 @@ The prompt identifies the companion as Harmony and permits one concise opening g
 
 ### D2 — Identity updates source and product surfaces
 
-Provisioning creates and updates the agent under the Harmony name, and every user-visible panel, accessible label, transcript speaker label, error, tour, and smoke expectation changes from Hanz Hasher/Hanz to Harmony. Internal state identifiers remain stable to avoid unrelated bridge churn.
+The Realtime greeting and instructions identify the companion as Harmony, and every user-visible panel, accessible label, transcript speaker label, error, tour, and smoke expectation changes from Hanz Hasher/Hanz to Harmony. Internal state identifiers remain stable to avoid unrelated bridge churn.
 
 ## Risks / Trade-offs
 
 - [Model still expands an answer] → Use short, repeated prompt rules with concrete prohibited patterns and source-prompt tests.
-- [Live agent retains its prior provider name] → The provisioning update payload explicitly owns the source name; operators re-run the existing provisioning command after merge.
+- [Realtime session retains its prior identity] → The worker-minted session includes source-owned Harmony instructions and first greeting on every connection.

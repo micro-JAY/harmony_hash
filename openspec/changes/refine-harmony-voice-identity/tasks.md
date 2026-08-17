@@ -1,7 +1,7 @@
 ## 1. Harmony identity and response contract
 
 - [x] 1.1 Rewrite the source prompt for Harmony's concise, request-bounded behavior and single initial greeting.
-- [x] 1.2 Update provisioned agent naming and source-owned configuration assertions.
+- [x] 1.2 Update the Realtime session greeting and source-owned instruction assertions.
 
 ## 2. Visible product identity
 

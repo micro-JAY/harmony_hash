@@ -526,7 +526,7 @@ describe("POST /api/voice/client-secret", () => {
         output: { voice: "marin", speed: 1 },
       },
     });
-    expect(providerBody.session.instructions).toContain("You are Hanz Hasher");
+    expect(providerBody.session.instructions).toContain("You are Harmony");
     const tools = providerBody.session.tools as Array<Record<string, unknown>>;
     expect(tools.map((tool) => tool.name)).toEqual([
       "get_progression",

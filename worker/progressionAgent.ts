@@ -45,6 +45,30 @@ Rules:
 - Use triads, suspensions, sevenths, extensions, alterations, and inversions when they serve the requested genre or mood.
 - The final rationale is one concise sentence. Do not mention tools, APIs, or internal validation.`;
 
+function createProgressionFormat(minChords: number, maxChords: number) {
+  return {
+    type: "json_schema",
+    name: "harmony_hash_progression",
+    description: "A validated Harmony Hash chord progression.",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        chords: {
+          type: "array",
+          items: { type: "string" },
+          minItems: minChords,
+          maxItems: maxChords,
+        },
+        key: { type: "string" },
+        rationale: { type: "string" },
+      },
+      required: ["chords", "key", "rationale"],
+      additionalProperties: false,
+    },
+  } as const;
+}
+
 const LOOKUP_CHORD_TOOL = {
   type: "function",
   name: "lookup_chord",
@@ -64,27 +88,7 @@ const LOOKUP_CHORD_TOOL = {
   },
 } satisfies FunctionTool;
 
-const PROGRESSION_FORMAT = {
-  type: "json_schema",
-  name: "harmony_hash_progression",
-  description: "A validated Harmony Hash chord progression.",
-  strict: true,
-  schema: {
-    type: "object",
-    properties: {
-      chords: {
-        type: "array",
-        items: { type: "string" },
-        minItems: MIN_CHORDS,
-        maxItems: MAX_CHORDS,
-      },
-      key: { type: "string" },
-      rationale: { type: "string" },
-    },
-    required: ["chords", "key", "rationale"],
-    additionalProperties: false,
-  },
-} as const;
+const PROGRESSION_FORMAT = createProgressionFormat(MIN_CHORDS, MAX_CHORDS);
 
 export class AgentNonConvergenceError extends Error {
   constructor() {
@@ -111,8 +115,21 @@ export async function runProgressionAgent(
   userPrompt: string,
   client: OpenAIResponsesClient,
   signal?: AbortSignal,
+  existingChords?: readonly string[],
 ): Promise<ProgressionResult> {
-  const input: ResponseInput = [{ role: "user", content: userPrompt }];
+  const input: ResponseInput = [{
+    role: "user",
+    content: existingChords
+      ? `Existing timeline, in order: ${existingChords.join(" | ")}
+
+Apply this requested change to that timeline: ${userPrompt}
+
+Return the complete edited timeline with exactly ${existingChords.length} chord names. Preserve the order and every chord not required for the requested change.`
+      : userPrompt,
+  }];
+  const progressionFormat = existingChords
+    ? createProgressionFormat(existingChords.length, existingChords.length)
+    : PROGRESSION_FORMAT;
 
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
     const response = await client.create(
@@ -125,7 +142,7 @@ export async function runProgressionAgent(
         parallel_tool_calls: true,
         reasoning: { effort: "low" },
         max_output_tokens: MAX_OUTPUT_TOKENS,
-        text: { format: PROGRESSION_FORMAT, verbosity: "low" },
+        text: { format: progressionFormat, verbosity: "low" },
         include: ["reasoning.encrypted_content"],
         store: false,
       },
@@ -171,7 +188,7 @@ export async function runProgressionAgent(
         `OpenAI response contained no final text (status: ${response.status ?? "unknown"})`,
       );
     }
-    return parseAndValidateProgression(finalText);
+    return parseAndValidateProgression(finalText, existingChords?.length);
   }
 
   throw new AgentNonConvergenceError();
@@ -218,7 +235,10 @@ function parseChordLookupArguments(raw: string): string {
   return chordName.trim();
 }
 
-export function parseAndValidateProgression(raw: string): ProgressionResult {
+export function parseAndValidateProgression(
+  raw: string,
+  expectedChordCount?: number,
+): ProgressionResult {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw.trim());
@@ -234,9 +254,13 @@ export function parseAndValidateProgression(raw: string): ProgressionResult {
   if (!Array.isArray(obj.chords)) {
     throw new AgentValidationError("'chords' field must be an array");
   }
-  if (obj.chords.length < MIN_CHORDS || obj.chords.length > MAX_CHORDS) {
+  const minChords = expectedChordCount ?? MIN_CHORDS;
+  const maxChords = expectedChordCount ?? MAX_CHORDS;
+  if (obj.chords.length < minChords || obj.chords.length > maxChords) {
     throw new AgentValidationError(
-      `'chords' must contain between ${MIN_CHORDS} and ${MAX_CHORDS} entries, received ${obj.chords.length}`,
+      expectedChordCount
+        ? `'chords' must contain exactly ${expectedChordCount} entries, received ${obj.chords.length}`
+        : `'chords' must contain between ${MIN_CHORDS} and ${MAX_CHORDS} entries, received ${obj.chords.length}`,
     );
   }
 

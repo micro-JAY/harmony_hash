@@ -13,6 +13,7 @@ interface DisplayChord {
 
 interface ProgressionAgentProps {
   onResult: (chords: DisplayChord[], errors: ParseError[]) => void;
+  currentChords: readonly string[];
   timelineVersion: number;
   timelineVersionRef: MutableRefObject<number>;
   cancellationVersion: number;
@@ -32,6 +33,7 @@ const HELP_LABELS = [
 
 export default function ProgressionAgent({
   onResult,
+  currentChords,
   timelineVersion,
   timelineVersionRef,
   cancellationVersion,
@@ -57,6 +59,7 @@ export default function ProgressionAgent({
     resolvedKey: string;
     timelineVersion: number;
   } | null>(null);
+  const [retryExistingChords, setRetryExistingChords] = useState<readonly string[] | undefined>();
   const [health, setHealth] = useState<HealthStatus>("checking");
   const activeRequestRef = useRef<{
     id: number;
@@ -104,9 +107,20 @@ export default function ProgressionAgent({
     success?.timelineVersion === timelineVersion ? success : null;
   const canSubmit =
     health === "ready" && trimmed.length > 0 && !overLength && !loading;
+  const canModify =
+    canSubmit &&
+    currentChords.length >= 3 &&
+    currentChords.length <= 8;
 
-  async function handleSubmit() {
-    if (!canSubmit) return;
+  async function handleSubmit(existingChords?: readonly string[]) {
+    const requestExistingChords = existingChords ? [...existingChords] : undefined;
+    if (
+      !canSubmit ||
+      (requestExistingChords &&
+        (requestExistingChords.length < 3 || requestExistingChords.length > 8))
+    ) {
+      return;
+    }
     activeRequestRef.current?.controller.abort();
     const request = {
       id: nextRequestIdRef.current++,
@@ -122,9 +136,14 @@ export default function ProgressionAgent({
     });
     setError(null);
     setSuccess(null);
+    setRetryExistingChords(requestExistingChords);
 
     try {
-      const result = await generateProgression(trimmed, request.controller.signal);
+      const result = await generateProgression(
+        trimmed,
+        request.controller.signal,
+        requestExistingChords,
+      );
       if (
         activeRequestRef.current?.id !== request.id ||
         timelineVersionRef.current !== request.timelineVersion ||
@@ -176,6 +195,14 @@ export default function ProgressionAgent({
     }
   }
 
+  function handleModify() {
+    void handleSubmit(currentChords);
+  }
+
+  function handleRerun() {
+    void handleSubmit();
+  }
+
   const remaining = MAX_PROMPT - prompt.length;
 
   function handlePromptChange(value: string) {
@@ -212,56 +239,83 @@ export default function ProgressionAgent({
           }}
           aria-label={t("Describe the progression you want")}
         />
-        <button
-          onClick={handleSubmit}
-          aria-label={t("Run progression agent")}
-          disabled={!canSubmit}
-          className="hh-entry-action w-full px-6 py-3 rounded-lg font-semibold transition-all shrink-0 self-stretch flex items-center gap-2"
-          style={{
-            backgroundColor: canSubmit
-              ? "var(--interactive-accent-bg)"
-              : "var(--surface-overlay)",
-            color: canSubmit
-              ? "var(--interactive-accent-text)"
-              : "var(--text-muted)",
-            border: `1px solid ${canSubmit ? "var(--interactive-accent-border)" : "var(--border-subtle)"}`,
-            fontWeight: "var(--weight-semibold)",
-            transitionDuration: "var(--duration-normal)",
-            cursor: canSubmit ? "pointer" : "not-allowed",
-            justifyContent: "center",
-          }}
-          onMouseEnter={(e) => {
-            if (canSubmit) {
-              e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg-hover)";
+        <div className="flex w-full shrink-0 gap-3 sm:w-auto">
+          <button
+            onClick={handleModify}
+            aria-label={t("Modify current progression")}
+            disabled={!canModify}
+            title={
+              currentChords.length < 3 || currentChords.length > 8
+                ? t("Add 3–8 chords to modify the current progression")
+                : undefined
             }
-          }}
-          onMouseLeave={(e) => {
-            if (canSubmit) {
-              e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg)";
-            }
-          }}
-          aria-busy={loading}
-        >
-          {loading ? (
-            <>
-              <span
-                aria-hidden
-                style={{
-                  width: "0.9em",
-                  height: "0.9em",
-                  borderRadius: "var(--radius-full)",
-                  border: "2px solid currentColor",
-                  borderRightColor: "transparent",
-                  display: "inline-block",
-                  animation: "progression-agent-spin 0.8s linear infinite",
-                }}
-              />
-              <span>{t("Building…")}</span>
-            </>
-          ) : (
-            <span>{t("Run")}</span>
-          )}
-        </button>
+            className="min-w-0 flex-1 px-6 py-3 rounded-lg font-semibold transition-all sm:min-w-[7rem]"
+            style={{
+              backgroundColor: canModify
+                ? "var(--status-academy-bg)"
+                : "var(--surface-overlay)",
+              color: canModify
+                ? "var(--status-academy-text)"
+                : "var(--text-muted)",
+              border: `1px solid ${canModify ? "var(--status-academy-border)" : "var(--border-subtle)"}`,
+              fontWeight: "var(--weight-semibold)",
+              transitionDuration: "var(--duration-normal)",
+              cursor: canModify ? "pointer" : "not-allowed",
+            }}
+            aria-busy={loading}
+          >
+            {loading ? t("Building…") : t("Modify")}
+          </button>
+          <button
+            onClick={handleRerun}
+            aria-label={t("Re-run progression agent")}
+            disabled={!canSubmit}
+            className="min-w-0 flex-1 px-6 py-3 rounded-lg font-semibold transition-all sm:min-w-[7rem]"
+            style={{
+              backgroundColor: canSubmit
+                ? "var(--interactive-accent-bg)"
+                : "var(--surface-overlay)",
+              color: canSubmit
+                ? "var(--interactive-accent-text)"
+                : "var(--text-muted)",
+              border: `1px solid ${canSubmit ? "var(--interactive-accent-border)" : "var(--border-subtle)"}`,
+              fontWeight: "var(--weight-semibold)",
+              transitionDuration: "var(--duration-normal)",
+              cursor: canSubmit ? "pointer" : "not-allowed",
+            }}
+            onMouseEnter={(e) => {
+              if (canSubmit) {
+                e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg-hover)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (canSubmit) {
+                e.currentTarget.style.backgroundColor = "var(--interactive-accent-bg)";
+              }
+            }}
+            aria-busy={loading}
+          >
+            {loading ? (
+              <>
+                <span
+                  aria-hidden
+                  style={{
+                    width: "0.9em",
+                    height: "0.9em",
+                    borderRadius: "var(--radius-full)",
+                    border: "2px solid currentColor",
+                    borderRightColor: "transparent",
+                    display: "inline-block",
+                    animation: "progression-agent-spin 0.8s linear infinite",
+                  }}
+                />
+                <span>{t("Building…")}</span>
+              </>
+            ) : (
+              <span>{t("Re-run")}</span>
+            )}
+          </button>
+        </div>
       </div>
 
       <div
@@ -313,7 +367,7 @@ export default function ProgressionAgent({
             className="hidden text-xs sm:inline"
             style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
           >
-            {t("⌘↵ to build")}
+            {t("⌘↵ to re-run")}
           </span>
         </div>
       </div>
@@ -332,7 +386,7 @@ export default function ProgressionAgent({
             {errorMessage}
           </span>
           <button
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit(retryExistingChords)}
             disabled={!canSubmit}
             className="px-3 py-1 rounded-md text-xs transition-all"
             style={{

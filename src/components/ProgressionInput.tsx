@@ -428,6 +428,7 @@ export default function ProgressionInput({
           </h2>
           <ProgressionAgent
             onResult={handleResolvedResult}
+            currentChords={timeline.map((item) => item.value.input)}
             timelineVersion={timelineVersion}
             timelineVersionRef={timelineVersionRef}
             cancellationVersion={agentCancellationVersion}

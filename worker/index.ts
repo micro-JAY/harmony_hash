@@ -5,10 +5,13 @@ import {
   AgentNonConvergenceError,
   AgentProviderResponseError,
   AgentValidationError,
+  MAX_CHORDS,
   MAX_PROMPT_LENGTH,
+  MIN_CHORDS,
   runProgressionAgent,
   type OpenAIResponsesClient,
 } from "./progressionAgent";
+import { lookupChordForAgent } from "../src/lib/chordLookup";
 
 export interface RateLimit {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -154,6 +157,10 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
   if (!prompt.ok) {
     return jsonResponse({ error: prompt.error }, 400, request, env);
   }
+  const existingChords = extractExistingChords(body);
+  if (!existingChords.ok) {
+    return jsonResponse({ error: existingChords.error }, 400, request, env);
+  }
 
   if (!env.OPENAI_API_KEY) {
     return jsonResponse(
@@ -178,6 +185,7 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
       prompt.value,
       responses,
       AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+      existingChords.value,
     );
     return jsonResponse(result, 200, request, env);
   } catch (err) {
@@ -364,6 +372,9 @@ async function readBoundedRequestBody(
 }
 
 type PromptResult = { ok: true; value: string } | { ok: false; error: string };
+type ExistingChordsResult =
+  | { ok: true; value: string[] | undefined }
+  | { ok: false; error: string };
 
 function extractPrompt(body: unknown): PromptResult {
   if (!body || typeof body !== "object") {
@@ -381,6 +392,36 @@ function extractPrompt(body: unknown): PromptResult {
     return { ok: false, error: `Prompt must be ${MAX_PROMPT_LENGTH} characters or fewer` };
   }
   return { ok: true, value: trimmed };
+}
+
+function extractExistingChords(body: unknown): ExistingChordsResult {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { ok: false, error: "Request body must be a JSON object" };
+  }
+  const existingChords = (body as { existingChords?: unknown }).existingChords;
+  if (existingChords === undefined) return { ok: true, value: undefined };
+  if (!Array.isArray(existingChords)) {
+    return { ok: false, error: "'existingChords' must be an array when provided" };
+  }
+  if (existingChords.length < MIN_CHORDS || existingChords.length > MAX_CHORDS) {
+    return {
+      ok: false,
+      error: `'existingChords' must contain between ${MIN_CHORDS} and ${MAX_CHORDS} chords`,
+    };
+  }
+
+  const normalized: string[] = [];
+  for (const chord of existingChords) {
+    if (typeof chord !== "string" || chord.trim().length === 0) {
+      return { ok: false, error: "Every existing chord must be a non-empty string" };
+    }
+    const name = chord.trim();
+    if (!lookupChordForAgent(name).valid) {
+      return { ok: false, error: `Unsupported existing chord: ${name}` };
+    }
+    normalized.push(name);
+  }
+  return { ok: true, value: normalized };
 }
 
 function isTimeoutError(error: unknown): boolean {

@@ -55,6 +55,33 @@ describe("checkHealth", () => {
 });
 
 describe("generateProgression", () => {
+  it("includes existing chords only for a Modify request", async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        chords: ["Cmaj7", "Am7", "Dm7"],
+        key: "C major",
+        rationale: "A compact edit.",
+      }),
+    );
+
+    await generateProgression(
+      "change the voicing of the second chord",
+      undefined,
+      ["Cmaj7", "Am7", "Dm7"],
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:8787/api/progression",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          prompt: "change the voicing of the second chord",
+          existingChords: ["Cmaj7", "Am7", "Dm7"],
+        }),
+      }),
+    );
+  });
+
   it("accepts and trims 3- and 8-chord response boundaries", async () => {
     fetchMock
       .mockResolvedValueOnce(

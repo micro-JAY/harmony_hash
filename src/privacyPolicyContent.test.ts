@@ -47,18 +47,18 @@ describe("privacy policy content", () => {
   });
 
   it("discloses the bounded, temporary browser transcript in both locales", () => {
-    const englishHanz = privacyPolicyContent.en.sections[4]?.body ?? "";
-    const japaneseHanz = privacyPolicyContent.ja.sections[4]?.body ?? "";
+    const englishHarmony = privacyPolicyContent.en.sections[4]?.body ?? "";
+    const japaneseHarmony = privacyPolicyContent.ja.sections[4]?.body ?? "";
 
-    expect(englishHanz).toContain("OpenAI Realtime");
-    expect(englishHanz).toContain("up to 20 recent user and Hanz messages");
-    expect(englishHanz).toContain("cleared whenever a session starts or disconnects");
-    expect(englishHanz).toContain("does not persist those messages or audio");
-    expect(englishHanz).toContain("security, abuse monitoring, or legal compliance");
-    expect(japaneseHanz).toContain("OpenAI Realtime");
-    expect(japaneseHanz).toContain("直近20件まで");
-    expect(japaneseHanz).toContain("セッションの開始時または切断時に消去");
-    expect(japaneseHanz).toContain("ブラウザストレージまたはアプリケーションデータベースへ保存しません");
-    expect(japaneseHanz).toContain("セキュリティ、不正利用監視、法令遵守");
+    expect(englishHarmony).toContain("OpenAI Realtime");
+    expect(englishHarmony).toContain("up to 20 recent user and Harmony messages");
+    expect(englishHarmony).toContain("cleared whenever a session starts or disconnects");
+    expect(englishHarmony).toContain("does not persist those messages or audio");
+    expect(englishHarmony).toContain("security, abuse monitoring, or legal compliance");
+    expect(japaneseHarmony).toContain("OpenAI Realtime");
+    expect(japaneseHarmony).toContain("直近20件まで");
+    expect(japaneseHarmony).toContain("セッションの開始時または切断時に消去");
+    expect(japaneseHarmony).toContain("ブラウザストレージまたはアプリケーションデータベースへ保存しません");
+    expect(japaneseHarmony).toContain("セキュリティ、不正利用監視、法令遵守");
   });
 });

@@ -11,7 +11,7 @@ export interface VoiceAgentRuntimeProps {
 
 /**
  * Owns the OpenAI Realtime provider and popup inside one dynamic-import
- * boundary. App keeps this mounted after first use so closing Hanz does not
+ * boundary. App keeps this mounted after first use so closing Harmony does not
  * discard the session transcript or active client tools.
  */
 export default function VoiceAgentRuntime({

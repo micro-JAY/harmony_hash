@@ -30,7 +30,7 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
       },
       {
         title: "2. Information and sources",
-        body: "We process musical choices such as chords, keys, modes, instruments, voicings, and progression state; text you enter into the progression builder; live microphone audio and conversation text when you start Hanz; device language and onboarding state; and technical data such as IP address, browser, requested URL, timestamp, approximate region, security events, and service diagnostics.",
+        body: "We process musical choices such as chords, keys, modes, instruments, voicings, and progression state; text you enter into the progression builder; live microphone audio and conversation text when you start Harmony; device language and onboarding state; and technical data such as IP address, browser, requested URL, timestamp, approximate region, security events, and service diagnostics.",
       },
       {
         title: "3. Local musical state",
@@ -41,20 +41,20 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
         body: "When you submit a description, the prompt and relevant musical context pass through a Cloudflare Worker to the OpenAI Responses API. Requests set store:false, so no OpenAI application state is requested; standard abuse-monitoring logs may nevertheless retain content for up to the provider's stated period unless an approved data-control setting applies. Tonari does not use prompts to train its own model.",
       },
       {
-        title: "5. Hanz voice companion",
-        body: "Hanz starts only when you choose the voice feature and grant microphone access. Live microphone audio and conversation text are sent to OpenAI Realtime for real-time transcription and response generation, and musical client tools exchange chord and progression state. To display the conversation, this browser tab keeps up to 20 recent user and Hanz messages temporarily in React memory. They are cleared whenever a session starts or disconnects, and Tonari does not persist those messages or audio in browser storage or an application database. OpenAI may process or log content for security, abuse monitoring, or legal compliance; provider-side handling follows OpenAI's applicable data controls and policies.",
+        title: "5. Harmony voice companion",
+        body: "Harmony starts only when you choose the voice feature and grant microphone access. Live microphone audio and conversation text are sent to OpenAI Realtime for real-time transcription and response generation, and musical client tools exchange chord and progression state. To display the conversation, this browser tab keeps up to 20 recent user and Harmony messages temporarily in React memory. They are cleared whenever a session starts or disconnects, and Tonari does not persist those messages or audio in browser storage or an application database. OpenAI may process or log content for security, abuse monitoring, or legal compliance; provider-side handling follows OpenAI's applicable data controls and policies.",
       },
       {
         title: "6. Purposes and legal bases",
-        body: "We process information to provide requested music tools, generate progressions, operate Hanz, remember settings, secure and diagnose the service, prevent abuse, understand aggregate reliability, comply with law, and resolve claims. Where GDPR or UK GDPR applies, requested features rely on performance of your request or pre-contractual steps; necessary security, diagnostics, and improvement rely on legitimate interests; legal compliance relies on legal obligation; and non-essential storage or analytics relies on consent where required.",
+        body: "We process information to provide requested music tools, generate progressions, operate Harmony, remember settings, secure and diagnose the service, prevent abuse, understand aggregate reliability, comply with law, and resolve claims. Where GDPR or UK GDPR applies, requested features rely on performance of your request or pre-contractual steps; necessary security, diagnostics, and improvement rely on legitimate interests; legal compliance relies on legal obligation; and non-essential storage or analytics relies on consent where required.",
       },
       {
         title: "7. Providers and disclosures",
-        body: "Cloudflare hosts, secures, rate-limits, maintains request logs, and provides technical observability; OpenAI processes progression prompts and Hanz live audio, transcripts, and session context; and email providers handle privacy correspondence. We may disclose information to advisers, authorities, or a successor when reasonably necessary and lawful. We do not sell personal information or use it for cross-context behavioral advertising.",
+        body: "Cloudflare hosts, secures, rate-limits, maintains request logs, and provides technical observability; OpenAI processes progression prompts and Harmony live audio, transcripts, and session context; and email providers handle privacy correspondence. We may disclose information to advisers, authorities, or a successor when reasonably necessary and lawful. We do not sell personal information or use it for cross-context behavioral advertising.",
       },
       {
         title: "8. Retention",
-        body: "Browser-memory musical state ends when the page is closed or refreshed; device preferences remain until changed or cleared. Tonari's progression endpoint does not create a prompt database. The temporary Hanz transcript is cleared whenever a session starts or disconnects and is not persisted in browser storage or an application database. OpenAI and other providers may retain security, abuse-monitoring, or legally required records under their applicable controls and necessary periods.",
+        body: "Browser-memory musical state ends when the page is closed or refreshed; device preferences remain until changed or cleared. Tonari's progression endpoint does not create a prompt database. The temporary Harmony transcript is cleared whenever a session starts or disconnects and is not persisted in browser storage or an application database. OpenAI and other providers may retain security, abuse-monitoring, or legally required records under their applicable controls and necessary periods.",
       },
       {
         title: "9. Cookies, device controls, and privacy signals",
@@ -78,7 +78,7 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
       },
       {
         title: "14. Automated processing",
-        body: "AI suggestions and Hanz responses support music learning and may be inaccurate. They do not make decisions producing legal or similarly significant effects and are not used for employment, credit, insurance, housing, or access to essential services.",
+        body: "AI suggestions and Harmony responses support music learning and may be inaccurate. They do not make decisions producing legal or similarly significant effects and are not used for employment, credit, insurance, housing, or access to essential services.",
       },
       {
         title: "15. Security and incidents",
@@ -103,19 +103,19 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
     contact: "ご質問・権利請求：privacy@tonari.ai",
     sections: [
       { title: "1. 適用範囲と運営者", body: "本通知はHarmony Hashに適用されます。Tonari Labsは、日本在住の個人運営者ジェニングス ジャナ（Jana Jennings）が使用する屋号です。下記の利用目的を定め、本通知に記載する個人情報の取扱いに責任を負う者はジェニングス ジャナです。連絡先：privacy@tonari.ai。個人の安全確保のため私的な居住住所はウェブ上に掲載しませんが、適用法令上必要な場合、privacy@tonari.aiへの請求に対し遅滞なく回答します。リンク先には各運営者の通知が適用されます。" },
-      { title: "2. 取り扱う情報と取得元", body: "コード、キー、モード、楽器、ボイシング、進行状態等の音楽上の選択、進行ビルダーへ入力した文章、Hanzを開始した場合のライブマイク音声と会話テキスト、端末言語とオンボーディング状態、IPアドレス、ブラウザ、URL、時刻、おおよその地域、セキュリティイベント、診断情報等を処理します。" },
+      { title: "2. 取り扱う情報と取得元", body: "コード、キー、モード、楽器、ボイシング、進行状態等の音楽上の選択、進行ビルダーへ入力した文章、Harmonyを開始した場合のライブマイク音声と会話テキスト、端末言語とオンボーディング状態、IPアドレス、ブラウザ、URL、時刻、おおよその地域、セキュリティイベント、診断情報等を処理します。" },
       { title: "3. 端末内の音楽データ", body: "コード選択、再生状態、ワークスペース操作の大部分はブラウザメモリ内に留まります。共有リンクにはコピーを選択した進行がURLとして含まれます。オンボーディング設定はlocalStorageまたはsessionStorageへ保存する場合があります。Tonariは進行を保存するアカウントデータベースを運営しません。" },
       { title: "4. AI進行ビルダー", body: "説明を送信すると、プロンプトと関連する音楽情報がCloudflare Workerを経由してOpenAI Responses APIへ送られます。リクエストはstore:falseでアプリケーション状態の保存を要求しませんが、承認済みデータ管理設定がない場合、標準の不正利用監視ログに事業者所定の期間保存される可能性があります。Tonari独自モデルの学習には利用しません。" },
-      { title: "5. Hanz音声コンパニオン", body: "Hanzは音声機能を選択しマイクを許可した場合のみ開始します。ライブマイク音声と会話テキストは、リアルタイムの文字起こしと応答生成のためOpenAI Realtimeへ送信され、音楽クライアントツールはコード・進行状態を交換します。会話表示のため、このブラウザタブは利用者とHanzの直近20件までのメッセージをReactメモリ内に一時保持します。セッションの開始時または切断時に消去し、Tonariはこれらのメッセージや音声をブラウザストレージまたはアプリケーションデータベースへ保存しません。OpenAIでは、セキュリティ、不正利用監視、法令遵守のために内容が処理またはログへ記録される場合があり、事業者側の取扱いにはOpenAIの適用されるデータ管理設定とポリシーが適用されます。" },
-      { title: "6. 利用目的と法的根拠", body: "要求された音楽機能、進行生成、Hanz、設定保存、セキュリティ、診断、不正防止、集計された信頼性把握、法令遵守、紛争対応に利用します。GDPR等が適用される場合、要求機能は依頼の履行または契約前手続、必要な安全管理・診断・改善は正当な利益、法令対応は法的義務、法令上必要な非必須保存・分析は同意に基づきます。" },
-      { title: "7. 委託先と開示", body: "Cloudflareはホスティング、保護、レート制限、リクエストログ、技術的な可観測性、OpenAIは進行プロンプトならびにHanzのライブ音声、文字起こし、セッション情報、メール事業者はお問い合わせを処理します。適法かつ合理的に必要な場合、専門家、当局、事業承継先へ開示することがあります。個人情報を販売せず、クロスコンテキスト行動広告に利用しません。" },
-      { title: "8. 保存期間", body: "ブラウザメモリ内の音楽状態はページを閉じるか更新すると終了し、端末設定は変更または削除まで残ります。Tonariの進行エンドポイントはプロンプトDBを作成しません。Hanzの一時的な文字起こしはセッションの開始時または切断時に消去され、ブラウザストレージまたはアプリケーションデータベースへ保存されません。OpenAIその他の事業者は、適用される管理設定と必要期間に従い、セキュリティ、不正利用監視、法令上必要な記録を保持する場合があります。" },
+      { title: "5. Harmony音声コンパニオン", body: "Harmonyは音声機能を選択しマイクを許可した場合のみ開始します。ライブマイク音声と会話テキストは、リアルタイムの文字起こしと応答生成のためOpenAI Realtimeへ送信され、音楽クライアントツールはコード・進行状態を交換します。会話表示のため、このブラウザタブは利用者とHarmonyの直近20件までのメッセージをReactメモリ内に一時保持します。セッションの開始時または切断時に消去し、Tonariはこれらのメッセージや音声をブラウザストレージまたはアプリケーションデータベースへ保存しません。OpenAIでは、セキュリティ、不正利用監視、法令遵守のために内容が処理またはログへ記録される場合があり、事業者側の取扱いにはOpenAIの適用されるデータ管理設定とポリシーが適用されます。" },
+      { title: "6. 利用目的と法的根拠", body: "要求された音楽機能、進行生成、Harmony、設定保存、セキュリティ、診断、不正防止、集計された信頼性把握、法令遵守、紛争対応に利用します。GDPR等が適用される場合、要求機能は依頼の履行または契約前手続、必要な安全管理・診断・改善は正当な利益、法令対応は法的義務、法令上必要な非必須保存・分析は同意に基づきます。" },
+      { title: "7. 委託先と開示", body: "Cloudflareはホスティング、保護、レート制限、リクエストログ、技術的な可観測性、OpenAIは進行プロンプトならびにHarmonyのライブ音声、文字起こし、セッション情報、メール事業者はお問い合わせを処理します。適法かつ合理的に必要な場合、専門家、当局、事業承継先へ開示することがあります。個人情報を販売せず、クロスコンテキスト行動広告に利用しません。" },
+      { title: "8. 保存期間", body: "ブラウザメモリ内の音楽状態はページを閉じるか更新すると終了し、端末設定は変更または削除まで残ります。Tonariの進行エンドポイントはプロンプトDBを作成しません。Harmonyの一時的な文字起こしはセッションの開始時または切断時に消去され、ブラウザストレージまたはアプリケーションデータベースへ保存されません。OpenAIその他の事業者は、適用される管理設定と必要期間に従い、セキュリティ、不正利用監視、法令上必要な記録を保持する場合があります。" },
       { title: "9. Cookie、端末設定、プライバシー信号", body: "必要な設定にブラウザストレージを利用し、Cloudflareのセキュリティ技術が動作する場合があります。ブラウザからマイク許可を取り消し、サイトデータを削除できます。適用される有効なGlobal Privacy Control信号は販売・共有からのオプトアウトとして扱いますが、本サービスに当該販売・広告共有はありません。Do Not Trackには統一基準がないため個別に応答しません。" },
       { title: "10. 国外移転", body: "Tonari Labsは日本から運営し、委託先は日本、米国、EEAその他の国で処理する場合があります。必要に応じ、十分性認定、標準契約条項その他の適法な保護措置を利用します。適用される保護措置の情報を請求できます。" },
       { title: "11. EEA・英国・スイスでの権利", body: "適用される場合、アクセス、訂正、削除、処理制限、移転または写しの取得、異議、同意撤回、監督機関への苦情を請求できます。法令上の制限があり、本人確認を行う場合があります。法定期間内に回答します。" },
       { title: "12. カリフォルニア州その他米国州法上の権利", body: "適用される場合、種類、取得元、目的、提供先、具体的情報の開示、訂正、削除、ポータビリティ、販売・共有・ターゲティング広告からのオプトアウト、特定の機微情報利用の制限、拒否への不服申立て、不利益取扱いの禁止を求められます。個人情報の対価となるインセンティブはありません。認定代理人による本人確認済み請求も可能です。" },
       { title: "13. 日本の個人情報保護法その他地域の権利", body: "利用目的は第6項、委託先は第7項、国外処理は第10項のとおりです。適用される場合、利用目的の通知、保有個人データまたは提供記録の開示、訂正、削除、利用停止、消去、第三者提供停止を請求でき、個人情報保護委員会へ相談できます。その他の地域でも適用される同等の権利に対応します。" },
-      { title: "14. 自動処理", body: "AI提案とHanzの応答は音楽学習を支援するもので、誤る場合があります。法的効果または同様の重大な影響を生じる決定を行わず、雇用、信用、保険、住宅、重要サービスへのアクセス判断には利用しません。" },
+      { title: "14. 自動処理", body: "AI提案とHarmonyの応答は音楽学習を支援するもので、誤る場合があります。法的効果または同様の重大な影響を生じる決定を行わず、雇用、信用、保険、住宅、重要サービスへのアクセス判断には利用しません。" },
       { title: "15. 安全管理とインシデント", body: "HTTPS、短時間有効な音声セッション認証情報、サーバー側事業者キー、レート制限、アクセス制御、データ最小化、委託先のセキュリティ機能を利用します。完全な安全性は保証できません。通知対象の事案を調査・軽減し、法令に従って本人と当局へ通知します。" },
       { title: "16. 子ども", body: "Harmony Hashは一般向け音楽ツールで、米国の13歳未満または各地域の同等の最低年齢未満を対象とせず、その個人情報を故意に収集しません。子どもが情報を提供したと思われる場合はご連絡ください。" },
       { title: "17. 変更と連絡先", body: "機能、委託先、設定、法令の変更に応じて更新します。施行日と最終更新日が現行版を示し、重要な変更には相応の通知を行います。Harmony Hashと行使したい権利を明記してprivacy@tonari.aiへお送りください。" },

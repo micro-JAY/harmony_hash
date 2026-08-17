@@ -139,11 +139,11 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
       return;
     }
     if (issue === "text-only") {
-      setAudioError(t("Hanz connected in text-only mode. End the conversation and try again."));
+      setAudioError(t("Harmony connected in text-only mode. End the conversation and try again."));
       return;
     }
     const timeout = window.setTimeout(() => {
-      setAudioError(t("Hanz replied, but no voice audio reached this browser. Check your output device and try again."));
+      setAudioError(t("Harmony replied, but no voice audio reached this browser. Check your output device and try again."));
     }, 5_000);
     return () => window.clearTimeout(timeout);
   }, [
@@ -208,7 +208,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
             color: "var(--text-secondary)",
           }}
         >
-          {t("Hanz Hasher")}
+          {t("Harmony")}
         </span>
         <span className="flex items-center gap-2">
           <span
@@ -229,7 +229,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
             ref={closeButtonRef}
             type="button"
             className="hhv-toggle grid place-items-center rounded-md"
-            aria-label={t("Close Hanz Hasher")}
+            aria-label={t("Close Harmony")}
             onClick={() => void handleClose()}
             style={{
               width: "2rem",
@@ -323,7 +323,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
                   color: entry.role === "user" ? "var(--text-muted)" : "var(--text-accent)",
                 }}
               >
-                {entry.role === "user" ? t("You") : "Hanz"}
+                {entry.role === "user" ? t("You") : t("Harmony")}
               </span>
               {entry.text}
             </li>
@@ -401,7 +401,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
             e.currentTarget.style.background = "var(--interactive-accent-bg)";
           }}
         >
-          {t(busy ? "Connecting…" : "Hanz, Help!")}
+          {t(busy ? "Connecting…" : "Harmony, Help!")}
         </button>
           )}
         </div>

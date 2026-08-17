@@ -218,8 +218,8 @@ async function main(): Promise<void> {
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("Help me finish and understand this progression");
     await page.getByRole("button", { name: helpLabel }).click();
-    let dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
-    await page.getByRole("button", { name: "Hanz, Help!" }).click();
+    let dialog = page.getByRole("dialog", { name: "Harmony" });
+    await page.getByRole("button", { name: "Harmony, Help!" }).click();
     const listening = page.getByText("Listening", { exact: true });
     const alert = page.getByRole("alert");
     await Promise.any([
@@ -239,13 +239,13 @@ async function main(): Promise<void> {
             ? `${capturedFailure.stage}/${capturedFailure.name}`
             : (realtimeCallFailure ?? "no SDP response"))
         : `HTTP ${realtimeCallStatus}`;
-      throw new Error(`Hanz Realtime start failed (${transport}): ${message}`);
+      throw new Error(`Harmony Realtime start failed (${transport}): ${message}`);
     }
     if ((await dialog.getAttribute("data-session-kind")) !== "voice") {
       throw new Error("OpenAI Realtime created a non-voice conversation");
     }
     if (clientSecretRequests !== 1 || realtimeCallRequests !== 1) {
-      throw new Error("Hanz did not establish exactly one Worker-minted OpenAI Realtime session");
+      throw new Error("Harmony did not establish exactly one Worker-minted OpenAI Realtime session");
     }
 
     await page.waitForFunction(() => {
@@ -263,12 +263,12 @@ async function main(): Promise<void> {
       || beforeClose.channelCount !== 1
       || beforeClose.openChannelIds.length !== 1
     ) {
-      throw new Error("Hanz did not keep exactly one open Realtime transport");
+      throw new Error("Harmony did not keep exactly one open Realtime transport");
     }
     const activeChannelId = beforeClose.openChannelIds[0];
     const audioPacketsBeforeTurn = Number(await dialog.getAttribute("data-audio-packets"));
 
-    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: "Close Harmony" }).click();
     await dialog.waitFor({ state: "detached", timeout: 10_000 });
     const whileClosed = await transportSnapshot(page);
     if (
@@ -276,11 +276,11 @@ async function main(): Promise<void> {
       || whileClosed.openChannelIds.length !== 1
       || whileClosed.openChannelIds[0] !== activeChannelId
     ) {
-      throw new Error("Closing Hanz did not preserve the active Realtime session");
+      throw new Error("Closing Harmony did not preserve the active Realtime session");
     }
 
     await page.getByRole("button", { name: helpLabel }).click();
-    dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+    dialog = page.getByRole("dialog", { name: "Harmony" });
     await page.getByText("Listening", { exact: true }).waitFor({ timeout: 10_000 });
     const afterReopen = await transportSnapshot(page);
     if (
@@ -291,7 +291,7 @@ async function main(): Promise<void> {
       || clientSecretRequests !== 1
       || realtimeCallRequests !== 1
     ) {
-      throw new Error("Reopening Hanz did not resume the same Realtime session");
+      throw new Error("Reopening Harmony did not resume the same Realtime session");
     }
 
     await sendDeterministicToolTurn(page, activeChannelId);
@@ -336,7 +336,7 @@ async function main(): Promise<void> {
 
     const disconnected = await transportSnapshot(page);
     if ((await dialog.getAttribute("data-session-kind")) !== "none") {
-      throw new Error("Hanz remained attached to a voice session after disconnect");
+      throw new Error("Harmony remained attached to a voice session after disconnect");
     }
 
     console.log(JSON.stringify({

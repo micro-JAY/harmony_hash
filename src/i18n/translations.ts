@@ -127,7 +127,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Start with a preset": "プリセットから始める",
     "Pick a proven progression, then keep editing it just like one you built yourself.": "定番のコード進行を選び、自分で作った進行と同じように編集できます。",
     "Describe what you hear": "イメージを言葉で伝える",
-    "Describe a mood or progression and run the builder. If you get stuck, the small help prompt is the only place to call Hanz.": "雰囲気やコード進行を説明して実行します。困ったときは、この入力欄の小さなヘルプ表示からだけHanzを呼び出せます。",
+    "Describe a mood or progression and run the builder. If you get stuck, check the small help prompt; Harmony has you covered.": "雰囲気やコード進行を説明して実行します。困ったときは、この入力欄の小さなヘルプ表示でHarmonyに相談できます。",
+    "Progression agent actions": "コード進行エージェントの操作",
     "Build chord by chord": "コードを一つずつ組み立てる",
     "Type a valid chord and press Enter, click a chord below to append it, or drag chips to place and reorder them.": "有効なコードを入力してEnterを押すか、下のコードをクリックして末尾に追加します。チップはドラッグして挿入や並べ替えができます。",
     "Browse the chord dictionary": "コード辞典から選ぶ",
@@ -212,7 +213,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Need help?": "お困りですか？",
     "Stuck?": "行き詰まりましたか？",
     "Writer's block got you down?": "アイデアが浮かびませんか？",
-    "Phone a friend": "Hanzに相談",
+    "Phone a friend": "Harmonyに相談",
     "Checking…": "確認中…",
     "API ready": "API準備完了",
     "Service unavailable": "サービスを利用できません",
@@ -775,7 +776,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     blues: "ブルース",
     "Share this progression": "このコード進行を共有",
     "Share progression": "コード進行を共有",
-    "A snapshot of these chords and the selected instrument view. Hanz conversations and prompts stay private.": "現在のコードと選択中の楽器表示をリンクに保存します。Hanzとの会話や入力内容は共有されません。",
+    "A snapshot of these chords and the selected instrument view. Harmony conversations and prompts stay private.": "現在のコードと選択中の楽器表示をリンクに保存します。Harmonyとの会話や入力内容は共有されません。",
     "Close share progression": "共有パネルを閉じる",
     "Progression link": "共有リンク",
     "Shareable progression link": "共有用コード進行リンク",
@@ -826,27 +827,27 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Unlock chord card": "コードカードのロックを解除",
     Lock: "ロック",
     Unlock: "ロック解除",
-    "Hanz focus": "Hanzが注目中",
+    "Harmony focus": "Harmonyが注目中",
     "Compare voicings": "ボイシングを比較",
     "Hear the shape before you choose": "選ぶ前に響きを確認",
     "One chord, different shapes": "同じコードを異なる形で",
     "Color follows interval; note names confirm every choice.": "音程ごとの色と音名で各候補を確認できます。",
     Current: "選択中",
     Use: "使用",
-    "Hanz Hasher": "Hanz Hasher",
-    "Close Hanz Hasher": "Hanz Hasherを閉じる",
+    Harmony: "Harmony",
+    "Close Harmony": "Harmonyを閉じる",
     "Needs attention": "確認が必要",
     Listening: "聞き取り中",
     Connecting: "接続中",
     Offline: "オフライン",
     "Connecting…": "接続中…",
-    "Hanz, Help!": "Hanz、助けて！",
+    "Harmony, Help!": "Harmony、助けて！",
     "End conversation": "会話を終了",
     "The voice session ran into a problem.": "音声セッションで問題が発生しました。",
     "Couldn't start the voice session — please try again.": "音声セッションを開始できませんでした。もう一度お試しください。",
     "Could not start the voice session": "音声セッションを開始できませんでした",
-    "Hanz connected in text-only mode. End the conversation and try again.": "Hanzがテキスト専用モードで接続されました。会話を終了して、もう一度お試しください。",
-    "Hanz replied, but no voice audio reached this browser. Check your output device and try again.": "Hanzは返答しましたが、このブラウザに音声が届きませんでした。出力デバイスを確認して、もう一度お試しください。",
+    "Harmony connected in text-only mode. End the conversation and try again.": "Harmonyがテキスト専用モードで接続されました。会話を終了して、もう一度お試しください。",
+    "Harmony replied, but no voice audio reached this browser. Check your output device and try again.": "Harmonyは返答しましたが、このブラウザに音声が届きませんでした。出力デバイスを確認して、もう一度お試しください。",
     "Could not end the session cleanly": "音声セッションを正常に終了できませんでした",
     "Talk through a chord progression, or get the theory behind the one on your timeline.": "コード進行を一緒に考えたり、タイムライン上の進行について理論を聞いたりできます。",
     "Ask for a progression, or have me explain the theory — keep it simple or go deep.": "進行を頼んだり、理論の説明を聞いたりできます。シンプルにも詳しくも対応します。",
@@ -972,8 +973,8 @@ function translateDynamicJapanese(value: string): string | undefined {
   if (match) return `ピアノ・ボイシング：${match[1] === "no notes" ? "音なし" : match[1]}`;
   match = value.match(/^(Current|Use) (.+) voicing for (.+)$/);
   if (match) return `${match[3]}で${match[2]}ボイシングを${match[1] === "Current" ? "選択中" : "使用"}`;
-  match = value.match(/^Hanz is focusing on (.+)$/);
-  if (match) return `Hanzが${match[1]}に注目しています`;
+  match = value.match(/^Harmony is focusing on (.+)$/);
+  if (match) return `Harmonyが${match[1]}に注目しています`;
   match = value.match(/^Clear (.+) chord overlay$/);
   if (match) return `${match[1]}のコード・オーバーレイを解除`;
   match = value.match(/^Overlay: (.+)$/);
@@ -1035,13 +1036,11 @@ const ENGLISH_TOOL_NAME_REPLACEMENTS = [
 ] as const;
 
 function capitalizeEnglishToolNames(value: string): string {
-  const hanzHasherToken = "__HH_HANZ_PROPER_NAME__";
-  const protectedValue = value.split("Hanz Hasher").join(hanzHasherToken);
   const normalized = ENGLISH_TOOL_NAME_REPLACEMENTS.reduce(
     (normalized, [name, capitalized]) => normalized.split(name).join(capitalized),
-    protectedValue,
+    value,
   );
-  return normalized.split(hanzHasherToken).join("Hanz Hasher");
+  return normalized;
 }
 
 export function translate(locale: Locale, key: string): string {

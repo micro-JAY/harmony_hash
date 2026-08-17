@@ -466,7 +466,7 @@ export class OpenAIRealtimeSession {
         () => {
           if (generation === this.generation) {
             this.callbacks.onPlaybackError(
-              "Hanz audio could not play in this browser. Check your output device and try again.",
+              "Harmony audio could not play in this browser. Check your output device and try again.",
             );
           }
         },

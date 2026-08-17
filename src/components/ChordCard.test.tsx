@@ -40,33 +40,33 @@ function renderChordCard({
 }
 
 describe("ChordCard emphasis", () => {
-  it("renders Hanz focus as a distinct visible and semantic state", () => {
+  it("renders Harmony focus as a distinct visible and semantic state", () => {
     const markup = renderChordCard({ isAgentHighlighted: true });
 
     expect(markup).toContain('data-agent-highlighted="true"');
     expect(markup).not.toContain('data-playing="true"');
-    expect(markup).toContain('aria-label="Hanz is focusing on Cmaj7"');
-    expect(markup).toContain("Hanz focus");
+    expect(markup).toContain('aria-label="Harmony is focusing on Cmaj7"');
+    expect(markup).toContain("Harmony focus");
     expect(markup).toContain("var(--status-academy-border)");
     expect(markup).toContain("var(--glow-academy)");
   });
 
-  it("keeps playback gold without showing the Hanz marker", () => {
+  it("keeps playback gold without showing the Harmony marker", () => {
     const markup = renderChordCard({ isPlaying: true });
 
     expect(markup).toContain('data-playing="true"');
     expect(markup).not.toContain('data-agent-highlighted="true"');
-    expect(markup).not.toContain("Hanz focus");
+    expect(markup).not.toContain("Harmony focus");
     expect(markup).toContain("var(--border-accent)");
     expect(markup).toContain("var(--glow-accent)");
   });
 
-  it("preserves both non-color cues when playback and Hanz focus overlap", () => {
+  it("preserves both non-color cues when playback and Harmony focus overlap", () => {
     const markup = renderChordCard({ isPlaying: true, isAgentHighlighted: true });
 
     expect(markup).toContain('data-playing="true"');
     expect(markup).toContain('data-agent-highlighted="true"');
-    expect(markup).toContain("Hanz focus");
+    expect(markup).toContain("Harmony focus");
     expect(markup).toContain("var(--glow-accent), inset 3px 0 0 var(--status-academy-text)");
   });
 });

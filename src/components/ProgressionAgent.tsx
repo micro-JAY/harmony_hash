@@ -239,7 +239,11 @@ export default function ProgressionAgent({
           }}
           aria-label={t("Describe the progression you want")}
         />
-        <div className="flex w-full shrink-0 gap-3 sm:w-auto">
+        <div
+          role="group"
+          aria-label={t("Progression agent actions")}
+          className="flex w-full shrink-0 gap-3 sm:w-auto"
+        >
           <button
             onClick={handleModify}
             aria-label={t("Modify current progression")}

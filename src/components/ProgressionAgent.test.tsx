@@ -24,9 +24,8 @@ describe("ProgressionAgent actions", () => {
 
     expect(markup).toContain('aria-label="Modify current progression"');
     expect(markup).toContain('aria-label="Re-run progression agent"');
-    expect(markup).toContain(
-      'class="flex w-full shrink-0 gap-3 sm:w-auto"',
-    );
+    expect(markup).toContain('role="group" aria-label="Progression agent actions"');
+    expect(markup).toContain('class="flex w-full shrink-0 gap-3 sm:w-auto"');
   });
 
   it("keeps Modify unavailable without a current timeline", () => {

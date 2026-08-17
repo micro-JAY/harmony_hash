@@ -562,10 +562,10 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     const issues = collectBrowserIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
-    await expect(page.getByRole("region", { name: "Progression actions" }).getByRole("button", { name: /Hanz/ })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Progression actions" }).getByRole("button", { name: /Harmony/ })).toHaveCount(0);
 
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
     await page.locator("#theory-root").selectOption("D");
     await page.locator("#theory-scale").selectOption("lydian_dominant");
     const disclosure = page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first();

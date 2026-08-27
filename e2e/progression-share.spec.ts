@@ -172,6 +172,24 @@ test("waits for the selected Guitar diagrams and surfaces a download failure", a
   );
 });
 
+test("surfaces a failed Guitar diagram instead of preparing MIDI forever", async ({ page }) => {
+  await page.route("**/music_src/**/*.svg", (route) => route.fulfill({
+    status: 500,
+    contentType: "text/plain",
+    body: "fixture diagram failure",
+  }));
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await composeProgression(page, ["Cmaj7", "G7"]);
+  await page.getByRole("button", { name: "SHARE", exact: true }).click();
+
+  const panel = page.getByRole("dialog", { name: "Share this progression" });
+  await expect(panel.getByRole("button", { name: "MIDI export unavailable" })).toBeDisabled();
+  await expect(panel.getByRole("alert")).toHaveText(
+    "One or more selected guitar diagrams could not be loaded. Choose another variation and try again.",
+  );
+  await expect(panel).not.toContainText("Preparing selected voicings…");
+});
+
 test("shows invalid and duplicate share payloads without breaking the composer", async ({ page }) => {
   const invalid = new URL("http://localhost:4173/");
   invalid.searchParams.set("hh", "1");

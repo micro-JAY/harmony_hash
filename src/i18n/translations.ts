@@ -789,6 +789,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Export the selected chord variations as one 4/4 bar each, with no tempo event.": "選択中のコード・バリエーションを1コードにつき4/4拍子の1小節として、テンポ情報なしで書き出します。",
     "Download MIDI (.mid)": "MIDIをダウンロード（.mid）",
     "Preparing selected voicings…": "選択中のボイシングを準備中…",
+    "MIDI export unavailable": "MIDIの書き出しを利用できません",
+    "One or more selected guitar diagrams could not be loaded. Choose another variation and try again.": "選択中のギター図を読み込めませんでした。別のバリエーションを選んで、もう一度お試しください。",
     "MIDI file downloaded.": "MIDIファイルをダウンロードしました。",
     "MIDI export failed.": "MIDIの書き出しに失敗しました。",
     "Pinned chord cards": "固定したコードカード",

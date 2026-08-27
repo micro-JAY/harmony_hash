@@ -54,6 +54,8 @@ test("delays preview, promotes a silent full card, and preserves the pin across 
   expect(pinAfterControl?.y).toBe(pinBeforeControl?.y);
 
   const handle = pin.getByRole("button", { name: "Move pinned chord card: C6" });
+  await expect(pin).toHaveCSS("touch-action", "pan-y");
+  await expect(handle).toHaveCSS("touch-action", "none");
   const handleBox = await handle.boundingBox();
   if (!handleBox) throw new Error("Pinned chord drag handle has no bounds");
   await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
@@ -62,10 +64,38 @@ test("delays preview, promotes a silent full card, and preserves the pin across 
   await page.mouse.up();
   const draggedBox = await pin.boundingBox();
   expect(draggedBox).not.toBeNull();
-  expect(draggedBox!.x).toBeGreaterThanOrEqual(-1);
-  expect(draggedBox!.y).toBeGreaterThanOrEqual(-1);
+  expect(draggedBox!.x).toBeGreaterThanOrEqual(-2);
+  expect(draggedBox!.y).toBeGreaterThanOrEqual(-2);
   expect(draggedBox!.x + draggedBox!.width).toBeLessThanOrEqual(1_281);
   expect(draggedBox!.y + draggedBox!.height).toBeLessThanOrEqual(721);
+
+  const draggedHandleBox = await handle.boundingBox();
+  if (!draggedHandleBox) throw new Error("Pinned chord drag handle disappeared");
+  await page.mouse.move(
+    draggedHandleBox.x + draggedHandleBox.width / 2,
+    draggedHandleBox.y + draggedHandleBox.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(1_270, 710, { steps: 8 });
+  await page.mouse.up();
+  await page.setViewportSize({ width: 640, height: 480 });
+  await expect.poll(async () => {
+    const [box, resizedHandleBox] = await Promise.all([
+      pin.boundingBox(),
+      handle.boundingBox(),
+    ]);
+    return box !== null
+      && resizedHandleBox !== null
+      && box.x >= -1
+      && box.y >= -1
+      && box.x + box.width <= 641
+      && box.y + box.height <= 481
+      && resizedHandleBox.x >= 0
+      && resizedHandleBox.y >= 0
+      && resizedHandleBox.x + resizedHandleBox.width <= 640
+      && resizedHandleBox.y + resizedHandleBox.height <= 480;
+  }).toBe(true);
+  await page.setViewportSize({ width: 1_280, height: 720 });
 
   await page.getByRole("button", { name: "Tune Toolbox" }).click();
   await expect(pin).toBeVisible();

@@ -15,7 +15,7 @@ import ChordModifier from "./ChordModifier";
 import ChordCardFrame from "./ChordCardFrame";
 import PianoVoicingComparison, { PIANO_STYLE_OPTIONS } from "./PianoVoicingComparison";
 import { useT } from "../i18n/I18nContext";
-import type { GuitarMidiVoicing } from "../lib/guitarPlayback";
+import type { GuitarMidiVoicingState } from "../lib/guitarPlayback";
 import type { HarmonyContext } from "../lib/theory";
 import { classifyChordFamily } from "../lib/visual/chordFamily";
 
@@ -33,7 +33,7 @@ interface ChordCardProps {
   pianoStyle: VoicingStyle;
   onPianoStyleChange: (style: VoicingStyle) => void;
   onChordChange: (option: ChordModifierOption) => void;
-  onGuitarPlaybackVoicingChange?: (voicing: GuitarMidiVoicing | null) => void;
+  onGuitarPlaybackVoicingChange?: (state: GuitarMidiVoicingState) => void;
   harmonyContext?: HarmonyContext;
   timelineIndex?: number;
   timelineChords?: ReadonlyArray<IndexedChord>;

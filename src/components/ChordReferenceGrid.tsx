@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { lookupChord } from "../lib/chordData";
 import {
@@ -190,6 +190,7 @@ interface ChordReferenceGridProps {
   moodId?: MoodId | null;
   /** Keeps the shared context rail between the leading Browse control and the grid body. */
   leadingContent?: ReactNode;
+  open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onChordPreview?: (request: ChordPreviewRequest) => void;
   onChordPreviewDismiss?: () => void;
@@ -204,13 +205,15 @@ export default function ChordReferenceGrid({
   keyContext,
   moodId,
   leadingContent,
+  open,
   onOpenChange,
   onChordPreview,
   onChordPreviewDismiss,
 }: ChordReferenceGridProps) {
   const t = useT();
   const shouldReduceMotion = useReducedMotion();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open ?? internalOpen;
   const [flashCell, setFlashCell] = useState<string | null>(null);
   const [activeGroup, setActiveGroup] = useState<QualityGroup | "all">("basic");
   const [suggestionMode, setSuggestionMode] = useState<SuggestionMode>("off");
@@ -218,8 +221,16 @@ export default function ChordReferenceGrid({
     () => createChordPreviewIntent((request) => onChordPreview?.(request)),
     [onChordPreview],
   );
+  const previousOpenRef = useRef(isOpen);
 
   useEffect(() => () => previewIntent.cancel(), [previewIntent]);
+  useEffect(() => {
+    const wasOpen = previousOpenRef.current;
+    previousOpenRef.current = isOpen;
+    if (!wasOpen || isOpen) return;
+    previewIntent.cancel();
+    onChordPreviewDismiss?.();
+  }, [isOpen, onChordPreviewDismiss, previewIntent]);
   const chordHistory = useMemo(
     () => chords.flatMap((chordName) => {
       const chord = lookupChord(chordName);
@@ -281,13 +292,9 @@ export default function ChordReferenceGrid({
   // Reset filter and history when grid collapses
   function handleToggle() {
     const next = !isOpen;
-    setIsOpen(next);
+    setActiveGroup("basic");
+    if (open === undefined) setInternalOpen(next);
     onOpenChange?.(next);
-    if (!next) {
-      setActiveGroup("basic");
-      previewIntent.cancel();
-      onChordPreviewDismiss?.();
-    }
   }
 
   // ── Filtered qualities based on active group ──

@@ -104,6 +104,27 @@ test("optional guided tour spotlights primary tools and supports screen and keyb
   await expect(page.getByRole("button", { name: "Help / About" })).toBeFocused();
 });
 
+test("starting the tour collapses the chord browser before the preset step", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const introduction = page.getByRole("dialog", { name: "HARMONY HASH" });
+  await introduction.getByRole("button", { name: "START HASHING" }).click();
+  const browse = page.getByRole("button", { name: "Browse chords ↓", exact: true });
+  await browse.click();
+  await expect(page.getByTestId("chord-grid-panel")).toBeVisible();
+  await expect(page.getByTestId("hasher-preset-section")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Help / About" }).click();
+  await introduction.getByRole("button", { name: "TAKE A TOUR" }).click();
+  await expect(page.locator('button[aria-controls="chord-reference-grid-panel"]'))
+    .toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByTestId("hasher-preset-section")).toBeVisible();
+
+  for (let step = 0; step < 3; step += 1) await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("dialog", { name: "Start with a preset" })).toBeVisible();
+  await expect(page.locator('[data-tour="hasher-presets"]')).toBeVisible();
+});
+
 test("blocked storage remains usable and dismissal lasts for the page session", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

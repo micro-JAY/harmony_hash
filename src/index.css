@@ -881,18 +881,17 @@ svg [data-note-tooltip="true"]:focus-visible {
 
 .hh-floating-chord-card {
   position: absolute;
-  width: min(18rem, calc(100vw - (2 * var(--space-3))));
+  width: min(var(--floating-chord-card-guitar-width), calc(100vw - (2 * var(--space-3))));
   max-height: calc(100dvh - (2 * var(--space-3)));
   overflow-x: hidden;
   overflow-y: auto;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  overscroll-behavior: contain;
   pointer-events: auto;
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 .hh-floating-chord-card[data-instrument="piano"] {
-  width: min(24rem, calc(100vw - (2 * var(--space-3))));
+  width: min(var(--floating-chord-card-piano-width), calc(100vw - (2 * var(--space-3))));
 }
 
 .hh-floating-chord-card--preview {
@@ -904,28 +903,20 @@ svg [data-note-tooltip="true"]:focus-visible {
   top: 0;
   z-index: 5;
   display: flex;
-  min-height: 2rem;
+  min-height: var(--floating-chord-card-toolbar-height);
   align-items: center;
   justify-content: space-between;
   padding: var(--space-1) var(--space-2);
-  background: var(--surface-overlay);
-  border: 1px solid var(--border-default);
-  border-bottom: 0;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .hh-floating-chord-card__handle,
 .hh-floating-chord-card__dismiss {
   display: inline-flex;
-  min-width: 1.75rem;
-  min-height: 1.75rem;
+  min-width: var(--floating-chord-card-action-size);
+  min-height: var(--floating-chord-card-action-size);
   align-items: center;
   justify-content: center;
   padding: var(--space-1);
-  color: var(--text-secondary);
-  background: var(--interactive-secondary-bg);
-  border: 1px solid var(--interactive-secondary-border);
-  border-radius: var(--radius-sm);
 }
 
 .hh-floating-chord-card__handle {
@@ -947,9 +938,6 @@ svg [data-note-tooltip="true"]:focus-visible {
   z-index: 6;
   padding: 0;
   cursor: copy;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-xl);
 }
 
 .hh-floating-chord-card__pin-target:focus-visible {
@@ -1014,6 +1002,18 @@ svg [data-note-tooltip="true"]:focus-visible {
     min-width: 100%;
     flex-basis: 100%;
     grid-template-columns: minmax(0, 1fr) var(--control-action-width);
+  }
+}
+
+@media (max-width: 23rem) {
+  .hh-chord-browser-context-rail,
+  .hh-harmony-context--inline.hh-context-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hh-instrument-picker-slot {
+    width: 100%;
+    margin-left: 0;
   }
 }
 

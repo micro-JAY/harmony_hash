@@ -295,6 +295,12 @@
   --control-entry-height: 3rem;
   --control-action-width: 7rem;
 
+  /* Harmony Hash floating snapshots share instrument widths and compact toolbar geometry. */
+  --floating-chord-card-guitar-width: 18rem;
+  --floating-chord-card-piano-width: 24rem;
+  --floating-chord-card-toolbar-height: 2rem;
+  --floating-chord-card-action-size: 1.75rem;
+
 
   /* ----------------------------------------------------------
      SHADOW & GLOW

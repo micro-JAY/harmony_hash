@@ -20,6 +20,7 @@ interface ShareProgressionProps {
   instrument: Instrument;
   chords: ReadonlyArray<ShareableChord>;
   midiVoicings: readonly (readonly number[])[];
+  midiAvailability: "ready" | "preparing" | "error";
 }
 
 type ShareLinkResult =
@@ -100,6 +101,7 @@ export default function ShareProgression({
   instrument,
   chords,
   midiVoicings,
+  midiAvailability,
 }: ShareProgressionProps) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -113,10 +115,11 @@ export default function ShareProgression({
   const currentCopyStatus = shareLink.status === "ready" && copyState?.link === shareLink.link
     ? copyState.status
     : "idle";
-  const midiSnapshotKey = `${instrument}:${chords.map(({ input }) => input).join("|")}:${midiVoicings
+  const midiSnapshotKey = `${instrument}:${midiAvailability}:${chords.map(({ input }) => input).join("|")}:${midiVoicings
     .map((notes) => notes.join(","))
     .join("|")}`;
-  const midiReady = midiVoicings.length === chords.length
+  const midiReady = midiAvailability === "ready"
+    && midiVoicings.length === chords.length
     && midiVoicings.length > 0
     && midiVoicings.every((notes) => notes.length > 0);
   const currentMidiState = midiState?.snapshotKey === midiSnapshotKey ? midiState : null;
@@ -440,9 +443,20 @@ export default function ShareProgression({
               }}
             >
               <Download size={15} aria-hidden="true" />
-              {t(midiReady ? "Download MIDI (.mid)" : "Preparing selected voicings…")}
+              {t(midiAvailability === "error"
+                ? "MIDI export unavailable"
+                : midiReady
+                  ? "Download MIDI (.mid)"
+                  : "Preparing selected voicings…")}
             </button>
-            {currentMidiState?.status === "downloaded" ? (
+            {midiAvailability === "error" ? (
+              <p
+                role="alert"
+                style={{ margin: 0, color: "var(--status-error-text)", fontSize: "var(--text-sm)" }}
+              >
+                {t("One or more selected guitar diagrams could not be loaded. Choose another variation and try again.")}
+              </p>
+            ) : currentMidiState?.status === "downloaded" ? (
               <p
                 role="status"
                 aria-live="polite"

@@ -7,7 +7,10 @@ import { GripHorizontal, X } from "lucide-react";
 import {
   useMemo,
   useReducer,
+  useEffect,
   useRef,
+  useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
@@ -21,10 +24,36 @@ import ChordCard from "./ChordCard";
 import type { ChordPreviewRequest } from "./chordPreviewIntent";
 import {
   createFloatingChordCard,
+  floatingChordCardClampOffset,
   floatingChordCardPosition,
   floatingChordCardsReducer,
   type FloatingChordCard,
 } from "./floatingChordCardsState";
+
+const FLOATING_CARD_SURFACE_STYLE = {
+  borderRadius: "var(--radius-xl)",
+  boxShadow: "var(--shadow-lg)",
+} satisfies CSSProperties;
+
+const FLOATING_CARD_CONTROLS_STYLE = {
+  backgroundColor: "var(--surface-overlay)",
+  border: "1px solid var(--border-default)",
+  borderBottom: 0,
+  borderRadius: "var(--radius-xl) var(--radius-xl) 0 0",
+} satisfies CSSProperties;
+
+const FLOATING_CARD_BUTTON_STYLE = {
+  color: "var(--text-secondary)",
+  backgroundColor: "var(--interactive-secondary-bg)",
+  border: "1px solid var(--interactive-secondary-border)",
+  borderRadius: "var(--radius-sm)",
+} satisfies CSSProperties;
+
+const FLOATING_CARD_PIN_TARGET_STYLE = {
+  backgroundColor: "transparent",
+  border: "1px solid transparent",
+  borderRadius: "var(--radius-xl)",
+} satisfies CSSProperties;
 
 interface FloatingChordCardsProps {
   readonly instrument: Instrument;
@@ -98,6 +127,39 @@ function PinnedChordCard({
   const t = useT();
   const dragControls = useDragControls();
   const shouldReduceMotion = useReducedMotion();
+  const cardRef = useRef<HTMLElement>(null);
+  const [positionCorrection, setPositionCorrection] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    let animationFrame: number | null = null;
+    const clampToViewport = () => {
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = null;
+        const node = cardRef.current;
+        if (!node) return;
+        const offset = floatingChordCardClampOffset(node.getBoundingClientRect(), viewportSize());
+        if (offset.x === 0 && offset.y === 0) return;
+        // Shift the absolute base without replacing Motion's user-controlled drag transform.
+        setPositionCorrection((current) => ({
+          x: current.x + offset.x,
+          y: current.y + offset.y,
+        }));
+      });
+    };
+
+    clampToViewport();
+    window.addEventListener("resize", clampToViewport);
+    window.visualViewport?.addEventListener("resize", clampToViewport);
+    const resizeObserver = new ResizeObserver(clampToViewport);
+    if (cardRef.current) resizeObserver.observe(cardRef.current);
+    return () => {
+      window.removeEventListener("resize", clampToViewport);
+      window.visualViewport?.removeEventListener("resize", clampToViewport);
+      resizeObserver.disconnect();
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
+    };
+  }, []);
 
   function startDrag(event: ReactPointerEvent<HTMLButtonElement>) {
     dragControls.start(event, { distanceThreshold: 3 });
@@ -105,6 +167,7 @@ function PinnedChordCard({
 
   return (
     <motion.article
+      ref={cardRef}
       drag
       dragListener={false}
       dragControls={dragControls}
@@ -117,18 +180,20 @@ function PinnedChordCard({
       data-instrument={card.instrument}
       className="hh-floating-chord-card"
       style={{
-        left: card.initialPosition.x,
-        top: card.initialPosition.y,
+        ...FLOATING_CARD_SURFACE_STYLE,
+        left: card.initialPosition.x + positionCorrection.x,
+        top: card.initialPosition.y + positionCorrection.y,
         zIndex: 60 + card.id,
       }}
     >
-      <div className="hh-floating-chord-card__controls">
+      <div className="hh-floating-chord-card__controls" style={FLOATING_CARD_CONTROLS_STYLE}>
         <button
           type="button"
           onPointerDown={startDrag}
           aria-label={`${t("Move pinned chord card")}: ${card.displayName}`}
           title={t("Move pinned chord card")}
           className="hh-floating-chord-card__handle"
+          style={{ ...FLOATING_CARD_BUTTON_STYLE, touchAction: "none" }}
         >
           <GripHorizontal size={16} aria-hidden="true" />
         </button>
@@ -138,6 +203,7 @@ function PinnedChordCard({
           aria-label={`${t("Dismiss pinned chord card")}: ${card.displayName}`}
           title={t("Dismiss pinned chord card")}
           className="hh-floating-chord-card__dismiss"
+          style={FLOATING_CARD_BUTTON_STYLE}
         >
           <X size={15} aria-hidden="true" />
         </button>
@@ -230,6 +296,7 @@ export default function FloatingChordCards({
           onPointerEnter={onPreviewEnter}
           onPointerLeave={onPreviewLeave}
           style={{
+            ...FLOATING_CARD_SURFACE_STYLE,
             left: previewPosition.x,
             top: previewPosition.y,
           }}
@@ -249,6 +316,7 @@ export default function FloatingChordCards({
             className="hh-floating-chord-card__pin-target"
             aria-label={`${t("Pin chord preview")}: ${previewCard.displayName}`}
             title={t("Pin chord preview")}
+            style={FLOATING_CARD_PIN_TARGET_STYLE}
           />
         </motion.aside>
       ) : null}

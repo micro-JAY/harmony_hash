@@ -76,3 +76,33 @@ test.describe("375px compact browser context", () => {
     await expectNoDocumentOverflow(page);
   });
 });
+
+for (const width of [320, 360] as const) {
+  test.describe(`${width}px narrow browser context`, () => {
+    test.use({ viewport: { width, height: 720 } });
+
+    test("stacks Key and Mode without horizontal overflow", async ({ page }) => {
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      const rail = page.getByTestId("hasher-browser-context-rail");
+      const key = rail.getByLabel("Hasher key");
+      const mode = rail.getByLabel("Hasher mode");
+      const [keyBox, modeBox] = await Promise.all([key.boundingBox(), mode.boundingBox()]);
+      expect(keyBox).not.toBeNull();
+      expect(modeBox).not.toBeNull();
+      expect(modeBox!.y).toBeGreaterThan(keyBox!.y + keyBox!.height - 1);
+
+      const bounds = await rail.evaluate((element) => Array.from(
+        element.querySelectorAll("select, button"),
+        (control) => {
+          const box = control.getBoundingClientRect();
+          return { left: box.left, right: box.right };
+        },
+      ));
+      for (const bound of bounds) {
+        expect(bound.left).toBeGreaterThanOrEqual(0);
+        expect(bound.right).toBeLessThanOrEqual(width);
+      }
+      await expectNoDocumentOverflow(page);
+    });
+  });
+}

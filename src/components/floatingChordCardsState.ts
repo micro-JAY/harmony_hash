@@ -30,6 +30,13 @@ export interface FloatingViewport {
   readonly height: number;
 }
 
+export interface FloatingCardRect {
+  readonly left: number;
+  readonly right: number;
+  readonly top: number;
+  readonly bottom: number;
+}
+
 const VIEWPORT_EDGE_GAP = 12;
 const POINTER_CARD_GAP = 16;
 const CARD_ESTIMATED_SIZE: Readonly<Record<Instrument, { width: number; height: number }>> = {
@@ -39,6 +46,35 @@ const CARD_ESTIMATED_SIZE: Readonly<Record<Instrument, { width: number; height: 
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
+}
+
+export function floatingChordCardClampOffset(
+  rect: FloatingCardRect,
+  viewport: FloatingViewport,
+): ChordPreviewPoint {
+  if (!Number.isFinite(viewport.width) || !Number.isFinite(viewport.height)
+    || viewport.width <= 0 || viewport.height <= 0) {
+    throw new RangeError("Floating chord cards require a positive finite viewport");
+  }
+  if (![rect.left, rect.right, rect.top, rect.bottom].every(Number.isFinite)
+    || rect.right < rect.left || rect.bottom < rect.top) {
+    throw new RangeError("Floating chord cards require finite ordered bounds");
+  }
+
+  const rightEdge = viewport.width - VIEWPORT_EDGE_GAP;
+  const bottomEdge = viewport.height - VIEWPORT_EDGE_GAP;
+  return {
+    x: rect.left < VIEWPORT_EDGE_GAP
+      ? VIEWPORT_EDGE_GAP - rect.left
+      : rect.right > rightEdge
+        ? rightEdge - rect.right
+        : 0,
+    y: rect.top < VIEWPORT_EDGE_GAP
+      ? VIEWPORT_EDGE_GAP - rect.top
+      : rect.bottom > bottomEdge
+        ? bottomEdge - rect.bottom
+        : 0,
+  };
 }
 
 export function floatingChordCardPosition(

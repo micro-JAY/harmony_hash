@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lookupChord } from "../lib/chordData";
 import {
   createFloatingChordCard,
+  floatingChordCardClampOffset,
   floatingChordCardPosition,
   floatingChordCardsReducer,
 } from "./floatingChordCardsState";
@@ -35,6 +36,23 @@ describe("floating chord card state", () => {
     expect(card.instrument).toBe("guitar");
     expect(card.variant).toBe(1);
     expect(card.pianoStyle).toBe("auto");
+  });
+
+  it("returns the offset needed to recover a pin after the viewport shrinks", () => {
+    expect(floatingChordCardClampOffset(
+      { left: 900, right: 1_188, top: 500, bottom: 760 },
+      { width: 800, height: 600 },
+    )).toEqual({ x: -400, y: -172 });
+
+    expect(floatingChordCardClampOffset(
+      { left: -20, right: 268, top: -8, bottom: 492 },
+      { width: 800, height: 600 },
+    )).toEqual({ x: 32, y: 20 });
+
+    expect(floatingChordCardClampOffset(
+      { left: 12, right: 300, top: 12, bottom: 512 },
+      { width: 800, height: 600 },
+    )).toEqual({ x: 0, y: 0 });
   });
 
   it("updates and dismisses one pin without mutating its siblings", () => {

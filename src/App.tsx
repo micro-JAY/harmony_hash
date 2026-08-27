@@ -74,7 +74,7 @@ import {
   type TimelineMutation,
   type TimelineTransactionResult,
 } from "./lib/timelineTransactions";
-import type { GuitarMidiVoicing } from "./lib/guitarPlayback";
+import type { GuitarMidiVoicingState } from "./lib/guitarPlayback";
 import {
   isExplicitOnboardingDismissal,
   onboardingPersistence,
@@ -192,8 +192,8 @@ function App() {
   const chords = useMemo(() => timeline.map((item) => item.value), [timeline]);
   const chordsRef = useRef(chords);
   const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
-  const [guitarPlaybackVoicings, setGuitarPlaybackVoicings] = useState<
-    Record<TimelineItemId, GuitarMidiVoicing>
+  const [guitarVoicingStates, setGuitarVoicingStates] = useState<
+    Record<TimelineItemId, GuitarMidiVoicingState>
   >({});
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
   const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
@@ -203,6 +203,7 @@ function App() {
   // the playback cursor (isPlaying derives from it), so the agent highlighting a
   // chord must not look like playback or block the Play button / play tool.
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
+  const [chordBrowserOpen, setChordBrowserOpen] = useState(false);
   const [chordPreview, setChordPreview] = useState<ChordPreviewRequest | null>(null);
   const chordPreviewDismissTimerRef = useRef<number | null>(null);
 
@@ -347,7 +348,7 @@ function App() {
     timelineRef.current = nextTimeline;
     setTimeline(nextTimeline);
     setCardVariants({});
-    setGuitarPlaybackVoicings({});
+    setGuitarVoicingStates({});
     setLockedCards(new Set());
     setPianoStyles({});
     setHighlightedChordIndex(null);
@@ -367,7 +368,7 @@ function App() {
     setTimeline(nextTimeline);
     setCardVariants((current) => remapIndexedRecord(current, transaction.map));
     const survivingIds = new Set(nextTimeline.map((item) => item.id));
-    setGuitarPlaybackVoicings((current) => Object.fromEntries(
+    setGuitarVoicingStates((current) => Object.fromEntries(
       Object.entries(current).filter(([id]) => survivingIds.has(Number(id))),
     ));
     setPianoStyles((current) => remapIndexedRecord(current, transaction.map));
@@ -528,7 +529,7 @@ function App() {
     playbackController.stop();
     const itemId = timeline[index]?.id;
     if (itemId !== undefined) {
-      setGuitarPlaybackVoicings((current) => {
+      setGuitarVoicingStates((current) => {
         if (!(itemId in current)) return current;
         const next = { ...current };
         delete next[itemId];
@@ -565,11 +566,19 @@ function App() {
   const guitarMidiVoicings = useMemo(() => timeline.map((item, index) => {
     const variant = getVariantForCard(index, item.value.chord.variationCount);
     const expectedPath = getSvgPath(item.value.chord, variant);
-    const voicing = guitarPlaybackVoicings[item.id];
-    return expectedPath && voicing?.sourcePath === expectedPath
-      ? voicing.notes.map((note) => note.midi)
+    const state = guitarVoicingStates[item.id];
+    return expectedPath && state?.status === "ready" && state.voicing.sourcePath === expectedPath
+      ? state.voicing.notes.map((note) => note.midi)
       : [];
-  }), [getVariantForCard, guitarPlaybackVoicings, timeline]);
+  }), [getVariantForCard, guitarVoicingStates, timeline]);
+  const guitarMidiFailed = timeline.some((item, index) => {
+    const variant = getVariantForCard(index, item.value.chord.variationCount);
+    const expectedPath = getSvgPath(item.value.chord, variant);
+    const state = guitarVoicingStates[item.id];
+    if (!expectedPath) return true;
+    return state?.status === "error"
+      && (state.sourcePath === null || state.sourcePath === expectedPath);
+  });
   const guitarPlaybackReady = guitarMidiVoicings.length > 0
     && guitarMidiVoicings.every((voicing) => voicing.length > 0);
   const midiExportVoicings = useMemo(
@@ -578,6 +587,11 @@ function App() {
       : guitarMidiVoicings,
     [guitarMidiVoicings, instrument, pianoVoicings],
   );
+  const midiExportAvailability = instrument === "piano" || guitarPlaybackReady
+    ? "ready"
+    : guitarMidiFailed
+      ? "error"
+      : "preparing";
 
   const isPlaying = playbackPhase === "playing";
   const isPlaybackStarting = playbackPhase === "starting";
@@ -663,7 +677,7 @@ function App() {
     timelineRef.current = nextTimeline;
     chordsRef.current = nextChords;
     const itemId = currentTimeline[index].id;
-    setGuitarPlaybackVoicings((current) => {
+    setGuitarVoicingStates((current) => {
       if (!(itemId in current)) return current;
       const next = { ...current };
       delete next[itemId];
@@ -725,6 +739,7 @@ function App() {
 
   const handleInstrumentChange = useCallback((nextInstrument: Instrument) => {
     playbackController.stop();
+    setGuitarVoicingStates({});
     setInstrument(nextInstrument);
   }, [playbackController]);
 
@@ -854,9 +869,11 @@ function App() {
     }
 
     onboardingPersistence.dismiss();
+    setChordBrowserOpen(false);
+    dismissChordPreviewNow();
     setOnboardingOpen(false);
     setTourOpen(true);
-  }, [handleResult, theoryDisclosures, workspace]);
+  }, [dismissChordPreviewNow, handleResult, theoryDisclosures, workspace]);
 
   const handleCloseTour = useCallback(() => {
     const restore = tourRestoreRef.current;
@@ -925,6 +942,8 @@ function App() {
                   />
                 </div>
               )}
+              chordBrowserOpen={chordBrowserOpen}
+              onChordBrowserOpenChange={setChordBrowserOpen}
               contextLaunch={hasherContextLaunch}
               onChordPreview={handleChordPreview}
               onChordPreviewDismiss={scheduleChordPreviewDismiss}
@@ -1048,6 +1067,7 @@ function App() {
                     instrument={instrument}
                     chords={chords}
                     midiVoicings={midiExportVoicings}
+                    midiAvailability={midiExportAvailability}
                   />
 
                   <button
@@ -1115,19 +1135,13 @@ function App() {
                     pianoStyle={getPianoStyle(index)}
                     onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
                     onChordChange={(option) => replaceChordAt(index, option)}
-                    onGuitarPlaybackVoicingChange={(voicing) => {
+                    onGuitarPlaybackVoicingChange={(state) => {
                       const itemId = timeline[index]?.id;
                       if (itemId === undefined) return;
-                      setGuitarPlaybackVoicings((current) => {
-                        if (voicing === null) {
-                          if (!(itemId in current)) return current;
-                          const next = { ...current };
-                          delete next[itemId];
-                          return next;
-                        }
-                        if (current[itemId] === voicing) return current;
-                        return { ...current, [itemId]: voicing };
-                      });
+                      setGuitarVoicingStates((current) => ({
+                        ...current,
+                        [itemId]: state,
+                      }));
                     }}
                     harmonyContext={hasherContext}
                     timelineIndex={index}

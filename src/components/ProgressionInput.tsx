@@ -47,6 +47,8 @@ interface ProgressionInputProps {
   onRequestVoice: () => void;
   onVoiceIntent: () => void;
   outputTools?: ReactNode;
+  chordBrowserOpen: boolean;
+  onChordBrowserOpenChange: (open: boolean) => void;
   onChordPreview?: (request: ChordPreviewRequest) => void;
   onChordPreviewDismiss?: () => void;
   contextLaunch?: {
@@ -97,6 +99,8 @@ export default function ProgressionInput({
   onRequestVoice,
   onVoiceIntent,
   outputTools,
+  chordBrowserOpen,
+  onChordBrowserOpenChange,
   onChordPreview,
   onChordPreviewDismiss,
   contextLaunch,
@@ -114,7 +118,6 @@ export default function ProgressionInput({
   const [errors, setErrors] = useState<ParseResult["errors"]>([]);
   const [presetDialogTonality, setPresetDialogTonality] = useState<TonalityId | null>(null);
   const [minorHelpOpen, setMinorHelpOpen] = useState(false);
-  const [chordBrowserOpen, setChordBrowserOpen] = useState(false);
   const [insertionBoundary, setInsertionBoundary] = useState(committedItems.length);
   const presetTriggerRef = useRef<HTMLButtonElement>(null);
   const selectedTimelineVersionRef = useRef<number | null>(null);
@@ -486,7 +489,8 @@ export default function ProgressionInput({
                 {outputTools}
               </div>
             )}
-            onOpenChange={setChordBrowserOpen}
+            open={chordBrowserOpen}
+            onOpenChange={onChordBrowserOpenChange}
             onChordPreview={onChordPreview}
             onChordPreviewDismiss={onChordPreviewDismiss}
             keyContext={{ key: activeKey, scaleType: activeScaleType }}

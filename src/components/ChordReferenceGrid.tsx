@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { lookupChord } from "../lib/chordData";
 import {
@@ -25,6 +25,12 @@ import {
   chordFamilyPresentation,
 } from "../lib/visual/chordFamily";
 import type { ChordFamily } from "../lib/visual/chordFamily";
+import {
+  createChordPreviewIntent,
+  type ChordPreviewRequest,
+} from "./chordPreviewIntent";
+
+export type { ChordPreviewRequest } from "./chordPreviewIntent";
 
 export type SuggestionMode = "off" | "key" | "next" | "jazz" | "modal";
 
@@ -184,6 +190,9 @@ interface ChordReferenceGridProps {
   moodId?: MoodId | null;
   /** Keeps the shared context rail between the leading Browse control and the grid body. */
   leadingContent?: ReactNode;
+  onOpenChange?: (open: boolean) => void;
+  onChordPreview?: (request: ChordPreviewRequest) => void;
+  onChordPreviewDismiss?: () => void;
 }
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -195,6 +204,9 @@ export default function ChordReferenceGrid({
   keyContext,
   moodId,
   leadingContent,
+  onOpenChange,
+  onChordPreview,
+  onChordPreviewDismiss,
 }: ChordReferenceGridProps) {
   const t = useT();
   const shouldReduceMotion = useReducedMotion();
@@ -202,6 +214,12 @@ export default function ChordReferenceGrid({
   const [flashCell, setFlashCell] = useState<string | null>(null);
   const [activeGroup, setActiveGroup] = useState<QualityGroup | "all">("basic");
   const [suggestionMode, setSuggestionMode] = useState<SuggestionMode>("off");
+  const previewIntent = useMemo(
+    () => createChordPreviewIntent((request) => onChordPreview?.(request)),
+    [onChordPreview],
+  );
+
+  useEffect(() => () => previewIntent.cancel(), [previewIntent]);
   const chordHistory = useMemo(
     () => chords.flatMap((chordName) => {
       const chord = lookupChord(chordName);
@@ -264,8 +282,11 @@ export default function ChordReferenceGrid({
   function handleToggle() {
     const next = !isOpen;
     setIsOpen(next);
+    onOpenChange?.(next);
     if (!next) {
       setActiveGroup("basic");
+      previewIntent.cancel();
+      onChordPreviewDismiss?.();
     }
   }
 
@@ -723,6 +744,25 @@ export default function ChordReferenceGrid({
                             data-modal-degree={fitResult?.modal?.degree}
                             data-modal-interval={fitResult?.modal?.rootInterval}
                             data-modal-palette-interval={fitResult?.modal?.paletteInterval}
+                            onPointerEnter={(event) => {
+                              if (event.pointerType !== "mouse") return;
+                              previewIntent.start(chordName, {
+                                x: event.clientX,
+                                y: event.clientY,
+                              });
+                            }}
+                            onPointerMove={(event) => {
+                              if (event.pointerType !== "mouse") return;
+                              previewIntent.updatePoint({
+                                x: event.clientX,
+                                y: event.clientY,
+                              });
+                            }}
+                            onPointerLeave={(event) => {
+                              if (event.pointerType !== "mouse") return;
+                              previewIntent.cancel();
+                              onChordPreviewDismiss?.();
+                            }}
                             style={{
                               display: "inline-flex",
                               flexDirection: "column",

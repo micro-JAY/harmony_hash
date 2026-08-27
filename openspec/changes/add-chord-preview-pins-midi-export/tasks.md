@@ -1,6 +1,6 @@
 ## 1. Chord Preview Intent
 
-- [ ] 1.1 Add the 1,500 ms mouse-hover intent contract and open-state reporting to `ChordReferenceGrid`, with focused timing and regression coverage for insertion behavior.
+- [x] 1.1 Add the 1,500 ms mouse-hover intent contract and open-state reporting to `ChordReferenceGrid`, with focused timing and regression coverage for insertion behavior.
 
 ## 2. Floating Visual Pins
 

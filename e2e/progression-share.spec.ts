@@ -161,6 +161,11 @@ test("waits for the selected Guitar diagrams and surfaces a download failure", a
   const downloadButton = panel.getByRole("button", { name: "Download MIDI (.mid)" });
   await expect(downloadButton).toBeEnabled({ timeout: 5_000 });
 
+  await panel.getByRole("button", { name: "Close share progression" }).click();
+  await page.getByRole("button", { name: "Guitar", exact: true }).click();
+  await page.getByRole("button", { name: "SHARE", exact: true }).click();
+  await expect(downloadButton).toBeEnabled();
+
   await page.evaluate(() => {
     URL.createObjectURL = () => {
       throw new Error("test object URL failure");

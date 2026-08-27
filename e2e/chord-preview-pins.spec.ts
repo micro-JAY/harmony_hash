@@ -249,6 +249,29 @@ test("re-clamps a pin inside an offset visual viewport", async ({ page }) => {
       && box.x + box.width <= 751
       && box.y + box.height <= 591;
   }).toBe(true);
+
+  await page.evaluate(() => {
+    const setVisualViewport = (window as Window & {
+      __setTestVisualViewport?: (next: {
+        width: number;
+        height: number;
+        offsetLeft: number;
+        offsetTop: number;
+      }) => void;
+    }).__setTestVisualViewport;
+    if (!setVisualViewport) throw new Error("Visual viewport fixture is unavailable");
+    setVisualViewport({ width: 260, height: 80, offsetLeft: 500, offsetTop: 0 });
+  });
+  await expect(pin).toHaveCSS("max-height", "40px");
+  const compactHandle = pin.getByRole("button", { name: "Move pinned chord card: Cmaj7" });
+  await expect.poll(async () => {
+    const box = await compactHandle.boundingBox();
+    return box !== null
+      && box.x >= 500
+      && box.y >= 0
+      && box.x + box.width <= 760
+      && box.y + box.height <= 80;
+  }).toBe(true);
 });
 
 test("keeps compact repeated pins reachable below the Share panel", async ({ page }) => {
@@ -328,6 +351,68 @@ test("keeps compact repeated pins reachable below the Share panel", async ({ pag
   expect(stacking.panelAbovePin).toBe(true);
   await sharePanel.getByRole("button", { name: "Close share progression" }).click();
   await expect(sharePanel).toHaveCount(0);
+});
+
+test("cascades from a dragged pin's live position", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Browse chords ↓", exact: true }).click();
+  const cell = page.getByTestId("chord-grid-panel").locator('[data-chord-name="Cmaj7"]');
+  const preview = page.getByTestId("chord-hover-preview");
+  await page.waitForTimeout(250);
+  await cell.hover();
+  await expect(preview).toBeVisible({ timeout: 2_000 });
+  await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
+
+  const firstPin = page.getByTestId("pinned-chord-card").first();
+  const firstHandle = firstPin.getByRole("button", { name: "Move pinned chord card: Cmaj7" });
+  const [firstBox, firstHandleBox] = await Promise.all([
+    firstPin.boundingBox(),
+    firstHandle.boundingBox(),
+  ]);
+  if (!firstBox || !firstHandleBox) throw new Error("Dragged pin bounds are unavailable");
+  const target = { x: 400, y: 100 };
+  await page.mouse.move(
+    firstHandleBox.x + firstHandleBox.width / 2,
+    firstHandleBox.y + firstHandleBox.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    firstHandleBox.x + firstHandleBox.width / 2 + target.x - firstBox.x,
+    firstHandleBox.y + firstHandleBox.height / 2 + target.y - firstBox.y,
+    { steps: 8 },
+  );
+  await page.mouse.up();
+  await expect.poll(async () => {
+    const box = await firstPin.boundingBox();
+    return box !== null
+      && Math.abs(box.x - target.x) <= 2
+      && Math.abs(box.y - target.y) <= 2;
+  }).toBe(true);
+
+  await page.mouse.move(0, 0);
+  await cell.dispatchEvent("pointerover", {
+    pointerType: "mouse",
+    clientX: target.x - 16,
+    clientY: target.y - 16,
+  });
+  await expect(preview).toBeVisible({ timeout: 2_000 });
+  await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
+
+  const pins = page.getByTestId("pinned-chord-card");
+  await expect(pins).toHaveCount(2);
+  const [liveFirst, second, liveHandle] = await Promise.all([
+    pins.nth(0).boundingBox(),
+    pins.nth(1).boundingBox(),
+    firstHandle.boundingBox(),
+  ]);
+  if (!liveFirst || !second || !liveHandle) throw new Error("Live cascade bounds are unavailable");
+  expect(Math.abs(second.x - liveFirst.x) >= 39
+    || Math.abs(second.y - liveFirst.y) >= 39).toBe(true);
+  const firstHandleCovered = liveHandle.x >= second.x
+    && liveHandle.y >= second.y
+    && liveHandle.x + liveHandle.width <= second.x + second.width
+    && liveHandle.y + liveHandle.height <= second.y + second.height;
+  expect(firstHandleCovered).toBe(false);
 });
 
 test("cancels pending hover intent when keyboard navigation leaves Hasher", async ({ page }) => {

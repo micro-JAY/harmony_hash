@@ -173,7 +173,10 @@ export function floatingChordCardAvailableHeight(
   }
   const topEdge = viewport.offsetTop + VIEWPORT_EDGE_GAP;
   const bottomEdge = viewport.offsetTop + viewport.height - VIEWPORT_EDGE_GAP;
-  return Math.max(1, bottomEdge - clamp(position.y, topEdge, bottomEdge - 1));
+  return Math.max(
+    PIN_CASCADE_STEP,
+    bottomEdge - clamp(position.y, topEdge, bottomEdge - PIN_CASCADE_STEP),
+  );
 }
 
 export function createFloatingChordCard(

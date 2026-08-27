@@ -738,10 +738,11 @@ function App() {
   );
 
   const handleInstrumentChange = useCallback((nextInstrument: Instrument) => {
+    if (nextInstrument === instrument) return;
     playbackController.stop();
     setGuitarVoicingStates({});
     setInstrument(nextInstrument);
-  }, [playbackController]);
+  }, [instrument, playbackController]);
 
   const handleOnboardingClose = useCallback((reason: OnboardingCloseReason) => {
     if (isExplicitOnboardingDismissal(reason)) onboardingPersistence.dismiss();

@@ -22,7 +22,7 @@ import type { ChordModifierOption } from "../lib/chordModifiers";
 import type { HarmonyContext } from "../lib/theory";
 import { useT } from "../i18n/I18nContext";
 import ChordCard from "./ChordCard";
-import type { ChordPreviewRequest } from "./chordPreviewIntent";
+import type { ChordPreviewPoint, ChordPreviewRequest } from "./chordPreviewIntent";
 import {
   createFloatingChordCard,
   floatingChordCardAvailableHeight,
@@ -185,6 +185,7 @@ interface PinnedChordCardProps {
   readonly harmonyContext: HarmonyContext;
   readonly constraintsRef: RefObject<HTMLDivElement | null>;
   readonly onAction: (action: Parameters<typeof floatingChordCardsReducer>[1]) => void;
+  readonly onPositionChange: (id: number, position: ChordPreviewPoint) => void;
 }
 
 function PinnedChordCard({
@@ -193,6 +194,7 @@ function PinnedChordCard({
   harmonyContext,
   constraintsRef,
   onAction,
+  onPositionChange,
 }: PinnedChordCardProps) {
   const t = useT();
   const dragControls = useDragControls();
@@ -209,10 +211,13 @@ function PinnedChordCard({
       clampFrameRef.current = null;
       const node = cardRef.current;
       if (!node) return;
-      const offset = floatingChordCardClampOffset(
-        node.getBoundingClientRect(),
-        viewport,
-      );
+      const rect = node.getBoundingClientRect();
+      const offset = floatingChordCardClampOffset(rect, viewport);
+      const livePosition = {
+        x: rect.left + offset.x,
+        y: rect.top + offset.y,
+      };
+      onPositionChange(card.id, livePosition);
       if (offset.x === 0 && offset.y === 0) return;
       // Shift the absolute base without replacing Motion's user-controlled drag transform.
       setPositionCorrection((current) => ({
@@ -220,7 +225,7 @@ function PinnedChordCard({
         y: current.y + offset.y,
       }));
     });
-  }, [viewport]);
+  }, [card.id, onPositionChange, viewport]);
 
   useEffect(() => {
     clampToViewport();
@@ -325,6 +330,7 @@ export default function FloatingChordCards({
   const viewport = useLiveViewportBounds();
   const constraintsRef = useRef<HTMLDivElement>(null);
   const nextPinIdRef = useRef(1);
+  const livePositionsRef = useRef(new Map<number, ChordPreviewPoint>());
   const [cards, dispatch] = useReducer(floatingChordCardsReducer, []);
   const previewChord = preview ? lookupChord(preview.chordName) : undefined;
   if (preview && !previewChord) {
@@ -344,6 +350,20 @@ export default function FloatingChordCards({
     ? floatingChordCardPosition(preview.point, instrument, viewport)
     : null;
 
+  const handlePinAction = useCallback((
+    action: Parameters<typeof floatingChordCardsReducer>[1],
+  ) => {
+    if (action.type === "dismiss") livePositionsRef.current.delete(action.id);
+    dispatch(action);
+  }, []);
+
+  const handlePinPositionChange = useCallback((
+    id: number,
+    position: ChordPreviewPoint,
+  ) => {
+    livePositionsRef.current.set(id, position);
+  }, []);
+
   function pinPreview() {
     if (!preview || !previewChord) return;
     const id = nextPinIdRef.current++;
@@ -356,7 +376,7 @@ export default function FloatingChordCards({
         instrument,
         preview.point,
         viewport,
-        cards.map((card) => card.initialPosition),
+        cards.map((card) => livePositionsRef.current.get(card.id) ?? card.initialPosition),
       ),
     });
     onPreviewDismiss();
@@ -414,7 +434,8 @@ export default function FloatingChordCards({
           viewport={viewport}
           harmonyContext={harmonyContext}
           constraintsRef={constraintsRef}
-          onAction={dispatch}
+          onAction={handlePinAction}
+          onPositionChange={handlePinPositionChange}
         />
       ))}
     </div>

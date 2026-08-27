@@ -127,6 +127,10 @@ describe("floating chord card state", () => {
     expect(compactFirst).toEqual({ x: 12, y: 12 });
     expect(compactSecond).toEqual({ x: 12, y: 52 });
     expect(floatingChordCardAvailableHeight(compactSecond, compactViewport)).toBe(416);
+    expect(floatingChordCardAvailableHeight(
+      { x: 12, y: 500 },
+      { ...compactViewport, height: 80 },
+    )).toBe(40);
   });
 
   it("updates and dismisses one pin without mutating its siblings", () => {

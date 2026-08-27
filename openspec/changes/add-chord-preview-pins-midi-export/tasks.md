@@ -8,7 +8,7 @@
 
 ## 3. MIDI Export
 
-- [ ] 3.1 Implement and unit-test a strict dependency-free Standard MIDI File encoder with one 4/4 bar per chord, selected note arrays, and no Set Tempo event.
+- [x] 3.1 Implement and unit-test a strict dependency-free Standard MIDI File encoder with one 4/4 bar per chord, selected note arrays, and no Set Tempo event.
 - [ ] 3.2 Add the MIDI download section beneath the existing Share link, wire current Guitar/Piano voicings from `App`, and cover ready, loading, error, and download behavior without changing URL sharing.
 
 ## 4. Hasher Control Hierarchy

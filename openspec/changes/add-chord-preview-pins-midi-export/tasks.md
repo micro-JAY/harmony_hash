@@ -17,4 +17,4 @@
 
 ## 5. Integrated Validation
 
-- [ ] 5.1 Run focused browser scenarios plus full build, lint, unit, and strict OpenSpec gates; inspect the final desktop/mobile layout and update the long-horizon handoff evidence.
+- [x] 5.1 Run focused browser scenarios plus full build, lint, unit, and strict OpenSpec gates; inspect the final desktop/mobile layout and update the long-horizon handoff evidence.

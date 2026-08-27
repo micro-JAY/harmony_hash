@@ -150,7 +150,7 @@ test.describe("composer and committed timeline continuity", () => {
       .click();
     await page.getByRole("button", { name: "Browse chords ↓" }).click();
     await page.getByRole("button", { name: "Em", exact: true }).click();
-    await expect(presetTrigger).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByTestId("hasher-preset-section")).toHaveCount(0);
     await composer.getByRole("button", { name: "A, position 2 of 4" }).press("Delete");
 
     // A draft that mixes committed IDs with a new chord stays staged as one
@@ -159,6 +159,8 @@ test.describe("composer and committed timeline continuity", () => {
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Em", "A", "D"]);
     await page.getByRole("button", { name: "Run chord composer" }).click();
     await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Em", "D", "Em"]);
+    await page.getByRole("button", { name: "Hide grid ↑" }).click();
+    await expect(presetTrigger).toHaveAttribute("aria-pressed", "false");
   });
 
   test("consumes Alt arrow shortcuts at timeline boundaries without mutating", async ({ page }) => {

@@ -62,10 +62,13 @@ test.describe("HASHER learning suite", () => {
     expect(describeBox).not.toBeNull();
     expect(buildBox).not.toBeNull();
     expect(browseBox).not.toBeNull();
-    expect(contextBox!.y).toBeLessThan(presetsBox!.y);
-    expect(presetsBox!.y).toBeLessThan(describeBox!.y);
     expect(describeBox!.y).toBeLessThan(buildBox!.y);
-    expect(buildBox!.y).toBeLessThan(browseBox!.y);
+    expect(buildBox!.y).toBeLessThan(contextBox!.y);
+    expect(contextBox!.y).toBeLessThan(presetsBox!.y);
+    expect(browseBox!.y).toBeGreaterThanOrEqual(contextBox!.y);
+    expect(browseBox!.y).toBeLessThan(
+      contextBox!.y + contextBox!.height,
+    );
     await expect(page.getByTestId("mood-filter")).toHaveCount(0);
     await expect(page.getByLabel("Mood lens")).toHaveCount(0);
 

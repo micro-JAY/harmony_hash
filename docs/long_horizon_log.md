@@ -935,3 +935,17 @@ Removed the fixed twelve-degree HASHER legend and moved its theory vocabulary in
 **Local verification:** production build and lint pass; Vitest passes 56 files / 1,314 tests; the focused HASHER output-learning Chromium scenarios pass 2/2; the new OpenSpec change strict-validates. Focused keyboard/palette/selector unit coverage and pointer plus keyboard Playwright coverage pass. No API, provider, playback, chord-data, TUNE TOOLBOX, or FRET FINDER behavior changed. User-owned `.agents/` and `AGENTS.md` remain untouched.
 
 **Current state:** `refine-hasher-note-tooltips-and-switcher` is 10/10 complete on local branch `codex/small-patches`. No commit, push, PR, merge, deployment, or OpenSpec archive occurred. The next concrete step is a focused review/commit/PR if the user wants this patch published.
+
+---
+
+## 2026-08-27 — Chord preview pins, MIDI export, and Hasher flow
+
+Added a 1,500 ms pointer-hover preview to the open chord browser. The preview reuses the complete Guitar or Piano chord card near the pointer; clicking it promotes an independent visual-only pin. Pins have their own guitar variants, piano voicing styles, and chord modifier state, omit timeline locks and playback callbacks, drag within the viewport through an explicit handle, and remain mounted across Run, timeline Modify, and HASHER / TUNE TOOLBOX / FRET FINDER navigation. The browser interaction still inserts chords immediately on click or keyboard activation.
+
+The existing Share panel now keeps its URL and clipboard flow unchanged and adds a MIDI download beneath it. The dependency-free Type 0 encoder exports the currently selected Guitar shapes or Piano voicings as one 4/4 bar per chord, emits no Set Tempo event, and exposes preparing and explicit failure states when diagrams or browser download facilities are unavailable.
+
+Reordered HASHER to Describe, Build Your Own, the Browse/Key/Mode/instrument rail, then Presets. Key and Mode use the compact browser-scoped rail, and the preset section unmounts while the browser is open before restoring its prior selection state when closed. Updated desktop, mobile, Hanz, and Improv visual baselines were inspected against the requested hierarchy.
+
+**Verification:** production build and lint pass; Vitest passes 61 files / 1,333 tests; the exact full Chromium matrix passes 189/189 in 2.2 minutes; strict OpenSpec validates all 27 items. Focused coverage proves the 1,500 ms boundary, preview cancellation, Guitar and Piano pin controls, local pin modification, bounded dragging, zero audio-context construction, Run/Modify/workspace persistence, selected-voicing MIDI bytes, no tempo event, download preparation/error states, responsive English/Japanese control alignment, preset hiding/restoration, and existing composer insertion behavior.
+
+**Current state:** `add-chord-preview-pins-midi-export` is 6/6 complete on local branch `feat/hasher-hover-pins-midi-share`; implementation is committed through `8ed3308`, with final regression evidence and refreshed intentional baselines included in the validation commit following this entry. No push, PR, merge, deployment, or OpenSpec archive occurred. Next: publish a focused PR if requested and require exact-head CI before merge.

@@ -123,15 +123,30 @@ test("delays preview, promotes a silent full card, and preserves the pin across 
 
 test("pins a piano chord with its independent voicing controls", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "20px";
+  });
+  await expect.poll(() => page.evaluate(() => (
+    getComputedStyle(document.documentElement).fontSize
+  ))).toBe("20px");
   await page.getByRole("button", { name: "Piano", exact: true }).click();
   await page.getByRole("button", { name: "Browse chords ↓", exact: true }).click();
 
   const cell = page.getByTestId("chord-grid-panel").locator('[data-chord-name="Cmaj7"]');
   await page.waitForTimeout(250);
-  await cell.hover();
+  await cell.dispatchEvent("pointerover", {
+    pointerType: "mouse",
+    clientX: 1_100,
+    clientY: 150,
+  });
   const preview = page.getByTestId("chord-hover-preview");
   await expect(preview).toBeVisible({ timeout: 2_000 });
   await expect(preview).toHaveAttribute("data-instrument", "piano");
+  await expect(preview).toHaveCSS("width", "480px");
+  await expect(preview).toHaveCSS("left", "604px");
+  const previewBox = await preview.boundingBox();
+  if (!previewBox) throw new Error("Scaled Piano preview bounds are unavailable");
+  expect(previewBox.x + previewBox.width).toBeLessThanOrEqual(1_269);
   await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
 
   const pin = page.getByTestId("pinned-chord-card");

@@ -39,14 +39,15 @@ export interface FloatingCardRect {
   readonly bottom: number;
 }
 
+export interface FloatingCardPlacementSize {
+  readonly width: number;
+  readonly height: number;
+}
+
 const VIEWPORT_EDGE_GAP = 12;
 const POINTER_CARD_GAP = 16;
 // Leaves at least one compact toolbar strip reachable when full cards cannot avoid overlap.
 const PIN_CASCADE_STEP = 40;
-const CARD_ESTIMATED_SIZE: Readonly<Record<Instrument, { width: number; height: number }>> = {
-  guitar: { width: 288, height: 520 },
-  piano: { width: 384, height: 500 },
-};
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
@@ -57,6 +58,13 @@ function validateViewport(viewport: FloatingViewport): void {
     .every(Number.isFinite)
     || viewport.width <= 0 || viewport.height <= 0) {
     throw new RangeError("Floating chord cards require finite positive viewport bounds");
+  }
+}
+
+function validatePlacementSize(size: FloatingCardPlacementSize): void {
+  if (![size.width, size.height].every(Number.isFinite)
+    || size.width <= 0 || size.height <= 0) {
+    throw new RangeError("Floating chord cards require finite positive placement dimensions");
   }
 }
 
@@ -90,32 +98,32 @@ export function floatingChordCardClampOffset(
 
 export function floatingChordCardPosition(
   point: ChordPreviewPoint,
-  instrument: Instrument,
+  placementSize: FloatingCardPlacementSize,
   viewport: FloatingViewport,
   occupiedPositions: readonly ChordPreviewPoint[] = [],
 ): ChordPreviewPoint {
   validateViewport(viewport);
+  validatePlacementSize(placementSize);
 
-  const estimated = CARD_ESTIMATED_SIZE[instrument];
   const leftEdge = viewport.offsetLeft + VIEWPORT_EDGE_GAP;
   const topEdge = viewport.offsetTop + VIEWPORT_EDGE_GAP;
   const rightEdge = viewport.offsetLeft + viewport.width - VIEWPORT_EDGE_GAP;
   const bottomEdge = viewport.offsetTop + viewport.height - VIEWPORT_EDGE_GAP;
-  const fitsRight = point.x + POINTER_CARD_GAP + estimated.width
+  const fitsRight = point.x + POINTER_CARD_GAP + placementSize.width
     <= rightEdge;
-  const fitsBelow = point.y + POINTER_CARD_GAP + estimated.height
+  const fitsBelow = point.y + POINTER_CARD_GAP + placementSize.height
     <= bottomEdge;
   const preferredX = fitsRight
     ? point.x + POINTER_CARD_GAP
-    : point.x - estimated.width - POINTER_CARD_GAP;
+    : point.x - placementSize.width - POINTER_CARD_GAP;
   const preferredY = fitsBelow
     ? point.y + POINTER_CARD_GAP
-    : point.y - estimated.height - POINTER_CARD_GAP;
+    : point.y - placementSize.height - POINTER_CARD_GAP;
 
   const availableWidth = Math.max(1, viewport.width - (2 * VIEWPORT_EDGE_GAP));
   const availableHeight = Math.max(1, viewport.height - (2 * VIEWPORT_EDGE_GAP));
-  const renderedWidth = Math.min(estimated.width, availableWidth);
-  const renderedHeight = Math.min(estimated.height, availableHeight);
+  const renderedWidth = Math.min(placementSize.width, availableWidth);
+  const renderedHeight = Math.min(placementSize.height, availableHeight);
   const maxX = rightEdge - renderedWidth;
   const maxY = bottomEdge - renderedHeight;
   const preferredPosition = {
@@ -185,6 +193,7 @@ export function createFloatingChordCard(
   displayName: string,
   instrument: Instrument,
   point: ChordPreviewPoint,
+  placementSize: FloatingCardPlacementSize,
   viewport: FloatingViewport,
   occupiedPositions: readonly ChordPreviewPoint[] = [],
 ): FloatingChordCard {
@@ -200,7 +209,7 @@ export function createFloatingChordCard(
     pianoStyle: "auto",
     initialPosition: floatingChordCardPosition(
       point,
-      instrument,
+      placementSize,
       viewport,
       occupiedPositions,
     ),

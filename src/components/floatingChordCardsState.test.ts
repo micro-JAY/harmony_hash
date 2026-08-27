@@ -14,11 +14,14 @@ function requiredChord(name: string) {
   return chord;
 }
 
+const GUITAR_PLACEMENT_SIZE = { width: 288, height: 520 } as const;
+const PIANO_PLACEMENT_SIZE = { width: 384, height: 500 } as const;
+
 describe("floating chord card state", () => {
   it("captures instrument and clamps initial placement inside the viewport", () => {
     const position = floatingChordCardPosition(
       { x: 1_010, y: 750 },
-      "guitar",
+      GUITAR_PLACEMENT_SIZE,
       { width: 1_024, height: 768, offsetLeft: 0, offsetTop: 0 },
     );
     expect(position.x).toBeGreaterThanOrEqual(12);
@@ -32,6 +35,7 @@ describe("floating chord card state", () => {
       "Cmaj7",
       "guitar",
       { x: 500, y: 300 },
+      GUITAR_PLACEMENT_SIZE,
       { width: 1_024, height: 768, offsetLeft: 0, offsetTop: 0 },
     );
     expect(card.instrument).toBe("guitar");
@@ -65,7 +69,7 @@ describe("floating chord card state", () => {
     };
     expect(floatingChordCardPosition(
       { x: 990, y: 690 },
-      "guitar",
+      GUITAR_PLACEMENT_SIZE,
       visualViewport,
     )).toEqual({ x: 686, y: 154 });
 
@@ -87,9 +91,19 @@ describe("floating chord card state", () => {
       offsetTop: 0,
     };
     const point = { x: 500, y: 300 };
-    const first = floatingChordCardPosition(point, "guitar", viewport);
-    const second = floatingChordCardPosition(point, "guitar", viewport, [first]);
-    const third = floatingChordCardPosition(point, "guitar", viewport, [first, second]);
+    const first = floatingChordCardPosition(point, GUITAR_PLACEMENT_SIZE, viewport);
+    const second = floatingChordCardPosition(
+      point,
+      GUITAR_PLACEMENT_SIZE,
+      viewport,
+      [first],
+    );
+    const third = floatingChordCardPosition(
+      point,
+      GUITAR_PLACEMENT_SIZE,
+      viewport,
+      [first, second],
+    );
 
     expect(second).not.toEqual(first);
     expect(third).not.toEqual(first);
@@ -99,12 +113,12 @@ describe("floating chord card state", () => {
 
     const edgeFirst = floatingChordCardPosition(
       { x: 1_270, y: 790 },
-      "guitar",
+      GUITAR_PLACEMENT_SIZE,
       viewport,
     );
     const edgeSecond = floatingChordCardPosition(
       { x: 1_270, y: 790 },
-      "guitar",
+      GUITAR_PLACEMENT_SIZE,
       viewport,
       [edgeFirst],
     );
@@ -117,10 +131,14 @@ describe("floating chord card state", () => {
       offsetLeft: 0,
       offsetTop: 0,
     };
-    const compactFirst = floatingChordCardPosition(point, "piano", compactViewport);
+    const compactFirst = floatingChordCardPosition(
+      point,
+      PIANO_PLACEMENT_SIZE,
+      compactViewport,
+    );
     const compactSecond = floatingChordCardPosition(
       point,
-      "piano",
+      PIANO_PLACEMENT_SIZE,
       compactViewport,
       [compactFirst],
     );
@@ -146,6 +164,7 @@ describe("floating chord card state", () => {
       "C",
       "guitar",
       { x: 100, y: 100 },
+      GUITAR_PLACEMENT_SIZE,
       viewport,
     );
     const second = createFloatingChordCard(
@@ -154,6 +173,7 @@ describe("floating chord card state", () => {
       "Am7",
       "piano",
       { x: 400, y: 100 },
+      PIANO_PLACEMENT_SIZE,
       viewport,
     );
     const added = floatingChordCardsReducer(

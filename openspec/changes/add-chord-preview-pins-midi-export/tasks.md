@@ -23,3 +23,4 @@
 - [x] 5.4 Size cards from live visual-viewport dimensions and cascade repeated/edge-clamped pins so an existing toolbar stays reachable.
 - [x] 5.5 Contract cascaded card height in compact viewports so each toolbar remains exposed, and keep the Share panel above the floating-card layer.
 - [x] 5.6 Preserve a minimum toolbar after extreme viewport shrink, cascade against live dragged positions, and ignore same-instrument reselection without clearing Guitar voicings.
+- [x] 5.7 Derive floating-card placement dimensions from semantic tokens and remeasure them when root font or theme attributes change, with non-default root-font browser coverage.

@@ -9,6 +9,7 @@ import {
   useReducer,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -30,8 +31,22 @@ import {
   floatingChordCardPosition,
   floatingChordCardsReducer,
   type FloatingChordCard,
+  type FloatingCardPlacementSize,
   type FloatingViewport,
 } from "./floatingChordCardsState";
+
+type FloatingCardPlacementSizes = Readonly<Record<Instrument, FloatingCardPlacementSize>>;
+
+const FLOATING_CARD_PLACEMENT_TOKENS = {
+  guitar: {
+    width: "--floating-chord-card-guitar-width",
+    height: "--floating-chord-card-guitar-placement-height",
+  },
+  piano: {
+    width: "--floating-chord-card-piano-width",
+    height: "--floating-chord-card-piano-placement-height",
+  },
+} as const satisfies Readonly<Record<Instrument, { width: string; height: string }>>;
 
 const FLOATING_CARD_SURFACE_STYLE = {
   borderRadius: "var(--radius-xl)",
@@ -130,6 +145,85 @@ function useLiveViewportBounds(): FloatingViewport {
     };
   }, []);
   return viewport;
+}
+
+function tokenLengthInPixels(
+  styles: CSSStyleDeclaration,
+  token: string,
+  rootFontSize: number,
+): number {
+  const raw = styles.getPropertyValue(token).trim();
+  const value = Number.parseFloat(raw);
+  const pixels = raw.endsWith("rem")
+    ? value * rootFontSize
+    : raw.endsWith("px")
+      ? value
+      : Number.NaN;
+  if (!Number.isFinite(pixels) || pixels <= 0) {
+    throw new Error(`Floating chord placement token ${token} must resolve to positive px or rem`);
+  }
+  return pixels;
+}
+
+function readFloatingCardPlacementSizes(): FloatingCardPlacementSizes | null {
+  if (typeof document === "undefined") return null;
+  const styles = window.getComputedStyle(document.documentElement);
+  const rootFontSize = Number.parseFloat(styles.fontSize);
+  if (!Number.isFinite(rootFontSize) || rootFontSize <= 0) {
+    throw new Error("Floating chord placement requires a positive root font size");
+  }
+  const readSize = (instrument: Instrument): FloatingCardPlacementSize => ({
+    width: tokenLengthInPixels(
+      styles,
+      FLOATING_CARD_PLACEMENT_TOKENS[instrument].width,
+      rootFontSize,
+    ),
+    height: tokenLengthInPixels(
+      styles,
+      FLOATING_CARD_PLACEMENT_TOKENS[instrument].height,
+      rootFontSize,
+    ),
+  });
+  return { guitar: readSize("guitar"), piano: readSize("piano") };
+}
+
+function samePlacementSizes(
+  first: FloatingCardPlacementSizes | null,
+  second: FloatingCardPlacementSizes,
+): boolean {
+  return first !== null
+    && first.guitar.width === second.guitar.width
+    && first.guitar.height === second.guitar.height
+    && first.piano.width === second.piano.width
+    && first.piano.height === second.piano.height;
+}
+
+function useFloatingCardPlacementSizes(): FloatingCardPlacementSizes | null {
+  const [sizes, setSizes] = useState<FloatingCardPlacementSizes | null>(
+    readFloatingCardPlacementSizes,
+  );
+  useLayoutEffect(() => {
+    const updateSizes = () => {
+      const next = readFloatingCardPlacementSizes();
+      if (!next) return;
+      setSizes((current) => samePlacementSizes(current, next) ? current : next);
+    };
+    const resizeObserver = new ResizeObserver(updateSizes);
+    const mutationObserver = new MutationObserver(updateSizes);
+    resizeObserver.observe(document.documentElement);
+    mutationObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+    window.addEventListener("resize", updateSizes);
+    updateSizes();
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      window.removeEventListener("resize", updateSizes);
+    };
+  }, []);
+  return sizes;
 }
 
 function floatingViewportStyle(
@@ -328,6 +422,8 @@ export default function FloatingChordCards({
   const t = useT();
   const shouldReduceMotion = useReducedMotion();
   const viewport = useLiveViewportBounds();
+  const placementSizes = useFloatingCardPlacementSizes();
+  const placementSize = placementSizes?.[instrument];
   const constraintsRef = useRef<HTMLDivElement>(null);
   const nextPinIdRef = useRef(1);
   const livePositionsRef = useRef(new Map<number, ChordPreviewPoint>());
@@ -336,18 +432,19 @@ export default function FloatingChordCards({
   if (preview && !previewChord) {
     throw new Error(`Chord preview is unavailable: ${preview.chordName}`);
   }
-  const previewCard = preview && previewChord
+  const previewCard = preview && previewChord && placementSize
     ? createFloatingChordCard(
         1,
         previewChord,
         preview.chordName,
         instrument,
         preview.point,
+        placementSize,
         viewport,
       )
     : null;
-  const previewPosition = preview
-    ? floatingChordCardPosition(preview.point, instrument, viewport)
+  const previewPosition = preview && placementSize
+    ? floatingChordCardPosition(preview.point, placementSize, viewport)
     : null;
 
   const handlePinAction = useCallback((
@@ -365,7 +462,7 @@ export default function FloatingChordCards({
   }, []);
 
   function pinPreview() {
-    if (!preview || !previewChord) return;
+    if (!preview || !previewChord || !placementSize) return;
     const id = nextPinIdRef.current++;
     dispatch({
       type: "add",
@@ -375,6 +472,7 @@ export default function FloatingChordCards({
         preview.chordName,
         instrument,
         preview.point,
+        placementSize,
         viewport,
         cards.map((card) => livePositionsRef.current.get(card.id) ?? card.initialPosition),
       ),

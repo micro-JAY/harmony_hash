@@ -78,6 +78,39 @@ describe("floating chord card state", () => {
     )).toEqual({ x: -100, y: -12 });
   });
 
+  it("cascades new pins so an existing toolbar remains reachable", () => {
+    const viewport = {
+      width: 1_280,
+      height: 800,
+      offsetLeft: 0,
+      offsetTop: 0,
+    };
+    const point = { x: 500, y: 300 };
+    const first = floatingChordCardPosition(point, "guitar", viewport);
+    const second = floatingChordCardPosition(point, "guitar", viewport, [first]);
+    const third = floatingChordCardPosition(point, "guitar", viewport, [first, second]);
+
+    expect(second).not.toEqual(first);
+    expect(third).not.toEqual(first);
+    expect(third).not.toEqual(second);
+    expect(Math.abs(second.x - first.x) >= 40 || Math.abs(second.y - first.y) >= 40)
+      .toBe(true);
+
+    const edgeFirst = floatingChordCardPosition(
+      { x: 1_270, y: 790 },
+      "guitar",
+      viewport,
+    );
+    const edgeSecond = floatingChordCardPosition(
+      { x: 1_270, y: 790 },
+      "guitar",
+      viewport,
+      [edgeFirst],
+    );
+    expect(Math.abs(edgeSecond.x - edgeFirst.x) >= 40
+      || Math.abs(edgeSecond.y - edgeFirst.y) >= 40).toBe(true);
+  });
+
   it("updates and dismisses one pin without mutating its siblings", () => {
     const viewport = {
       width: 1_280,

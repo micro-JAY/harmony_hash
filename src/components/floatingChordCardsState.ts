@@ -41,6 +41,8 @@ export interface FloatingCardRect {
 
 const VIEWPORT_EDGE_GAP = 12;
 const POINTER_CARD_GAP = 16;
+// Leaves at least one compact toolbar strip reachable when full cards cannot avoid overlap.
+const PIN_CASCADE_STEP = 40;
 const CARD_ESTIMATED_SIZE: Readonly<Record<Instrument, { width: number; height: number }>> = {
   guitar: { width: 288, height: 520 },
   piano: { width: 384, height: 500 },
@@ -90,6 +92,7 @@ export function floatingChordCardPosition(
   point: ChordPreviewPoint,
   instrument: Instrument,
   viewport: FloatingViewport,
+  occupiedPositions: readonly ChordPreviewPoint[] = [],
 ): ChordPreviewPoint {
   validateViewport(viewport);
 
@@ -109,7 +112,7 @@ export function floatingChordCardPosition(
     ? point.y + POINTER_CARD_GAP
     : point.y - estimated.height - POINTER_CARD_GAP;
 
-  return {
+  const preferredPosition = {
     x: clamp(
       preferredX,
       leftEdge,
@@ -123,6 +126,38 @@ export function floatingChordCardPosition(
         - Math.min(estimated.height, viewport.height) - VIEWPORT_EDGE_GAP,
     ),
   };
+  if (occupiedPositions.length === 0) return preferredPosition;
+
+  const minX = leftEdge;
+  const maxX = viewport.offsetLeft + viewport.width
+    - Math.min(estimated.width, viewport.width) - VIEWPORT_EDGE_GAP;
+  const minY = topEdge;
+  const maxY = viewport.offsetTop + viewport.height
+    - Math.min(estimated.height, viewport.height) - VIEWPORT_EDGE_GAP;
+  const isDistinct = (candidate: ChordPreviewPoint) => occupiedPositions.every(
+    (occupied) => Math.abs(candidate.x - occupied.x) >= PIN_CASCADE_STEP
+      || Math.abs(candidate.y - occupied.y) >= PIN_CASCADE_STEP,
+  );
+  const maximumRing = occupiedPositions.length + 1;
+  for (let ring = 1; ring <= maximumRing; ring += 1) {
+    const distance = PIN_CASCADE_STEP * ring;
+    const offsets = [
+      { x: 0, y: distance },
+      { x: distance, y: 0 },
+      { x: -distance, y: 0 },
+      { x: 0, y: -distance },
+      { x: distance, y: distance },
+      { x: -distance, y: distance },
+    ];
+    for (const offset of offsets) {
+      const candidate = {
+        x: clamp(preferredPosition.x + offset.x, minX, maxX),
+        y: clamp(preferredPosition.y + offset.y, minY, maxY),
+      };
+      if (isDistinct(candidate)) return candidate;
+    }
+  }
+  return preferredPosition;
 }
 
 export function createFloatingChordCard(
@@ -132,6 +167,7 @@ export function createFloatingChordCard(
   instrument: Instrument,
   point: ChordPreviewPoint,
   viewport: FloatingViewport,
+  occupiedPositions: readonly ChordPreviewPoint[] = [],
 ): FloatingChordCard {
   if (!Number.isInteger(id) || id < 1) {
     throw new RangeError("Floating chord card id must be a positive integer");
@@ -143,7 +179,12 @@ export function createFloatingChordCard(
     instrument,
     variant: 1,
     pianoStyle: "auto",
-    initialPosition: floatingChordCardPosition(point, instrument, viewport),
+    initialPosition: floatingChordCardPosition(
+      point,
+      instrument,
+      viewport,
+      occupiedPositions,
+    ),
   };
 }
 

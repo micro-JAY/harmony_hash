@@ -20,3 +20,4 @@
 - [x] 5.1 Run focused browser scenarios plus full build, lint, unit, and strict OpenSpec gates; inspect the final desktop/mobile layout and update the long-horizon handoff evidence.
 - [x] 5.2 Clamp live pins against visual-viewport dimensions and offsets on resize/scroll, with pure and browser regressions for mobile keyboard and pinch-zoom bounds.
 - [x] 5.3 Re-clamp after visual-viewport drag completion, cancel pending hover intent outside Hasher, and remove preview entrance motion under reduced-motion preference.
+- [x] 5.4 Size cards from live visual-viewport dimensions and cascade repeated/edge-clamped pins so an existing toolbar stays reachable.

@@ -222,6 +222,65 @@ test("re-clamps a pin inside an offset visual viewport", async ({ page }) => {
       && box.x + box.width <= 1_089
       && box.y + box.height <= 689;
   }).toBe(true);
+
+  await page.evaluate(() => {
+    const setVisualViewport = (window as Window & {
+      __setTestVisualViewport?: (next: {
+        width: number;
+        height: number;
+        offsetLeft: number;
+        offsetTop: number;
+      }) => void;
+    }).__setTestVisualViewport;
+    if (!setVisualViewport) throw new Error("Visual viewport fixture is unavailable");
+    setVisualViewport({ width: 260, height: 500, offsetLeft: 500, offsetTop: 100 });
+  });
+  await expect(pin).toHaveCSS("width", "236px");
+  await expect(pin).toHaveCSS("max-height", "476px");
+  await expect.poll(async () => {
+    const box = await pin.boundingBox();
+    return box !== null
+      && box.width <= 239
+      && box.height <= 479
+      && box.x >= 509
+      && box.y >= 109
+      && box.x + box.width <= 751
+      && box.y + box.height <= 591;
+  }).toBe(true);
+});
+
+test("offsets repeated pins so every drag handle stays reachable", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Browse chords ↓", exact: true }).click();
+  const cell = page.getByTestId("chord-grid-panel").locator('[data-chord-name="Cmaj7"]');
+  const preview = page.getByTestId("chord-hover-preview");
+
+  await page.waitForTimeout(250);
+  await cell.hover();
+  await expect(preview).toBeVisible({ timeout: 2_000 });
+  await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
+  await page.mouse.move(0, 0);
+  await cell.hover();
+  await expect(preview).toBeVisible({ timeout: 2_000 });
+  await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
+
+  const pins = page.getByTestId("pinned-chord-card");
+  await expect(pins).toHaveCount(2);
+  const [firstCard, secondCard, firstHandle] = await Promise.all([
+    pins.nth(0).boundingBox(),
+    pins.nth(1).boundingBox(),
+    pins.nth(0).getByRole("button", { name: "Move pinned chord card: Cmaj7" }).boundingBox(),
+  ]);
+  if (!firstCard || !secondCard || !firstHandle) {
+    throw new Error("Repeated pin bounds are unavailable");
+  }
+  expect({ x: secondCard.x, y: secondCard.y })
+    .not.toEqual({ x: firstCard.x, y: firstCard.y });
+  const firstHandleCovered = firstHandle.x >= secondCard.x
+    && firstHandle.y >= secondCard.y
+    && firstHandle.x + firstHandle.width <= secondCard.x + secondCard.width
+    && firstHandle.y + firstHandle.height <= secondCard.y + secondCard.height;
+  expect(firstHandleCovered).toBe(false);
 });
 
 test("cancels pending hover intent when keyboard navigation leaves Hasher", async ({ page }) => {

@@ -29,6 +29,7 @@ import {
   floatingChordCardPosition,
   floatingChordCardsReducer,
   type FloatingChordCard,
+  type FloatingViewport,
 } from "./floatingChordCardsState";
 
 const FLOATING_CARD_SURFACE_STYLE = {
@@ -102,6 +103,41 @@ function viewportBounds() {
   };
 }
 
+function sameViewport(first: FloatingViewport, second: FloatingViewport): boolean {
+  return first.width === second.width
+    && first.height === second.height
+    && first.offsetLeft === second.offsetLeft
+    && first.offsetTop === second.offsetTop;
+}
+
+function useLiveViewportBounds(): FloatingViewport {
+  const [viewport, setViewport] = useState<FloatingViewport>(viewportBounds);
+  useEffect(() => {
+    const updateViewport = () => {
+      const next = viewportBounds();
+      setViewport((current) => sameViewport(current, next) ? current : next);
+    };
+    const visualViewport = window.visualViewport;
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    visualViewport?.addEventListener("resize", updateViewport);
+    visualViewport?.addEventListener("scroll", updateViewport);
+    return () => {
+      window.removeEventListener("resize", updateViewport);
+      visualViewport?.removeEventListener("resize", updateViewport);
+      visualViewport?.removeEventListener("scroll", updateViewport);
+    };
+  }, []);
+  return viewport;
+}
+
+function floatingViewportStyle(viewport: FloatingViewport): CSSProperties {
+  return {
+    "--floating-chord-card-visual-width": `${viewport.width}px`,
+    "--floating-chord-card-visual-height": `${viewport.height}px`,
+  } as CSSProperties;
+}
+
 function FloatingCardBody({
   card,
   harmonyContext,
@@ -137,6 +173,7 @@ function FloatingCardBody({
 
 interface PinnedChordCardProps {
   readonly card: FloatingChordCard;
+  readonly viewport: FloatingViewport;
   readonly harmonyContext: HarmonyContext;
   readonly constraintsRef: RefObject<HTMLDivElement | null>;
   readonly onAction: (action: Parameters<typeof floatingChordCardsReducer>[1]) => void;
@@ -144,6 +181,7 @@ interface PinnedChordCardProps {
 
 function PinnedChordCard({
   card,
+  viewport,
   harmonyContext,
   constraintsRef,
   onAction,
@@ -165,7 +203,7 @@ function PinnedChordCard({
       if (!node) return;
       const offset = floatingChordCardClampOffset(
         node.getBoundingClientRect(),
-        viewportBounds(),
+        viewport,
       );
       if (offset.x === 0 && offset.y === 0) return;
       // Shift the absolute base without replacing Motion's user-controlled drag transform.
@@ -174,20 +212,13 @@ function PinnedChordCard({
         y: current.y + offset.y,
       }));
     });
-  }, []);
+  }, [viewport]);
 
   useEffect(() => {
     clampToViewport();
-    window.addEventListener("resize", clampToViewport);
-    const visualViewport = window.visualViewport;
-    visualViewport?.addEventListener("resize", clampToViewport);
-    visualViewport?.addEventListener("scroll", clampToViewport);
     const resizeObserver = new ResizeObserver(clampToViewport);
     if (cardRef.current) resizeObserver.observe(cardRef.current);
     return () => {
-      window.removeEventListener("resize", clampToViewport);
-      visualViewport?.removeEventListener("resize", clampToViewport);
-      visualViewport?.removeEventListener("scroll", clampToViewport);
       resizeObserver.disconnect();
       if (clampFrameRef.current !== null) {
         window.cancelAnimationFrame(clampFrameRef.current);
@@ -216,6 +247,7 @@ function PinnedChordCard({
       className="hh-floating-chord-card"
       style={{
         ...FLOATING_CARD_SURFACE_STYLE,
+        ...floatingViewportStyle(viewport),
         left: card.initialPosition.x + positionCorrection.x,
         top: card.initialPosition.y + positionCorrection.y,
         zIndex: 60 + card.id,
@@ -277,6 +309,7 @@ export default function FloatingChordCards({
 }: FloatingChordCardsProps) {
   const t = useT();
   const shouldReduceMotion = useReducedMotion();
+  const viewport = useLiveViewportBounds();
   const constraintsRef = useRef<HTMLDivElement>(null);
   const nextPinIdRef = useRef(1);
   const [cards, dispatch] = useReducer(floatingChordCardsReducer, []);
@@ -291,11 +324,11 @@ export default function FloatingChordCards({
         preview.chordName,
         instrument,
         preview.point,
-        viewportBounds(),
+        viewport,
       )
     : null;
   const previewPosition = preview
-    ? floatingChordCardPosition(preview.point, instrument, viewportBounds())
+    ? floatingChordCardPosition(preview.point, instrument, viewport)
     : null;
 
   function pinPreview() {
@@ -309,7 +342,8 @@ export default function FloatingChordCards({
         preview.chordName,
         instrument,
         preview.point,
-        viewportBounds(),
+        viewport,
+        cards.map((card) => card.initialPosition),
       ),
     });
     onPreviewDismiss();
@@ -335,8 +369,10 @@ export default function FloatingChordCards({
           onPointerLeave={onPreviewLeave}
           style={{
             ...FLOATING_CARD_SURFACE_STYLE,
+            ...floatingViewportStyle(viewport),
             left: previewPosition.x,
             top: previewPosition.y,
+            zIndex: 1_000,
           }}
         >
           <div inert aria-hidden="true">
@@ -362,6 +398,7 @@ export default function FloatingChordCards({
         <PinnedChordCard
           key={card.id}
           card={card}
+          viewport={viewport}
           harmonyContext={harmonyContext}
           constraintsRef={constraintsRef}
           onAction={dispatch}

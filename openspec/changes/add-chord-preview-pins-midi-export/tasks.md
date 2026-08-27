@@ -18,3 +18,4 @@
 ## 5. Integrated Validation
 
 - [x] 5.1 Run focused browser scenarios plus full build, lint, unit, and strict OpenSpec gates; inspect the final desktop/mobile layout and update the long-horizon handoff evidence.
+- [x] 5.2 Clamp live pins against visual-viewport dimensions and offsets on resize/scroll, with pure and browser regressions for mobile keyboard and pinch-zoom bounds.

@@ -18,7 +18,7 @@ describe("floating chord card state", () => {
     const position = floatingChordCardPosition(
       { x: 1_010, y: 750 },
       "guitar",
-      { width: 1_024, height: 768 },
+      { width: 1_024, height: 768, offsetLeft: 0, offsetTop: 0 },
     );
     expect(position.x).toBeGreaterThanOrEqual(12);
     expect(position.y).toBeGreaterThanOrEqual(12);
@@ -31,7 +31,7 @@ describe("floating chord card state", () => {
       "Cmaj7",
       "guitar",
       { x: 500, y: 300 },
-      { width: 1_024, height: 768 },
+      { width: 1_024, height: 768, offsetLeft: 0, offsetTop: 0 },
     );
     expect(card.instrument).toBe("guitar");
     expect(card.variant).toBe(1);
@@ -41,22 +41,50 @@ describe("floating chord card state", () => {
   it("returns the offset needed to recover a pin after the viewport shrinks", () => {
     expect(floatingChordCardClampOffset(
       { left: 900, right: 1_188, top: 500, bottom: 760 },
-      { width: 800, height: 600 },
+      { width: 800, height: 600, offsetLeft: 0, offsetTop: 0 },
     )).toEqual({ x: -400, y: -172 });
 
     expect(floatingChordCardClampOffset(
       { left: -20, right: 268, top: -8, bottom: 492 },
-      { width: 800, height: 600 },
+      { width: 800, height: 600, offsetLeft: 0, offsetTop: 0 },
     )).toEqual({ x: 32, y: 20 });
 
     expect(floatingChordCardClampOffset(
       { left: 12, right: 300, top: 12, bottom: 512 },
-      { width: 800, height: 600 },
+      { width: 800, height: 600, offsetLeft: 0, offsetTop: 0 },
     )).toEqual({ x: 0, y: 0 });
   });
 
+  it("uses visual viewport offsets for placement and resize recovery", () => {
+    const visualViewport = {
+      width: 800,
+      height: 600,
+      offsetLeft: 200,
+      offsetTop: 100,
+    };
+    expect(floatingChordCardPosition(
+      { x: 990, y: 690 },
+      "guitar",
+      visualViewport,
+    )).toEqual({ x: 686, y: 154 });
+
+    expect(floatingChordCardClampOffset(
+      { left: 100, right: 388, top: 50, bottom: 350 },
+      visualViewport,
+    )).toEqual({ x: 112, y: 62 });
+    expect(floatingChordCardClampOffset(
+      { left: 800, right: 1_088, top: 500, bottom: 700 },
+      visualViewport,
+    )).toEqual({ x: -100, y: -12 });
+  });
+
   it("updates and dismisses one pin without mutating its siblings", () => {
-    const viewport = { width: 1_280, height: 800 };
+    const viewport = {
+      width: 1_280,
+      height: 800,
+      offsetLeft: 0,
+      offsetTop: 0,
+    };
     const first = createFloatingChordCard(
       1,
       requiredChord("C"),

@@ -147,3 +147,63 @@ test("pins a piano chord with its independent voicing controls", async ({ page }
   await expect(pin.getByRole("button", { name: "Modify Cmaj7" })).toBeVisible();
   await expect(pin.getByRole("button", { name: "Lock chord card" })).toHaveCount(0);
 });
+
+test("re-clamps a pin inside an offset visual viewport", async ({ page }) => {
+  await page.addInitScript(() => {
+    const bounds = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      offsetLeft: 0,
+      offsetTop: 0,
+    };
+    const visualViewport = new EventTarget();
+    for (const property of ["width", "height", "offsetLeft", "offsetTop"] as const) {
+      Object.defineProperty(visualViewport, property, {
+        configurable: true,
+        get: () => bounds[property],
+      });
+    }
+    Object.defineProperty(window, "visualViewport", {
+      configurable: true,
+      value: visualViewport,
+    });
+    (window as Window & {
+      __setTestVisualViewport?: (next: typeof bounds) => void;
+    }).__setTestVisualViewport = (next) => {
+      Object.assign(bounds, next);
+      visualViewport.dispatchEvent(new Event("resize"));
+    };
+  });
+
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Browse chords ↓", exact: true }).click();
+  const cell = page.getByTestId("chord-grid-panel").locator('[data-chord-name="Cmaj7"]');
+  await page.waitForTimeout(250);
+  await cell.hover();
+  const preview = page.getByTestId("chord-hover-preview");
+  await expect(preview).toBeVisible({ timeout: 2_000 });
+  await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
+
+  const pin = page.getByTestId("pinned-chord-card");
+  await page.evaluate(() => {
+    const setVisualViewport = (window as Window & {
+      __setTestVisualViewport?: (next: {
+        width: number;
+        height: number;
+        offsetLeft: number;
+        offsetTop: number;
+      }) => void;
+    }).__setTestVisualViewport;
+    if (!setVisualViewport) throw new Error("Visual viewport fixture is unavailable");
+    setVisualViewport({ width: 700, height: 620, offsetLeft: 400, offsetTop: 80 });
+  });
+
+  await expect.poll(async () => {
+    const box = await pin.boundingBox();
+    return box !== null
+      && box.x >= 411
+      && box.y >= 91
+      && box.x + box.width <= 1_089
+      && box.y + box.height <= 689;
+  }).toBe(true);
+});

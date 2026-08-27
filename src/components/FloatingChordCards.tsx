@@ -72,10 +72,33 @@ interface FloatingCardBodyProps {
   readonly onChordChange: (option: ChordModifierOption) => void;
 }
 
-function viewportSize() {
-  return typeof window === "undefined"
-    ? { width: 1_280, height: 800 }
-    : { width: window.innerWidth, height: window.innerHeight };
+function viewportBounds() {
+  if (typeof window === "undefined") {
+    return { width: 1_280, height: 800, offsetLeft: 0, offsetTop: 0 };
+  }
+  const visualViewport = window.visualViewport;
+  if (visualViewport
+    && [
+      visualViewport.width,
+      visualViewport.height,
+      visualViewport.offsetLeft,
+      visualViewport.offsetTop,
+    ].every(Number.isFinite)
+    && visualViewport.width > 0
+    && visualViewport.height > 0) {
+    return {
+      width: visualViewport.width,
+      height: visualViewport.height,
+      offsetLeft: visualViewport.offsetLeft,
+      offsetTop: visualViewport.offsetTop,
+    };
+  }
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    offsetLeft: 0,
+    offsetTop: 0,
+  };
 }
 
 function FloatingCardBody({
@@ -138,7 +161,10 @@ function PinnedChordCard({
         animationFrame = null;
         const node = cardRef.current;
         if (!node) return;
-        const offset = floatingChordCardClampOffset(node.getBoundingClientRect(), viewportSize());
+        const offset = floatingChordCardClampOffset(
+          node.getBoundingClientRect(),
+          viewportBounds(),
+        );
         if (offset.x === 0 && offset.y === 0) return;
         // Shift the absolute base without replacing Motion's user-controlled drag transform.
         setPositionCorrection((current) => ({
@@ -150,12 +176,15 @@ function PinnedChordCard({
 
     clampToViewport();
     window.addEventListener("resize", clampToViewport);
-    window.visualViewport?.addEventListener("resize", clampToViewport);
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener("resize", clampToViewport);
+    visualViewport?.addEventListener("scroll", clampToViewport);
     const resizeObserver = new ResizeObserver(clampToViewport);
     if (cardRef.current) resizeObserver.observe(cardRef.current);
     return () => {
       window.removeEventListener("resize", clampToViewport);
-      window.visualViewport?.removeEventListener("resize", clampToViewport);
+      visualViewport?.removeEventListener("resize", clampToViewport);
+      visualViewport?.removeEventListener("scroll", clampToViewport);
       resizeObserver.disconnect();
       if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
     };
@@ -255,11 +284,11 @@ export default function FloatingChordCards({
         preview.chordName,
         instrument,
         preview.point,
-        viewportSize(),
+        viewportBounds(),
       )
     : null;
   const previewPosition = preview
-    ? floatingChordCardPosition(preview.point, instrument, viewportSize())
+    ? floatingChordCardPosition(preview.point, instrument, viewportBounds())
     : null;
 
   function pinPreview() {
@@ -273,7 +302,7 @@ export default function FloatingChordCards({
         preview.chordName,
         instrument,
         preview.point,
-        viewportSize(),
+        viewportBounds(),
       ),
     });
     onPreviewDismiss();

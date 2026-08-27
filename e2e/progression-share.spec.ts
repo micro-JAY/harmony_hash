@@ -116,6 +116,85 @@ test("round-trips a Guitar progression through the rendered chord-card path", as
   expect(browserProblems).toEqual([]);
 });
 
+test("downloads selected Piano voicings as one tempo-free MIDI bar per chord", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await composeProgression(page, ["Cmaj7", "G7"]);
+  await page.getByRole("button", { name: "Piano", exact: true }).click();
+  await page.getByRole("button", { name: "SHARE", exact: true }).click();
+
+  const panel = page.getByRole("dialog", { name: "Share this progression" });
+  await expect(panel.getByRole("heading", { name: "MIDI file" })).toBeVisible();
+  await expect(panel).toContainText("one 4/4 bar each, with no tempo event");
+  const downloadButton = panel.getByRole("button", { name: "Download MIDI (.mid)" });
+  await expect(downloadButton).toBeEnabled();
+
+  const downloadPromise = page.waitForEvent("download");
+  await downloadButton.click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("harmony-hash-Cmaj7-G7.mid");
+  const stream = await download.createReadStream();
+  if (!stream) throw new Error("MIDI download stream is unavailable");
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  const bytes = Buffer.concat(chunks);
+  expect(bytes.subarray(0, 4).toString("ascii")).toBe("MThd");
+  expect(bytes.includes(Buffer.from([0xff, 0x58, 0x04, 0x04, 0x02]))).toBe(true);
+  expect(bytes.includes(Buffer.from([0xff, 0x51]))).toBe(false);
+  await expect(panel.getByRole("status")).toHaveText("MIDI file downloaded.");
+
+  await expect(panel.getByRole("textbox", { name: "Shareable progression link" }))
+    .toHaveValue(/instrument=piano/);
+});
+
+test("waits for the selected Guitar diagrams and surfaces a download failure", async ({ page }) => {
+  await page.route("**/music_src/**/*.svg", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    await route.continue();
+  });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await composeProgression(page, ["Cmaj7", "G7"]);
+  await page.getByRole("button", { name: "SHARE", exact: true }).click();
+
+  const panel = page.getByRole("dialog", { name: "Share this progression" });
+  const preparing = panel.getByRole("button", { name: "Preparing selected voicings…" });
+  await expect(preparing).toBeDisabled();
+  const downloadButton = panel.getByRole("button", { name: "Download MIDI (.mid)" });
+  await expect(downloadButton).toBeEnabled({ timeout: 5_000 });
+
+  await panel.getByRole("button", { name: "Close share progression" }).click();
+  await page.getByRole("button", { name: "Guitar", exact: true }).click();
+  await page.getByRole("button", { name: "SHARE", exact: true }).click();
+  await expect(downloadButton).toBeEnabled();
+
+  await page.evaluate(() => {
+    URL.createObjectURL = () => {
+      throw new Error("test object URL failure");
+    };
+  });
+  await downloadButton.click();
+  await expect(panel.getByRole("alert")).toContainText(
+    "MIDI export failed. test object URL failure",
+  );
+});
+
+test("surfaces a failed Guitar diagram instead of preparing MIDI forever", async ({ page }) => {
+  await page.route("**/music_src/**/*.svg", (route) => route.fulfill({
+    status: 500,
+    contentType: "text/plain",
+    body: "fixture diagram failure",
+  }));
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await composeProgression(page, ["Cmaj7", "G7"]);
+  await page.getByRole("button", { name: "SHARE", exact: true }).click();
+
+  const panel = page.getByRole("dialog", { name: "Share this progression" });
+  await expect(panel.getByRole("button", { name: "MIDI export unavailable" })).toBeDisabled();
+  await expect(panel.getByRole("alert")).toHaveText(
+    "One or more selected guitar diagrams could not be loaded. Choose another variation and try again.",
+  );
+  await expect(panel).not.toContainText("Preparing selected voicings…");
+});
+
 test("shows invalid and duplicate share payloads without breaking the composer", async ({ page }) => {
   const invalid = new URL("http://localhost:4173/");
   invalid.searchParams.set("hh", "1");

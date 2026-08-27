@@ -15,6 +15,11 @@ export interface GuitarMidiVoicing {
   readonly sourcePath: string;
 }
 
+export type GuitarMidiVoicingState =
+  | { readonly status: "loading"; readonly sourcePath: string }
+  | { readonly status: "ready"; readonly voicing: GuitarMidiVoicing }
+  | { readonly status: "error"; readonly sourcePath: string | null; readonly message: string };
+
 function validateDot(dot: ParsedDot): void {
   if (!Number.isInteger(dot.stringIndex) || dot.stringIndex < 0 || dot.stringIndex >= 6) {
     throw new Error(`Invalid guitar string index: ${dot.stringIndex}`);

@@ -1,0 +1,27 @@
+## 1. Chord Preview Intent
+
+- [x] 1.1 Add the 1,500 ms mouse-hover intent contract and open-state reporting to `ChordReferenceGrid`, with focused timing and regression coverage for insertion behavior.
+
+## 2. Floating Visual Pins
+
+- [x] 2.1 Add the root-mounted floating preview/pin layer, reuse full Guitar/Piano cards without locks or audio callbacks, and cover promotion, isolated controls, drag handles, dismissal, and workspace/timeline persistence.
+
+## 3. MIDI Export
+
+- [x] 3.1 Implement and unit-test a strict dependency-free Standard MIDI File encoder with one 4/4 bar per chord, selected note arrays, and no Set Tempo event.
+- [x] 3.2 Add the MIDI download section beneath the existing Share link, wire current Guitar/Piano voicings from `App`, and cover ready, loading, error, and download behavior without changing URL sharing.
+
+## 4. Hasher Control Hierarchy
+
+- [x] 4.1 Reorder the unified Hasher flow, colocate compact Key/Mode and instrument controls with Browse Chords, hide presets while the browser is open, and verify responsive/localized behavior.
+
+## 5. Integrated Validation
+
+- [x] 5.1 Run focused browser scenarios plus full build, lint, unit, and strict OpenSpec gates; inspect the final desktop/mobile layout and update the long-horizon handoff evidence.
+- [x] 5.2 Clamp live pins against visual-viewport dimensions and offsets on resize/scroll, with pure and browser regressions for mobile keyboard and pinch-zoom bounds.
+- [x] 5.3 Re-clamp after visual-viewport drag completion, cancel pending hover intent outside Hasher, and remove preview entrance motion under reduced-motion preference.
+- [x] 5.4 Size cards from live visual-viewport dimensions and cascade repeated/edge-clamped pins so an existing toolbar stays reachable.
+- [x] 5.5 Contract cascaded card height in compact viewports so each toolbar remains exposed, and keep the Share panel above the floating-card layer.
+- [x] 5.6 Preserve a minimum toolbar after extreme viewport shrink, cascade against live dragged positions, and ignore same-instrument reselection without clearing Guitar voicings.
+- [x] 5.7 Derive floating-card placement dimensions from semantic tokens and remeasure them when root font or theme attributes change, with non-default root-font browser coverage.
+- [x] 5.8 Derive viewport gaps, pointer offset, cascade distance, and minimum exposed height from the same live semantic geometry, with default and scaled-toolbar coverage.

@@ -24,6 +24,7 @@ import {
 import { PROGRESSION_LIBRARY } from "../data/progressions";
 import { useT } from "../i18n/I18nContext";
 import ChordReferenceGrid from "./ChordReferenceGrid";
+import type { ChordPreviewRequest } from "./ChordReferenceGrid";
 import MinorBlendModal from "./MinorBlendModal";
 import PresetCategoryDialog from "./PresetCategoryDialog";
 import ProgressionAgent from "./ProgressionAgent";
@@ -46,6 +47,11 @@ interface ProgressionInputProps {
   onRequestVoice: () => void;
   onVoiceIntent: () => void;
   outputTools?: ReactNode;
+  chordBrowserOpen: boolean;
+  onChordBrowserOpenChange: (open: boolean) => void;
+  chordPreviewEnabled: boolean;
+  onChordPreview?: (request: ChordPreviewRequest) => void;
+  onChordPreviewDismiss?: () => void;
   contextLaunch?: {
     readonly key: string;
     readonly scaleType?: ScaleType;
@@ -94,6 +100,11 @@ export default function ProgressionInput({
   onRequestVoice,
   onVoiceIntent,
   outputTools,
+  chordBrowserOpen,
+  onChordBrowserOpenChange,
+  chordPreviewEnabled,
+  onChordPreview,
+  onChordPreviewDismiss,
   contextLaunch,
 }: ProgressionInputProps) {
   const t = useT();
@@ -336,7 +347,7 @@ export default function ProgressionInput({
 
   const contextRail = (
     <div
-      className="hh-harmony-context hh-context-grid"
+      className="hh-harmony-context hh-harmony-context--inline hh-context-grid"
       role="group"
       aria-label={t("Hasher harmony context")}
       data-tour="hasher-context"
@@ -375,8 +386,6 @@ export default function ProgressionInput({
 
   return (
     <section className="hh-builder mx-auto w-full max-w-6xl px-4">
-      {contextRail}
-
       {contextLaunchNotice ? (
         <p
           role="status"
@@ -391,37 +400,7 @@ export default function ProgressionInput({
         </p>
       ) : null}
 
-      <div id="hasher-unified-flow" className="hh-builder-flow mt-4">
-        <section className="hh-builder-step" aria-labelledby="hasher-presets-title" data-tour="hasher-presets">
-          <h2 id="hasher-presets-title" className="hh-builder-step__title">
-            {t("Choose from a preset")}
-          </h2>
-          <div className="hh-preset-collections" role="group" aria-label={t("Preset collection")}>
-            {PROGRESSION_LIBRARY.map((group) => (
-              <button
-                key={group.id}
-                type="button"
-                aria-haspopup="dialog"
-                aria-expanded={presetDialogTonality === group.id}
-                aria-pressed={selected?.tonalityId === group.id}
-                onClick={(event) => {
-                  presetTriggerRef.current = event.currentTarget;
-                  setPresetDialogTonality(group.id);
-                }}
-                className="hh-preset-collections__option"
-              >
-                {t(group.label)}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <div className="hh-or-separator" aria-label={t("or")}>
-          <span aria-hidden="true" />
-          <strong>{t("or")}</strong>
-          <span aria-hidden="true" />
-        </div>
-
+      <div id="hasher-unified-flow" className="hh-builder-flow">
         <section className="hh-builder-step" aria-labelledby="hasher-describe-title" data-tour="hasher-describe">
           <h2 id="hasher-describe-title" className="hh-builder-step__title">
             {t("Describe a progression or mood")}
@@ -494,19 +473,75 @@ export default function ProgressionInput({
             </p>
           ) : null}
         </section>
-      </div>
 
-      <div data-tour="hasher-chord-browser">
-        <ChordReferenceGrid
-          chords={composedChordNames}
-          onChordAdd={(chordName) => insertComposedChord(chordName, composedItems.length)}
-          onUndo={() => {
-            if (composedItems.length === 0) return;
-            handleComposerRemove(composedItems.length - 1);
-          }}
-          leadingContent={outputTools}
-          keyContext={{ key: activeKey, scaleType: activeScaleType }}
-        />
+        <div data-tour="hasher-chord-browser">
+          <ChordReferenceGrid
+            chords={composedChordNames}
+            onChordAdd={(chordName) => insertComposedChord(chordName, composedItems.length)}
+            onUndo={() => {
+              if (composedItems.length === 0) return;
+              handleComposerRemove(composedItems.length - 1);
+            }}
+            leadingContent={(
+              <div
+                className="hh-chord-browser-context-rail"
+                data-testid="hasher-browser-context-rail"
+              >
+                {contextRail}
+                {outputTools}
+              </div>
+            )}
+            open={chordBrowserOpen}
+            onOpenChange={onChordBrowserOpenChange}
+            previewEnabled={chordPreviewEnabled}
+            onChordPreview={onChordPreview}
+            onChordPreviewDismiss={onChordPreviewDismiss}
+            keyContext={{ key: activeKey, scaleType: activeScaleType }}
+          />
+        </div>
+
+        {!chordBrowserOpen ? (
+          <>
+            <div
+              className="hh-or-separator"
+              aria-label={t("or")}
+              data-testid="hasher-preset-separator"
+            >
+              <span aria-hidden="true" />
+              <strong>{t("or")}</strong>
+              <span aria-hidden="true" />
+            </div>
+
+            <section
+              className="hh-builder-step"
+              aria-labelledby="hasher-presets-title"
+              data-tour="hasher-presets"
+              data-testid="hasher-preset-section"
+            >
+              <h2 id="hasher-presets-title" className="hh-builder-step__title">
+                {t("Choose from a preset")}
+              </h2>
+              <div className="hh-preset-collections" role="group" aria-label={t("Preset collection")}>
+                {PROGRESSION_LIBRARY.map((group) => (
+                  <button
+                    key={group.id}
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded={presetDialogTonality === group.id}
+                    aria-pressed={selected?.tonalityId === group.id}
+                    onClick={(event) => {
+                      presetTriggerRef.current = event.currentTarget;
+                      setPresetDialogTonality(group.id);
+                    }}
+                    className="hh-preset-collections__option"
+                  >
+                    {t(group.label)}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </>
+        ) : null}
       </div>
 
       {errors.length > 0 ? (

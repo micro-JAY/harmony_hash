@@ -429,8 +429,18 @@ body {
   display: flex;
   min-width: 0;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--space-2) var(--space-3);
+}
+
+.hh-chord-browser-context-rail {
+  display: grid;
+  min-width: min(100%, 20rem);
+  flex: 1 1 24rem;
+  grid-template-columns: minmax(12rem, 26rem) var(--control-action-width);
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .hh-instrument-picker-slot {
@@ -805,6 +815,19 @@ svg [data-note-tooltip="true"]:focus-visible {
   border-radius: var(--radius-md);
 }
 
+.hh-harmony-context--inline {
+  width: 100%;
+  grid-template-columns: minmax(4.75rem, 0.7fr) minmax(8rem, 1.3fr);
+  gap: var(--space-2);
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.hh-harmony-context--inline .hh-control-label {
+  margin-bottom: var(--space-1);
+}
+
 .hh-context-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -846,6 +869,92 @@ svg [data-note-tooltip="true"]:focus-visible {
 .hh-chord-card {
   height: 100%;
   container: harmony-chord-card / inline-size;
+}
+
+.hh-floating-chord-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hh-floating-chord-card {
+  position: absolute;
+  width: min(
+    var(--floating-chord-card-guitar-width),
+    max(1px, calc(var(--floating-chord-card-visual-width, 100vw) - (2 * var(--space-3))))
+  );
+  max-height: min(
+    var(--floating-chord-card-available-height, 100dvh),
+    max(
+      1px,
+      calc(var(--floating-chord-card-visual-height, 100dvh) - (2 * var(--space-3)))
+    )
+  );
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+  touch-action: pan-y;
+}
+
+.hh-floating-chord-card[data-instrument="piano"] {
+  width: min(
+    var(--floating-chord-card-piano-width),
+    max(1px, calc(var(--floating-chord-card-visual-width, 100vw) - (2 * var(--space-3))))
+  );
+}
+
+.hh-floating-chord-card--preview {
+  cursor: copy;
+}
+
+.hh-floating-chord-card__controls {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  min-height: var(--floating-chord-card-toolbar-height);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-2);
+}
+
+.hh-floating-chord-card__handle,
+.hh-floating-chord-card__dismiss {
+  display: inline-flex;
+  min-width: var(--floating-chord-card-action-size);
+  min-height: var(--floating-chord-card-action-size);
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+}
+
+.hh-floating-chord-card__handle {
+  flex: 1;
+  cursor: grab;
+}
+
+.hh-floating-chord-card__handle:active {
+  cursor: grabbing;
+}
+
+.hh-floating-chord-card__dismiss {
+  margin-left: var(--space-2);
+}
+
+.hh-floating-chord-card__pin-target {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  padding: 0;
+  cursor: copy;
+}
+
+.hh-floating-chord-card__pin-target:focus-visible {
+  outline: 2px solid var(--interactive-focus-ring);
+  outline-offset: -3px;
 }
 
 .hh-guitar-card-toolbar {
@@ -895,6 +1004,28 @@ svg [data-note-tooltip="true"]:focus-visible {
 @media (max-width: 31rem) {
   .hh-context-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hh-harmony-context--inline.hh-context-grid {
+    grid-template-columns: minmax(4.75rem, 0.7fr) minmax(8rem, 1.3fr);
+  }
+
+  .hh-chord-browser-context-rail {
+    min-width: 100%;
+    flex-basis: 100%;
+    grid-template-columns: minmax(0, 1fr) var(--control-action-width);
+  }
+}
+
+@media (max-width: 23rem) {
+  .hh-chord-browser-context-rail,
+  .hh-harmony-context--inline.hh-context-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hh-instrument-picker-slot {
+    width: 100%;
+    margin-left: 0;
   }
 }
 

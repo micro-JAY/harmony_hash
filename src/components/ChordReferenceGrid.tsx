@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { lookupChord } from "../lib/chordData";
 import {
@@ -25,6 +25,12 @@ import {
   chordFamilyPresentation,
 } from "../lib/visual/chordFamily";
 import type { ChordFamily } from "../lib/visual/chordFamily";
+import {
+  createChordPreviewIntent,
+  type ChordPreviewRequest,
+} from "./chordPreviewIntent";
+
+export type { ChordPreviewRequest } from "./chordPreviewIntent";
 
 export type SuggestionMode = "off" | "key" | "next" | "jazz" | "modal";
 
@@ -184,6 +190,11 @@ interface ChordReferenceGridProps {
   moodId?: MoodId | null;
   /** Keeps the shared context rail between the leading Browse control and the grid body. */
   leadingContent?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  previewEnabled?: boolean;
+  onChordPreview?: (request: ChordPreviewRequest) => void;
+  onChordPreviewDismiss?: () => void;
 }
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -195,13 +206,38 @@ export default function ChordReferenceGrid({
   keyContext,
   moodId,
   leadingContent,
+  open,
+  onOpenChange,
+  previewEnabled = true,
+  onChordPreview,
+  onChordPreviewDismiss,
 }: ChordReferenceGridProps) {
   const t = useT();
   const shouldReduceMotion = useReducedMotion();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open ?? internalOpen;
   const [flashCell, setFlashCell] = useState<string | null>(null);
   const [activeGroup, setActiveGroup] = useState<QualityGroup | "all">("basic");
   const [suggestionMode, setSuggestionMode] = useState<SuggestionMode>("off");
+  const previewIntent = useMemo(
+    () => createChordPreviewIntent((request) => onChordPreview?.(request)),
+    [onChordPreview],
+  );
+  const previousOpenRef = useRef(isOpen);
+
+  useEffect(() => () => previewIntent.cancel(), [previewIntent]);
+  useEffect(() => {
+    if (previewEnabled) return;
+    previewIntent.cancel();
+    onChordPreviewDismiss?.();
+  }, [onChordPreviewDismiss, previewEnabled, previewIntent]);
+  useEffect(() => {
+    const wasOpen = previousOpenRef.current;
+    previousOpenRef.current = isOpen;
+    if (!wasOpen || isOpen) return;
+    previewIntent.cancel();
+    onChordPreviewDismiss?.();
+  }, [isOpen, onChordPreviewDismiss, previewIntent]);
   const chordHistory = useMemo(
     () => chords.flatMap((chordName) => {
       const chord = lookupChord(chordName);
@@ -263,10 +299,9 @@ export default function ChordReferenceGrid({
   // Reset filter and history when grid collapses
   function handleToggle() {
     const next = !isOpen;
-    setIsOpen(next);
-    if (!next) {
-      setActiveGroup("basic");
-    }
+    setActiveGroup("basic");
+    if (open === undefined) setInternalOpen(next);
+    onOpenChange?.(next);
   }
 
   // ── Filtered qualities based on active group ──
@@ -723,6 +758,25 @@ export default function ChordReferenceGrid({
                             data-modal-degree={fitResult?.modal?.degree}
                             data-modal-interval={fitResult?.modal?.rootInterval}
                             data-modal-palette-interval={fitResult?.modal?.paletteInterval}
+                            onPointerEnter={(event) => {
+                              if (!previewEnabled || event.pointerType !== "mouse") return;
+                              previewIntent.start(chordName, {
+                                x: event.clientX,
+                                y: event.clientY,
+                              });
+                            }}
+                            onPointerMove={(event) => {
+                              if (!previewEnabled || event.pointerType !== "mouse") return;
+                              previewIntent.updatePoint({
+                                x: event.clientX,
+                                y: event.clientY,
+                              });
+                            }}
+                            onPointerLeave={(event) => {
+                              if (event.pointerType !== "mouse") return;
+                              previewIntent.cancel();
+                              onChordPreviewDismiss?.();
+                            }}
                             style={{
                               display: "inline-flex",
                               flexDirection: "column",

@@ -13,7 +13,10 @@ import {
   type ParsedDot,
   type ParsedGuitarSvg,
 } from "../lib/guitarSvgParser";
-import { deriveGuitarMidiVoicing, type GuitarMidiVoicing } from "../lib/guitarPlayback";
+import {
+  deriveGuitarMidiVoicing,
+  type GuitarMidiVoicingState,
+} from "../lib/guitarPlayback";
 import { noteToPitchClass } from "../lib/harmonyBrain";
 import { formatNoteForDisplay, parseNotes, getSvgPath } from "../lib/chordData";
 import {
@@ -34,7 +37,7 @@ interface GuitarChordDiagramProps {
   variant: number;
   displayMode: GuitarDisplayMode;
   preferFlats: boolean;
-  onPlaybackVoicingChange?: (voicing: GuitarMidiVoicing | null) => void;
+  onPlaybackVoicingChange?: (state: GuitarMidiVoicingState) => void;
 }
 
 function buildIntervalMap(entry: { Steps: string; Notes: string }): Map<number, string> {
@@ -152,15 +155,22 @@ export default function GuitarChordDiagram({
     // Render handles `!svgUrl` via the `failed || !svgUrl` early-return branch,
     // so no state change is needed here — bail out before any setState fires.
     if (!svgUrl) {
-      playbackCallbackRef.current?.(null);
+      playbackCallbackRef.current?.({
+        status: "error",
+        sourcePath: null,
+        message: "No guitar diagram is available for this chord variation.",
+      });
       return;
     }
 
-    playbackCallbackRef.current?.(null);
+    playbackCallbackRef.current?.({ status: "loading", sourcePath: svgUrl });
 
     const cached = cacheRef.current.get(svgUrl);
     if (cached) {
-      playbackCallbackRef.current?.(deriveGuitarMidiVoicing(cached, svgUrl));
+      playbackCallbackRef.current?.({
+        status: "ready",
+        voicing: deriveGuitarMidiVoicing(cached, svgUrl),
+      });
       setSvgData(cached);
       setFailed(false);
       setLoading(false);
@@ -181,12 +191,22 @@ export default function GuitarChordDiagram({
       .then((text) => {
         const sanitized = sanitizeGuitarSvg(text);
         if (!sanitized) {
+          playbackCallbackRef.current?.({
+            status: "error",
+            sourcePath: svgUrl,
+            message: "The selected guitar diagram could not be validated.",
+          });
           setFailed(true);
           setLoading(false);
           return;
         }
         const parsed = parseGuitarSvg(sanitized);
         if (!parsed) {
+          playbackCallbackRef.current?.({
+            status: "error",
+            sourcePath: svgUrl,
+            message: "The selected guitar diagram could not be parsed.",
+          });
           setFailed(true);
           setLoading(false);
           return;
@@ -194,20 +214,23 @@ export default function GuitarChordDiagram({
         const voicing = deriveGuitarMidiVoicing(parsed, svgUrl);
         cacheRef.current.set(svgUrl, parsed);
         setSvgData(parsed);
-        playbackCallbackRef.current?.(voicing);
+        playbackCallbackRef.current?.({ status: "ready", voicing });
         setLoading(false);
       })
       .catch((err) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         console.error("[GuitarChordDiagram] SVG fetch failed:", err);
-        playbackCallbackRef.current?.(null);
+        playbackCallbackRef.current?.({
+          status: "error",
+          sourcePath: svgUrl,
+          message: err instanceof Error ? err.message : "The guitar diagram request failed.",
+        });
         setFailed(true);
         setLoading(false);
       });
 
     return () => {
       controller.abort();
-      playbackCallbackRef.current?.(null);
     };
   }, [svgUrl]);
 

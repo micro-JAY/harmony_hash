@@ -12,6 +12,7 @@ interface ChordCardFrameProps {
   usageNotes?: string;
   isLocked: boolean;
   onToggleLock: () => void;
+  showLock?: boolean;
   isPlaying: boolean;
   isAgentHighlighted: boolean;
   children: ReactNode;
@@ -23,6 +24,7 @@ export default function ChordCardFrame({
   usageNotes,
   isLocked,
   onToggleLock,
+  showLock = true,
   isPlaying,
   isAgentHighlighted,
   children,
@@ -59,7 +61,7 @@ export default function ChordCardFrame({
             : "none",
       }}
     >
-      <button
+      {showLock ? <button
         type="button"
         aria-label={t(isLocked ? "Unlock chord card" : "Lock chord card")}
         title={t(isLocked ? "Unlock" : "Lock")}
@@ -73,7 +75,7 @@ export default function ChordCardFrame({
         }}
       >
         {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
-      </button>
+      </button> : null}
 
       <div
         className="w-full text-center py-3 px-4"

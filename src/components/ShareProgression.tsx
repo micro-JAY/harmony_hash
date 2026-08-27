@@ -1,9 +1,14 @@
-import { Check, Copy, Link2, X } from "lucide-react";
+import { Check, Copy, Download, Link2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createProgressionShareUrl,
   ProgressionShareError,
 } from "../lib/progressionShare";
+import {
+  createProgressionMidiFile,
+  MidiExportError,
+  progressionMidiFilename,
+} from "../lib/midiExport";
 import type { Instrument } from "../lib/types";
 import { useT } from "../i18n/I18nContext";
 
@@ -14,6 +19,8 @@ interface ShareableChord {
 interface ShareProgressionProps {
   instrument: Instrument;
   chords: ReadonlyArray<ShareableChord>;
+  midiVoicings: readonly (readonly number[])[];
+  midiAvailability: "ready" | "preparing" | "error";
 }
 
 type ShareLinkResult =
@@ -23,6 +30,12 @@ type ShareLinkResult =
 interface CopyState {
   link: string;
   status: "copied" | "error";
+}
+
+interface MidiState {
+  snapshotKey: string;
+  status: "downloaded" | "error";
+  message?: string;
 }
 
 const PANEL_ID = "share-progression-panel";
@@ -69,10 +82,31 @@ function writeClipboardWithTimeout(link: string): Promise<void> {
   });
 }
 
-export default function ShareProgression({ instrument, chords }: ShareProgressionProps) {
+function triggerMidiDownload(bytes: Uint8Array, filename: string) {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  const blob = new Blob([buffer], { type: "audio/midi" });
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = objectUrl;
+  anchor.download = filename;
+  anchor.hidden = true;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+}
+
+export default function ShareProgression({
+  instrument,
+  chords,
+  midiVoicings,
+  midiAvailability,
+}: ShareProgressionProps) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [copyState, setCopyState] = useState<CopyState | null>(null);
+  const [midiState, setMidiState] = useState<MidiState | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
   const copyAttemptRef = useRef(0);
@@ -81,6 +115,14 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
   const currentCopyStatus = shareLink.status === "ready" && copyState?.link === shareLink.link
     ? copyState.status
     : "idle";
+  const midiSnapshotKey = `${instrument}:${midiAvailability}:${chords.map(({ input }) => input).join("|")}:${midiVoicings
+    .map((notes) => notes.join(","))
+    .join("|")}`;
+  const midiReady = midiAvailability === "ready"
+    && midiVoicings.length === chords.length
+    && midiVoicings.length > 0
+    && midiVoicings.every((notes) => notes.length > 0);
+  const currentMidiState = midiState?.snapshotKey === midiSnapshotKey ? midiState : null;
 
   function focusAndSelectLink() {
     requestAnimationFrame(() => {
@@ -93,6 +135,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
     copyAttemptRef.current += 1;
     setOpen(true);
     setCopyState(null);
+    setMidiState(null);
     focusAndSelectLink();
   }
 
@@ -100,6 +143,7 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
     copyAttemptRef.current += 1;
     setOpen(false);
     setCopyState(null);
+    setMidiState(null);
     requestAnimationFrame(() => triggerRef.current?.focus());
   }, []);
 
@@ -140,6 +184,37 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
     }
   }
 
+  function handleMidiDownload() {
+    if (!midiReady) {
+      setMidiState({
+        snapshotKey: midiSnapshotKey,
+        status: "error",
+        message: "MIDI notes are still preparing.",
+      });
+      return;
+    }
+    try {
+      const bytes = createProgressionMidiFile(midiVoicings);
+      triggerMidiDownload(
+        bytes,
+        progressionMidiFilename(chords.map(({ input }) => input)),
+      );
+      setMidiState({ snapshotKey: midiSnapshotKey, status: "downloaded" });
+    } catch (error) {
+      const detail = error instanceof MidiExportError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : "Unknown MIDI export error";
+      console.error("Harmony Hash MIDI export failed", detail);
+      setMidiState({
+        snapshotKey: midiSnapshotKey,
+        status: "error",
+        message: detail,
+      });
+    }
+  }
+
   return (
     <div
       className="relative flex w-full flex-col sm:w-auto"
@@ -172,8 +247,9 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
           role="dialog"
           aria-modal="false"
           aria-labelledby={TITLE_ID}
-          className="hh-panel absolute right-0 top-full z-40 mt-2 flex flex-col gap-4 text-left"
+          className="hh-panel absolute right-0 top-full mt-2 flex flex-col gap-4 text-left"
           style={{
+            zIndex: "var(--z-dropdown)",
             width: "min(30rem, calc(100vw - (2 * var(--space-4))))",
             maxHeight: "calc(100dvh - 8rem)",
             overflowY: "auto",
@@ -312,6 +388,92 @@ export default function ShareProgression({ instrument, chords }: ShareProgressio
               {shareLink.message}
             </p>
           )}
+
+          <section
+            aria-labelledby="share-progression-midi-title"
+            className="flex flex-col gap-3"
+            style={{
+              paddingTop: "var(--space-4)",
+              borderTop: "1px solid var(--border-subtle)",
+            }}
+          >
+            <div>
+              <h3
+                id="share-progression-midi-title"
+                style={{
+                  margin: 0,
+                  color: "var(--text-primary)",
+                  fontFamily: "var(--font-display)",
+                  fontSize: "var(--text-base)",
+                  fontWeight: "var(--weight-semibold)",
+                }}
+              >
+                {t("MIDI file")}
+              </h3>
+              <p
+                className="mt-1"
+                style={{
+                  marginBottom: 0,
+                  color: "var(--text-secondary)",
+                  fontSize: "var(--text-sm)",
+                  lineHeight: "var(--leading-normal)",
+                }}
+              >
+                {t("Export the selected chord variations as one 4/4 bar each, with no tempo event.")}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleMidiDownload}
+              disabled={!midiReady}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--interactive-focus-ring)]"
+              style={{
+                color: midiReady
+                  ? "var(--interactive-accent-text)"
+                  : "var(--interactive-disabled-text)",
+                backgroundColor: midiReady
+                  ? "var(--interactive-accent-bg)"
+                  : "var(--interactive-disabled-bg)",
+                border: `1px solid ${midiReady
+                  ? "var(--interactive-accent-border)"
+                  : "var(--interactive-disabled-border)"}`,
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                fontWeight: "var(--weight-semibold)",
+                cursor: midiReady ? "pointer" : "not-allowed",
+              }}
+            >
+              <Download size={15} aria-hidden="true" />
+              {t(midiAvailability === "error"
+                ? "MIDI export unavailable"
+                : midiReady
+                  ? "Download MIDI (.mid)"
+                  : "Preparing selected voicings…")}
+            </button>
+            {midiAvailability === "error" ? (
+              <p
+                role="alert"
+                style={{ margin: 0, color: "var(--status-error-text)", fontSize: "var(--text-sm)" }}
+              >
+                {t("One or more selected guitar diagrams could not be loaded. Choose another variation and try again.")}
+              </p>
+            ) : currentMidiState?.status === "downloaded" ? (
+              <p
+                role="status"
+                aria-live="polite"
+                style={{ margin: 0, color: "var(--status-success-text)", fontSize: "var(--text-sm)" }}
+              >
+                {t("MIDI file downloaded.")}
+              </p>
+            ) : currentMidiState?.status === "error" ? (
+              <p
+                role="alert"
+                style={{ margin: 0, color: "var(--status-error-text)", fontSize: "var(--text-sm)" }}
+              >
+                {t("MIDI export failed.")} {currentMidiState.message}
+              </p>
+            ) : null}
+          </section>
         </section>
       ) : null}
     </div>

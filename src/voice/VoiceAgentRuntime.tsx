@@ -4,29 +4,26 @@ import type { ProgressionBridge } from "./types";
 
 export interface VoiceAgentRuntimeProps {
   bridge: ProgressionBridge;
-  agentId: string;
-  signedUrlEndpoint: string;
+  clientSecretEndpoint: string;
   open: boolean;
   onClose: () => void;
 }
 
 /**
- * Owns the ElevenLabs-backed provider and popup inside one dynamic-import
- * boundary. App keeps this mounted after first use so closing Hanz does not
- * discard the session transcript or registered client tools.
+ * Owns the OpenAI Realtime provider and popup inside one dynamic-import
+ * boundary. App keeps this mounted after first use so closing Harmony does not
+ * discard the session transcript or active client tools.
  */
 export default function VoiceAgentRuntime({
   bridge,
-  agentId,
-  signedUrlEndpoint,
+  clientSecretEndpoint,
   open,
   onClose,
 }: VoiceAgentRuntimeProps) {
   return (
     <VoiceAgentProvider
       bridge={bridge}
-      agentId={agentId}
-      signedUrlEndpoint={signedUrlEndpoint}
+      clientSecretEndpoint={clientSecretEndpoint}
     >
       <VoiceAgentPanel open={open} onClose={onClose} />
     </VoiceAgentProvider>

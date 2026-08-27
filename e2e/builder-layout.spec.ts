@@ -54,7 +54,7 @@ async function mockReadyHealth(page: Page): Promise<void> {
   });
 }
 
-test("compact action toolbar keeps cards adjacent and opens Hanz from prompt help", async ({
+test("compact action toolbar keeps cards adjacent and opens Harmony from prompt help", async ({
   page,
 }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -67,44 +67,83 @@ test("compact action toolbar keeps cards adjacent and opens Hanz from prompt hel
   expect(actionBox).not.toBeNull();
   expect(cardBox).not.toBeNull();
   expect(cardBox!.y - (actionBox!.y + actionBox!.height)).toBeLessThanOrEqual(40);
-  await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
 
   await page
     .getByRole("textbox", { name: "Describe the progression you want" })
     .fill("help me tighten this progression");
   await page.getByRole("button", { name: HELP_LABEL }).click();
-  const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+  const dialog = page.getByRole("dialog", { name: "Harmony" });
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveClass(/hh-panel/);
-  await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Harmony, Help!" })).toBeVisible();
   await expect(page).toHaveScreenshot("builder-desktop-expanded-companion.png", { fullPage: true });
 
   await expect(page.getByRole("heading", { name: "Choose from a preset" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Build your own" })).toBeVisible();
   await expect(dialog).toBeVisible();
-  await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+  await page.getByRole("button", { name: "Close Harmony" }).click();
   await expect(dialog).toHaveCount(0);
 });
 
-test("bottom-aligns Browse chords with the instrument picker and preserves the composer Run width", async ({ page }) => {
+test("aligns HASHER entry rows and companion controls", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
+  const agentPrompt = page.getByRole("textbox", { name: "Describe the progression you want" });
+  const agentRun = page.getByRole("button", { name: "Run progression agent" });
+  const composer = page.getByTestId("chord-composer");
   const browse = page.getByRole("button", { name: "Browse chords ↓", exact: true });
   const picker = page.locator(".hh-instrument-picker-slot");
   const composerRun = page.getByRole("button", { name: "Run chord composer" });
-  const [browseBox, pickerBox, composerRunBox] = await Promise.all([
+  const [agentPromptBox, agentRunBox, composerBox, browseBox, pickerBox, composerRunBox] = await Promise.all([
+    agentPrompt.boundingBox(),
+    agentRun.boundingBox(),
+    composer.boundingBox(),
     browse.boundingBox(),
     picker.boundingBox(),
     composerRun.boundingBox(),
   ]);
 
+  expect(agentPromptBox).not.toBeNull();
+  expect(agentRunBox).not.toBeNull();
+  expect(composerBox).not.toBeNull();
   expect(browseBox).not.toBeNull();
   expect(pickerBox).not.toBeNull();
   expect(composerRunBox).not.toBeNull();
-  const browseBottom = browseBox!.y + browseBox!.height;
-  const pickerBottom = pickerBox!.y + pickerBox!.height;
-  expect(Math.abs(browseBottom - pickerBottom)).toBeLessThanOrEqual(1);
+  expect(Math.abs(agentPromptBox!.height - composerBox!.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(agentRunBox!.width - composerRunBox!.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(agentRunBox!.height - composerRunBox!.height)).toBeLessThanOrEqual(1);
+  const browseCenter = browseBox!.y + browseBox!.height / 2;
+  const pickerCenter = pickerBox!.y + pickerBox!.height / 2;
+  expect(Math.abs(browseCenter - pickerCenter)).toBeLessThanOrEqual(1);
+  expect(Math.abs(browseBox!.height - pickerBox!.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(browseBox!.width - pickerBox!.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(pickerBox!.width - composerRunBox!.width)).toBeLessThanOrEqual(1);
+  const guitarOption = picker.getByRole("button", { name: "Guitar" });
+  await guitarOption.focus();
+  await expect(guitarOption).toHaveCSS("outline-offset", "-3px");
+});
+
+test("uses one square locale toggle aligned with Help / About", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const help = page.getByRole("button", { name: "Help / About" });
+  const locale = page.getByRole("button", { name: "Switch language to Japanese" });
+  const [helpBox, localeBox] = await Promise.all([help.boundingBox(), locale.boundingBox()]);
+
+  expect(helpBox).not.toBeNull();
+  expect(localeBox).not.toBeNull();
+  expect(Math.abs(helpBox!.y + helpBox!.height / 2 - (localeBox!.y + localeBox!.height / 2)))
+    .toBeLessThanOrEqual(1);
+  expect(Math.abs(localeBox!.width - localeBox!.height)).toBeLessThanOrEqual(1);
+  expect(localeBox!.width).toBeGreaterThanOrEqual(44);
+  await expect(locale).not.toHaveAttribute("aria-pressed");
+
+  await locale.click();
+  const englishLocale = page.getByRole("button", { name: "英語に切り替える" });
+  await expect(englishLocale).toHaveText("EN");
+  await expect(englishLocale).not.toHaveAttribute("aria-pressed");
+  await expect(page.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
 });
 
 test.describe("800px tablet layout", () => {
@@ -131,7 +170,7 @@ test.describe("800px tablet layout", () => {
 test.describe("375px HASHER layout", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
-  test("stacks the prompt and composer and keeps the Hanz popup in bounds", async ({
+  test("stacks the prompt and composer and keeps the Harmony popup in bounds", async ({
     page,
   }) => {
     await page.addInitScript(() => {
@@ -143,20 +182,20 @@ test.describe("375px HASHER layout", () => {
     const prompt = page.getByRole("textbox", {
       name: "Describe the progression you want",
     });
-    const agentRun = page.getByRole("button", { name: "Run progression agent" });
-    await expectStacked(prompt, agentRun);
+    const agentActions = page.getByRole("group", { name: "Progression agent actions" });
+    await expectStacked(prompt, agentActions);
     const composer = page.getByRole("group", { name: "Chord progression composer" });
     const composerRun = page.getByRole("button", { name: "Run chord composer" });
     await expectStacked(composer, composerRun);
     await expectNoDocumentOverflow(page);
     await expect(page).toHaveScreenshot("builder-mobile-free.png", { fullPage: true });
 
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
     await prompt.fill("help me get unstuck");
     await page.getByRole("button", { name: HELP_LABEL }).click();
-    const dialog = page.getByRole("dialog", { name: "Hanz Hasher" });
+    const dialog = page.getByRole("dialog", { name: "Harmony" });
     await expect(dialog).toBeVisible();
-    await expect(page.getByRole("button", { name: "Hanz, Help!" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Harmony, Help!" })).toBeVisible();
     const dialogBox = await dialog.evaluate((element) => {
       const bounds = element.getBoundingClientRect();
       return { x: bounds.x, width: bounds.width };
@@ -164,7 +203,7 @@ test.describe("375px HASHER layout", () => {
     expect(dialogBox.x).toBeGreaterThanOrEqual(0);
     expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(375);
 
-    await expectStacked(prompt, agentRun);
+    await expectStacked(prompt, agentActions);
     await expect(page.getByText("API ready", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Choose from a preset" })).toBeVisible();
     const describeHeading = page.getByRole("heading", { name: "Describe a progression or mood" });
@@ -176,7 +215,7 @@ test.describe("375px HASHER layout", () => {
     await expect(page.getByRole("heading", { name: "Build your own" })).toBeVisible();
     await expect(dialog).toBeVisible();
     await expectNoDocumentOverflow(page);
-    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: "Close Harmony" }).click();
     await expect(dialog).toHaveCount(0);
     const agentReadout = page.locator(".hh-progression-agent__readout");
     const agentStatus = page.locator(".hh-progression-agent__status");

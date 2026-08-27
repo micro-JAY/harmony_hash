@@ -278,7 +278,7 @@ export default function ShareProgression({
                   lineHeight: "var(--leading-normal)",
                 }}
               >
-                {t("A snapshot of these chords and the selected instrument view. Hanz conversations and prompts stay private.")}
+                {t("A snapshot of these chords and the selected instrument view. Harmony conversations and prompts stay private.")}
               </p>
             </div>
             <button

@@ -24,6 +24,14 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 }
 
+function urlHasHostname(url: string, hostname: string): boolean {
+  try {
+    return new URL(url).hostname === hostname;
+  } catch {
+    return false;
+  }
+}
+
 function rgbDistance(left: string, right: string): number {
   const channels = (value: string) => value.match(/[\d.]+/g)?.slice(0, 3).map(Number);
   const leftChannels = channels(left);
@@ -70,7 +78,7 @@ test.describe("Fretboard Explorer", () => {
     page.on("request", (request) => requestedUrls.push(request.url()));
     await page.goto("/", { waitUntil: "domcontentloaded" });
     expect(requestedUrls.some((url) => url.endsWith("/tokens.css"))).toBe(true);
-    expect(requestedUrls.some((url) => url.includes("cdn.jsdelivr.net"))).toBe(false);
+    expect(requestedUrls.some((url) => urlHasHostname(url, "cdn.jsdelivr.net"))).toBe(false);
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(false);
     await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
     await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
@@ -207,7 +215,7 @@ test.describe("Fretboard Explorer", () => {
   test("supports spatial focus without exposing the builder-only companion", async ({ page }) => {
     const browserIssues = collectBrowserIssues(page);
     await openFretboard(page);
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
 
     const firstNote = page.getByRole("button", {
       name: "Right-handed Guitar string 1 (high E), Standard tuning, fret 0, E, interval 3, All positions pattern tone",

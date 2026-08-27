@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useConversationControls, useConversationStatus } from "@elevenlabs/react";
 import { X } from "lucide-react";
 import { useVoiceAgent } from "./voiceAgentContext";
-import { useProgressionAgentTools } from "./useProgressionAgentTools";
-import { endVoiceSession } from "./sessionLifecycle";
 import { voiceAudioHealthIssue } from "./audioHealth";
 import { useT } from "../i18n/I18nContext";
 
@@ -11,10 +8,9 @@ import { useT } from "../i18n/I18nContext";
  * The voice companion panel. Render it inside <VoiceAgentProvider/> wherever
  * the progression builder lives (beside the playback / randomize controls).
  *
- * Connecting flow: if a signed-URL endpoint is configured, fetch a short-lived
- * URL and open the session with it; otherwise connect with the bare agent id
- * (public dev agent only). The microphone permission prompt fires only when the
- * user starts a session (the connect button), never on mount.
+ * The provider mints a short-lived Realtime client secret before requesting the
+ * microphone. The permission prompt therefore fires only when the user starts
+ * a session (the connect button), never on mount.
  *
  * Styling follows the repo convention: Tailwind for layout only; every color,
  * type, surface and motion value is a semantic CSS variable applied inline (see
@@ -30,20 +26,18 @@ interface VoiceAgentPanelProps {
 export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   const t = useT();
   const {
-    bridge,
-    agentId,
-    signedUrlEndpoint,
+    status,
+    message,
+    playbackError,
+    startSession,
+    endSession,
+    setVolume,
     transcript,
     sessionKind,
     audioPacketCount,
     agentReplyCount,
     agentReplyAudioBaseline,
   } = useVoiceAgent();
-  const { startSession, endSession, setVolume } = useConversationControls();
-  const { status, message } = useConversationStatus();
-
-  // Register the progression-builder tools for the lifetime of this panel.
-  useProgressionAgentTools(bridge);
 
   const [error, setError] = useState<string | null>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
@@ -52,26 +46,14 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const live = status === "connected";
-  // Treat the SDK's own "connecting" status as busy too: startSession resolves
-  // before the handshake finishes, so local `connecting` flips false mid-connect
-  // and the button would otherwise re-enable and flash "Offline". (The SDK's
-  // lockRef already blocks a duplicate startSession; this fixes the misleading UI.)
+  // Keep the local lock through the awaited WebRTC handshake. The transport
+  // status is included as a second guard against duplicate starts.
   const busy = connecting || status === "connecting";
   const state: "live" | "wait" | "idle" = live ? "live" : busy ? "wait" : "idle";
 
-  // startSession resolves before the WebSocket/mic handshake finishes, so a
-  // failed connection (denied mic, dropped session) surfaces via status — not
-  // the handleStart catch. Fold it in so connection failures aren't silent.
   const displayError =
-    error ?? audioError ??
+    error ?? playbackError ?? audioError ??
     (status === "error" ? (message ?? t("The voice session ran into a problem.")) : null);
-
-  const createVoiceOptions = useCallback(() => ({
-    textOnly: false as const,
-    overrides: {
-      conversation: { textOnly: false },
-    },
-  }), []);
 
   const handleStart = useCallback(async () => {
     connectionAttemptRef.current?.abort();
@@ -81,26 +63,8 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
     setAudioError(null);
     setConnecting(true);
     try {
-      if (signedUrlEndpoint) {
-        const res = await fetch(signedUrlEndpoint, {
-          method: "POST",
-          signal: controller.signal,
-        });
-        // The Worker always replies JSON (even on failure); read its { error } so
-        // the user sees a real message rather than a bare status code.
-        const data = (await res.json().catch(() => ({}))) as {
-          signedUrl?: string;
-          error?: string;
-        };
-        if (!res.ok || !data.signedUrl) {
-          throw new Error(data.error ?? t("Couldn't start the voice session — please try again."));
-        }
-        if (controller.signal.aborted) return;
-        startSession({ signedUrl: data.signedUrl, ...createVoiceOptions() });
-      } else {
-        startSession({ agentId, ...createVoiceOptions() });
-      }
-      if (controller.signal.aborted) endSession();
+      await startSession(controller.signal);
+      if (controller.signal.aborted) await endSession();
     } catch (e) {
       if (controller.signal.aborted || (e instanceof Error && e.name === "AbortError")) return;
       setError(e instanceof Error ? e.message : t("Could not start the voice session"));
@@ -110,26 +74,26 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
         setConnecting(false);
       }
     }
-  }, [signedUrlEndpoint, agentId, createVoiceOptions, endSession, startSession, t]);
+  }, [endSession, startSession, t]);
 
   const handleStop = useCallback(async () => {
     try {
-      await endVoiceSession(endSession, bridge);
+      await endSession();
     } catch (e) {
       setError(e instanceof Error ? e.message : t("Could not end the session cleanly"));
     }
-  }, [bridge, endSession, t]);
+  }, [endSession, t]);
 
   const handleClose = useCallback(async () => {
     connectionAttemptRef.current?.abort();
     connectionAttemptRef.current = null;
     setConnecting(false);
-    if (status === "connecting") {
+    if (status !== "connected" && (connecting || status === "connecting")) {
       await handleStop();
     }
     onClose();
     requestAnimationFrame(() => document.getElementById("hanz-help-trigger")?.focus());
-  }, [handleStop, onClose, status]);
+  }, [connecting, handleStop, onClose, status]);
 
   useEffect(() => {
     if (!open) return;
@@ -149,9 +113,11 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
       connectionAttemptRef.current?.abort();
       connectionAttemptRef.current = null;
       setConnecting(false);
-      if (status === "connecting") void handleStop();
+      if (status !== "connected" && (connecting || status === "connecting")) {
+        void handleStop();
+      }
     }
-  }, [handleStop, open, status]);
+  }, [connecting, handleStop, open, status]);
 
   useEffect(() => () => connectionAttemptRef.current?.abort(), []);
 
@@ -173,11 +139,11 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
       return;
     }
     if (issue === "text-only") {
-      setAudioError(t("Hanz connected in text-only mode. End the conversation and try again."));
+      setAudioError(t("Harmony connected in text-only mode. End the conversation and try again."));
       return;
     }
     const timeout = window.setTimeout(() => {
-      setAudioError(t("Hanz replied, but no voice audio reached this browser. Check your output device and try again."));
+      setAudioError(t("Harmony replied, but no voice audio reached this browser. Check your output device and try again."));
     }, 5_000);
     return () => window.clearTimeout(timeout);
   }, [
@@ -242,7 +208,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
             color: "var(--text-secondary)",
           }}
         >
-          {t("Hanz Hasher")}
+          {t("Harmony")}
         </span>
         <span className="flex items-center gap-2">
           <span
@@ -263,7 +229,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
             ref={closeButtonRef}
             type="button"
             className="hhv-toggle grid place-items-center rounded-md"
-            aria-label={t("Close Hanz Hasher")}
+            aria-label={t("Close Harmony")}
             onClick={() => void handleClose()}
             style={{
               width: "2rem",
@@ -357,7 +323,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
                   color: entry.role === "user" ? "var(--text-muted)" : "var(--text-accent)",
                 }}
               >
-                {entry.role === "user" ? t("You") : "Hanz"}
+                {entry.role === "user" ? t("You") : t("Harmony")}
               </span>
               {entry.text}
             </li>
@@ -435,7 +401,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
             e.currentTarget.style.background = "var(--interactive-accent-bg)";
           }}
         >
-          {t(busy ? "Connecting…" : "Hanz, Help!")}
+          {t(busy ? "Connecting…" : "Harmony, Help!")}
         </button>
           )}
         </div>

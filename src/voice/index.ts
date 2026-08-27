@@ -5,7 +5,6 @@ export type { VoiceAgentProviderProps } from "./VoiceAgentProvider";
 export type { TranscriptEntry } from "./voiceAgentContext";
 
 export { VoiceAgentPanel } from "./VoiceAgentPanel";
-export { useProgressionAgentTools } from "./useProgressionAgentTools";
 
 export { createProgressionBridge } from "./progressionBridge";
 export type { BridgeChord, ProgressionBridgeDeps } from "./progressionBridge";

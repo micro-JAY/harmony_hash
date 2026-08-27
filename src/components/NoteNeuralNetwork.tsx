@@ -581,7 +581,7 @@ export default function NoteNeuralNetwork({
             <p className="border-t px-3 py-2 text-xs" data-testid="network-interaction-instructions" style={{ borderColor: "var(--border-default)", color: "var(--text-secondary)" }}>
               {t(mobileStatic
                 ? "Static overview for mobile. Use the complete node list below to inspect and expand; make a scale center from its details."
-                : "Drag nodes to reshape the network. Drag empty space to pan, scroll to zoom, hover to isolate, double click to expand, or hold a node for 550ms to pin it.")}
+                : "Explore the map: drag a node to move it, drag the background to look around, and scroll to zoom. Hover to focus on nearby links, double click to reveal more, or press and hold a node to keep it in place.")}
             </p>
 
             <div className="flex flex-wrap gap-x-4 gap-y-2 border-t px-3 py-2 text-xs" style={{ borderColor: "var(--border-default)", color: "var(--text-secondary)" }} aria-label={t("Relationship strength legend")}>
@@ -807,7 +807,7 @@ export default function NoteNeuralNetwork({
             <section className="rounded-lg border p-3" style={{ borderColor: "var(--border-subtle)" }}>
               <h3 className="label-caps">{t("Move and pin")}</h3>
               <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                {t("Drag a node while the network reacts, drag empty space to pan, and scroll to zoom. Hold a stationary node for 550ms to pin or unpin it; moving or cancelling first leaves its pin unchanged.")}
+                {t("Drag a node while the network reacts, drag the background to pan, and scroll to zoom. Press and hold a still node to pin or unpin it; moving or cancelling first leaves its pin unchanged.")}
               </p>
             </section>
             <section className="rounded-lg border p-3" style={{ borderColor: "var(--border-subtle)" }}>

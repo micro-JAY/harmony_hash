@@ -1,14 +1,17 @@
 import OpenAI from "openai";
-import { fetchSignedUrl } from "../src/lib/elevenLabsAuth";
+import { fetchRealtimeClientSecret } from "../src/lib/openAIRealtimeAuth";
 import { sanitizeProviderDetail } from "../src/lib/sanitizeProviderDetail";
 import {
   AgentNonConvergenceError,
   AgentProviderResponseError,
   AgentValidationError,
+  MAX_CHORDS,
   MAX_PROMPT_LENGTH,
+  MIN_CHORDS,
   runProgressionAgent,
   type OpenAIResponsesClient,
 } from "./progressionAgent";
+import { lookupChordForAgent } from "../src/lib/chordLookup";
 
 export interface RateLimit {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -17,11 +20,6 @@ export interface RateLimit {
 export interface Env {
   OPENAI_API_KEY?: string;
   ALLOWED_ORIGIN?: string;
-  // Voice companion. The API key is a Worker secret (.dev.vars / wrangler secret);
-  // the agent id is non-secret (wrangler.jsonc vars). Both optional so a
-  // misconfigured env fails closed with a 500 rather than a type error.
-  ELEVENLABS_API_KEY?: string;
-  HH_VOICE_AGENT_ID?: string;
   PROGRESSION_RATE_LIMITER?: RateLimit;
   VOICE_RATE_LIMITER?: RateLimit;
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -55,12 +53,12 @@ export default {
       return jsonResponse({ error: "Method not allowed" }, 405, request, env);
     }
 
-    if (url.pathname === "/api/voice/signed-url") {
+    if (url.pathname === "/api/voice/client-secret") {
       if (request.method === "OPTIONS") {
         return corsPreflight(request, env, true);
       }
       if (request.method === "POST") {
-        return handleVoiceSignedUrl(request, env);
+        return handleVoiceClientSecret(request, env);
       }
       return jsonResponse({ error: "Method not allowed" }, 405, request, env);
     }
@@ -79,16 +77,25 @@ function handleHealth(request: Request, env: Env): Response {
   );
 }
 
-// Mint a short-lived ElevenLabs signed URL so the browser can open an
-// authenticated voice session without ever seeing the API key. Mirrors the
-// /api/progression handler's origin gate and error contract.
-async function handleVoiceSignedUrl(request: Request, env: Env): Promise<Response> {
+// Mint a short-lived, server-configured Realtime credential without exposing
+// the standard OpenAI key or accepting browser-owned session authority.
+async function handleVoiceClientSecret(request: Request, env: Env): Promise<Response> {
   const admission = await admitProviderRequest(request, env, "voice");
   if (!admission.ok) {
     return admission.response;
   }
 
-  if (!env.ELEVENLABS_API_KEY || !env.HH_VOICE_AGENT_ID) {
+  const body = await readBoundedRequestBody(request, 0);
+  if (!body.ok || body.value.length > 0) {
+    return jsonResponse(
+      { error: "Voice session request body must be empty" },
+      400,
+      request,
+      env,
+    );
+  }
+
+  if (!env.OPENAI_API_KEY) {
     return jsonResponse(
       { error: "Server misconfigured: voice companion is unavailable" },
       500,
@@ -97,15 +104,31 @@ async function handleVoiceSignedUrl(request: Request, env: Env): Promise<Respons
     );
   }
 
-  const outcome = await fetchSignedUrl(env.ELEVENLABS_API_KEY, env.HH_VOICE_AGENT_ID);
+  const outcome = await fetchRealtimeClientSecret(
+    env.OPENAI_API_KEY,
+    AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+  );
   if (!outcome.ok) {
-    // Log the upstream detail server-side; never leak ElevenLabs internals or
-    // the key to the client. A failed mint is a 5xx, not a success shape.
-    console.error("[harmony-voice] signed-url:", sanitizeProviderDetail(outcome.error));
-    return jsonResponse({ error: "Could not start a voice session" }, 502, request, env);
+    console.error("[harmony-voice] client-secret:", sanitizeProviderDetail(outcome.error));
+    const status = outcome.reason === "timeout" ? 504 : 502;
+    const error = outcome.reason === "timeout"
+      ? "Voice session request timed out"
+      : "Could not start a voice session";
+    return jsonResponse({ error }, status, request, env);
   }
 
-  return jsonResponse({ signedUrl: outcome.signedUrl }, 200, request, env);
+  return jsonResponse(
+    {
+      clientSecret: outcome.clientSecret,
+      expiresAt: outcome.expiresAt,
+      serverNow: outcome.serverNow,
+      sessionEndsAt: outcome.sessionEndsAt,
+    },
+    200,
+    request,
+    env,
+    { "Cache-Control": "no-store" },
+  );
 }
 
 async function handleProgression(request: Request, env: Env): Promise<Response> {
@@ -134,6 +157,10 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
   if (!prompt.ok) {
     return jsonResponse({ error: prompt.error }, 400, request, env);
   }
+  const existingChords = extractExistingChords(body);
+  if (!existingChords.ok) {
+    return jsonResponse({ error: existingChords.error }, 400, request, env);
+  }
 
   if (!env.OPENAI_API_KEY) {
     return jsonResponse(
@@ -158,6 +185,7 @@ async function handleProgression(request: Request, env: Env): Promise<Response> 
       prompt.value,
       responses,
       AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+      existingChords.value,
     );
     return jsonResponse(result, 200, request, env);
   } catch (err) {
@@ -344,6 +372,9 @@ async function readBoundedRequestBody(
 }
 
 type PromptResult = { ok: true; value: string } | { ok: false; error: string };
+type ExistingChordsResult =
+  | { ok: true; value: string[] | undefined }
+  | { ok: false; error: string };
 
 function extractPrompt(body: unknown): PromptResult {
   if (!body || typeof body !== "object") {
@@ -361,6 +392,36 @@ function extractPrompt(body: unknown): PromptResult {
     return { ok: false, error: `Prompt must be ${MAX_PROMPT_LENGTH} characters or fewer` };
   }
   return { ok: true, value: trimmed };
+}
+
+function extractExistingChords(body: unknown): ExistingChordsResult {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { ok: false, error: "Request body must be a JSON object" };
+  }
+  const existingChords = (body as { existingChords?: unknown }).existingChords;
+  if (existingChords === undefined) return { ok: true, value: undefined };
+  if (!Array.isArray(existingChords)) {
+    return { ok: false, error: "'existingChords' must be an array when provided" };
+  }
+  if (existingChords.length < MIN_CHORDS || existingChords.length > MAX_CHORDS) {
+    return {
+      ok: false,
+      error: `'existingChords' must contain between ${MIN_CHORDS} and ${MAX_CHORDS} chords`,
+    };
+  }
+
+  const normalized: string[] = [];
+  for (const chord of existingChords) {
+    if (typeof chord !== "string" || chord.trim().length === 0) {
+      return { ok: false, error: "Every existing chord must be a non-empty string" };
+    }
+    const name = chord.trim();
+    if (!lookupChordForAgent(name).valid) {
+      return { ok: false, error: `Unsupported existing chord: ${name}` };
+    }
+    normalized.push(name);
+  }
+  return { ok: true, value: normalized };
 }
 
 function isTimeoutError(error: unknown): boolean {

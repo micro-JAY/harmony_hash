@@ -74,6 +74,30 @@ async function findCanvasNodePoint(
 test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
   test.describe.configure({ timeout: 90_000 });
 
+  test("labels the preview cleanly across locale and viewport changes", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
+
+    const networkTool = page.locator('[data-theory-tool="network"]');
+    const disclosure = networkTool.getByRole("button", { name: /NOTE NEURAL NETWORK/ });
+    const badge = networkTool.getByText("EARLY PREVIEW", { exact: true });
+    await expect(badge).toBeVisible();
+    await expect(disclosure).not.toHaveAccessibleName(/EARLY PREVIEW/);
+
+    await page.getByRole("button", { name: "Switch language to Japanese" }).click();
+    await expect(networkTool.getByText("早期プレビュー", { exact: true })).toBeVisible();
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    const containment = await networkTool.evaluate((element) => ({
+      right: element.getBoundingClientRect().right,
+      viewportWidth: window.innerWidth,
+      documentOverflow: document.documentElement.scrollWidth - window.innerWidth,
+    }));
+    expect(containment.right).toBeLessThanOrEqual(containment.viewportWidth);
+    expect(containment.documentOverflow).toBeLessThanOrEqual(0);
+  });
+
   test("renders a centered high-DPI force canvas with redundant relationship cues", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await page.addInitScript(() => {
@@ -376,7 +400,8 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     const dialog = page.getByRole("dialog", { name: "How NOTE NEURAL NETWORK works" });
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText("Scales use a double ring");
-    await expect(dialog).toContainText("Hold a stationary node for 550ms");
+    await expect(dialog).toContainText("Press and hold a still node");
+    await expect(dialog).not.toContainText("550ms");
     await expect(dialog).toContainText("Relative compares modes");
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
@@ -537,10 +562,10 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     const issues = collectBrowserIssues(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
-    await expect(page.getByRole("region", { name: "Progression actions" }).getByRole("button", { name: /Hanz/ })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Progression actions" }).getByRole("button", { name: /Harmony/ })).toHaveCount(0);
 
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
     await page.locator("#theory-root").selectOption("D");
     await page.locator("#theory-scale").selectOption("lydian_dominant");
     const disclosure = page.getByRole("button", { name: /NOTE NEURAL NETWORK/ }).first();

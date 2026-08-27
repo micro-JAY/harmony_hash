@@ -93,7 +93,7 @@ test.describe("HASHER output learning controls", () => {
         .toBeLessThanOrEqual(1);
     }
 
-    await page.getByRole("button", { name: "JP", exact: true }).click();
+    await page.getByRole("button", { name: "Switch language to Japanese" }).click();
     await page.getByRole("button", { name: "ピアノ", exact: true }).click();
     await page.getByRole("button", { name: "チューン・ツールボックス", exact: true }).click();
     await page.getByRole("button", { name: "ハッシャー", exact: true }).click();

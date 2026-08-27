@@ -67,7 +67,7 @@ test.describe("375px compact browser context", () => {
     }
     await expectNoDocumentOverflow(page);
 
-    await page.getByRole("button", { name: "JP", exact: true }).click();
+    await page.getByRole("button", { name: "Switch language to Japanese" }).click();
     await expect(page.getByRole("heading", { name: "コード進行や雰囲気を説明する" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "自分で組み立てる" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "プリセットから選ぶ" })).toBeVisible();

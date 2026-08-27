@@ -16,10 +16,13 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Tune Toolbox": "TUNE TOOLBOX",
     "Fret Finder": "FRET FINDER",
     "Note Neural Network": "NOTE NEURAL NETWORK",
+    "Early preview": "EARLY PREVIEW",
     "Scale Synthesia": "SCALE SYNTHESIA",
     "The Circle": "THE CIRCLE",
     "Loading The Circle…": "Loading THE CIRCLE…",
     Language: "Language",
+    "Switch language to English": "Switch language to English",
+    "Switch language to Japanese": "Switch language to Japanese",
     "Instrument view": "Instrument view",
     "Chord degree color legend": "Chord degree color legend",
     "Chord degrees": "CHORD DEGREES",
@@ -85,6 +88,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Fret Finder": "フレット・ファインダー",
     "Help / About": "ヘルプ／概要",
     Language: "言語",
+    "Switch language to English": "英語に切り替える",
+    "Switch language to Japanese": "日本語に切り替える",
     "Instrument view": "楽器表示",
     "Chord degree color legend": "コード度数カラー凡例",
     "Chord degrees": "コード度数",
@@ -122,7 +127,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Start with a preset": "プリセットから始める",
     "Pick a proven progression, then keep editing it just like one you built yourself.": "定番のコード進行を選び、自分で作った進行と同じように編集できます。",
     "Describe what you hear": "イメージを言葉で伝える",
-    "Describe a mood or progression and run the builder. If you get stuck, the small help prompt is the only place to call Hanz.": "雰囲気やコード進行を説明して実行します。困ったときは、この入力欄の小さなヘルプ表示からだけHanzを呼び出せます。",
+    "Describe a mood or progression and run the builder. If you get stuck, check the small help prompt; Harmony has you covered.": "雰囲気やコード進行を説明して実行します。困ったときは、この入力欄の小さなヘルプ表示でHarmonyに相談できます。",
+    "Progression agent actions": "コード進行エージェントの操作",
     "Build chord by chord": "コードを一つずつ組み立てる",
     "Type a valid chord and press Enter, click a chord below to append it, or drag chips to place and reorder them.": "有効なコードを入力してEnterを押すか、下のコードをクリックして末尾に追加します。チップはドラッグして挿入や並べ替えができます。",
     "Browse the chord dictionary": "コード辞典から選ぶ",
@@ -198,12 +204,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Hasher input mode": "ハッシャーの入力モード",
     "Describe the progression you want": "作りたいコード進行を説明",
     "Run progression agent": "コード進行エージェントを実行",
+    "Modify current progression": "現在のコード進行を変更",
+    "Re-run progression agent": "コード進行エージェントを再実行",
+    "Re-run": "再実行",
+    "Add 3–8 chords to modify the current progression": "現在のコード進行を変更するには3〜8個のコードを追加してください",
     Run: "実行",
     "Building…": "作成中…",
     "Need help?": "お困りですか？",
     "Stuck?": "行き詰まりましたか？",
     "Writer's block got you down?": "アイデアが浮かびませんか？",
-    "Phone a friend": "Hanzに相談",
+    "Phone a friend": "Harmonyに相談",
     "Checking…": "確認中…",
     "API ready": "API準備完了",
     "Service unavailable": "サービスを利用できません",
@@ -211,6 +221,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     "API is reachable and configured": "APIに接続でき、設定も完了しています",
     "API is unreachable or missing required config": "APIに接続できないか、必要な設定がありません",
     "⌘↵ to build": "⌘↵ で作成",
+    "⌘↵ to run": "⌘↵ で実行",
+    "⌘↵ to re-run": "⌘↵ で再実行",
     Retry: "再試行",
     "Chord progression composer": "コード進行コンポーザー",
     "Choose chords from the grid, or drag them here.": "グリッドからコードを選ぶか、ここへドラッグしてください。",
@@ -530,6 +542,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "3 flats": "♭3個",
     "4 flats": "♭4個",
     "Note Neural Network": "ノート・ニューラル・ネットワーク",
+    "Early preview": "早期プレビュー",
     "About Note Neural Network": "ノート・ニューラル・ネットワークについて",
     "See how modes connect without losing the notes beneath your hands.": "押さえている音を見失わずに、モード同士のつながりを確認できます。",
     "Mode network controls": "モード・ネットワーク設定",
@@ -671,7 +684,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Static overview for mobile. Use the complete node list below to inspect or recenter.": "モバイル用の静的表示です。確認や中央への移動には下のノード一覧を使います。",
     "Drag nodes to reshape the network. Drag empty space to pan, scroll to zoom, hover to isolate connections, and double click a scale to center it.": "ノードをドラッグしてネットワークを動かせます。空白をドラッグして移動、スクロールで拡大縮小、ホバーで接続を強調し、スケールをダブルクリックすると中央に移動します。",
     "Static overview for mobile. Use the complete node list below to inspect and expand; make a scale center from its details.": "モバイルでは静的な概要を表示します。下の完全なノード一覧で詳細を確認・展開し、スケールの詳細から中心に設定できます。",
-    "Drag nodes to reshape the network. Drag empty space to pan, scroll to zoom, hover to isolate, double click to expand, or hold a node for 550ms to pin it.": "ノードをドラッグしてネットワークを整えます。空白をドラッグして移動、スクロールで拡大縮小、ホバーで関係を絞り込み、ダブルクリックで展開、ノードを550ミリ秒長押しして固定できます。",
+    "Explore the map: drag a node to move it, drag the background to look around, and scroll to zoom. Hover to focus on nearby links, double click to reveal more, or press and hold a node to keep it in place.": "マップを操作できます。ノードをドラッグして移動し、背景をドラッグして見回し、スクロールで拡大・縮小します。ホバーすると近くのつながりに集中でき、ダブルクリックで関係を広げ、ノードを長押しするとその位置に固定できます。",
     "Arrow points toward the relationship target": "矢印は関係の向きを示します",
     Pinned: "固定中",
     Unpinned: "固定解除",
@@ -692,7 +705,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Node kinds and exploration": "ノードの種類と探索",
     "Scales use a double ring, chords a triangle, notes a solid dot, and intervals an outlined square. Inspect selects one concept; Expand adds its connections; Make center changes the shared scale; Collapse and Clear remove exploration branches.": "スケールは二重リング、コードは三角形、音は塗りつぶした丸、音程は輪郭だけの四角で示します。確認では概念を1つ選び、展開では関係を追加し、中心に設定では共有スケールを変更します。折りたたむとクリアで探索の枝を取り除けます。",
     "Move and pin": "移動と固定",
-    "Drag a node while the network reacts, drag empty space to pan, and scroll to zoom. Hold a stationary node for 550ms to pin or unpin it; moving or cancelling first leaves its pin unchanged.": "ネットワークの反応を保ったままノードをドラッグできます。空白のドラッグで移動し、スクロールで拡大縮小します。静止したノードを550ミリ秒長押しすると固定／解除でき、先に動かすか操作を中止した場合は固定状態を変えません。",
+    "Drag a node while the network reacts, drag the background to pan, and scroll to zoom. Press and hold a still node to pin or unpin it; moving or cancelling first leaves its pin unchanged.": "ネットワークの反応を保ったままノードをドラッグできます。背景のドラッグで移動し、スクロールで拡大・縮小します。静止したノードを長押しすると固定／解除でき、先に動かすか操作を中止した場合は固定状態を変えません。",
     "Strength and direction": "強さと向き",
     "Strong links are heavy and bright, Medium links are thinner, and Weak links use a long dash. An arrow points toward the relationship target; details name the musical evidence.": "強い関係は太く明るい線、中程度は細い線、弱い関係は長い破線で示します。矢印は関係の向きを示し、詳細には音楽的な根拠を表示します。",
     "Relative, Parallel, and mobile": "平行調、同主調、モバイル",
@@ -764,7 +777,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     blues: "ブルース",
     "Share this progression": "このコード進行を共有",
     "Share progression": "コード進行を共有",
-    "A snapshot of these chords and the selected instrument view. Hanz conversations and prompts stay private.": "現在のコードと選択中の楽器表示をリンクに保存します。Hanzとの会話や入力内容は共有されません。",
+    "A snapshot of these chords and the selected instrument view. Harmony conversations and prompts stay private.": "現在のコードと選択中の楽器表示をリンクに保存します。Harmonyとの会話や入力内容は共有されません。",
     "Close share progression": "共有パネルを閉じる",
     "Progression link": "共有リンク",
     "Shareable progression link": "共有用コード進行リンク",
@@ -825,27 +838,27 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Unlock chord card": "コードカードのロックを解除",
     Lock: "ロック",
     Unlock: "ロック解除",
-    "Hanz focus": "Hanzが注目中",
+    "Harmony focus": "Harmonyが注目中",
     "Compare voicings": "ボイシングを比較",
     "Hear the shape before you choose": "選ぶ前に響きを確認",
     "One chord, different shapes": "同じコードを異なる形で",
     "Color follows interval; note names confirm every choice.": "音程ごとの色と音名で各候補を確認できます。",
     Current: "選択中",
     Use: "使用",
-    "Hanz Hasher": "Hanz Hasher",
-    "Close Hanz Hasher": "Hanz Hasherを閉じる",
+    Harmony: "Harmony",
+    "Close Harmony": "Harmonyを閉じる",
     "Needs attention": "確認が必要",
     Listening: "聞き取り中",
     Connecting: "接続中",
     Offline: "オフライン",
     "Connecting…": "接続中…",
-    "Hanz, Help!": "Hanz、助けて！",
+    "Harmony, Help!": "Harmony、助けて！",
     "End conversation": "会話を終了",
     "The voice session ran into a problem.": "音声セッションで問題が発生しました。",
     "Couldn't start the voice session — please try again.": "音声セッションを開始できませんでした。もう一度お試しください。",
     "Could not start the voice session": "音声セッションを開始できませんでした",
-    "Hanz connected in text-only mode. End the conversation and try again.": "Hanzがテキスト専用モードで接続されました。会話を終了して、もう一度お試しください。",
-    "Hanz replied, but no voice audio reached this browser. Check your output device and try again.": "Hanzは返答しましたが、このブラウザに音声が届きませんでした。出力デバイスを確認して、もう一度お試しください。",
+    "Harmony connected in text-only mode. End the conversation and try again.": "Harmonyがテキスト専用モードで接続されました。会話を終了して、もう一度お試しください。",
+    "Harmony replied, but no voice audio reached this browser. Check your output device and try again.": "Harmonyは返答しましたが、このブラウザに音声が届きませんでした。出力デバイスを確認して、もう一度お試しください。",
     "Could not end the session cleanly": "音声セッションを正常に終了できませんでした",
     "Talk through a chord progression, or get the theory behind the one on your timeline.": "コード進行を一緒に考えたり、タイムライン上の進行について理論を聞いたりできます。",
     "Ask for a progression, or have me explain the theory — keep it simple or go deep.": "進行を頼んだり、理論の説明を聞いたりできます。シンプルにも詳しくも対応します。",
@@ -971,8 +984,8 @@ function translateDynamicJapanese(value: string): string | undefined {
   if (match) return `ピアノ・ボイシング：${match[1] === "no notes" ? "音なし" : match[1]}`;
   match = value.match(/^(Current|Use) (.+) voicing for (.+)$/);
   if (match) return `${match[3]}で${match[2]}ボイシングを${match[1] === "Current" ? "選択中" : "使用"}`;
-  match = value.match(/^Hanz is focusing on (.+)$/);
-  if (match) return `Hanzが${match[1]}に注目しています`;
+  match = value.match(/^Harmony is focusing on (.+)$/);
+  if (match) return `Harmonyが${match[1]}に注目しています`;
   match = value.match(/^Clear (.+) chord overlay$/);
   if (match) return `${match[1]}のコード・オーバーレイを解除`;
   match = value.match(/^Overlay: (.+)$/);
@@ -1034,13 +1047,11 @@ const ENGLISH_TOOL_NAME_REPLACEMENTS = [
 ] as const;
 
 function capitalizeEnglishToolNames(value: string): string {
-  const hanzHasherToken = "__HH_HANZ_PROPER_NAME__";
-  const protectedValue = value.split("Hanz Hasher").join(hanzHasherToken);
   const normalized = ENGLISH_TOOL_NAME_REPLACEMENTS.reduce(
     (normalized, [name, capitalized]) => normalized.split(name).join(capitalized),
-    protectedValue,
+    value,
   );
-  return normalized.split(hanzHasherToken).join("Hanz Hasher");
+  return normalized;
 }
 
 export function translate(locale: Locale, key: string): string {

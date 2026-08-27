@@ -46,6 +46,7 @@ export async function checkHealth(signal?: AbortSignal): Promise<HealthResponse>
 export async function generateProgression(
   prompt: string,
   signal?: AbortSignal,
+  existingChords?: readonly string[],
 ): Promise<ProgressionResponse> {
   const endpoint = import.meta.env.DEV ? DEV_ENDPOINT : PROD_ENDPOINT;
   const timeoutSignal = AbortSignal.timeout(PROGRESSION_REQUEST_TIMEOUT_MS);
@@ -58,7 +59,9 @@ export async function generateProgression(
     res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify(
+        existingChords ? { prompt, existingChords } : { prompt },
+      ),
       signal: requestSignal,
     });
   } catch (error) {

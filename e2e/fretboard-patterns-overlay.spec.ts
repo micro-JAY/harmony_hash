@@ -167,7 +167,7 @@ test.describe("Fretboard patterns and chord overlays", () => {
 
     await expect(page.getByTestId("fretboard-scroller")).toHaveAttribute("data-pattern", "caged");
     await expect(page.getByTestId("fretboard-scroller")).toHaveAttribute("data-overlay", "Cmaj7");
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toHaveCount(0);
     expect(issues).toEqual([]);
   });
 

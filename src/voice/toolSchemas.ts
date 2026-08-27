@@ -2,12 +2,13 @@
  * Canonical client-tool schemas for the Harmony Hash voice agent.
  *
  * Single source of truth for tool names and parameter shapes. Imported by:
- *   - scripts/provision-voice-agent.ts        — registers the tools on the ElevenLabs agent
- *   - src/voice/useProgressionAgentTools.ts    — registers the browser-side handlers
+ *   - src/voice/realtimeSessionConfig.ts — sends strict definitions at mint time
+ *   - src/voice/progressionAgentTools.ts — validates and executes browser calls
  *
- * Change a tool contract here and re-run provision-voice-agent.ts so the
- * platform definition and the browser handlers never drift apart. This file has
- * no browser or React imports, so the Node provisioning script can import it too.
+ * Change a tool contract here only alongside the Realtime configuration,
+ * dispatcher tests, and Hanz source prompt so the provider and browser never
+ * drift apart. This file has no browser or React imports and is safe to share
+ * with the Worker.
  *
  * Scope note: this is the SHIPPED 9-tool surface. The package shipped 12; the
  * three dropped tools (`get_chord_suggestions`, `set_key`, `set_suggestion_mode`)

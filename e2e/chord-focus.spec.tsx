@@ -16,7 +16,7 @@ async function setHanzFocus(page: Page, index: number | null): Promise<void> {
 }
 
 test.describe("Chord card focus states", () => {
-  test("keeps Hanz focus visible and contained from desktop through mobile", async ({ page }) => {
+  test("keeps Harmony focus visible and contained from desktop through mobile", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7"]);
     await setHanzFocus(page, 1);
@@ -29,7 +29,7 @@ test.describe("Chord card focus states", () => {
       await page.setViewportSize(viewport);
       const card = page.locator('[data-agent-highlighted="true"]');
       await expect(card).toBeVisible();
-      await expect(page.getByRole("status", { name: "Hanz is focusing on Am7" })).toBeVisible();
+      await expect(page.getByRole("status", { name: "Harmony is focusing on Am7" })).toBeVisible();
 
       const bounds = await card.evaluate((element) => {
         const rect = element.getBoundingClientRect();
@@ -49,11 +49,11 @@ test.describe("Chord card focus states", () => {
     const card = page.locator('[data-playing="true"]');
     await expect(card).toBeVisible();
     await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(0);
-    await expect(page.getByText("Hanz focus", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Harmony focus", { exact: true })).toHaveCount(0);
     await expect(card).toHaveCSS("border-color", "rgba(212, 168, 67, 0.5)");
   });
 
-  test("shows both cues when Hanz focus overlaps playback", async ({ page }) => {
+  test("shows both cues when Harmony focus overlaps playback", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Dm7", "G7", "Cmaj7"]);
     await page.getByRole("button", { name: "Piano" }).click();
@@ -68,7 +68,7 @@ test.describe("Chord card focus states", () => {
 
     const card = page.locator('[data-playing="true"][data-agent-highlighted="true"]');
     await expect(card).toBeVisible();
-    await expect(page.getByText("Hanz focus", { exact: true })).toBeVisible();
+    await expect(page.getByText("Harmony focus", { exact: true })).toBeVisible();
     await expect(card).toHaveCSS("border-color", "rgba(212, 168, 67, 0.5)");
 
     const style = await card.getAttribute("style");
@@ -76,18 +76,18 @@ test.describe("Chord card focus states", () => {
     expect(style).toContain("inset 3px 0 0 var(--status-academy-text)");
   });
 
-  test("clears Hanz focus when the popup closes or the user leaves the HASHER", async ({ page }) => {
+  test("clears Harmony focus when the popup closes or the user leaves the HASHER", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7"]);
     await page
       .getByRole("textbox", { name: "Describe the progression you want" })
       .fill("help me understand the first chord");
     await page.getByRole("button", { name: HELP_LABEL }).click();
-    await expect(page.getByRole("dialog", { name: "Hanz Hasher" })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Harmony" })).toBeVisible();
 
     await setHanzFocus(page, 0);
     await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(1);
-    await page.getByRole("button", { name: "Close Hanz Hasher" }).click();
+    await page.getByRole("button", { name: "Close Harmony" }).click();
     await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(0);
 
     await setHanzFocus(page, 1);

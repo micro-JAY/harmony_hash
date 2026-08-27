@@ -87,7 +87,7 @@ test.describe("HASHER learning suite", () => {
     await expect(share.locator("svg.lucide-link-2")).toBeVisible();
     const insight = actions.getByRole("button", { name: "IMPROV INSIGHT", exact: true });
     await expect(insight).toHaveText("IMPROV INSIGHT");
-    await expect(actions.getByRole("button", { name: /Hanz/ })).toHaveCount(0);
+    await expect(actions.getByRole("button", { name: /Harmony/ })).toHaveCount(0);
     await expect(play).toBeEnabled();
     await play.click();
     const stop = actions.getByRole("button", { name: "Stop playback" });
@@ -103,7 +103,7 @@ test.describe("HASHER learning suite", () => {
     await expect(share).toHaveText("SHARE");
     await expect(share.locator("svg.lucide-link-2")).toBeVisible();
     await expect(insight).toHaveText("IMPROV INSIGHT");
-    await expect(actions.getByRole("button", { name: /Hanz/ })).toHaveCount(0);
+    await expect(actions.getByRole("button", { name: /Harmony/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Guitar", exact: true }).click();
 
     const composerItems = page.getByTestId("chord-composer").locator("[data-composer-chip-index]");
@@ -478,7 +478,7 @@ test.describe("HASHER learning suite", () => {
   test("localizes the new destinations and Toolbox chrome in Japanese", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "JP", exact: true }).click();
+    await page.getByRole("button", { name: "Switch language to Japanese" }).click();
     const nav = page.getByRole("navigation", { name: "ワークスペース" });
     await expect(nav.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
     await expect(nav.getByRole("button", { name: "チューン・ツールボックス", exact: true })).toBeVisible();

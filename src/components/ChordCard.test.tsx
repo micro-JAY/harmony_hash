@@ -9,11 +9,13 @@ function renderChordCard({
   isAgentHighlighted = false,
   chordName = "Cmaj7",
   instrument = "guitar",
+  showLock = true,
 }: {
   isPlaying?: boolean;
   isAgentHighlighted?: boolean;
   chordName?: string;
   instrument?: "guitar" | "piano";
+  showLock?: boolean;
 } = {}): string {
   const chord = lookupChord(chordName);
   if (!chord) throw new Error(`${chordName} fixture is missing from the chord dictionary`);
@@ -28,6 +30,7 @@ function renderChordCard({
         onVariantChange={() => undefined}
         isLocked={false}
         onToggleLock={() => undefined}
+        showLock={showLock}
         voicing={{ notes: [], voicingType: "root" }}
         pianoStyle="auto"
         onPianoStyleChange={() => undefined}
@@ -95,5 +98,13 @@ describe("ChordCard visual controls", () => {
 
     expect(pianoMarkup).toContain('data-testid="piano-keyboard"');
     expect(pianoMarkup).toContain('data-color-mode="interval"');
+  });
+
+  it("can omit timeline locking for visual-only floating cards", () => {
+    const markup = renderChordCard({ showLock: false });
+
+    expect(markup).not.toContain('aria-label="Lock chord card"');
+    expect(markup).not.toContain('aria-label="Unlock chord card"');
+    expect(markup).toContain('data-testid="chord-card"');
   });
 });

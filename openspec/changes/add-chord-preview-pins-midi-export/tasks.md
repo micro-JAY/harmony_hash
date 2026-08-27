@@ -4,7 +4,7 @@
 
 ## 2. Floating Visual Pins
 
-- [ ] 2.1 Add the root-mounted floating preview/pin layer, reuse full Guitar/Piano cards without locks or audio callbacks, and cover promotion, isolated controls, drag handles, dismissal, and workspace/timeline persistence.
+- [x] 2.1 Add the root-mounted floating preview/pin layer, reuse full Guitar/Piano cards without locks or audio callbacks, and cover promotion, isolated controls, drag handles, dismissal, and workspace/timeline persistence.
 
 ## 3. MIDI Export
 

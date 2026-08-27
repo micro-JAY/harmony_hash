@@ -30,6 +30,8 @@ import type {
 import ProgressionInput from "./components/ProgressionInput";
 import ShareProgression from "./components/ShareProgression";
 import ChordCard from "./components/ChordCard";
+import FloatingChordCards from "./components/FloatingChordCards";
+import type { ChordPreviewRequest } from "./components/ChordReferenceGrid";
 import { useT } from "./i18n/I18nContext";
 import {
   computeVoiceLedProgression,
@@ -200,6 +202,34 @@ function App() {
   // the playback cursor (isPlaying derives from it), so the agent highlighting a
   // chord must not look like playback or block the Play button / play tool.
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
+  const [chordPreview, setChordPreview] = useState<ChordPreviewRequest | null>(null);
+  const chordPreviewDismissTimerRef = useRef<number | null>(null);
+
+  const cancelChordPreviewDismiss = useCallback(() => {
+    if (chordPreviewDismissTimerRef.current === null) return;
+    window.clearTimeout(chordPreviewDismissTimerRef.current);
+    chordPreviewDismissTimerRef.current = null;
+  }, []);
+
+  const dismissChordPreviewNow = useCallback(() => {
+    cancelChordPreviewDismiss();
+    setChordPreview(null);
+  }, [cancelChordPreviewDismiss]);
+
+  const scheduleChordPreviewDismiss = useCallback(() => {
+    cancelChordPreviewDismiss();
+    chordPreviewDismissTimerRef.current = window.setTimeout(() => {
+      chordPreviewDismissTimerRef.current = null;
+      setChordPreview(null);
+    }, 180);
+  }, [cancelChordPreviewDismiss]);
+
+  const handleChordPreview = useCallback((request: ChordPreviewRequest) => {
+    cancelChordPreviewDismiss();
+    setChordPreview(request);
+  }, [cancelChordPreviewDismiss]);
+
+  useEffect(() => () => cancelChordPreviewDismiss(), [cancelChordPreviewDismiss]);
 
   useEffect(() => {
     if (import.meta.env.VITE_HH_E2E !== "true") return;
@@ -278,7 +308,8 @@ function App() {
 
   useEffect(() => {
     if (workspace !== "builder") handleCloseHanz();
-  }, [handleCloseHanz, workspace]);
+    if (workspace !== "builder") dismissChordPreviewNow();
+  }, [dismissChordPreviewNow, handleCloseHanz, workspace]);
 
   const ensureVoiceRuntime = useCallback(() => {
     setVoiceRuntimeFailed(false);
@@ -888,6 +919,8 @@ function App() {
                 </div>
               )}
               contextLaunch={hasherContextLaunch}
+              onChordPreview={handleChordPreview}
+              onChordPreviewDismiss={scheduleChordPreviewDismiss}
             />
           </div>
 
@@ -1112,6 +1145,14 @@ function App() {
           </div>
           )}
       </main>
+      <FloatingChordCards
+        instrument={instrument}
+        harmonyContext={hasherContext}
+        preview={chordPreview}
+        onPreviewEnter={cancelChordPreviewDismiss}
+        onPreviewLeave={scheduleChordPreviewDismiss}
+        onPreviewDismiss={dismissChordPreviewNow}
+      />
       {voiceRuntimeRequested ? (
         VoiceAgentRuntime ? (
           <VoiceAgentRuntime

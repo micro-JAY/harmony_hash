@@ -805,6 +805,92 @@ svg [data-note-tooltip="true"]:focus-visible {
   container: harmony-chord-card / inline-size;
 }
 
+.hh-floating-chord-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hh-floating-chord-card {
+  position: absolute;
+  width: min(18rem, calc(100vw - (2 * var(--space-3))));
+  max-height: calc(100dvh - (2 * var(--space-3)));
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.hh-floating-chord-card[data-instrument="piano"] {
+  width: min(24rem, calc(100vw - (2 * var(--space-3))));
+}
+
+.hh-floating-chord-card--preview {
+  cursor: copy;
+}
+
+.hh-floating-chord-card__controls {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-default);
+  border-bottom: 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.hh-floating-chord-card__handle,
+.hh-floating-chord-card__dismiss {
+  display: inline-flex;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  color: var(--text-secondary);
+  background: var(--interactive-secondary-bg);
+  border: 1px solid var(--interactive-secondary-border);
+  border-radius: var(--radius-sm);
+}
+
+.hh-floating-chord-card__handle {
+  flex: 1;
+  cursor: grab;
+}
+
+.hh-floating-chord-card__handle:active {
+  cursor: grabbing;
+}
+
+.hh-floating-chord-card__dismiss {
+  margin-left: var(--space-2);
+}
+
+.hh-floating-chord-card__pin-target {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  padding: 0;
+  cursor: copy;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xl);
+}
+
+.hh-floating-chord-card__pin-target:focus-visible {
+  outline: 2px solid var(--interactive-focus-ring);
+  outline-offset: -3px;
+}
+
 .hh-guitar-card-toolbar {
   display: grid;
   width: 100%;

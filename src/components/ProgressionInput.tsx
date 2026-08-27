@@ -24,6 +24,7 @@ import {
 import { PROGRESSION_LIBRARY } from "../data/progressions";
 import { useT } from "../i18n/I18nContext";
 import ChordReferenceGrid from "./ChordReferenceGrid";
+import type { ChordPreviewRequest } from "./ChordReferenceGrid";
 import MinorBlendModal from "./MinorBlendModal";
 import PresetCategoryDialog from "./PresetCategoryDialog";
 import ProgressionAgent from "./ProgressionAgent";
@@ -46,6 +47,8 @@ interface ProgressionInputProps {
   onRequestVoice: () => void;
   onVoiceIntent: () => void;
   outputTools?: ReactNode;
+  onChordPreview?: (request: ChordPreviewRequest) => void;
+  onChordPreviewDismiss?: () => void;
   contextLaunch?: {
     readonly key: string;
     readonly scaleType?: ScaleType;
@@ -94,6 +97,8 @@ export default function ProgressionInput({
   onRequestVoice,
   onVoiceIntent,
   outputTools,
+  onChordPreview,
+  onChordPreviewDismiss,
   contextLaunch,
 }: ProgressionInputProps) {
   const t = useT();
@@ -504,6 +509,8 @@ export default function ProgressionInput({
             handleComposerRemove(composedItems.length - 1);
           }}
           leadingContent={outputTools}
+          onChordPreview={onChordPreview}
+          onChordPreviewDismiss={onChordPreviewDismiss}
           keyContext={{ key: activeKey, scaleType: activeScaleType }}
         />
       </div>

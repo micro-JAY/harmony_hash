@@ -944,6 +944,7 @@ function App() {
               )}
               chordBrowserOpen={chordBrowserOpen}
               onChordBrowserOpenChange={setChordBrowserOpen}
+              chordPreviewEnabled={workspace === "builder"}
               contextLaunch={hasherContextLaunch}
               onChordPreview={handleChordPreview}
               onChordPreviewDismiss={scheduleChordPreviewDismiss}

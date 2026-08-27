@@ -59,7 +59,8 @@ Pure tests will cover MIDI bytes, note validation, bar timing, and absence of a 
 
 - **[Risk] The preview vanishes while the pointer crosses the gap from cell to card.** → Use a short cancellable leave grace period and place the preview beside, not under, the pointer.
 - **[Risk] Drag gestures steal clicks from card controls.** → Start drag only from a dedicated handle with manual controls and disabled automatic drag listening.
-- **[Risk] A pin falls outside the visible viewport after resize, keyboard display, or pinch zoom.** → Re-clamp each live pin from its rendered bounds against visual-viewport width, height, and offsets on resize/scroll, with a layout-viewport fallback and retained drag constraints; responsive tests cover layout and offset visual bounds.
+- **[Risk] A pin falls outside the visible viewport after resize, keyboard display, pinch zoom, or a later drag.** → Re-clamp each live pin from its rendered bounds against visual-viewport width, height, and offsets on resize/scroll and drag end, with a layout-viewport fallback and retained drag constraints; responsive tests cover layout and offset visual bounds.
+- **[Risk] Hidden Hasher state emits a delayed preview or motion ignores user preference.** → Cancel pending grid intent whenever Hasher becomes inactive and suppress the preview's initial transform/transition under reduced motion.
 - **[Risk] Guitar MIDI export races diagram parsing after variation changes.** → Validate source-path identity as playback already does and disable export until every chord reports the current variation.
 - **[Risk] “No tempo set” is misread as zero tempo.** → Omit Set Tempo entirely; document and test the absence of `FF 51` while retaining 4/4 meter and PPQ timing.
 - **[Risk] Existing active OpenSpec work describes the prior preset-first order.** → This follow-up adds an explicit agent-first requirement and will be reconciled during the normal spec-sync/archive boundary.

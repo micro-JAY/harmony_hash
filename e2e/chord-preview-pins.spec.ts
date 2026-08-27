@@ -206,4 +206,55 @@ test("re-clamps a pin inside an offset visual viewport", async ({ page }) => {
       && box.x + box.width <= 1_089
       && box.y + box.height <= 689;
   }).toBe(true);
+
+  const handle = pin.getByRole("button", { name: "Move pinned chord card: Cmaj7" });
+  const handleBox = await handle.boundingBox();
+  if (!handleBox) throw new Error("Pinned chord drag handle has no bounds");
+  await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(80, 80, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(async () => {
+    const box = await pin.boundingBox();
+    return box !== null
+      && box.x >= 411
+      && box.y >= 91
+      && box.x + box.width <= 1_089
+      && box.y + box.height <= 689;
+  }).toBe(true);
+});
+
+test("cancels pending hover intent when keyboard navigation leaves Hasher", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Browse chords ↓", exact: true }).click();
+  const cell = page.getByTestId("chord-grid-panel").locator('[data-chord-name="Cmaj7"]');
+  await page.waitForTimeout(250);
+  await cell.hover();
+  await page.waitForTimeout(800);
+
+  await page.getByRole("button", { name: "Tune Toolbox" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("theory-workspace")).toBeVisible();
+  await page.waitForTimeout(800);
+  await expect(page.getByTestId("chord-hover-preview")).toHaveCount(0);
+});
+
+test("renders hover previews without entrance motion when reduced motion is requested", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Browse chords ↓", exact: true }).click();
+  const cell = page.getByTestId("chord-grid-panel").locator('[data-chord-name="Cmaj7"]');
+  await page.waitForTimeout(250);
+  await cell.hover();
+
+  const preview = page.getByTestId("chord-hover-preview");
+  await preview.waitFor({ state: "attached", timeout: 2_000 });
+  await expect(preview).toHaveAttribute("data-reduced-motion", "true");
+  const initialPresentation = await preview.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { opacity: style.opacity, transform: style.transform };
+  });
+  expect(initialPresentation).toEqual({ opacity: "1", transform: "none" });
 });

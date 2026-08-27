@@ -192,6 +192,7 @@ interface ChordReferenceGridProps {
   leadingContent?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  previewEnabled?: boolean;
   onChordPreview?: (request: ChordPreviewRequest) => void;
   onChordPreviewDismiss?: () => void;
 }
@@ -207,6 +208,7 @@ export default function ChordReferenceGrid({
   leadingContent,
   open,
   onOpenChange,
+  previewEnabled = true,
   onChordPreview,
   onChordPreviewDismiss,
 }: ChordReferenceGridProps) {
@@ -224,6 +226,11 @@ export default function ChordReferenceGrid({
   const previousOpenRef = useRef(isOpen);
 
   useEffect(() => () => previewIntent.cancel(), [previewIntent]);
+  useEffect(() => {
+    if (previewEnabled) return;
+    previewIntent.cancel();
+    onChordPreviewDismiss?.();
+  }, [onChordPreviewDismiss, previewEnabled, previewIntent]);
   useEffect(() => {
     const wasOpen = previousOpenRef.current;
     previousOpenRef.current = isOpen;
@@ -752,14 +759,14 @@ export default function ChordReferenceGrid({
                             data-modal-interval={fitResult?.modal?.rootInterval}
                             data-modal-palette-interval={fitResult?.modal?.paletteInterval}
                             onPointerEnter={(event) => {
-                              if (event.pointerType !== "mouse") return;
+                              if (!previewEnabled || event.pointerType !== "mouse") return;
                               previewIntent.start(chordName, {
                                 x: event.clientX,
                                 y: event.clientY,
                               });
                             }}
                             onPointerMove={(event) => {
-                              if (event.pointerType !== "mouse") return;
+                              if (!previewEnabled || event.pointerType !== "mouse") return;
                               previewIntent.updatePoint({
                                 x: event.clientX,
                                 y: event.clientY,

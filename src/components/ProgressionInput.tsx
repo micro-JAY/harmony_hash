@@ -49,6 +49,7 @@ interface ProgressionInputProps {
   outputTools?: ReactNode;
   chordBrowserOpen: boolean;
   onChordBrowserOpenChange: (open: boolean) => void;
+  chordPreviewEnabled: boolean;
   onChordPreview?: (request: ChordPreviewRequest) => void;
   onChordPreviewDismiss?: () => void;
   contextLaunch?: {
@@ -101,6 +102,7 @@ export default function ProgressionInput({
   outputTools,
   chordBrowserOpen,
   onChordBrowserOpenChange,
+  chordPreviewEnabled,
   onChordPreview,
   onChordPreviewDismiss,
   contextLaunch,
@@ -491,6 +493,7 @@ export default function ProgressionInput({
             )}
             open={chordBrowserOpen}
             onOpenChange={onChordBrowserOpenChange}
+            previewEnabled={chordPreviewEnabled}
             onChordPreview={onChordPreview}
             onChordPreviewDismiss={onChordPreviewDismiss}
             keyContext={{ key: activeKey, scaleType: activeScaleType }}

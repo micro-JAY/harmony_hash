@@ -7,6 +7,7 @@ import { GripHorizontal, X } from "lucide-react";
 import {
   useMemo,
   useReducer,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -151,29 +152,31 @@ function PinnedChordCard({
   const dragControls = useDragControls();
   const shouldReduceMotion = useReducedMotion();
   const cardRef = useRef<HTMLElement>(null);
+  const clampFrameRef = useRef<number | null>(null);
   const [positionCorrection, setPositionCorrection] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    let animationFrame: number | null = null;
-    const clampToViewport = () => {
-      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
-      animationFrame = window.requestAnimationFrame(() => {
-        animationFrame = null;
-        const node = cardRef.current;
-        if (!node) return;
-        const offset = floatingChordCardClampOffset(
-          node.getBoundingClientRect(),
-          viewportBounds(),
-        );
-        if (offset.x === 0 && offset.y === 0) return;
-        // Shift the absolute base without replacing Motion's user-controlled drag transform.
-        setPositionCorrection((current) => ({
-          x: current.x + offset.x,
-          y: current.y + offset.y,
-        }));
-      });
-    };
+  const clampToViewport = useCallback(() => {
+    if (clampFrameRef.current !== null) {
+      window.cancelAnimationFrame(clampFrameRef.current);
+    }
+    clampFrameRef.current = window.requestAnimationFrame(() => {
+      clampFrameRef.current = null;
+      const node = cardRef.current;
+      if (!node) return;
+      const offset = floatingChordCardClampOffset(
+        node.getBoundingClientRect(),
+        viewportBounds(),
+      );
+      if (offset.x === 0 && offset.y === 0) return;
+      // Shift the absolute base without replacing Motion's user-controlled drag transform.
+      setPositionCorrection((current) => ({
+        x: current.x + offset.x,
+        y: current.y + offset.y,
+      }));
+    });
+  }, []);
 
+  useEffect(() => {
     clampToViewport();
     window.addEventListener("resize", clampToViewport);
     const visualViewport = window.visualViewport;
@@ -186,9 +189,11 @@ function PinnedChordCard({
       visualViewport?.removeEventListener("resize", clampToViewport);
       visualViewport?.removeEventListener("scroll", clampToViewport);
       resizeObserver.disconnect();
-      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
+      if (clampFrameRef.current !== null) {
+        window.cancelAnimationFrame(clampFrameRef.current);
+      }
     };
-  }, []);
+  }, [clampToViewport]);
 
   function startDrag(event: ReactPointerEvent<HTMLButtonElement>) {
     dragControls.start(event, { distanceThreshold: 3 });
@@ -203,6 +208,7 @@ function PinnedChordCard({
       dragConstraints={constraintsRef}
       dragMomentum={false}
       dragElastic={0}
+      onDragEnd={clampToViewport}
       whileDrag={shouldReduceMotion ? undefined : { scale: 1.01 }}
       data-testid="pinned-chord-card"
       data-chord-name={card.displayName}
@@ -270,6 +276,7 @@ export default function FloatingChordCards({
   onPreviewDismiss,
 }: FloatingChordCardsProps) {
   const t = useT();
+  const shouldReduceMotion = useReducedMotion();
   const constraintsRef = useRef<HTMLDivElement>(null);
   const nextPinIdRef = useRef(1);
   const [cards, dispatch] = useReducer(floatingChordCardsReducer, []);
@@ -316,9 +323,11 @@ export default function FloatingChordCards({
     >
       {previewCard && previewPosition ? (
         <motion.aside
-          initial={{ opacity: 0, scale: 0.98 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
+          transition={shouldReduceMotion ? { duration: 0 } : undefined}
           data-testid="chord-hover-preview"
+          data-reduced-motion={shouldReduceMotion ? "true" : "false"}
           data-chord-name={previewCard.displayName}
           data-instrument={previewCard.instrument}
           className="hh-floating-chord-card hh-floating-chord-card--preview"

@@ -13,7 +13,7 @@
 
 ## 4. Hasher Control Hierarchy
 
-- [ ] 4.1 Reorder the unified Hasher flow, colocate compact Key/Mode and instrument controls with Browse Chords, hide presets while the browser is open, and verify responsive/localized behavior.
+- [x] 4.1 Reorder the unified Hasher flow, colocate compact Key/Mode and instrument controls with Browse Chords, hide presets while the browser is open, and verify responsive/localized behavior.
 
 ## 5. Integrated Validation
 

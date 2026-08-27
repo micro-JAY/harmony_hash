@@ -412,8 +412,18 @@ body {
   display: flex;
   min-width: 0;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--space-2) var(--space-3);
+}
+
+.hh-chord-browser-context-rail {
+  display: grid;
+  min-width: min(100%, 20rem);
+  flex: 1 1 24rem;
+  grid-template-columns: minmax(12rem, 26rem) 6.5rem;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .hh-instrument-picker-slot {
@@ -421,7 +431,7 @@ body {
   width: 6.5rem;
   flex: 0 0 6.5rem;
   margin-left: auto;
-  align-self: flex-start;
+  align-self: flex-end;
 }
 
 .hh-instrument-picker-slot > [role="group"] {
@@ -762,6 +772,19 @@ svg [data-note-tooltip="true"]:focus-visible {
   border-radius: var(--radius-md);
 }
 
+.hh-harmony-context--inline {
+  width: 100%;
+  grid-template-columns: minmax(4.75rem, 0.7fr) minmax(8rem, 1.3fr);
+  gap: var(--space-2);
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.hh-harmony-context--inline .hh-control-label {
+  margin-bottom: var(--space-1);
+}
+
 .hh-context-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -938,6 +961,16 @@ svg [data-note-tooltip="true"]:focus-visible {
 @media (max-width: 31rem) {
   .hh-context-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hh-harmony-context--inline.hh-context-grid {
+    grid-template-columns: minmax(4.75rem, 0.7fr) minmax(8rem, 1.3fr);
+  }
+
+  .hh-chord-browser-context-rail {
+    min-width: 100%;
+    flex-basis: 100%;
+    grid-template-columns: minmax(0, 1fr) 6.5rem;
   }
 }
 

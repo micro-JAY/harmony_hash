@@ -25,6 +25,7 @@ import ChordCard from "./ChordCard";
 import type { ChordPreviewRequest } from "./chordPreviewIntent";
 import {
   createFloatingChordCard,
+  floatingChordCardAvailableHeight,
   floatingChordCardClampOffset,
   floatingChordCardPosition,
   floatingChordCardsReducer,
@@ -131,10 +132,17 @@ function useLiveViewportBounds(): FloatingViewport {
   return viewport;
 }
 
-function floatingViewportStyle(viewport: FloatingViewport): CSSProperties {
+function floatingViewportStyle(
+  viewport: FloatingViewport,
+  position: { readonly x: number; readonly y: number },
+): CSSProperties {
   return {
     "--floating-chord-card-visual-width": `${viewport.width}px`,
     "--floating-chord-card-visual-height": `${viewport.height}px`,
+    "--floating-chord-card-available-height": `${floatingChordCardAvailableHeight(
+      position,
+      viewport,
+    )}px`,
   } as CSSProperties;
 }
 
@@ -230,6 +238,11 @@ function PinnedChordCard({
     dragControls.start(event, { distanceThreshold: 3 });
   }
 
+  const correctedPosition = {
+    x: card.initialPosition.x + positionCorrection.x,
+    y: card.initialPosition.y + positionCorrection.y,
+  };
+
   return (
     <motion.article
       ref={cardRef}
@@ -247,9 +260,9 @@ function PinnedChordCard({
       className="hh-floating-chord-card"
       style={{
         ...FLOATING_CARD_SURFACE_STYLE,
-        ...floatingViewportStyle(viewport),
-        left: card.initialPosition.x + positionCorrection.x,
-        top: card.initialPosition.y + positionCorrection.y,
+        ...floatingViewportStyle(viewport, correctedPosition),
+        left: correctedPosition.x,
+        top: correctedPosition.y,
         zIndex: 60 + card.id,
       }}
     >
@@ -369,7 +382,7 @@ export default function FloatingChordCards({
           onPointerLeave={onPreviewLeave}
           style={{
             ...FLOATING_CARD_SURFACE_STYLE,
-            ...floatingViewportStyle(viewport),
+            ...floatingViewportStyle(viewport, previewPosition),
             left: previewPosition.x,
             top: previewPosition.y,
             zIndex: 1_000,

@@ -112,28 +112,31 @@ export function floatingChordCardPosition(
     ? point.y + POINTER_CARD_GAP
     : point.y - estimated.height - POINTER_CARD_GAP;
 
+  const availableWidth = Math.max(1, viewport.width - (2 * VIEWPORT_EDGE_GAP));
+  const availableHeight = Math.max(1, viewport.height - (2 * VIEWPORT_EDGE_GAP));
+  const renderedWidth = Math.min(estimated.width, availableWidth);
+  const renderedHeight = Math.min(estimated.height, availableHeight);
+  const maxX = rightEdge - renderedWidth;
+  const maxY = bottomEdge - renderedHeight;
   const preferredPosition = {
     x: clamp(
       preferredX,
       leftEdge,
-      viewport.offsetLeft + viewport.width
-        - Math.min(estimated.width, viewport.width) - VIEWPORT_EDGE_GAP,
+      maxX,
     ),
     y: clamp(
       preferredY,
       topEdge,
-      viewport.offsetTop + viewport.height
-        - Math.min(estimated.height, viewport.height) - VIEWPORT_EDGE_GAP,
+      maxY,
     ),
   };
   if (occupiedPositions.length === 0) return preferredPosition;
 
   const minX = leftEdge;
-  const maxX = viewport.offsetLeft + viewport.width
-    - Math.min(estimated.width, viewport.width) - VIEWPORT_EDGE_GAP;
   const minY = topEdge;
-  const maxY = viewport.offsetTop + viewport.height
-    - Math.min(estimated.height, viewport.height) - VIEWPORT_EDGE_GAP;
+  // A compact viewport may have no full-card travel. Cascaded pins may move down
+  // to expose each toolbar; their rendered max-height contracts to the bottom edge.
+  const cascadeMaxY = Math.max(maxY, bottomEdge - PIN_CASCADE_STEP);
   const isDistinct = (candidate: ChordPreviewPoint) => occupiedPositions.every(
     (occupied) => Math.abs(candidate.x - occupied.x) >= PIN_CASCADE_STEP
       || Math.abs(candidate.y - occupied.y) >= PIN_CASCADE_STEP,
@@ -152,12 +155,25 @@ export function floatingChordCardPosition(
     for (const offset of offsets) {
       const candidate = {
         x: clamp(preferredPosition.x + offset.x, minX, maxX),
-        y: clamp(preferredPosition.y + offset.y, minY, maxY),
+        y: clamp(preferredPosition.y + offset.y, minY, cascadeMaxY),
       };
       if (isDistinct(candidate)) return candidate;
     }
   }
   return preferredPosition;
+}
+
+export function floatingChordCardAvailableHeight(
+  position: ChordPreviewPoint,
+  viewport: FloatingViewport,
+): number {
+  validateViewport(viewport);
+  if (![position.x, position.y].every(Number.isFinite)) {
+    throw new RangeError("Floating chord cards require finite positions");
+  }
+  const topEdge = viewport.offsetTop + VIEWPORT_EDGE_GAP;
+  const bottomEdge = viewport.offsetTop + viewport.height - VIEWPORT_EDGE_GAP;
+  return Math.max(1, bottomEdge - clamp(position.y, topEdge, bottomEdge - 1));
 }
 
 export function createFloatingChordCard(

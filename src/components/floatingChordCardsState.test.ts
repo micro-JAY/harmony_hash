@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lookupChord } from "../lib/chordData";
 import {
   createFloatingChordCard,
+  floatingChordCardAvailableHeight,
   floatingChordCardClampOffset,
   floatingChordCardPosition,
   floatingChordCardsReducer,
@@ -109,6 +110,23 @@ describe("floating chord card state", () => {
     );
     expect(Math.abs(edgeSecond.x - edgeFirst.x) >= 40
       || Math.abs(edgeSecond.y - edgeFirst.y) >= 40).toBe(true);
+
+    const compactViewport = {
+      width: 360,
+      height: 480,
+      offsetLeft: 0,
+      offsetTop: 0,
+    };
+    const compactFirst = floatingChordCardPosition(point, "piano", compactViewport);
+    const compactSecond = floatingChordCardPosition(
+      point,
+      "piano",
+      compactViewport,
+      [compactFirst],
+    );
+    expect(compactFirst).toEqual({ x: 12, y: 12 });
+    expect(compactSecond).toEqual({ x: 12, y: 52 });
+    expect(floatingChordCardAvailableHeight(compactSecond, compactViewport)).toBe(416);
   });
 
   it("updates and dismisses one pin without mutating its siblings", () => {

@@ -247,8 +247,9 @@ export default function ShareProgression({
           role="dialog"
           aria-modal="false"
           aria-labelledby={TITLE_ID}
-          className="hh-panel absolute right-0 top-full z-40 mt-2 flex flex-col gap-4 text-left"
+          className="hh-panel absolute right-0 top-full mt-2 flex flex-col gap-4 text-left"
           style={{
+            zIndex: "var(--z-dropdown)",
             width: "min(30rem, calc(100vw - (2 * var(--space-4))))",
             maxHeight: "calc(100dvh - 8rem)",
             overflowY: "auto",

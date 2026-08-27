@@ -236,7 +236,9 @@ test("re-clamps a pin inside an offset visual viewport", async ({ page }) => {
     setVisualViewport({ width: 260, height: 500, offsetLeft: 500, offsetTop: 100 });
   });
   await expect(pin).toHaveCSS("width", "236px");
-  await expect(pin).toHaveCSS("max-height", "476px");
+  await expect.poll(() => pin.evaluate((element) => (
+    Number.parseFloat(getComputedStyle(element).maxHeight)
+  ))).toBeLessThanOrEqual(476);
   await expect.poll(async () => {
     const box = await pin.boundingBox();
     return box !== null
@@ -249,8 +251,11 @@ test("re-clamps a pin inside an offset visual viewport", async ({ page }) => {
   }).toBe(true);
 });
 
-test("offsets repeated pins so every drag handle stays reachable", async ({ page }) => {
+test("keeps compact repeated pins reachable below the Share panel", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 480 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await composeProgression(page, ["Cmaj7"]);
+  await page.getByRole("button", { name: "Piano", exact: true }).click();
   await page.getByRole("button", { name: "Browse chords ↓", exact: true }).click();
   const cell = page.getByTestId("chord-grid-panel").locator('[data-chord-name="Cmaj7"]');
   const preview = page.getByTestId("chord-hover-preview");
@@ -260,7 +265,13 @@ test("offsets repeated pins so every drag handle stays reachable", async ({ page
   await expect(preview).toBeVisible({ timeout: 2_000 });
   await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
   await page.mouse.move(0, 0);
-  await cell.hover();
+  // The first compact card intentionally fills the viewport. Dispatching the
+  // same grid intent isolates the repeated-pin layout without bypassing pinning.
+  await cell.dispatchEvent("pointerover", {
+    pointerType: "mouse",
+    clientX: 180,
+    clientY: 240,
+  });
   await expect(preview).toBeVisible({ timeout: 2_000 });
   await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
 
@@ -276,11 +287,47 @@ test("offsets repeated pins so every drag handle stays reachable", async ({ page
   }
   expect({ x: secondCard.x, y: secondCard.y })
     .not.toEqual({ x: firstCard.x, y: firstCard.y });
+  expect(secondCard.y - firstCard.y).toBeGreaterThanOrEqual(39);
+  await expect(pins.nth(1)).toHaveCSS("max-height", "416px");
   const firstHandleCovered = firstHandle.x >= secondCard.x
     && firstHandle.y >= secondCard.y
     && firstHandle.x + firstHandle.width <= secondCard.x + secondCard.width
     && firstHandle.y + firstHandle.height <= secondCard.y + secondCard.height;
   expect(firstHandleCovered).toBe(false);
+
+  const shareTrigger = page.getByRole("button", { name: "SHARE", exact: true });
+  await shareTrigger.focus();
+  await page.keyboard.press("Enter");
+  const sharePanel = page.getByRole("dialog", { name: "Share this progression" });
+  await expect(sharePanel).toBeVisible();
+  const stacking = await page.evaluate(() => {
+    const layer = document.querySelector<HTMLElement>(".hh-floating-chord-layer");
+    const panel = document.querySelector<HTMLElement>("#share-progression-panel");
+    const pin = document.querySelector<HTMLElement>('[data-testid="pinned-chord-card"]');
+    if (!layer || !panel || !pin) throw new Error("Floating-card stacking fixtures are missing");
+    const panelRect = panel.getBoundingClientRect();
+    const pinRect = pin.getBoundingClientRect();
+    const overlapLeft = Math.max(panelRect.left, pinRect.left);
+    const overlapRight = Math.min(panelRect.right, pinRect.right);
+    const overlapTop = Math.max(panelRect.top, pinRect.top);
+    const overlapBottom = Math.min(panelRect.bottom, pinRect.bottom);
+    if (overlapLeft >= overlapRight || overlapTop >= overlapBottom) {
+      throw new Error("Compact Share panel did not overlap the floating pin");
+    }
+    const elements = document.elementsFromPoint(
+      (overlapLeft + overlapRight) / 2,
+      (overlapTop + overlapBottom) / 2,
+    );
+    return {
+      layerZIndex: Number.parseInt(getComputedStyle(layer).zIndex, 10),
+      panelZIndex: Number.parseInt(getComputedStyle(panel).zIndex, 10),
+      panelAbovePin: elements.indexOf(panel) < elements.indexOf(pin),
+    };
+  });
+  expect(stacking.panelZIndex).toBeGreaterThan(stacking.layerZIndex);
+  expect(stacking.panelAbovePin).toBe(true);
+  await sharePanel.getByRole("button", { name: "Close share progression" }).click();
+  await expect(sharePanel).toHaveCount(0);
 });
 
 test("cancels pending hover intent when keyboard navigation leaves Hasher", async ({ page }) => {

@@ -11,6 +11,23 @@ export class MidiExportError extends Error {
   }
 }
 
+export function progressionMidiFilename(chordNames: readonly string[]): string {
+  const progressionSlug = chordNames
+    .map((name) => name
+      .normalize("NFKC")
+      .replaceAll("#", "sharp")
+      .replaceAll("♯", "sharp")
+      .replaceAll("♭", "b")
+      .replaceAll("/", "-over-")
+      .replace(/[^A-Za-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, ""))
+    .filter(Boolean)
+    .join("-")
+    .slice(0, 72)
+    .replace(/-+$/g, "");
+  return `harmony-hash${progressionSlug ? `-${progressionSlug}` : "-progression"}.mid`;
+}
+
 function asciiBytes(value: string): number[] {
   return [...value].map((character) => character.charCodeAt(0));
 }

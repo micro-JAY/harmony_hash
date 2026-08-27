@@ -571,6 +571,12 @@ function App() {
   }), [getVariantForCard, guitarPlaybackVoicings, timeline]);
   const guitarPlaybackReady = guitarMidiVoicings.length > 0
     && guitarMidiVoicings.every((voicing) => voicing.length > 0);
+  const midiExportVoicings = useMemo(
+    () => instrument === "piano"
+      ? pianoVoicings.map((voicing) => voicing.notes.map((note) => note.midi))
+      : guitarMidiVoicings,
+    [guitarMidiVoicings, instrument, pianoVoicings],
+  );
 
   const isPlaying = playbackPhase === "playing";
   const isPlaybackStarting = playbackPhase === "starting";
@@ -1037,7 +1043,11 @@ function App() {
                       {t(isPlaying ? "STOP" : "PLAY")}
                     </button>
 
-                  <ShareProgression instrument={instrument} chords={chords} />
+                  <ShareProgression
+                    instrument={instrument}
+                    chords={chords}
+                    midiVoicings={midiExportVoicings}
+                  />
 
                   <button
                     id="hasher-improv-trigger"

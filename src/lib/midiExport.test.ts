@@ -5,6 +5,7 @@ import {
   MIDI_PULSES_PER_QUARTER,
   MIDI_TICKS_PER_BAR,
   MidiExportError,
+  progressionMidiFilename,
 } from "./midiExport";
 
 interface ParsedNoteEvent {
@@ -115,5 +116,14 @@ describe("createProgressionMidiFile", () => {
   ])("rejects malformed voicings: $message", ({ voicings, message }) => {
     expect(() => createProgressionMidiFile(voicings)).toThrow(MidiExportError);
     expect(() => createProgressionMidiFile(voicings)).toThrow(message);
+  });
+});
+
+describe("progressionMidiFilename", () => {
+  it("creates a bounded .mid name while preserving musical accidentals and slash intent", () => {
+    expect(progressionMidiFilename(["C#maj7", "Bb7", "D/F#"]))
+      .toBe("harmony-hash-Csharpmaj7-Bb7-D-over-Fsharp.mid");
+    expect(progressionMidiFilename([])).toBe("harmony-hash-progression.mid");
+    expect(progressionMidiFilename(["C".repeat(100)]).length).toBeLessThanOrEqual(89);
   });
 });

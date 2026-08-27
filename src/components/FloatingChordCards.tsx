@@ -31,11 +31,13 @@ import {
   floatingChordCardPosition,
   floatingChordCardsReducer,
   type FloatingChordCard,
-  type FloatingCardPlacementSize,
+  type FloatingCardPlacementMetrics,
   type FloatingViewport,
 } from "./floatingChordCardsState";
 
-type FloatingCardPlacementSizes = Readonly<Record<Instrument, FloatingCardPlacementSize>>;
+type FloatingCardPlacementMetricsByInstrument = Readonly<
+  Record<Instrument, FloatingCardPlacementMetrics>
+>;
 
 const FLOATING_CARD_PLACEMENT_TOKENS = {
   guitar: {
@@ -47,6 +49,12 @@ const FLOATING_CARD_PLACEMENT_TOKENS = {
     height: "--floating-chord-card-piano-placement-height",
   },
 } as const satisfies Readonly<Record<Instrument, { width: string; height: string }>>;
+
+const FLOATING_CARD_SHARED_PLACEMENT_TOKENS = {
+  edgeGap: "--space-3",
+  pointerGap: "--space-4",
+  toolbarHeight: "--floating-chord-card-toolbar-height",
+} as const;
 
 const FLOATING_CARD_SURFACE_STYLE = {
   borderRadius: "var(--radius-xl)",
@@ -165,14 +173,31 @@ function tokenLengthInPixels(
   return pixels;
 }
 
-function readFloatingCardPlacementSizes(): FloatingCardPlacementSizes | null {
+function readFloatingCardPlacementMetrics(): FloatingCardPlacementMetricsByInstrument | null {
   if (typeof document === "undefined") return null;
   const styles = window.getComputedStyle(document.documentElement);
   const rootFontSize = Number.parseFloat(styles.fontSize);
   if (!Number.isFinite(rootFontSize) || rootFontSize <= 0) {
     throw new Error("Floating chord placement requires a positive root font size");
   }
-  const readSize = (instrument: Instrument): FloatingCardPlacementSize => ({
+  const sharedMetrics = {
+    edgeGap: tokenLengthInPixels(
+      styles,
+      FLOATING_CARD_SHARED_PLACEMENT_TOKENS.edgeGap,
+      rootFontSize,
+    ),
+    pointerGap: tokenLengthInPixels(
+      styles,
+      FLOATING_CARD_SHARED_PLACEMENT_TOKENS.pointerGap,
+      rootFontSize,
+    ),
+    toolbarHeight: tokenLengthInPixels(
+      styles,
+      FLOATING_CARD_SHARED_PLACEMENT_TOKENS.toolbarHeight,
+      rootFontSize,
+    ),
+  };
+  const readMetrics = (instrument: Instrument): FloatingCardPlacementMetrics => ({
     width: tokenLengthInPixels(
       styles,
       FLOATING_CARD_PLACEMENT_TOKENS[instrument].width,
@@ -183,58 +208,67 @@ function readFloatingCardPlacementSizes(): FloatingCardPlacementSizes | null {
       FLOATING_CARD_PLACEMENT_TOKENS[instrument].height,
       rootFontSize,
     ),
+    ...sharedMetrics,
   });
-  return { guitar: readSize("guitar"), piano: readSize("piano") };
+  return { guitar: readMetrics("guitar"), piano: readMetrics("piano") };
 }
 
-function samePlacementSizes(
-  first: FloatingCardPlacementSizes | null,
-  second: FloatingCardPlacementSizes,
+function samePlacementMetrics(
+  first: FloatingCardPlacementMetricsByInstrument | null,
+  second: FloatingCardPlacementMetricsByInstrument,
 ): boolean {
   return first !== null
     && first.guitar.width === second.guitar.width
     && first.guitar.height === second.guitar.height
+    && first.guitar.edgeGap === second.guitar.edgeGap
+    && first.guitar.pointerGap === second.guitar.pointerGap
+    && first.guitar.toolbarHeight === second.guitar.toolbarHeight
     && first.piano.width === second.piano.width
-    && first.piano.height === second.piano.height;
+    && first.piano.height === second.piano.height
+    && first.piano.edgeGap === second.piano.edgeGap
+    && first.piano.pointerGap === second.piano.pointerGap
+    && first.piano.toolbarHeight === second.piano.toolbarHeight;
 }
 
-function useFloatingCardPlacementSizes(): FloatingCardPlacementSizes | null {
-  const [sizes, setSizes] = useState<FloatingCardPlacementSizes | null>(
-    readFloatingCardPlacementSizes,
+function useFloatingCardPlacementMetrics(): FloatingCardPlacementMetricsByInstrument | null {
+  const [metrics, setMetrics] = useState<FloatingCardPlacementMetricsByInstrument | null>(
+    readFloatingCardPlacementMetrics,
   );
   useLayoutEffect(() => {
-    const updateSizes = () => {
-      const next = readFloatingCardPlacementSizes();
+    const updateMetrics = () => {
+      const next = readFloatingCardPlacementMetrics();
       if (!next) return;
-      setSizes((current) => samePlacementSizes(current, next) ? current : next);
+      setMetrics((current) => samePlacementMetrics(current, next) ? current : next);
     };
-    const resizeObserver = new ResizeObserver(updateSizes);
-    const mutationObserver = new MutationObserver(updateSizes);
+    const resizeObserver = new ResizeObserver(updateMetrics);
+    const mutationObserver = new MutationObserver(updateMetrics);
     resizeObserver.observe(document.documentElement);
     mutationObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class", "style"],
     });
-    window.addEventListener("resize", updateSizes);
-    updateSizes();
+    window.addEventListener("resize", updateMetrics);
+    updateMetrics();
     return () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
-      window.removeEventListener("resize", updateSizes);
+      window.removeEventListener("resize", updateMetrics);
     };
   }, []);
-  return sizes;
+  return metrics;
 }
 
 function floatingViewportStyle(
   viewport: FloatingViewport,
   position: { readonly x: number; readonly y: number },
+  placementMetrics: FloatingCardPlacementMetrics,
 ): CSSProperties {
   return {
     "--floating-chord-card-visual-width": `${viewport.width}px`,
     "--floating-chord-card-visual-height": `${viewport.height}px`,
     "--floating-chord-card-available-height": `${floatingChordCardAvailableHeight(
       position,
+      placementMetrics,
       viewport,
     )}px`,
   } as CSSProperties;
@@ -275,6 +309,7 @@ function FloatingCardBody({
 
 interface PinnedChordCardProps {
   readonly card: FloatingChordCard;
+  readonly placementMetrics: FloatingCardPlacementMetrics;
   readonly viewport: FloatingViewport;
   readonly harmonyContext: HarmonyContext;
   readonly constraintsRef: RefObject<HTMLDivElement | null>;
@@ -284,6 +319,7 @@ interface PinnedChordCardProps {
 
 function PinnedChordCard({
   card,
+  placementMetrics,
   viewport,
   harmonyContext,
   constraintsRef,
@@ -306,7 +342,7 @@ function PinnedChordCard({
       const node = cardRef.current;
       if (!node) return;
       const rect = node.getBoundingClientRect();
-      const offset = floatingChordCardClampOffset(rect, viewport);
+      const offset = floatingChordCardClampOffset(rect, placementMetrics, viewport);
       const livePosition = {
         x: rect.left + offset.x,
         y: rect.top + offset.y,
@@ -319,7 +355,7 @@ function PinnedChordCard({
         y: current.y + offset.y,
       }));
     });
-  }, [card.id, onPositionChange, viewport]);
+  }, [card.id, onPositionChange, placementMetrics, viewport]);
 
   useEffect(() => {
     clampToViewport();
@@ -359,7 +395,7 @@ function PinnedChordCard({
       className="hh-floating-chord-card"
       style={{
         ...FLOATING_CARD_SURFACE_STYLE,
-        ...floatingViewportStyle(viewport, correctedPosition),
+        ...floatingViewportStyle(viewport, correctedPosition, placementMetrics),
         left: correctedPosition.x,
         top: correctedPosition.y,
         zIndex: 60 + card.id,
@@ -422,8 +458,8 @@ export default function FloatingChordCards({
   const t = useT();
   const shouldReduceMotion = useReducedMotion();
   const viewport = useLiveViewportBounds();
-  const placementSizes = useFloatingCardPlacementSizes();
-  const placementSize = placementSizes?.[instrument];
+  const placementMetricsByInstrument = useFloatingCardPlacementMetrics();
+  const placementMetrics = placementMetricsByInstrument?.[instrument];
   const constraintsRef = useRef<HTMLDivElement>(null);
   const nextPinIdRef = useRef(1);
   const livePositionsRef = useRef(new Map<number, ChordPreviewPoint>());
@@ -432,19 +468,19 @@ export default function FloatingChordCards({
   if (preview && !previewChord) {
     throw new Error(`Chord preview is unavailable: ${preview.chordName}`);
   }
-  const previewCard = preview && previewChord && placementSize
+  const previewCard = preview && previewChord && placementMetrics
     ? createFloatingChordCard(
         1,
         previewChord,
         preview.chordName,
         instrument,
         preview.point,
-        placementSize,
+        placementMetrics,
         viewport,
       )
     : null;
-  const previewPosition = preview && placementSize
-    ? floatingChordCardPosition(preview.point, placementSize, viewport)
+  const previewPosition = preview && placementMetrics
+    ? floatingChordCardPosition(preview.point, placementMetrics, viewport)
     : null;
 
   const handlePinAction = useCallback((
@@ -462,7 +498,7 @@ export default function FloatingChordCards({
   }, []);
 
   function pinPreview() {
-    if (!preview || !previewChord || !placementSize) return;
+    if (!preview || !previewChord || !placementMetrics) return;
     const id = nextPinIdRef.current++;
     dispatch({
       type: "add",
@@ -472,7 +508,7 @@ export default function FloatingChordCards({
         preview.chordName,
         instrument,
         preview.point,
-        placementSize,
+        placementMetrics,
         viewport,
         cards.map((card) => livePositionsRef.current.get(card.id) ?? card.initialPosition),
       ),
@@ -486,7 +522,7 @@ export default function FloatingChordCards({
       className="hh-floating-chord-layer"
       aria-label={t("Pinned chord cards")}
     >
-      {previewCard && previewPosition ? (
+      {previewCard && previewPosition && placementMetrics ? (
         <motion.aside
           initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -500,7 +536,7 @@ export default function FloatingChordCards({
           onPointerLeave={onPreviewLeave}
           style={{
             ...FLOATING_CARD_SURFACE_STYLE,
-            ...floatingViewportStyle(viewport, previewPosition),
+            ...floatingViewportStyle(viewport, previewPosition, placementMetrics),
             left: previewPosition.x,
             top: previewPosition.y,
             zIndex: 1_000,
@@ -525,17 +561,18 @@ export default function FloatingChordCards({
           />
         </motion.aside>
       ) : null}
-      {cards.map((card) => (
+      {placementMetricsByInstrument ? cards.map((card) => (
         <PinnedChordCard
           key={card.id}
           card={card}
+          placementMetrics={placementMetricsByInstrument[card.instrument]}
           viewport={viewport}
           harmonyContext={harmonyContext}
           constraintsRef={constraintsRef}
           onAction={handlePinAction}
           onPositionChange={handlePinPositionChange}
         />
-      ))}
+      )) : null}
     </div>
   );
 }

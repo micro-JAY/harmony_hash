@@ -143,7 +143,7 @@ test("pins a piano chord with its independent voicing controls", async ({ page }
   await expect(preview).toBeVisible({ timeout: 2_000 });
   await expect(preview).toHaveAttribute("data-instrument", "piano");
   await expect(preview).toHaveCSS("width", "480px");
-  await expect(preview).toHaveCSS("left", "604px");
+  await expect(preview).toHaveCSS("left", "600px");
   const previewBox = await preview.boundingBox();
   if (!previewBox) throw new Error("Scaled Piano preview bounds are unavailable");
   expect(previewBox.x + previewBox.width).toBeLessThanOrEqual(1_269);
@@ -161,6 +161,26 @@ test("pins a piano chord with its independent voicing controls", async ({ page }
   );
   await expect(pin.getByRole("button", { name: "Modify Cmaj7" })).toBeVisible();
   await expect(pin.getByRole("button", { name: "Lock chord card" })).toHaveCount(0);
+
+  await page.mouse.move(0, 0);
+  await cell.dispatchEvent("pointerover", {
+    pointerType: "mouse",
+    clientX: 1_100,
+    clientY: 150,
+  });
+  await expect(preview).toBeVisible({ timeout: 2_000 });
+  await preview.getByRole("button", { name: "Pin chord preview: Cmaj7" }).click();
+  const scaledPins = page.getByTestId("pinned-chord-card");
+  await expect(scaledPins).toHaveCount(2);
+  const [firstScaledPin, secondScaledPin] = await Promise.all([
+    scaledPins.nth(0).boundingBox(),
+    scaledPins.nth(1).boundingBox(),
+  ]);
+  if (!firstScaledPin || !secondScaledPin) {
+    throw new Error("Scaled repeated Piano pin bounds are unavailable");
+  }
+  expect(secondScaledPin.y - firstScaledPin.y).toBeGreaterThanOrEqual(39);
+  await expect(scaledPins.nth(1)).toHaveCSS("max-height", "650px");
 });
 
 test("re-clamps a pin inside an offset visual viewport", async ({ page }) => {
@@ -277,7 +297,7 @@ test("re-clamps a pin inside an offset visual viewport", async ({ page }) => {
     if (!setVisualViewport) throw new Error("Visual viewport fixture is unavailable");
     setVisualViewport({ width: 260, height: 80, offsetLeft: 500, offsetTop: 0 });
   });
-  await expect(pin).toHaveCSS("max-height", "40px");
+  await expect(pin).toHaveCSS("max-height", "32px");
   const compactHandle = pin.getByRole("button", { name: "Move pinned chord card: Cmaj7" });
   await expect.poll(async () => {
     const box = await compactHandle.boundingBox();
@@ -325,8 +345,8 @@ test("keeps compact repeated pins reachable below the Share panel", async ({ pag
   }
   expect({ x: secondCard.x, y: secondCard.y })
     .not.toEqual({ x: firstCard.x, y: firstCard.y });
-  expect(secondCard.y - firstCard.y).toBeGreaterThanOrEqual(39);
-  await expect(pins.nth(1)).toHaveCSS("max-height", "416px");
+  expect(secondCard.y - firstCard.y).toBeGreaterThanOrEqual(31);
+  await expect(pins.nth(1)).toHaveCSS("max-height", "424px");
   const firstHandleCovered = firstHandle.x >= secondCard.x
     && firstHandle.y >= secondCard.y
     && firstHandle.x + firstHandle.width <= secondCard.x + secondCard.width
@@ -421,8 +441,8 @@ test("cascades from a dragged pin's live position", async ({ page }) => {
     firstHandle.boundingBox(),
   ]);
   if (!liveFirst || !second || !liveHandle) throw new Error("Live cascade bounds are unavailable");
-  expect(Math.abs(second.x - liveFirst.x) >= 39
-    || Math.abs(second.y - liveFirst.y) >= 39).toBe(true);
+  expect(Math.abs(second.x - liveFirst.x) >= 31
+    || Math.abs(second.y - liveFirst.y) >= 31).toBe(true);
   const firstHandleCovered = liveHandle.x >= second.x
     && liveHandle.y >= second.y
     && liveHandle.x + liveHandle.width <= second.x + second.width

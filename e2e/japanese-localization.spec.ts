@@ -1,5 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
+import { translations } from "../src/i18n/translations";
+import { ONBOARDING_DESCRIPTION_KEYS } from "../src/onboardingCopy";
 import { composeProgression } from "./helpers/progression";
+
+const japaneseOnboardingDescriptions = ONBOARDING_DESCRIPTION_KEYS.map(
+  (key) => translations.ja[key],
+);
 
 async function expectNoDocumentOverflow(page: Page): Promise<void> {
   const widths = await page.evaluate(() => ({
@@ -27,9 +33,10 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
 
   await page.getByRole("button", { name: "ヘルプ／概要" }).click();
   const introduction = page.getByRole("dialog", { name: "HARMONY HASH" });
-  await expect(introduction).toContainText(
-    /ハーモニーは難しくなくていい。|コードの一つひとつにあるハーモニーを見つけよう。|コードから始めて、その行き先を探してみましょう。/,
-  );
+  const introductionText = await introduction.textContent();
+  expect(
+    japaneseOnboardingDescriptions.some((description) => introductionText?.includes(description)),
+  ).toBe(true);
   await expect(introduction.getByRole("button", { name: "ハッシュを始める" })).toBeVisible();
   await expect(introduction.getByRole("button", { name: "ツアーを見る" })).toBeVisible();
   await introduction.getByRole("button", { name: "Harmony Hashの紹介を閉じる" }).click();

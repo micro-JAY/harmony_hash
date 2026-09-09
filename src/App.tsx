@@ -80,6 +80,7 @@ import {
   onboardingPersistence,
   type OnboardingCloseReason,
 } from "./lib/onboardingPersistence";
+import { randomOnboardingDescription } from "./onboardingCopy";
 
 const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 const TheoryWorkspace = lazy(() => import("./components/TheoryWorkspace"));
@@ -98,18 +99,6 @@ function loadVoiceAgentRuntime() {
 }
 
 const PLAYBACK_BPM = 110;
-
-const ONBOARDING_DESCRIPTION_KEYS = [
-  "Harmony doesn't have to be hard.",
-  "Find the harmony inside every chord.",
-  "Start with a chord. Discover where it wants to go.",
-] as const;
-
-function randomOnboardingDescription() {
-  return ONBOARDING_DESCRIPTION_KEYS[
-    Math.floor(Math.random() * ONBOARDING_DESCRIPTION_KEYS.length)
-  ] ?? ONBOARDING_DESCRIPTION_KEYS[0];
-}
 
 function TheoryImprovFocusRegion({ children }: { children: ReactNode }) {
   const regionRef = useRef<HTMLElement>(null);

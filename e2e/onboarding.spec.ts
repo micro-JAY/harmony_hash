@@ -11,7 +11,11 @@ test("first visit welcomes people with the logo and three destinations, persists
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/apple-touch-icon.png");
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     "content",
-    "Interactive chord explorer. Discover harmony across keys and modes.",
+    "Find the harmony inside every chord.",
+  );
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    "content",
+    "https://harmony.tonari.ai/harmony-hash-share-v2.png",
   );
   await expect(dialog.locator('img[src="/hh_logo.png"]')).toBeVisible();
   await expect(dialog.locator('[data-onboarding-destination-icon="toolbox"]')).toBeVisible();
@@ -27,7 +31,7 @@ test("first visit welcomes people with the logo and three destinations, persists
   expect(Math.abs(visualBox!.width - logoBox!.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(visualBox!.height - logoBox!.height)).toBeLessThanOrEqual(1);
   const tagline = dialog.getByText(
-    /^(Harmony doesn't have to be hard\.|Find the harmony inside every chord\.|Start with a chord\. Discover where it wants to go\.)$/,
+    /^(Harmony doesn't have to be hard\.|Find the harmony inside every chord\.|Start with a chord\. Discover where it wants to go\.|Every chord is a doorway to another\.|Follow the tension\. Find the release\.|Build progressions by ear, shape, and feel\.|Try a chord\. Hear what comes next\.|Harmony is a map, not a maze\.)$/,
   );
   await expect(tagline).toBeVisible();
   await expect(tagline).toHaveCSS("font-style", "italic");

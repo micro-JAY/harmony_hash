@@ -45,7 +45,7 @@ function invalid(message: string): ProgressionShareParseResult {
 }
 
 function isInstrument(value: string): value is Instrument {
-  return value === "guitar" || value === "piano";
+  return value === "guitar" || value === "piano" || value === "ukulele";
 }
 
 function validateChordInputs(chordInputs: unknown): ReadonlyArray<ImportedProgressionChord> {

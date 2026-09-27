@@ -13,6 +13,18 @@ import {
 import { scaleIntervalsFor } from "./scaleBasics";
 
 describe("fretboard theory", () => {
+  it("maps four ukulele strings with standard high-G absolute pitches", () => {
+    const strings = fretboardTuningFor("ukulele");
+    expect(strings.map((string) => [string.number, string.registerLabel, string.absoluteOpenPitch]))
+      .toEqual([[1, "A4", 69], [2, "E4", 64], [3, "C4", 60], [4, "G4", 67]]);
+    expect(fretboardTuningsFor("ukulele")).toHaveLength(1);
+    expect(defaultFretboardTuningId("ukulele")).toBe("ukulele-standard");
+    const rows = buildFretboardRows("ukulele", "C", "major");
+    expect(rows).toHaveLength(4);
+    expect(rows.map((row) => row.positions[0].noteLabel)).toEqual(["A", "E", "C", "G"]);
+    expect(rows[2].positions[3]).toMatchObject({ noteLabel: "D#", isScaleTone: false });
+    expect(() => fretboardTuningFor("ukulele", "bass-standard")).toThrow(/not compatible/);
+  });
   it("maps C major across standard guitar from open strings through fret 15", () => {
     const rows = buildFretboardRows("guitar", "C", "major");
     expect(rows).toHaveLength(6);
@@ -133,7 +145,7 @@ describe("fretboard theory", () => {
   });
 
   it("keeps fret 12 enharmonically identical to each open string", () => {
-    for (const instrument of ["guitar", "bass"] as const) {
+    for (const instrument of ["guitar", "bass", "ukulele"] as const) {
       for (const row of buildFretboardRows(instrument, "A", "natural_minor")) {
         expect(row.positions[12].pitchClass).toBe(row.positions[0].pitchClass);
         expect(row.positions[12].noteLabel).toBe(row.positions[0].noteLabel);

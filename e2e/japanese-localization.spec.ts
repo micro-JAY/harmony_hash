@@ -1,3 +1,4 @@
+import { openMoodFilter } from "./helpers/toolbox";
 import { expect, test, type Page } from "@playwright/test";
 import { translations } from "../src/i18n/translations";
 import { ONBOARDING_DESCRIPTION_KEYS } from "../src/onboardingCopy";
@@ -23,10 +24,10 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await page.getByRole("button", { name: "Switch language to Japanese" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   const nav = page.getByRole("navigation", { name: "ワークスペース" });
-  await expect(nav.getByRole("button")).toHaveCount(3);
+  await expect(nav.getByRole("button")).toHaveCount(2);
   await expect(nav.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
   await expect(nav.getByRole("button", { name: "チューン・ツールボックス", exact: true })).toBeVisible();
-  await expect(nav.getByRole("button", { name: "フレット・ファインダー", exact: true })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "フレット・ファインダー", exact: true })).toHaveCount(0);
   await expect(page.getByRole("group", { name: "ハッシャーのハーモニー設定" })).toBeVisible();
   await expect(page.getByRole("button", { name: "共有", exact: true })).toBeVisible();
   await expect(page.getByRole("combobox", { name: /ムード/ })).toHaveCount(0);
@@ -56,6 +57,7 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await nav.getByRole("button", { name: "チューン・ツールボックス", exact: true }).click();
   await expect(page.getByRole("heading", { name: "チューン・ツールボックス", level: 1 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "五度圏", level: 2 })).toBeVisible();
+  await openMoodFilter(page);
   await page.locator("#theory-mood").selectOption("dark");
   await expect(page.locator("#theory-mood")).toHaveValue("dark");
 
@@ -95,8 +97,8 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
     .toBeVisible();
   await expect(network.getByLabel("関係の強さの凡例")).toBeVisible();
 
-  await nav.getByRole("button", { name: "フレット・ファインダー", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "フレット・ファインダー", level: 1 })).toBeVisible();
+  await page.locator('button[aria-controls="theory-tool-fretboard"]').click();
+  await expect(page.getByRole("heading", { name: "フレット・ファインダー", level: 2 })).toBeVisible();
   await expect(page.getByRole("region", { name: "フレットボード設定" })).toBeVisible();
   await expectNoDocumentOverflow(page);
 });

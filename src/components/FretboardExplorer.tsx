@@ -13,6 +13,7 @@ import {
   deriveChordTones,
   fretboardTuningDefinitionFor,
   fretboardTuningsFor,
+  scaleLearningDefinitionFor,
   THREE_NPS_OPTIONS,
   type CagedFormId,
   type FretboardInstrument,
@@ -50,15 +51,24 @@ const MODE_OPTIONS: ReadonlyArray<{ value: ScaleFormulaType; label: string }> = 
 const DEFAULT_TUNINGS: Readonly<Record<FretboardInstrument, FretboardTuningId>> = Object.freeze({
   guitar: "guitar-standard",
   bass: "bass-standard",
+  ukulele: "ukulele-standard",
 });
 
-export default function FretboardExplorer() {
+interface FretboardExplorerProps {
+  embedded?: boolean;
+  root?: string;
+  scaleId?: ScaleFormulaType;
+}
+
+export default function FretboardExplorer({ embedded = false, root, scaleId }: FretboardExplorerProps) {
   const t = useT();
   const { locale } = useLocale();
   const reduceMotion = useReducedMotion();
   const [instrument, setInstrument] = useState<FretboardInstrument>("guitar");
-  const [keyName, setKeyName] = useState("C");
-  const [scaleType, setScaleType] = useState<ScaleFormulaType>("major");
+  const [localRoot, setKeyName] = useState("C");
+  const [localScale, setScaleType] = useState<ScaleFormulaType>("major");
+  const keyName = root ?? localRoot;
+  const scaleType = scaleId ?? localScale;
   const [labelMode, setLabelMode] = useState<FretboardLabelMode>("intervals");
   const [handedness, setHandedness] = useState<FretboardHandedness>("right");
   const [tuningByInstrument, setTuningByInstrument] = useState(() => ({ ...DEFAULT_TUNINGS }));
@@ -91,7 +101,8 @@ export default function FretboardExplorer() {
       .sort(([degreeA], [degreeB]) => degreeA - degreeB)
       .map(([, value]) => value);
   }, [rows]);
-  const modeLabel = t(MODE_OPTIONS.find((option) => option.value === scaleType)?.label ?? scaleType);
+  const modeLabel = t(MODE_OPTIONS.find((option) => option.value === scaleType)?.label
+    ?? scaleLearningDefinitionFor(scaleType).label);
   const pattern = useMemo(() => buildFretboardPattern(
     rows,
     instrument,
@@ -111,17 +122,17 @@ export default function FretboardExplorer() {
 
   return (
     <section
-      className="hh-workspace"
+      className={embedded ? "hh-fretboard-embedded min-w-0" : "hh-workspace"}
       data-testid="fretboard-workspace"
       data-reduced-motion={reduceMotion ? "true" : "false"}
-      aria-labelledby="fretboard-title"
+      aria-labelledby={embedded ? "theory-tool-fretboard-heading" : "fretboard-title"}
     >
-      <div className="hh-workspace__inner">
-        <WorkspaceHeader
+      <div className={embedded ? "min-w-0" : "hh-workspace__inner"}>
+        {!embedded ? <WorkspaceHeader
           titleId="fretboard-title"
           title="Fret Finder"
           description="See a scale across the whole instrument. Roots stay gold; interval roles keep the same color wherever they repeat."
-        />
+        /> : null}
 
         <section
           aria-label={t("Fretboard controls")}
@@ -135,8 +146,26 @@ export default function FretboardExplorer() {
             options={[
               { value: "guitar", label: "Guitar", icon: <Guitar size={14} aria-hidden="true" /> },
               { value: "bass", label: "Bass", icon: <Music2 size={14} aria-hidden="true" /> },
+              { value: "ukulele", label: "Ukulele", icon: <Guitar size={14} aria-hidden="true" /> },
             ]}
           />
+          {!embedded ? <>
+            <WorkspaceSelectControl id="fretboard-root" label="Root" value={keyName} onChange={setKeyName} className="w-32" ariaLabel="Fretboard root">
+              {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
+            </WorkspaceSelectControl>
+            <WorkspaceSelectControl id="fretboard-mode" label="Mode" value={scaleType} onChange={(value) => setScaleType(value as ScaleFormulaType)} className="w-44" ariaLabel="Fretboard mode">
+              {MODE_OPTIONS.map((mode) => <option key={mode.value} value={mode.value}>{t(mode.label)}</option>)}
+            </WorkspaceSelectControl>
+          </> : null}
+          <p className="readout self-center" style={{ color: "var(--text-secondary)" }}>
+            {t(tuning.label)} · {tuning.pitchSequence}
+          </p>
+        </section>
+
+        <details className="hh-tool-settings mb-4">
+          <summary>{t("Fretboard settings")}</summary>
+          <section aria-label={t("Fretboard display settings")} className="hh-control-rail">
+          {tuningOptions.length > 1 ? (
           <WorkspaceSelectControl
             id="fretboard-tuning"
             label="Tuning"
@@ -156,6 +185,7 @@ export default function FretboardExplorer() {
               </option>
             ))}
           </WorkspaceSelectControl>
+          ) : null}
           <WorkspaceSegmentedControl
             label="Handedness"
             value={handedness}
@@ -166,19 +196,6 @@ export default function FretboardExplorer() {
               { value: "left", label: "Left-handed" },
             ]}
           />
-          <WorkspaceSelectControl id="fretboard-root" label="Root" value={keyName} onChange={setKeyName} className="w-32" ariaLabel="Fretboard root">
-            {ALL_KEYS.map((key) => <option key={key.value} value={key.value}>{key.label}</option>)}
-          </WorkspaceSelectControl>
-          <WorkspaceSelectControl
-            id="fretboard-mode"
-            label="Mode"
-            value={scaleType}
-            onChange={(value) => setScaleType(value as ScaleFormulaType)}
-            className="w-44"
-            ariaLabel="Fretboard mode"
-          >
-            {MODE_OPTIONS.map((mode) => <option key={mode.value} value={mode.value}>{t(mode.label)}</option>)}
-          </WorkspaceSelectControl>
           <WorkspaceSegmentedControl
             label="Labels"
             value={labelMode}
@@ -266,7 +283,7 @@ export default function FretboardExplorer() {
             <span className="label-caps" style={{ color: "var(--text-secondary)" }}>{t("Current map")}</span>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
               <p style={{ color: "var(--text-primary)", fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)" }}>
-                {keyName} {modeLabel} · {t(instrument === "guitar" ? "Guitar" : "Bass")}
+                {keyName} {modeLabel} · {t(instrument === "guitar" ? "Guitar" : instrument === "ukulele" ? "Ukulele" : "Bass")}
               </p>
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 {t(pattern.available ? pattern.label : "All positions")}
@@ -310,6 +327,8 @@ export default function FretboardExplorer() {
             </ol>
           </section>
         </section>
+
+        </details>
 
         <HorizontalFretboard
           instrument={instrument}

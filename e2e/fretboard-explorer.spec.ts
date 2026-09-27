@@ -1,3 +1,4 @@
+import { openFretFinder } from "./helpers/toolbox";
 import { expect, test, type Page } from "@playwright/test";
 
 interface BrowserIssue {
@@ -62,7 +63,7 @@ async function settleVisual(page: Page): Promise<void> {
 
 async function openFretboard(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+  await openFretFinder(page);
   await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
 }
 
@@ -80,28 +81,29 @@ test.describe("Fretboard Explorer", () => {
     expect(requestedUrls.some((url) => url.endsWith("/tokens.css"))).toBe(true);
     expect(requestedUrls.some((url) => urlHasHostname(url, "cdn.jsdelivr.net"))).toBe(false);
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(false);
-    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+    await openFretFinder(page);
     await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
     const toolTitleStyle = await page.getByRole("heading", { name: "FRET FINDER" }).evaluate((element) => {
       const style = getComputedStyle(element);
       return { family: style.fontFamily, size: Number.parseFloat(style.fontSize), weight: Number(style.fontWeight) };
     });
     expect(toolTitleStyle.family).toContain("Zalando Sans");
-    expect(toolTitleStyle.size).toBe(32);
-    expect(toolTitleStyle.weight).toBeGreaterThanOrEqual(700);
+    expect(toolTitleStyle.size).toBe(24);
+    expect(toolTitleStyle.weight).toBeGreaterThanOrEqual(600);
 
     expect(requestedUrls.some((url) => url.includes("FretboardExplorer"))).toBe(true);
     await expect(page.getByRole("button", { name: "FRET FINDER", exact: true })).toHaveAttribute(
-      "aria-pressed",
+      "aria-expanded",
       "true",
     );
     await expect(page.getByRole("button", { name: "Guitar", exact: true })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
-    await expect(page.getByRole("combobox", { name: "Fretboard root" })).toHaveValue("C");
-    await expect(page.getByRole("combobox", { name: "Fretboard mode" })).toHaveValue("major");
-    await expect(page.getByRole("combobox", { name: "Fretboard mode" }).locator("option")).toHaveCount(11);
+    await expect(page.locator("#theory-root")).toHaveValue("C");
+    await expect(page.locator("#theory-scale")).toHaveValue("major");
+    expect(await page.locator("#theory-scale").locator("option").allTextContents())
+      .toEqual(expect.arrayContaining(["Major (Ionian)", "Dorian", "Major Pentatonic", "Whole Tone"]));
     await expect(page.getByText("Current map", { exact: true })).toHaveCSS(
       "color",
       "rgb(168, 169, 184)",
@@ -113,7 +115,7 @@ test.describe("Fretboard Explorer", () => {
       "aria-pressed",
       "true",
     );
-    const instrumentBox = await page.getByRole("group", { name: "Instrument" }).boundingBox();
+    const instrumentBox = await page.getByRole("combobox", { name: "Fretboard tuning" }).boundingBox();
     const labelsBox = await page.getByRole("group", { name: "Labels" }).boundingBox();
     expect(instrumentBox).not.toBeNull();
     expect(labelsBox).not.toBeNull();
@@ -136,8 +138,8 @@ test.describe("Fretboard Explorer", () => {
       name: "Right-handed Bass scale positions in Standard tuning",
     });
     await expect(bassGrid.getByRole("row")).toHaveCount(5);
-    await page.getByRole("combobox", { name: "Fretboard root" }).selectOption("Eb");
-    await page.getByRole("combobox", { name: "Fretboard mode" }).selectOption("dorian");
+    await page.locator("#theory-root").selectOption("Eb");
+    await page.locator("#theory-scale").selectOption("dorian");
     await page.getByRole("button", { name: "Notes", exact: true }).click();
     await expect(page.getByRole("region", { name: "Eb Dorian scale summary" })).toContainText(
       "Eb Dorian · Bass",
@@ -160,7 +162,7 @@ test.describe("Fretboard Explorer", () => {
   test("maps major and minor pentatonic and blues formulas with distinct interval cues", async ({ page }) => {
     const browserIssues = collectBrowserIssues(page);
     await openFretboard(page);
-    const mode = page.getByRole("combobox", { name: "Fretboard mode" });
+    const mode = page.locator("#theory-scale");
     const legend = page.getByRole("complementary", { name: "Interval color legend" });
 
     await mode.selectOption("major_pentatonic");
@@ -201,7 +203,7 @@ test.describe("Fretboard Explorer", () => {
     await mode.selectOption("harmonic_minor");
     await expect(legend).toContainText("7 · Raised seventh");
 
-    await page.getByRole("combobox", { name: "Fretboard root" }).selectOption("C#");
+    await page.locator("#theory-root").selectOption("C#");
     await mode.selectOption("major_pentatonic");
     await page.getByRole("button", { name: "Notes", exact: true }).click();
     await expect(page.getByRole("region", { name: "C# Major Pentatonic scale summary" }))
@@ -263,14 +265,15 @@ test.describe("Fretboard Explorer", () => {
         client: element.clientWidth,
         scroll: element.scrollWidth,
       }));
-      expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+      const scrollsInternally = widths.scroll > widths.client;
+      if (scrollsInternally) await expect(scroller).toHaveCSS("overflow-x", "auto");
       const scrollerBox = await scroller.boundingBox();
       const headersBox = await page.getByTestId("fretboard-column-headers").boundingBox();
       expect(scrollerBox).not.toBeNull();
       expect(headersBox).not.toBeNull();
       const leftGutter = headersBox!.x - scrollerBox!.x;
       const rightGutter = scrollerBox!.x + scrollerBox!.width - headersBox!.x - headersBox!.width;
-      expect(Math.abs(leftGutter - rightGutter)).toBeLessThanOrEqual(2);
+      if (!scrollsInternally) expect(Math.abs(leftGutter - rightGutter)).toBeLessThanOrEqual(2);
       const firstTarget = scroller.locator('button[data-string="1"]').first();
       const targetSize = await firstTarget.evaluate((element) => {
         const bounds = element.getBoundingClientRect();
@@ -280,7 +283,7 @@ test.describe("Fretboard Explorer", () => {
       expect(targetSize.height).toBeGreaterThanOrEqual(24);
 
       const openHeader = scroller.locator('[role="columnheader"][data-fret-column="0"]');
-      const lastVisibleFret = viewport.width <= 375 ? 12 : 15;
+      const lastVisibleFret = widths.client <= 448 ? 12 : 15;
       const lastFretHeader = scroller.locator(`[role="columnheader"][data-fret-column="${lastVisibleFret}"]`);
       const openHeaderBox = await openHeader.boundingBox();
       const lastFretHeaderBox = await lastFretHeader.boundingBox();
@@ -288,9 +291,11 @@ test.describe("Fretboard Explorer", () => {
       expect(lastFretHeaderBox).not.toBeNull();
       expect(openHeaderBox!.x).toBeLessThan(lastFretHeaderBox!.x);
       expect(openHeaderBox!.x).toBeGreaterThanOrEqual(scrollerBox!.x - 1);
-      expect(lastFretHeaderBox!.x + lastFretHeaderBox!.width).toBeLessThanOrEqual(
-        scrollerBox!.x + scrollerBox!.width + 1,
-      );
+      await lastFretHeader.scrollIntoViewIfNeeded();
+      const reachableLastFret = await lastFretHeader.boundingBox();
+      expect(reachableLastFret!.x + reachableLastFret!.width)
+        .toBeLessThanOrEqual(scrollerBox!.x + scrollerBox!.width + 1);
+      await openHeader.scrollIntoViewIfNeeded();
 
       if (viewport.name === "desktop") {
         const openCell = scroller.locator('[role="gridcell"][data-fret="0"]').first();
@@ -333,7 +338,9 @@ test.describe("Fretboard Explorer", () => {
           await current.press("ArrowRight");
           await expect(next).toBeFocused();
         }
-        expect(await scroller.evaluate((element) => element.scrollLeft)).toBe(0);
+        const scrollLeft = await scroller.evaluate((element) => element.scrollLeft);
+        if (scrollsInternally) expect(scrollLeft).toBeGreaterThan(0);
+        else expect(scrollLeft).toBe(0);
         const finalNote = scroller.locator('button[data-string="1"][data-fret="12"]');
         const finalBounds = await finalNote.boundingBox();
         expect(finalBounds).not.toBeNull();
@@ -350,7 +357,7 @@ test.describe("Fretboard Explorer", () => {
   test("updates the mapped scale within the interaction budget", async ({ page }) => {
     const browserIssues = collectBrowserIssues(page);
     await openFretboard(page);
-    const mode = page.getByRole("combobox", { name: "Fretboard mode" });
+    const mode = page.locator("#theory-scale");
     const startedAt = await page.evaluate(() => performance.now());
     await mode.selectOption("lydian");
     await expect(page.getByRole("region", { name: "C Lydian scale summary" })).toBeVisible();

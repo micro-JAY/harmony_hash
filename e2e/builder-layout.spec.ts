@@ -117,8 +117,9 @@ test("aligns HASHER entry rows and companion controls", async ({ page }) => {
   const pickerCenter = pickerBox!.y + pickerBox!.height / 2;
   expect(Math.abs(browseCenter - pickerCenter)).toBeLessThanOrEqual(1);
   expect(Math.abs(browseBox!.height - pickerBox!.height)).toBeLessThanOrEqual(1);
-  expect(Math.abs(browseBox!.width - pickerBox!.width)).toBeLessThanOrEqual(1);
-  expect(Math.abs(pickerBox!.width - composerRunBox!.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(pickerBox!.x + pickerBox!.width - composerRunBox!.x - composerRunBox!.width))
+    .toBeLessThanOrEqual(1);
+  await expect(picker.getByRole("button")).toHaveCount(3);
   const guitarOption = picker.getByRole("button", { name: "Guitar" });
   await guitarOption.focus();
   await expect(guitarOption).toHaveCSS("outline-offset", "-3px");

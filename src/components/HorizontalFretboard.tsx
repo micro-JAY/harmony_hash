@@ -163,7 +163,7 @@ export default function HorizontalFretboard({
     [activePositions, moveFocus],
   );
 
-  const instrumentName = instrument === "guitar" ? "Guitar" : "Bass";
+  const instrumentName = instrument === "guitar" ? "Guitar" : instrument === "ukulele" ? "Ukulele" : "Bass";
   const handednessLabel = handedness === "right" ? "Right-handed" : "Left-handed";
   const viewHint = handedness === "right"
     ? "Right-handed view runs from open strings through fret 15. Use arrow keys between highlighted notes."

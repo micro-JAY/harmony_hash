@@ -11,13 +11,15 @@ export interface PlaybackEvent {
   chordIndex: number;
 }
 
-export type PlaybackTimbre = "piano" | "guitar";
+export type PlaybackTimbre = "piano" | "guitar" | "ukulele";
 
 export interface ProgressionPlaybackRequest {
   readonly timbre: PlaybackTimbre;
   readonly voicings: ReadonlyArray<ReadonlyArray<number>>;
   readonly bpm: number;
   readonly beatsPerChord?: number;
+  /** Explicitly unavailable instrument shapes retain their timeline slot as a rest. */
+  readonly allowRests?: boolean;
 }
 
 export const MAX_PLAYBACK_EVENTS = 24;
@@ -48,6 +50,7 @@ export function buildMidiPlaybackSchedule(
   voicings: ReadonlyArray<ReadonlyArray<number>>,
   bpm: number,
   beatsPerChord = 2,
+  allowRests = false,
 ): PlaybackEvent[] {
   if (voicings.length === 0) return [];
   assertPlaybackCardinality(voicings.map((notes) => ({ notes })));
@@ -58,9 +61,12 @@ export function buildMidiPlaybackSchedule(
     throw new Error("beatsPerChord must be a positive finite number");
   }
   for (const voicing of voicings) {
-    if (voicing.length === 0 || voicing.some((midi) => !Number.isInteger(midi) || midi < 0 || midi > 127)) {
+    if ((!allowRests && voicing.length === 0) || voicing.some((midi) => !Number.isInteger(midi) || midi < 0 || midi > 127)) {
       throw new Error("Every playback voicing must contain valid MIDI notes");
     }
+  }
+  if (!voicings.some((voicing) => voicing.length > 0)) {
+    throw new Error("Playback requires at least one playable chord");
   }
 
   const secondsPerBeat = 60 / bpm;
@@ -191,8 +197,9 @@ export function playSchedule<
       const msToStart = Math.max(0, event.startTime * 1000);
       timeouts.push(setTimeout(() => onChordChange?.(event.chordIndex), msToStart));
 
-      const strumWindow = timbre === "guitar"
-        ? Math.min(0.09, event.duration * 0.2)
+      const plucked = timbre !== "piano";
+      const strumWindow = plucked
+        ? Math.min(timbre === "ukulele" ? 0.06 : 0.09, event.duration * 0.2)
         : 0;
       const stringStep = event.notes.length > 1 ? strumWindow / (event.notes.length - 1) : 0;
 
@@ -200,15 +207,15 @@ export function playSchedule<
         const noteStart = eventStart + stringStep * noteIndex;
         const osc = context.createOscillator();
         oscillators.push(osc);
-        osc.type = timbre === "guitar" ? "sawtooth" : "triangle";
+        osc.type = plucked ? "sawtooth" : "triangle";
         osc.frequency.value = midiToFrequency(midi);
 
         const gain = context.createGain();
         gains.push(gain);
-        const peak = (timbre === "guitar" ? 0.085 : 0.12) / Math.max(1, event.notes.length / 3);
+        const peak = (plucked ? 0.085 : 0.12) / Math.max(1, event.notes.length / 3);
 
-        if (timbre === "guitar") {
-          const decayEnd = Math.min(eventEnd - 0.02, noteStart + 0.62);
+        if (plucked) {
+          const decayEnd = Math.min(eventEnd - 0.02, noteStart + (timbre === "ukulele" ? 0.42 : 0.62));
           gain.gain.setValueAtTime(0.0001, noteStart);
           gain.gain.linearRampToValueAtTime(peak, noteStart + 0.006);
           gain.gain.exponentialRampToValueAtTime(0.0001, decayEnd);
@@ -218,8 +225,8 @@ export function playSchedule<
           filters.push(filter);
           filter.type = "lowpass";
           filter.Q.value = 1.4;
-          filter.frequency.setValueAtTime(2400, noteStart);
-          filter.frequency.exponentialRampToValueAtTime(720, decayEnd);
+          filter.frequency.setValueAtTime(timbre === "ukulele" ? 3200 : 2400, noteStart);
+          filter.frequency.exponentialRampToValueAtTime(timbre === "ukulele" ? 960 : 720, decayEnd);
           osc.connect(filter);
           filter.connect(gain);
         } else {

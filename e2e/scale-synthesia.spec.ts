@@ -1,3 +1,4 @@
+import { openMoodFilter } from "./helpers/toolbox";
 import { expect, test, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
@@ -58,6 +59,7 @@ test.describe("SCALE SYNTHESIA in TUNE TOOLBOX", () => {
   test("keeps Mood explicit, defaults to Any, and preserves an out-of-lens selection", async ({ page }) => {
     const issues = collectBrowserIssues(page);
     await openScales(page, { root: "F#", scale: "lydian" });
+    await openMoodFilter(page);
     const mood = page.locator("#theory-mood");
     await expect(mood).toHaveValue("");
     await expect(page.getByText("F# Lydian · Ascending", { exact: true })).toBeVisible();

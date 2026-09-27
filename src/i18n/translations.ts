@@ -1,7 +1,10 @@
+import { discoveryTranslations } from "./discoveryTranslations";
+
 export type Locale = "en" | "ja";
 
 export const translations: Record<Locale, Record<string, string>> = {
   en: {
+    ...discoveryTranslations.en,
     tonality: "Tonality",
     key: "Key",
     piano: "Piano",
@@ -71,6 +74,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "theory.function.secondaryDominant": "Secondary dominant",
   },
   ja: {
+    ...discoveryTranslations.ja,
     ukulele: "ウクレレ",
     Ukulele: "ウクレレ",
     "Fretboard settings": "指板の詳細設定",

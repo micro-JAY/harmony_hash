@@ -30,8 +30,6 @@ The v4 integration owner will pass the new fourth `snapshot.allowRests` argument
 
 Use screenshots of the desktop selected chord and 390px piano/fretboard when reviewing the combined UI. Physical MIDI hardware and browser-specific audio permission behavior remain manual checks; MIDI API behavior is covered using deterministic test doubles.
 
-## References
-
 ## Integrated verification — 2026-09-27
 
 `feat/v4-discovery` is based on the validated toolbox/ukulele branch. App now lazy-loads the third DISCOVERY tab on first visit, preserves selections across tabs, and supplies current Hasher voicings, timbre, silent slots and labels. Starting its loop stops any existing Hasher one-shot playback. The existing guided tour has not been redesigned.

@@ -19,3 +19,8 @@
 - [x] 4.1 Gate Type sending until response generation, tool continuations, and spoken playback finish; verify started/stopped/cleared events, stale response IDs, and tool-only responses in coordinator and browser tests.
 - [x] 4.2 Retain drafts until a matching provider acknowledgement; verify successful local sends followed by provider rejection or channel closure before acknowledgement preserve the draft for retry.
 - [x] 4.3 Run focused voice tests, build/lint, strict change validation, and commit the reviewed fixes.
+
+## 5. Review images
+
+- [x] 5.1 Add and visually inspect committed desktop/mobile Type panel snapshots, then verify their screenshot assertions.
+- [x] 5.2 Commit and push the feature branch for draft review without merging or deploying.

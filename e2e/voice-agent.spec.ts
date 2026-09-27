@@ -103,7 +103,7 @@ test.describe("Harmony voice sessions", () => {
     await emitRealtimeEvent(page, { type: "output_audio_buffer.stopped", response_id: "typed-answer" });
     await expect(dialog.getByRole("button", { name: "Send", exact: true })).toBeEnabled();
     await expect(dialog).toHaveAttribute("data-session-kind", "voice");
-    await page.screenshot({ path: "/tmp/harmony-typed-desktop.png" });
+    await expect(dialog).toHaveScreenshot("harmony-type-desktop.png", { animations: "disabled" });
     await dialog.getByRole("button", { name: "End conversation" }).click();
     await expect(dialog.getByRole("radio", { name: "Voice", exact: true })).toBeEnabled();
     expect((await realtimeVoiceMockState(page)).micRequests).toBe(0);
@@ -167,7 +167,7 @@ test.describe("Harmony voice sessions", () => {
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
     expect(bounds!.y).toBeGreaterThanOrEqual(0);
     expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(844);
-    await page.screenshot({ path: "/tmp/harmony-typed-mobile.png" });
+    await expect(dialog).toHaveScreenshot("harmony-type-mobile.png", { animations: "disabled" });
     await dialog.getByRole("button", { name: "End conversation" }).click();
     await dialog.getByText("Voice", { exact: true }).click();
     await dialog.getByRole("button", { name: "Harmony, Help!" }).click();

@@ -22,3 +22,15 @@ Live OpenAI audio was not exercised: browser tests use a mocked WebRTC provider,
 The coordinator tracks response generation, pending tools, and output-audio buffers separately. Tests verify that `response.done` alone does not unlock Type input while the matching buffer is playing; stopped/cleared events are tied to response IDs, delayed events cannot unlock another response, and tool-only continuations remain functional.
 
 The provider retains the draft until matching typed-item acknowledgement. The composer is read-only during that brief wait. Browser tests verify both successful acknowledgement and successful local sends followed by a provider error or channel closure before acknowledgement; reopening and reconnecting preserve the original request. Focused transport/coordinator tests passed 46 cases.
+
+## Live smoke runner
+
+`scripts/smoke-voice-agent.ts` retains Voice as its default and accepts `HH_VOICE_INPUT_MODE=type` to send the fixed progression request through the actual Type composer. The Type path checks zero microphone requests and sender tracks, matching provider acknowledgement with cleared draft and visible user transcript, newly received audio packets and spoken transcript events, the expected live timeline mutation, session continuity across popup closes, and disconnect cleanup. Diagnostics contain counts, known test chords, and transport states; no credentials, SDP, or provider payloads are retained.
+
+Run against the existing full local Worker app with:
+
+```sh
+HH_VOICE_INPUT_MODE=type HH_VOICE_APP_URL=http://localhost:8787 npx tsx scripts/smoke-voice-agent.ts
+```
+
+`HH_VOICE_API_URL` optionally changes the expected client-secret API origin for request counting in an already configured split UI/API setup; it does not forward requests or change app routing. The runner update passes lint and standalone strict TypeScript checking. The live command was not run from this feature worktree; integrated live validation remains a separate check.

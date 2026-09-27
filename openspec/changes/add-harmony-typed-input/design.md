@@ -32,5 +32,6 @@ The existing OpenAI Realtime browser transport owns a peer, data channel, remote
 - Transport tests for microphone exclusion, receive-only audio, lifecycle cleanup, deadline, and existing Voice behavior.
 - Coordinator tests for typed messages, response gating, transcript ordering, and failed sends.
 - Browser tests for mode selection, compose/send, progression edits, popup persistence, and mobile fit.
+- Extend the existing live smoke runner with `HH_VOICE_INPUT_MODE=type` to exercise the actual composer, provider acknowledgement, spoken reply, tool mutation, and cleanup. Use `HH_VOICE_API_URL` to identify the existing API backend when the UI runs on a separate local origin. Capture counts and transport state only; never retain credentials or provider payloads. Running the paid provider remains a separate explicit validation step.
 - Build, lint, full unit suite, focused voice browser suite, and strict OpenSpec validation.
 - Official API contract: https://developers.openai.com/api/docs/guides/realtime-conversations

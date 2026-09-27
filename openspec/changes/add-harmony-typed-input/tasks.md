@@ -24,3 +24,9 @@
 
 - [x] 5.1 Add and visually inspect committed desktop/mobile Type panel snapshots, then verify their screenshot assertions.
 - [x] 5.2 Commit and push the feature branch for draft review without merging or deploying.
+
+## 6. Live smoke support
+
+- [x] 6.1 Extend the existing smoke runner with optional Type input through the actual composer and a separate API URL for request counting; retain the default Voice path.
+- [x] 6.2 Assert no Type microphone acquisition or sender tracks, acknowledged draft clearing, returned audio/transcript, live tool mutation, and disconnect while retaining only safe diagnostics.
+- [x] 6.3 Run lint and script typechecking, document the invocation and unrun live-provider check, then commit and push the runner update.

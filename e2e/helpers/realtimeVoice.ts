@@ -7,7 +7,7 @@ export interface RealtimeVoiceMockOptions {
   holdClientSecret?: boolean;
   holdMicrophone?: boolean;
   realtimeCallStatus?: number;
-  failAt?: "microphone" | "peer" | "audio" | "data-channel" | "offer" | "local-description" | "remote-description" | "playback";
+  failAt?: "microphone" | "peer" | "audio" | "data-channel" | "offer" | "local-description" | "remote-description" | "playback" | "playback-once";
 }
 
 export interface RealtimeVoiceMockState {
@@ -17,6 +17,9 @@ export interface RealtimeVoiceMockState {
   peerCloses: number;
   channelCloses: number;
   audioPauses: number;
+  audioPlays: number;
+  receiveOnlyAudio: number;
+  microphoneTracks: number;
   sentEvents: Array<Record<string, unknown>>;
 }
 
@@ -93,6 +96,9 @@ export async function installRealtimeVoiceMock(
       peerCloses: 0,
       channelCloses: 0,
       audioPauses: 0,
+      audioPlays: 0,
+      receiveOnlyAudio: 0,
+      microphoneTracks: 0,
       sentEvents: [],
     };
 
@@ -146,7 +152,10 @@ export async function installRealtimeVoiceMock(
       setAttribute() {}
 
       async play() {
-        if (failAt === "playback") throw new Error("mock playback failed");
+        state.audioPlays += 1;
+        if (failAt === "playback" || (failAt === "playback-once" && state.audioPlays === 1)) {
+          throw new Error("mock playback failed");
+        }
       }
 
       pause() {
@@ -201,7 +210,11 @@ export async function installRealtimeVoiceMock(
         return this.channel;
       }
 
-      addTrack() {}
+      addTrack() { state.microphoneTracks += 1; }
+
+      addTransceiver(kind: string, options: RTCRtpTransceiverInit) {
+        if (kind === "audio" && options.direction === "recvonly") state.receiveOnlyAudio += 1;
+      }
 
       async createOffer() {
         if (failAt === "offer") throw new Error("mock offer failed");

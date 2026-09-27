@@ -14,6 +14,7 @@ interface MockRealtimeSession {
   stop: ReturnType<typeof vi.fn>;
   dispose: ReturnType<typeof vi.fn>;
   setVolume: ReturnType<typeof vi.fn>;
+  resumePlayback: ReturnType<typeof vi.fn>;
   checkDeadline: ReturnType<typeof vi.fn>;
   send: ReturnType<typeof vi.fn>;
 }
@@ -30,6 +31,7 @@ vi.mock("./openAIRealtimeSession", () => ({
     stop = vi.fn(async () => undefined);
     dispose = vi.fn(async () => undefined);
     setVolume = vi.fn();
+    resumePlayback = vi.fn();
     checkDeadline = vi.fn();
     send = vi.fn<(event: Record<string, unknown>) => boolean>(() => true);
 
@@ -79,6 +81,7 @@ function coordinatorFixture(overrides: Partial<ProgressionBridge> = {}) {
     agentReplyCount: 0,
     agentReplyAudioBaseline: 0,
     fatalError: null as string | null,
+    replyPending: false,
   };
   const sink = {
     setTranscript: vi.fn((entries: TranscriptEntry[]) => {
@@ -99,6 +102,9 @@ function coordinatorFixture(overrides: Partial<ProgressionBridge> = {}) {
     setFatalError: vi.fn((message: string) => {
       state.fatalError = message;
     }),
+    setReplyPending: vi.fn((pending: boolean) => {
+      state.replyPending = pending;
+    }),
   };
   const transport = {
     send: vi.fn<(event: Record<string, unknown>) => boolean>(() => true),
@@ -114,8 +120,121 @@ function realtimeEvent(event: RealtimeServerEvent): RealtimeServerEvent {
   return event;
 }
 
+function finishedResponse(id: string): RealtimeServerEvent {
+  return {
+    type: "response.done",
+    event_id: `done-${id}`,
+    response: { id, status: "completed", output: [] },
+  };
+}
+
+async function typedCoordinatorFixture(overrides: Partial<ProgressionBridge> = {}) {
+  const fixture = coordinatorFixture(overrides);
+  fixture.coordinator.beginSession(fixture.bridge, "text");
+  fixture.coordinator.handleConnected();
+  await fixture.coordinator.handleEvent(finishedResponse("greeting"));
+  return fixture;
+}
+
 describe("VoiceAgentEventCoordinator", () => {
   afterEach(() => vi.restoreAllMocks());
+
+  it("sends one bounded typed request with an audio response and prevents concurrent sends", async () => {
+    const { coordinator, state, transport } = await typedCoordinatorFixture();
+    expect(state.sessionKind).toBe("voice");
+    expect(coordinator.sendText("   ")).toBe("empty");
+    expect(coordinator.sendText("x".repeat(2001))).toBe("too-long");
+    expect(transport.send).not.toHaveBeenCalled();
+    expect(coordinator.sendText("  Make C minor warmer.  ")).toBe("sent");
+    expect(transport.send.mock.calls.map(([event]) => event)).toEqual([
+      {
+        type: "conversation.item.create",
+        item: { id: "hh_typed_1", type: "message", role: "user", content: [{ type: "input_text", text: "Make C minor warmer." }] },
+      },
+      { type: "response.create", response: { output_modalities: ["audio"] } },
+    ]);
+    expect(state.replyPending).toBe(true);
+    expect(coordinator.sendText("Duplicate")).toBe("busy");
+    await coordinator.handleEvent(finishedResponse("greeting"));
+    expect(coordinator.sendText("Late duplicate response must not unlock input")).toBe("busy");
+    await coordinator.handleEvent(finishedResponse("answer"));
+    expect(coordinator.sendText("x".repeat(2000))).toBe("sent");
+  });
+
+  it("blocks typed input in Voice sessions, during the greeting, and after disconnect", async () => {
+    const { coordinator, bridge, transport } = coordinatorFixture();
+    coordinator.handleConnected();
+    await coordinator.handleEvent(finishedResponse("voice-greeting"));
+    expect(coordinator.sendText("No text in Voice mode")).toBe("unavailable");
+    coordinator.beginSession(bridge, "text");
+    expect(coordinator.sendText("Connecting")).toBe("unavailable");
+    coordinator.handleConnected();
+    expect(coordinator.sendText("Greeting")).toBe("busy");
+    coordinator.handleDisconnected();
+    expect(coordinator.sendText("Disconnected")).toBe("unavailable");
+    expect(transport.send).not.toHaveBeenCalled();
+  });
+
+  it("adds acknowledged typed messages once in conversation order", async () => {
+    const { coordinator, state } = await typedCoordinatorFixture();
+    coordinator.sendText("Build Dm7 G7 Cmaj7.");
+    expect(state.transcript).toEqual([]);
+    await coordinator.handleEvent({
+      type: "response.output_audio_transcript.done",
+      event_id: "agent-text",
+      response_id: "typed-answer",
+      item_id: "agent",
+      transcript: "Here is your two-five-one.",
+    });
+    await coordinator.handleEvent({
+      type: "conversation.item.added", event_id: "agent-order", previous_item_id: "hh_typed_1",
+      item: { id: "agent", role: "assistant" },
+    });
+    const acknowledgement = {
+      type: "conversation.item.added", event_id: "typed-ack", previous_item_id: null,
+      item: { id: "hh_typed_1", type: "message", role: "user", content: [{ type: "input_text", text: "Build Dm7 G7 Cmaj7." }] },
+    };
+    await coordinator.handleEvent(acknowledgement);
+    await coordinator.handleEvent(acknowledgement);
+    expect(state.transcript).toEqual([
+      { id: 0, role: "user", text: "Build Dm7 G7 Cmaj7." },
+      { id: 1, role: "agent", text: "Here is your two-five-one." },
+    ]);
+    expect(state.agentReplyCount).toBe(1);
+  });
+
+  it("keeps typed input locked across asynchronous tools and their spoken continuation", async () => {
+    let releaseMutation: (() => void) | undefined;
+    const addChords = vi.fn(() => new Promise<void>((resolve) => { releaseMutation = resolve; }));
+    const { coordinator, transport, state } = await typedCoordinatorFixture({ addChords });
+    coordinator.sendText("Add C.");
+    await coordinator.handleEvent({
+      type: "response.done", event_id: "typed-tool",
+      response: {
+        id: "typed-tool", status: "completed",
+        output: [{ type: "function_call", status: "completed", call_id: "typed-call", name: "add_chords", arguments: '{"chords":["C"]}' }],
+      },
+    });
+    expect(coordinator.sendText("Too early")).toBe("busy");
+    releaseMutation?.();
+    await vi.waitFor(() => expect(transport.send).toHaveBeenCalledTimes(4));
+    expect(state.replyPending).toBe(true);
+    expect(coordinator.sendText("Still too early")).toBe("busy");
+    await coordinator.handleEvent(finishedResponse("typed-continuation"));
+    expect(state.replyPending).toBe(false);
+    expect(coordinator.sendText("Now explain it.")).toBe("sent");
+  });
+
+  it.each([false, true])("fails closed when a typed exchange is only partly sent (item sent: %s)", async (itemSent) => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { coordinator, transport, state } = await typedCoordinatorFixture();
+    transport.send.mockReturnValueOnce(itemSent).mockReturnValueOnce(false);
+    expect(coordinator.sendText("Keep this draft")).toBe("failed");
+    expect(transport.stop).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(state.fatalError).toContain("could not be sent"));
+    expect(coordinator.sendText("Retry")).toBe("unavailable");
+    expect(state.transcript).toEqual([]);
+  });
 
   it("orders completed transcripts by item identity and records one audio baseline per reply", async () => {
     const { coordinator, state, sink } = coordinatorFixture();
@@ -445,7 +564,7 @@ describe("VoiceAgentEventCoordinator", () => {
     expect(addChords).toHaveBeenCalledTimes(1);
     expect(transport.send).not.toHaveBeenCalled();
     expect(consoleError).toHaveBeenCalledWith(
-      "[harmony-hash-voice] Realtime session rejected an invalid provider event",
+      "[harmony-hash-voice] Realtime session stopped after a conversation error",
     );
   });
 

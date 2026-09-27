@@ -46,7 +46,7 @@ export interface BridgeChord {
 export interface ProgressionBridgeDeps {
   /** The current timeline (reads a ref mirror of `chords`). */
   getChords(): BridgeChord[];
-  /** The current instrument/view ("guitar" | "piano"). */
+  /** The current instrument/view (guitar, piano, or ukulele). */
   getInstrument(): Instrument;
   /** The on-screen piano voicings (per-card styles applied), parallel to getChords(). */
   getVoicings(): VoicedChord[];

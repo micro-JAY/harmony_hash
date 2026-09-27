@@ -102,6 +102,7 @@ function peerFixture(channel: ReturnType<typeof dataChannelFixture>) {
   const setLocalDescription = vi.fn(async () => undefined);
   const setRemoteDescription = vi.fn(async () => undefined);
   const addTrack = vi.fn();
+  const addTransceiver = vi.fn();
   const createDataChannel = vi.fn(() => channel.value);
   const getStats = vi.fn(async () => report);
   const raw: Partial<RTCPeerConnection> = {
@@ -113,6 +114,7 @@ function peerFixture(channel: ReturnType<typeof dataChannelFixture>) {
     setLocalDescription,
     setRemoteDescription,
     addTrack,
+    addTransceiver,
     createDataChannel,
     getStats,
   });
@@ -129,6 +131,7 @@ function peerFixture(channel: ReturnType<typeof dataChannelFixture>) {
     setLocalDescription,
     setRemoteDescription,
     addTrack,
+    addTransceiver,
     createDataChannel,
     getStats,
     close,
@@ -280,6 +283,67 @@ describe("OpenAIRealtimeSession", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+  });
+
+  it("connects Type mode without a microphone and still requires remote spoken audio", async () => {
+    const fixture = sessionFixture();
+    fixture.getUserMedia.mockRejectedValue(new DOMException("No device", "NotFoundError"));
+    const start = fixture.session.start(CLIENT_SECRET_ENDPOINT, undefined, "text");
+    await waitForNegotiation(fixture);
+    expect(fixture.getUserMedia).not.toHaveBeenCalled();
+    expect(fixture.peer.addTrack).not.toHaveBeenCalled();
+    expect(fixture.peer.addTransceiver).toHaveBeenCalledWith("audio", { direction: "recvonly" });
+    fixture.channel.open();
+    fixture.channel.message(sessionCreated());
+    await Promise.resolve();
+    expect(fixture.session.connectionStatus).toBe("connecting");
+    fixture.peer.emitTrack(fixture.remoteAudio.value, [fixture.remote.value]);
+    await start;
+    expect(fixture.session.connectionStatus).toBe("connected");
+    expect(fixture.audio.play).toHaveBeenCalledOnce();
+    expect(JSON.parse(fixture.channel.send.mock.calls[0]?.[0])).toMatchObject({
+      type: "response.create", response: { output_modalities: ["audio"] },
+    });
+
+    fixture.setMonotonicMs(310_001);
+    fixture.session.checkDeadline();
+    expect(fixture.session.connectionStatus).toBe("disconnected");
+    expect(fixture.remoteAudio.stop).toHaveBeenCalledOnce();
+    expect(fixture.peer.close).toHaveBeenCalledOnce();
+    expect(fixture.channel.close).toHaveBeenCalledOnce();
+    expect(fixture.audio.pause).toHaveBeenCalledOnce();
+    expect(fixture.primaryAudio.stop).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("lets a user gesture retry blocked spoken playback without acquiring a microphone", async () => {
+    const fixture = sessionFixture();
+    fixture.audio.play.mockRejectedValueOnce(new DOMException("Autoplay blocked", "NotAllowedError"));
+    const start = fixture.session.start(CLIENT_SECRET_ENDPOINT, undefined, "text");
+    await waitForNegotiation(fixture);
+    fixture.channel.open();
+    fixture.channel.message(sessionCreated());
+    fixture.peer.emitTrack(fixture.remoteAudio.value, [fixture.remote.value]);
+    await start;
+    expect(fixture.callbacks.onPlaybackError).toHaveBeenLastCalledWith(expect.stringContaining("could not play"));
+    fixture.session.resumePlayback();
+    await Promise.resolve();
+    expect(fixture.callbacks.onPlaybackError).toHaveBeenLastCalledWith(null);
+    expect(fixture.getUserMedia).not.toHaveBeenCalled();
+    await fixture.session.stop();
+  });
+
+  it("does not allocate a peer when stopped immediately after microphone acquisition", async () => {
+    const fixture = sessionFixture();
+    vi.spyOn(fixture.microphone.value, "getAudioTracks").mockImplementationOnce(() => {
+      queueMicrotask(() => void fixture.session.stop());
+      return [fixture.primaryAudio.value, fixture.extraAudio.value];
+    });
+    await expect(fixture.session.start(CLIENT_SECRET_ENDPOINT)).rejects.toMatchObject({ name: "AbortError" });
+    expect(fixture.createPeerConnection).not.toHaveBeenCalled();
+    expect(fixture.primaryAudio.stop).toHaveBeenCalledOnce();
+    expect(fixture.session.connectionStatus).toBe("disconnected");
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("mints before microphone access, attaches one mic track, negotiates SDP, and greets once", async () => {

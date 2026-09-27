@@ -15,6 +15,8 @@ The existing OpenAI Realtime browser transport owns a peer, data channel, remote
 - Send `conversation.item.create` with a user `input_text` item followed by an audio `response.create`. This uses the existing WebRTC data channel and tool flow. A separate HTTP text agent would diverge from the current conversation and tool semantics.
 - Track response availability in the coordinator, including the opening greeting and async tool continuation. A bounded 2000-character composer sends one request at a time. Failures preserve the draft and surface a clear error; a partially sent exchange ends the session to avoid uncertain retries.
 - Ingest typed user-message acknowledgements into the existing transcript ledger using provider item ordering. This avoids duplicating local and server-acknowledged entries.
+- Gate Type sending on both response/tool completion and per-response output-audio buffer completion. Track started, stopped, and cleared events separately so a delayed or duplicate playback event cannot unlock another response.
+- Retain the sent draft in the provider until its exact message ID and text are acknowledged. Keep the composer read-only during this short acknowledgement wait, and clear the draft through the acknowledgement callback. A failed local send, asynchronous provider error, or disconnection leaves it intact for retry.
 - Keep `sessionKind` describing spoken output; add distinct input-mode state. Voice-health warnings remain valid for Type mode because its responses still contain audio.
 - Keep source-owned agent wording consistent with typed requests and v4 ukulele support. The playback prompt, randomization description, and bridge comments include ukulele; tool names and parameters stay unchanged.
 

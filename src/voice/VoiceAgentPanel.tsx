@@ -33,6 +33,9 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
     startSession,
     endSession,
     sendText,
+    draft,
+    setDraft,
+    textPending,
     replyPending,
     resumePlayback,
     setVolume,
@@ -47,7 +50,6 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [inputMode, setInputMode] = useState<VoiceInputMode>("voice");
-  const [draft, setDraft] = useState("");
   const connectionAttemptRef = useRef<AbortController | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -86,7 +88,6 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   const handleSend = useCallback(() => {
     const result = sendText(draft);
     if (result === "sent") {
-      setDraft("");
       setError(null);
       return;
     }
@@ -419,6 +420,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
                 id="harmony-message"
                 className="hhv-message w-full rounded-lg"
                 value={draft}
+                readOnly={textPending}
                 onChange={(event) => setDraft(event.target.value)}
                 maxLength={HARMONY_TEXT_MAX_LENGTH}
                 rows={3}
@@ -444,9 +446,11 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
               />
               <div className="flex items-center justify-between gap-3">
                 <span id="harmony-compose-hint" role="status" style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)", lineHeight: "var(--leading-normal)" }}>
-                  {replyPending
-                    ? t("Harmony is replying…")
-                    : t("Enter to send · Shift+Enter for a new line.")}
+                  {textPending
+                    ? t("Sending your message…")
+                    : replyPending
+                      ? t("Harmony is replying…")
+                      : t("Enter to send · Shift+Enter for a new line.")}
                   <span className="block">{draft.length} / {HARMONY_TEXT_MAX_LENGTH}</span>
                 </span>
                 <button

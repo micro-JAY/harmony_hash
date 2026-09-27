@@ -870,6 +870,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Message Harmony": "Harmonyへのメッセージ",
     "Ask for chords, changes, or theory…": "コードや進行の変更、音楽理論などを質問…",
     "Harmony is replying…": "Harmonyが返答中…",
+    "Sending your message…": "メッセージを送信中…",
     "Enter to send · Shift+Enter for a new line.": "Enterで送信・Shift+Enterで改行",
     Send: "送信",
     "Enable Harmony audio": "Harmonyの音声を再生",

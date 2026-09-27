@@ -27,13 +27,23 @@ Type mode SHALL send user-authored text into the authenticated Realtime conversa
 - **AND** tool-backed progression edits SHALL affect the live builder through the existing bridge
 
 #### Scenario: Prevent overlapping submissions
-- **WHEN** Harmony is connecting, responding, or waiting for a tool result
+- **WHEN** Harmony is connecting, awaiting acknowledgement of a typed message, generating a response, playing its spoken audio, or waiting for a tool result
 - **THEN** the panel SHALL make message-send availability clear and prevent concurrent typed requests
+
+#### Scenario: Generation finishes before spoken playback
+- **WHEN** response generation completes while its spoken audio is still playing
+- **THEN** Type sending SHALL remain unavailable until the audio buffer for that response stops or is cleared
+- **AND** completion of an earlier response's audio SHALL NOT unlock a later response or pending tool continuation
 
 #### Scenario: Invalid or failed submission
 - **WHEN** a request is empty, exceeds the message limit, or cannot be sent through the active connection
 - **THEN** the app SHALL NOT claim it was delivered
 - **AND** the draft SHALL remain available with a useful explanation when the submission fails
+
+#### Scenario: Connection fails before message acknowledgement
+- **WHEN** local sending succeeds but the provider rejects or disconnects before acknowledging that exact typed message
+- **THEN** the draft SHALL remain available for a new conversation
+- **AND** the composer SHALL clear the sent draft only after a matching message acknowledgement
 
 #### Scenario: Collapse and reopen
 - **WHEN** the user closes and reopens the popup during a Type session

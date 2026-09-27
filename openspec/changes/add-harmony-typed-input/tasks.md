@@ -13,3 +13,9 @@
 
 - [x] 3.1 Run production build, lint, full unit tests, focused voice browser tests, and strict change validation; record results and any live-provider limitation in validation.md.
 - [x] 3.2 Review the diff for server/tool/tour scope preservation and commit the validated feature branch.
+
+## 4. Review follow-ups
+
+- [x] 4.1 Gate Type sending until response generation, tool continuations, and spoken playback finish; verify started/stopped/cleared events, stale response IDs, and tool-only responses in coordinator and browser tests.
+- [x] 4.2 Retain drafts until a matching provider acknowledgement; verify successful local sends followed by provider rejection or channel closure before acknowledgement preserve the draft for retry.
+- [x] 4.3 Run focused voice tests, build/lint, strict change validation, and commit the reviewed fixes.

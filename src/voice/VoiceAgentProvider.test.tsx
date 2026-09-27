@@ -82,6 +82,7 @@ function coordinatorFixture(overrides: Partial<ProgressionBridge> = {}) {
     agentReplyAudioBaseline: 0,
     fatalError: null as string | null,
     replyPending: false,
+    textPending: false,
   };
   const sink = {
     setTranscript: vi.fn((entries: TranscriptEntry[]) => {
@@ -105,6 +106,10 @@ function coordinatorFixture(overrides: Partial<ProgressionBridge> = {}) {
     setReplyPending: vi.fn((pending: boolean) => {
       state.replyPending = pending;
     }),
+    setTextPending: vi.fn((pending: boolean) => {
+      state.textPending = pending;
+    }),
+    acknowledgeTextDraft: vi.fn<(draft: string) => void>(),
   };
   const transport = {
     send: vi.fn<(event: Record<string, unknown>) => boolean>(() => true),
@@ -126,6 +131,17 @@ function finishedResponse(id: string): RealtimeServerEvent {
     event_id: `done-${id}`,
     response: { id, status: "completed", output: [] },
   };
+}
+
+function typedAcknowledgement(id: string, text: string): RealtimeServerEvent {
+  return {
+    type: "conversation.item.added", event_id: `ack-${id}`, previous_item_id: null,
+    item: { id, type: "message", role: "user", content: [{ type: "input_text", text }] },
+  };
+}
+
+function audioBufferEvent(type: "started" | "stopped" | "cleared", responseId: string): RealtimeServerEvent {
+  return { type: `output_audio_buffer.${type}`, event_id: `${type}-${responseId}`, response_id: responseId };
 }
 
 async function typedCoordinatorFixture(overrides: Partial<ProgressionBridge> = {}) {
@@ -158,6 +174,7 @@ describe("VoiceAgentEventCoordinator", () => {
     await coordinator.handleEvent(finishedResponse("greeting"));
     expect(coordinator.sendText("Late duplicate response must not unlock input")).toBe("busy");
     await coordinator.handleEvent(finishedResponse("answer"));
+    await coordinator.handleEvent(typedAcknowledgement("hh_typed_1", "Make C minor warmer."));
     expect(coordinator.sendText("x".repeat(2000))).toBe("sent");
   });
 
@@ -208,6 +225,7 @@ describe("VoiceAgentEventCoordinator", () => {
     const addChords = vi.fn(() => new Promise<void>((resolve) => { releaseMutation = resolve; }));
     const { coordinator, transport, state } = await typedCoordinatorFixture({ addChords });
     coordinator.sendText("Add C.");
+    await coordinator.handleEvent(typedAcknowledgement("hh_typed_1", "Add C."));
     await coordinator.handleEvent({
       type: "response.done", event_id: "typed-tool",
       response: {
@@ -223,6 +241,110 @@ describe("VoiceAgentEventCoordinator", () => {
     await coordinator.handleEvent(finishedResponse("typed-continuation"));
     expect(state.replyPending).toBe(false);
     expect(coordinator.sendText("Now explain it.")).toBe("sent");
+  });
+
+  it("waits for the matching spoken buffer to drain after generation is done", async () => {
+    const { coordinator, state } = await typedCoordinatorFixture();
+    coordinator.sendText("Explain C major.");
+    await coordinator.handleEvent(typedAcknowledgement("hh_typed_1", "Explain C major."));
+    await coordinator.handleEvent(audioBufferEvent("started", "spoken-answer"));
+    await coordinator.handleEvent(finishedResponse("spoken-answer"));
+    expect(state.replyPending).toBe(true);
+    expect(coordinator.sendText("Too early")).toBe("busy");
+    await coordinator.handleEvent(audioBufferEvent("stopped", "some-other-response"));
+    expect(state.replyPending).toBe(true);
+    await coordinator.handleEvent(audioBufferEvent("stopped", "spoken-answer"));
+    expect(coordinator.sendText("Explain G major.")).toBe("sent");
+    await coordinator.handleEvent(typedAcknowledgement("hh_typed_2", "Explain G major."));
+    await coordinator.handleEvent(audioBufferEvent("started", "next-answer"));
+    await coordinator.handleEvent(finishedResponse("next-answer"));
+    await coordinator.handleEvent(audioBufferEvent("stopped", "spoken-answer"));
+    await coordinator.handleEvent(audioBufferEvent("started", "spoken-answer"));
+    expect(state.replyPending).toBe(true);
+    await coordinator.handleEvent(audioBufferEvent("stopped", "next-answer"));
+    expect(state.replyPending).toBe(false);
+  });
+
+  it.each(["stopped", "cleared"] as const)("still waits for response completion when audio is %s first", async (type) => {
+    const { coordinator, state } = await typedCoordinatorFixture();
+    coordinator.sendText("Explain C.");
+    await coordinator.handleEvent(typedAcknowledgement("hh_typed_1", "Explain C."));
+    await coordinator.handleEvent({ type: "response.created", response: { id: "answer" } });
+    await coordinator.handleEvent(audioBufferEvent("started", "answer"));
+    await coordinator.handleEvent(audioBufferEvent(type, "answer"));
+    expect(state.replyPending).toBe(true);
+    await coordinator.handleEvent(finishedResponse("answer"));
+    expect(state.replyPending).toBe(false);
+    await coordinator.handleEvent(audioBufferEvent("started", "answer"));
+    expect(state.replyPending).toBe(false);
+  });
+
+  it("recognizes completed audio output even when its started event is delayed", async () => {
+    const { coordinator, state } = await typedCoordinatorFixture();
+    await coordinator.handleEvent({
+      type: "response.done",
+      response: { id: "audio-answer", status: "completed", output: [{ type: "message", content: [{ type: "output_audio", transcript: "C major." }] }] },
+    });
+    expect(state.replyPending).toBe(true);
+    await coordinator.handleEvent(audioBufferEvent("cleared", "audio-answer"));
+    expect(state.replyPending).toBe(false);
+  });
+
+  it("does not unlock a pending tool continuation when the previous audio ends", async () => {
+    let releaseMutation: (() => void) | undefined;
+    const addChords = vi.fn(() => new Promise<void>((resolve) => { releaseMutation = resolve; }));
+    const { coordinator, transport, state } = await typedCoordinatorFixture({ addChords });
+    coordinator.sendText("Add C.");
+    await coordinator.handleEvent(typedAcknowledgement("hh_typed_1", "Add C."));
+    await coordinator.handleEvent(audioBufferEvent("started", "tool-response"));
+    await coordinator.handleEvent({
+      type: "response.done",
+      response: { id: "tool-response", status: "completed", output: [{ type: "function_call", status: "completed", call_id: "audio-tool", name: "add_chords", arguments: '{"chords":["C"]}' }] },
+    });
+    await coordinator.handleEvent(audioBufferEvent("stopped", "tool-response"));
+    expect(state.replyPending).toBe(true);
+    releaseMutation?.();
+    await vi.waitFor(() => expect(transport.send).toHaveBeenCalledTimes(4));
+    await coordinator.handleEvent(audioBufferEvent("stopped", "tool-response"));
+    expect(state.replyPending).toBe(true);
+    await coordinator.handleEvent({ type: "response.created", response: { id: "continuation" } });
+    await coordinator.handleEvent(audioBufferEvent("started", "continuation"));
+    await coordinator.handleEvent(finishedResponse("continuation"));
+    expect(state.replyPending).toBe(true);
+    await coordinator.handleEvent(audioBufferEvent("stopped", "continuation"));
+    expect(state.replyPending).toBe(false);
+  });
+
+  it("clears a draft only when that exact typed item is acknowledged", async () => {
+    const { coordinator, sink, state } = await typedCoordinatorFixture();
+    coordinator.sendText("  Keep my draft.  ");
+    expect(state.textPending).toBe(true);
+    expect(sink.acknowledgeTextDraft).not.toHaveBeenCalled();
+    await coordinator.handleEvent(finishedResponse("answer"));
+    expect(state.replyPending).toBe(true);
+    await coordinator.handleEvent(typedAcknowledgement("unrelated-item", "Keep my draft."));
+    expect(state.textPending).toBe(true);
+    expect(sink.acknowledgeTextDraft).not.toHaveBeenCalled();
+    await coordinator.handleEvent(typedAcknowledgement("hh_typed_1", "Keep my draft."));
+    expect(sink.acknowledgeTextDraft).toHaveBeenCalledExactlyOnceWith("  Keep my draft.  ");
+    expect(state.textPending).toBe(false);
+    expect(state.replyPending).toBe(false);
+  });
+
+  it.each(["provider-error", "disconnect"])("retains the draft after successful local sends followed by %s before acknowledgement", async (failure) => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { coordinator, sink, state, transport, bridge } = await typedCoordinatorFixture();
+    expect(coordinator.sendText("Do not lose this request.")).toBe("sent");
+    expect(transport.send).toHaveBeenCalledTimes(2);
+    if (failure === "provider-error") {
+      await coordinator.handleEvent({ type: "error", error: { code: "invalid_request_error" } });
+    } else {
+      coordinator.handleDisconnected();
+    }
+    expect(sink.acknowledgeTextDraft).not.toHaveBeenCalled();
+    expect(state.textPending).toBe(false);
+    coordinator.beginSession(bridge, "text");
+    expect(sink.acknowledgeTextDraft).not.toHaveBeenCalled();
   });
 
   it.each([false, true])("fails closed when a typed exchange is only partly sent (item sent: %s)", async (itemSent) => {

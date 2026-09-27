@@ -41,6 +41,8 @@ export function VoiceAgentProvider({
   const [agentReplyCount, setAgentReplyCount] = useState(0);
   const [agentReplyAudioBaseline, setAgentReplyAudioBaseline] = useState(0);
   const [replyPending, setReplyPending] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [textPending, setTextPending] = useState(false);
 
   const [coordinator] = useState(
     () => new VoiceAgentEventCoordinator(bridge, {
@@ -50,6 +52,10 @@ export function VoiceAgentProvider({
       setAgentReplyCount,
       setAgentReplyAudioBaseline,
       setReplyPending,
+      setTextPending,
+      acknowledgeTextDraft: (sentDraft) => {
+        setDraft((currentDraft) => currentDraft === sentDraft ? "" : currentDraft);
+      },
       setFatalError: (errorMessage) => {
         setSessionKind(null);
         setMessage(errorMessage);
@@ -139,6 +145,9 @@ export function VoiceAgentProvider({
       startSession,
       endSession,
       sendText,
+      draft,
+      setDraft,
+      textPending,
       replyPending,
       resumePlayback,
       setVolume,
@@ -157,6 +166,8 @@ export function VoiceAgentProvider({
       startSession,
       endSession,
       sendText,
+      draft,
+      textPending,
       replyPending,
       resumePlayback,
       setVolume,

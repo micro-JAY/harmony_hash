@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
   emitRealtimeEvent,
+  disconnectRealtimeVoice,
   installRealtimeVoiceMock,
   realtimeVoiceMockState,
   resolveMockMicrophone,
@@ -39,13 +40,18 @@ test.describe("Harmony voice sessions", () => {
     const input = dialog.getByRole("textbox", { name: "Message Harmony" });
     await input.fill("Build Dm7 G7 Cmaj7.");
     await expect(dialog.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
+    await emitRealtimeEvent(page, { type: "output_audio_buffer.started", response_id: "greeting" });
     await emitRealtimeEvent(page, {
       type: "response.done", event_id: "greeting-done",
       response: { id: "greeting", status: "completed", output: [] },
     });
+    await expect(dialog.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
+    await emitRealtimeEvent(page, { type: "output_audio_buffer.stopped", response_id: "greeting" });
     await expect(dialog.getByText("Ready", { exact: true })).toBeVisible();
     await input.press("Enter");
-    await expect(input).toHaveValue("");
+    await expect(input).toHaveValue("Build Dm7 G7 Cmaj7.");
+    await expect(input).toHaveAttribute("readonly", "");
+    await expect(dialog.getByText("Sending your message…")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
     const state = await realtimeVoiceMockState(page);
     expect(state.micRequests).toBe(0);
@@ -64,6 +70,8 @@ test.describe("Harmony voice sessions", () => {
       type: "conversation.item.added", event_id: "typed-user", previous_item_id: null,
       item: { id: "hh_typed_1", type: "message", role: "user", content: [{ type: "input_text", text: "Build Dm7 G7 Cmaj7." }] },
     });
+    await expect(input).toHaveValue("");
+    await expect(input).toBeEditable();
     await expect(dialog.getByRole("listitem").filter({ hasText: "Build Dm7 G7 Cmaj7." })).toBeVisible();
     await emitRealtimeEvent(page, {
       type: "response.done", event_id: "typed-tool",
@@ -83,11 +91,16 @@ test.describe("Harmony voice sessions", () => {
       type: "response.output_audio_transcript.done", event_id: "typed-agent-transcript", response_id: "typed-answer",
       item_id: "typed-agent", transcript: "Here is a two-five-one in C major.",
     });
+    await emitRealtimeEvent(page, { type: "output_audio_buffer.started", response_id: "typed-answer" });
     await emitRealtimeEvent(page, {
       type: "response.done", event_id: "typed-answer-done",
       response: { id: "typed-answer", status: "completed", output: [] },
     });
     await expect(dialog.getByText("Here is a two-five-one in C major.")).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
+    await emitRealtimeEvent(page, { type: "output_audio_buffer.stopped", response_id: "greeting" });
+    await expect(dialog.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
+    await emitRealtimeEvent(page, { type: "output_audio_buffer.stopped", response_id: "typed-answer" });
     await expect(dialog.getByRole("button", { name: "Send", exact: true })).toBeEnabled();
     await expect(dialog).toHaveAttribute("data-session-kind", "voice");
     await page.screenshot({ path: "/tmp/harmony-typed-desktop.png" });
@@ -95,6 +108,40 @@ test.describe("Harmony voice sessions", () => {
     await expect(dialog.getByRole("radio", { name: "Voice", exact: true })).toBeEnabled();
     expect((await realtimeVoiceMockState(page)).micRequests).toBe(0);
   });
+
+  for (const failure of ["provider error", "channel close"] as const) {
+    test(`retains an unacknowledged Type draft after ${failure}`, async ({ page }) => {
+      await installRealtimeVoiceMock(page);
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      await openHarmony(page);
+      const dialog = page.getByRole("dialog", { name: "Harmony" });
+      await dialog.getByText("Type", { exact: true }).click();
+      await dialog.getByRole("button", { name: "Harmony, Help!" }).click();
+      await expect(dialog.getByText("Responding", { exact: true })).toBeVisible();
+      await emitRealtimeEvent(page, {
+        type: "response.done", response: { id: "greeting", status: "completed", output: [] },
+      });
+      const input = dialog.getByRole("textbox", { name: "Message Harmony" });
+      await input.fill("Do not lose this request.");
+      await dialog.getByRole("button", { name: "Send", exact: true }).click();
+      await expect(input).toHaveValue("Do not lose this request.");
+      const sent = (await realtimeVoiceMockState(page)).sentEvents;
+      expect(sent.filter((event) => event.type === "conversation.item.create")).toHaveLength(1);
+      expect(sent.filter((event) => event.type === "response.create")).toHaveLength(2);
+      await dialog.getByRole("button", { name: "Close Harmony" }).click();
+      if (failure === "provider error") {
+        await emitRealtimeEvent(page, { type: "error", error: { code: "invalid_request_error" } });
+      } else {
+        await disconnectRealtimeVoice(page);
+      }
+      await page.getByRole("button", { name: HELP_LABEL }).click();
+      await expect(dialog.getByRole("alert")).toBeVisible();
+      await dialog.getByRole("button", { name: "Harmony, Help!" }).click();
+      await expect(input).toHaveValue("Do not lose this request.");
+      await expect(input).toBeEditable();
+      expect((await realtimeVoiceMockState(page)).micRequests).toBe(0);
+    });
+  }
 
   test("preserves a Type draft across popup closes and fits a mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });

@@ -24,9 +24,10 @@ test("offers HASHER, TUNE TOOLBOX, and FRET FINDER completely in Japanese", asyn
   await page.getByRole("button", { name: "Switch language to Japanese" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   const nav = page.getByRole("navigation", { name: "ワークスペース" });
-  await expect(nav.getByRole("button")).toHaveCount(2);
+  await expect(nav.getByRole("button")).toHaveCount(3);
   await expect(nav.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
   await expect(nav.getByRole("button", { name: "チューン・ツールボックス", exact: true })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "ディスカバリー", exact: true })).toBeVisible();
   await expect(nav.getByRole("button", { name: "フレット・ファインダー", exact: true })).toHaveCount(0);
   await expect(page.getByRole("group", { name: "ハッシャーのハーモニー設定" })).toBeVisible();
   await expect(page.getByRole("button", { name: "共有", exact: true })).toBeVisible();

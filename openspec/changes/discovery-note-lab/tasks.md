@@ -10,7 +10,7 @@
 ## 3. Discovery workspace
 
 - [x] 3.1 Build responsive selectable piano/fretboard, chord HUD and accompaniment controls with localization; verify accessible rendered markup and English/Japanese coverage.
-- [ ] 3.2 Integrate the delivered shell contract and run the focused end-to-end tests in the v4 integration worktree; verify desktop/mobile interactions with no runtime errors. The integration owner also forwards allowRests to the updated audio scheduling API.
+- [x] 3.2 Integrate the delivered shell contract and run the focused end-to-end tests in the v4 integration worktree; verify desktop/mobile interactions with no runtime errors. The integration owner also forwards allowRests to the updated audio scheduling API.
 
 ## 4. Handoff
 

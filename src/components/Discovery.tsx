@@ -99,7 +99,8 @@ export default function Discovery({ active = true, playbackRequest = null, progr
           : live.midiState.status === "connected" ? "MIDI connected" : "";
 
   return (
-    <section className="discovery-workspace mx-auto w-full max-w-6xl px-4" aria-labelledby="discovery-title" data-testid="discovery" data-reduced-motion={reducedMotion ? "true" : "false"}>
+    <section className="hh-workspace discovery-workspace" aria-labelledby="discovery-title" data-testid="discovery" data-reduced-motion={reducedMotion ? "true" : "false"}>
+      <div className="hh-workspace__inner">
       <WorkspaceHeader titleId="discovery-title" title="Discovery" description="Find the name inside the notes. Choose a few, or play them live." />
 
       <div className="discovery-controls">
@@ -168,6 +169,7 @@ export default function Discovery({ active = true, playbackRequest = null, progr
           }} /><output>{bpm} BPM</output></label>
         </> : null}
       </section>
+      </div>
     </section>
   );
 }

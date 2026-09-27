@@ -155,7 +155,7 @@ export function createDiscoveryLoop<Context extends DiscoveryLoopContext>(deps: 
     let resumeTimer: ReturnType<typeof setTimeout> | null = null;
     try {
       snapshot = { ...request, voicings: request.voicings.map((notes) => [...notes]) };
-      events = buildMidiPlaybackSchedule(snapshot.voicings, snapshot.bpm, snapshot.beatsPerChord);
+      events = buildMidiPlaybackSchedule(snapshot.voicings, snapshot.bpm, snapshot.beatsPerChord, snapshot.allowRests);
       if (!context || context.state === "closed") context = deps.createContext();
       if (!context) throw new Error("Web Audio is unavailable");
       deps.onState({ phase: "starting", chordIndex: null });

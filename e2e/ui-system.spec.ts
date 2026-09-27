@@ -11,6 +11,7 @@ const VIEWPORTS = [
 const WORKSPACES = [
   { button: "TUNE TOOLBOX", title: "TUNE TOOLBOX", level: 1, size: 32 },
   { button: "FRET FINDER", title: "FRET FINDER", level: 2, size: 24 },
+  { button: "DISCOVERY", title: "DISCOVERY", level: 1, size: 32 },
 ] as const;
 
 async function expectNoDocumentOverflow(page: Page): Promise<void> {

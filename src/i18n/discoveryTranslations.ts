@@ -54,6 +54,7 @@ export const discoveryTranslations: Record<"en" | "ja", Record<string, string>> 
   ja: {
     ...Object.fromEntries(Object.entries(CHORD_QUALITIES).map(([name, label]) => [`discovery.quality.${name}`, label])),
     Discovery: "ディスカバリー",
+    "Loading Discovery…": "ディスカバリーを読み込み中…",
     "Find the name inside the notes. Choose a few, or play them live.": "音からコードを見つけよう。音を選ぶか、そのまま弾いてみてください。",
     "Discovery instrument": "ディスカバリーの楽器",
     "Discovery piano": "ディスカバリーのピアノ",

@@ -41,6 +41,7 @@ test.describe("DISCOVERY", () => {
     await piano.getByRole("button", { name: "Bb4 / A#4", exact: true }).click();
     await expect(page.getByTestId("discovery-chord-name")).toHaveText("Cmin7");
     await expect(page.getByTestId("discovery-hud")).toContainText("Eb/C");
+    await expect(page.getByTestId("discovery")).toHaveScreenshot("discovery-minor-seventh.png");
     await piano.getByRole("button", { name: "Bb4 / A#4", exact: true }).click();
     await piano.getByRole("button", { name: "Bb3 / A#3", exact: true }).click();
     await expect(page.getByTestId("discovery-chord-name")).toHaveText("Eb6/Bb");
@@ -61,6 +62,34 @@ test.describe("DISCOVERY", () => {
     await expect(page.getByTestId("discovery-chord-name")).toHaveText("Csus4");
     await page.getByRole("group", { name: "Discovery instrument" }).getByRole("button", { name: "Piano", exact: true }).click();
     await expect(page.getByRole("button", { name: "C4", exact: true })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("localizes the Discovery controls and chord quality in Japanese", async ({ page }) => {
+    await openDiscovery(page);
+    await page.getByRole("button", { name: "Switch language to Japanese" }).click();
+    await expect(page.getByRole("heading", { name: "ディスカバリー", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "MIDIを接続", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "PCキーボード", exact: true })).toBeVisible();
+    for (const name of ["C4", "Eb4 / D#4", "G4"]) await page.getByRole("button", { name, exact: true }).click();
+    await expect(page.getByTestId("discovery-hud")).toContainText("マイナー・トライアド");
+    await expect(page.getByRole("button", { name: "音をクリア", exact: true })).toBeEnabled();
+  });
+
+  test("loops mixed ukulele shapes without dropping unsupported chord slots", async ({ page }) => {
+    await page.goto("/");
+    await composeProgression(page, ["C", "F#maj9", "G7"]);
+    await page.getByRole("button", { name: "Ukulele", exact: true }).click();
+    await page.getByRole("button", { name: "DISCOVERY", exact: true }).click();
+    await page.getByRole("slider", { name: "Discovery loop tempo" }).press("End");
+    await page.getByRole("button", { name: "Play Discovery loop", exact: true }).click();
+    const timeline = page.getByLabel("Hasher progression");
+    await expect(timeline.locator('[aria-current="step"]')).toHaveText("F#maj9");
+    await expect(timeline.locator('[aria-current="step"]')).toHaveText("G7");
+    await expect(timeline.locator('[aria-current="step"]')).toHaveText("C");
+    await page.getByRole("button", { name: "Stop Discovery loop", exact: true }).click();
+    await page.getByRole("button", { name: "HASHER", exact: true }).click();
+    await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["C", "F#maj9", "G7"]);
+    await expect(page.getByTestId("ukulele-unavailable")).toHaveCount(1);
   });
 
   test("plays Ableton-style keyboard notes only when enabled and cleans up on blur and tab exit", async ({ page }) => {

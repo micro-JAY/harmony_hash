@@ -75,6 +75,7 @@ import {
   type TimelineTransactionResult,
 } from "./lib/timelineTransactions";
 import type { GuitarMidiVoicingState } from "./lib/guitarPlayback";
+import type { DiscoveryPlaybackRequest } from "./lib/discovery/discoveryAudio";
 import { getInstrumentVariantCount, getUkuleleVoicing } from "./lib/ukuleleVoicings";
 import {
   isExplicitOnboardingDismissal,
@@ -84,6 +85,7 @@ import {
 import { randomOnboardingDescription } from "./onboardingCopy";
 
 const TheoryWorkspace = lazy(() => import("./components/TheoryWorkspace"));
+const Discovery = lazy(() => import("./components/Discovery"));
 const ImprovInsight = lazy(() => import("./components/ImprovInsight"));
 
 let voiceRuntimePromise: Promise<typeof import("./voice/VoiceAgentRuntime")> | null = null;
@@ -153,6 +155,12 @@ function App() {
     initialShare.status === "valid" ? initialShare.share.instrument : "guitar",
   );
   const [workspace, setWorkspace] = useState<Workspace>("builder");
+  const [discoveryVisited, setDiscoveryVisited] = useState(false);
+
+  function handleWorkspaceChange(next: Workspace) {
+    if (next === "discovery") setDiscoveryVisited(true);
+    setWorkspace(next);
+  }
   const helpButtonRef = useRef<HTMLButtonElement>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(() => {
     // Keep the returning-visitor fixture useful for automated flows while the
@@ -597,6 +605,18 @@ function App() {
     : instrument === "ukulele" || guitarMidiFailed
       ? "error"
       : "preparing";
+  const discoveryPlaybackRequest = useMemo<DiscoveryPlaybackRequest | null>(() => (
+    chords.length > 0 && instrumentPlaybackReady
+      ? {
+          timbre: instrument,
+          voicings: midiExportVoicings,
+          bpm: PLAYBACK_BPM,
+          beatsPerChord: 2,
+          allowRests: instrument === "ukulele",
+        }
+      : null
+  ), [chords.length, instrument, instrumentPlaybackReady, midiExportVoicings]);
+  const discoveryProgressionLabels = useMemo(() => chords.map(({ input }) => input), [chords]);
 
   const isPlaying = playbackPhase === "playing";
   const isPlaybackStarting = playbackPhase === "starting";
@@ -899,7 +919,7 @@ function App() {
     <div className="min-h-screen flex flex-col">
       <Header
         workspace={workspace}
-        onWorkspaceChange={setWorkspace}
+        onWorkspaceChange={handleWorkspaceChange}
         onOpenHelp={() => {
           setOnboardingDescriptionKey(randomOnboardingDescription());
           setOnboardingOpen(true);
@@ -998,6 +1018,19 @@ function App() {
               ) : null}
             </Suspense>
           </div>
+
+          {discoveryVisited ? (
+            <div hidden={workspace !== "discovery"}>
+              <Suspense fallback={<section className="hh-workspace" role="status">{t("Loading Discovery…")}</section>}>
+                <Discovery
+                  active={workspace === "discovery"}
+                  playbackRequest={discoveryPlaybackRequest}
+                  progressionLabels={discoveryProgressionLabels}
+                  onBeforeLoopStart={playbackController.stop}
+                />
+              </Suspense>
+            </div>
+          ) : null}
 
           {/* Progression playback and voicing actions. */}
           <section

@@ -26,6 +26,27 @@ function loopFixture() {
 }
 
 describe("Discovery accompaniment", () => {
+  it("preserves silent ukulele slots and the full loop duration", async () => {
+    const { loop, schedule, onError } = loopFixture();
+    expect(await loop.start({ timbre: "ukulele", voicings: [[60], [], [67], []], bpm: 120, allowRests: true })).toBe(true);
+    const events = schedule.mock.calls[0][0];
+    expect(events.map(({ notes, chordIndex }) => ({ notes, chordIndex }))).toEqual([
+      { notes: [60], chordIndex: 0 }, { notes: [], chordIndex: 1 },
+      { notes: [67], chordIndex: 2 }, { notes: [], chordIndex: 3 },
+    ]);
+    expect(events[3].startTime).toBeCloseTo(3.03);
+    expect(schedule.mock.calls[1][0][0].startTime).toBeCloseTo(4.03);
+    expect(onError).not.toHaveBeenCalled();
+    loop.stop();
+  });
+
+  it("rejects an entirely silent ukulele loop", async () => {
+    const { loop, schedule, onError } = loopFixture();
+    expect(await loop.start({ timbre: "ukulele", voicings: [[], []], bpm: 120, allowRests: true })).toBe(false);
+    expect(schedule).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "Playback requires at least one playable chord" }));
+  });
+
   it("queues continuous cycles on the audio clock and preserves immutable voicings", async () => {
     const { loop, schedule, stops, onError } = loopFixture();
     const voicings = [[60, 64, 67], [62, 65, 69]];

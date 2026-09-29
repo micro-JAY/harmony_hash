@@ -60,6 +60,19 @@ function containsSequence(bytes: Uint8Array, sequence: readonly number[]): boole
 }
 
 describe("createProgressionMidiFile", () => {
+  it("keeps leading, middle, and trailing unavailable ukulele shapes as full-bar rests", () => {
+    const bytes = createProgressionMidiFile([[], [67, 60, 64, 72], [], [69], []], { allowRests: true });
+    const events = parsedNoteEvents(bytes);
+    expect(events.filter((event) => event.kind === "on")).toEqual([
+      { kind: "on", note: 60, tick: MIDI_TICKS_PER_BAR },
+      { kind: "on", note: 64, tick: MIDI_TICKS_PER_BAR },
+      { kind: "on", note: 67, tick: MIDI_TICKS_PER_BAR },
+      { kind: "on", note: 72, tick: MIDI_TICKS_PER_BAR },
+      { kind: "on", note: 69, tick: MIDI_TICKS_PER_BAR * 3 },
+    ]);
+    expect([...bytes.slice(-5)]).toEqual([...encodeMidiVariableLength(MIDI_TICKS_PER_BAR), 0xff, 0x2f, 0x00]);
+    expect(() => createProgressionMidiFile([[]], { allowRests: true })).toThrow(/At least one playable/);
+  });
   it("writes a deterministic Type-0 480-PPQ file with one 4/4 bar per chord", () => {
     const bytes = createProgressionMidiFile([
       [60, 64, 67, 60],

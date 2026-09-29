@@ -13,6 +13,7 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
   const reduceMotion = useReducedMotion();
   const options = [
     { value: "guitar", label: "Guitar", Icon: Guitar },
+    { value: "ukulele", label: "Ukulele", Icon: Guitar },
     { value: "piano", label: "Piano", Icon: Piano },
   ] as const;
 
@@ -54,7 +55,8 @@ export default function InstrumentToggle({ instrument, onInstrumentChange }: Ins
               transitionTimingFunction: "var(--ease-out)",
             }}
           >
-            <Icon size={21} strokeWidth={1.8} aria-hidden="true" />
+            <Icon size={value === "ukulele" ? 17 : 21} strokeWidth={1.8} aria-hidden="true" />
+            {value === "ukulele" ? <span className="ml-1 text-xs">{t("Uke")}</span> : null}
           </button>
         );
       })}

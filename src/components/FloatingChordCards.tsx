@@ -44,6 +44,10 @@ const FLOATING_CARD_PLACEMENT_TOKENS = {
     width: "--floating-chord-card-guitar-width",
     height: "--floating-chord-card-guitar-placement-height",
   },
+  ukulele: {
+    width: "--floating-chord-card-guitar-width",
+    height: "--floating-chord-card-guitar-placement-height",
+  },
   piano: {
     width: "--floating-chord-card-piano-width",
     height: "--floating-chord-card-piano-placement-height",
@@ -210,7 +214,7 @@ function readFloatingCardPlacementMetrics(): FloatingCardPlacementMetricsByInstr
     ),
     ...sharedMetrics,
   });
-  return { guitar: readMetrics("guitar"), piano: readMetrics("piano") };
+  return { guitar: readMetrics("guitar"), ukulele: readMetrics("ukulele"), piano: readMetrics("piano") };
 }
 
 function samePlacementMetrics(
@@ -223,6 +227,11 @@ function samePlacementMetrics(
     && first.guitar.edgeGap === second.guitar.edgeGap
     && first.guitar.pointerGap === second.guitar.pointerGap
     && first.guitar.toolbarHeight === second.guitar.toolbarHeight
+    && first.ukulele.width === second.ukulele.width
+    && first.ukulele.height === second.ukulele.height
+    && first.ukulele.edgeGap === second.ukulele.edgeGap
+    && first.ukulele.pointerGap === second.ukulele.pointerGap
+    && first.ukulele.toolbarHeight === second.ukulele.toolbarHeight
     && first.piano.width === second.piano.width
     && first.piano.height === second.piano.height
     && first.piano.edgeGap === second.piano.edgeGap

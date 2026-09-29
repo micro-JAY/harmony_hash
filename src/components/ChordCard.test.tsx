@@ -14,7 +14,7 @@ function renderChordCard({
   isPlaying?: boolean;
   isAgentHighlighted?: boolean;
   chordName?: string;
-  instrument?: "guitar" | "piano";
+  instrument?: "guitar" | "piano" | "ukulele";
   showLock?: boolean;
 } = {}): string {
   const chord = lookupChord(chordName);
@@ -75,6 +75,20 @@ describe("ChordCard emphasis", () => {
 });
 
 describe("ChordCard visual controls", () => {
+  it("renders genuine ukulele shapes and honest limitations per card", () => {
+    const markup = renderChordCard({ instrument: "ukulele", chordName: "C" });
+    expect(markup).toContain('data-testid="ukulele-chord-diagram"');
+    expect(markup).toContain('data-frets="0-0-0-3"');
+    expect(markup).not.toContain('data-testid="guitar-chord-diagram"');
+    expect(markup).not.toContain('data-testid="piano-keyboard"');
+    expect(markup).toContain("Next ukulele variant");
+    expect(renderChordCard({ instrument: "ukulele", chordName: "C9" }))
+      .toContain("Reduced voicing; omitted tones");
+    const unavailable = renderChordCard({ instrument: "ukulele", chordName: "Dm7/C#" });
+    expect(unavailable).toContain('data-testid="ukulele-unavailable"');
+    expect(unavailable).toContain("No playable shape with this bass");
+    expect(unavailable).toContain("Dm7/C#");
+  });
   it("colors the chord title by its harmonic family", () => {
     const markup = renderChordCard({ chordName: "Dm7" });
 

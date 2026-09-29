@@ -206,6 +206,10 @@ body {
     grid-template-columns: 0 repeat(13, minmax(24px, 1fr));
   }
 
+  .hh-fretboard-embedded .hh-fretboard-row {
+    min-width: max-content;
+  }
+
   .hh-fretboard-row-label {
     visibility: hidden;
     padding: 0;
@@ -239,6 +243,13 @@ body {
     width: calc(100% + (2 * var(--space-4)));
     margin-inline: calc(-1 * var(--space-4));
     overflow-x: hidden;
+  }
+
+  /* A nested tool has its own padding; keep narrow boards scrollable inside it. */
+  .hh-fretboard-embedded .hh-fretboard-scroller {
+    width: 100%;
+    margin-inline: 0;
+    overflow-x: auto;
   }
 
   .hh-fretboard-hint-full {
@@ -295,7 +306,9 @@ body {
 }
 
 .hh-control-group {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .hh-control-label {
@@ -310,7 +323,41 @@ body {
   text-transform: uppercase;
 }
 
+.hh-tool-settings {
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.hh-tool-settings > summary {
+  width: fit-content;
+  min-height: var(--control-min-height);
+  padding: var(--space-3) var(--space-2);
+  cursor: pointer;
+  font-weight: var(--weight-semibold);
+}
+
+.hh-tool-settings > summary:focus-visible {
+  outline: 2px solid var(--interactive-primary-bg);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.hh-tool-settings[open] > summary {
+  color: var(--text-primary);
+}
+
+.hh-tool-settings--inline {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.hh-tool-settings--inline > .hh-control-group {
+  margin-top: var(--space-2);
+}
+
 .hh-select {
+  height: var(--control-min-height);
   min-height: var(--control-min-height);
   padding: var(--space-2) var(--space-3);
   color: var(--text-primary);
@@ -326,6 +373,7 @@ body {
   display: inline-flex;
   gap: var(--space-1);
   min-height: var(--control-min-height);
+  height: var(--control-min-height);
   padding: var(--space-1);
   background: var(--surface-overlay);
   border: 1px solid var(--border-subtle);
@@ -334,7 +382,7 @@ body {
 
 .hh-segmented__option {
   display: inline-flex;
-  min-height: 2.125rem;
+  min-height: 0;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
@@ -437,7 +485,7 @@ body {
   display: grid;
   min-width: min(100%, 20rem);
   flex: 1 1 24rem;
-  grid-template-columns: minmax(12rem, 26rem) var(--control-action-width);
+  grid-template-columns: minmax(12rem, 26rem) var(--hasher-instrument-width);
   align-items: end;
   justify-content: space-between;
   gap: var(--space-3);
@@ -445,8 +493,8 @@ body {
 
 .hh-instrument-picker-slot {
   display: flex;
-  width: var(--control-action-width);
-  flex: 0 0 var(--control-action-width);
+  width: var(--hasher-instrument-width);
+  flex: 0 0 var(--hasher-instrument-width);
   margin-left: auto;
 }
 
@@ -1013,7 +1061,7 @@ svg [data-note-tooltip="true"]:focus-visible {
   .hh-chord-browser-context-rail {
     min-width: 100%;
     flex-basis: 100%;
-    grid-template-columns: minmax(0, 1fr) var(--control-action-width);
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

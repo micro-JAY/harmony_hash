@@ -2,7 +2,7 @@ import { prefersFlatNotation } from "../chordData";
 import { pitchClassOf, scaleIntervalsFor, spellScaleNotes } from "./scaleBasics";
 import type { ScaleFormulaType } from "./scaleBasics";
 
-export type FretboardInstrument = "guitar" | "bass";
+export type FretboardInstrument = "guitar" | "bass" | "ukulele";
 export type FretboardTuningId =
   | "guitar-standard"
   | "guitar-drop-d"
@@ -10,7 +10,8 @@ export type FretboardTuningId =
   | "guitar-open-g"
   | "bass-standard"
   | "bass-drop-d"
-  | "bass-bead";
+  | "bass-bead"
+  | "ukulele-standard";
 
 export interface FretboardTuning {
   readonly id: FretboardTuningId;
@@ -73,6 +74,10 @@ function freezeTuning(
 }
 
 const FRETBOARD_TUNINGS: ReadonlyArray<FretboardTuning> = Object.freeze([
+  freezeTuning("ukulele-standard", "ukulele", "Standard high-G", "G C E A", [
+    freezeString(1, "A", 9, 69, "A4"), freezeString(2, "E", 4, 64, "E4"),
+    freezeString(3, "C", 0, 60, "C4"), freezeString(4, "G", 7, 67, "G4"),
+  ]),
   freezeTuning("guitar-standard", "guitar", "Standard", "E A D G B E", [
     freezeString(1, "E", 4, 64, "high E"), freezeString(2, "B", 11, 59, "B"),
     freezeString(3, "G", 7, 55, "G"), freezeString(4, "D", 2, 50, "D"),
@@ -110,6 +115,7 @@ const FRETBOARD_TUNINGS: ReadonlyArray<FretboardTuning> = Object.freeze([
 const DEFAULT_TUNING_IDS: Readonly<Record<FretboardInstrument, FretboardTuningId>> = Object.freeze({
   guitar: "guitar-standard",
   bass: "bass-standard",
+  ukulele: "ukulele-standard",
 });
 
 const TUNING_BY_ID = new Map(FRETBOARD_TUNINGS.map((tuning) => [tuning.id, tuning]));
@@ -117,6 +123,7 @@ const TUNINGS_BY_INSTRUMENT: Readonly<Record<FretboardInstrument, ReadonlyArray<
   Object.freeze({
     guitar: Object.freeze(FRETBOARD_TUNINGS.filter((tuning) => tuning.instrument === "guitar")),
     bass: Object.freeze(FRETBOARD_TUNINGS.filter((tuning) => tuning.instrument === "bass")),
+    ukulele: Object.freeze(FRETBOARD_TUNINGS.filter((tuning) => tuning.instrument === "ukulele")),
   });
 
 const SHARP_NOTE_LABELS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;

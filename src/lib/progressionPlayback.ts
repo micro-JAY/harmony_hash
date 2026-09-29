@@ -59,12 +59,12 @@ function resumeWithin<Context extends ResumableAudioContext>(
 }
 
 function snapshotRequest(request: ProgressionPlaybackRequest): ProgressionPlaybackRequest {
-  if (request.timbre !== "piano" && request.timbre !== "guitar") {
+  if (request.timbre !== "piano" && request.timbre !== "guitar" && request.timbre !== "ukulele") {
     throw new Error(`Unsupported playback timbre: ${String(request.timbre)}`);
   }
   const voicings = request.voicings.map((voicing) => {
     const snapshot = [...voicing];
-    if (snapshot.length === 0 || snapshot.some((midi) => !Number.isInteger(midi) || midi < 0 || midi > 127)) {
+    if ((!request.allowRests && snapshot.length === 0) || snapshot.some((midi) => !Number.isInteger(midi) || midi < 0 || midi > 127)) {
       throw new Error("Playback request contains an invalid MIDI voicing");
     }
     return Object.freeze(snapshot);
@@ -104,7 +104,8 @@ export function createProgressionPlaybackController<Context extends ResumableAud
 
     start: async (request) => {
       if (state !== "idle") return "already_active";
-      if (request.voicings.length === 0) return "unavailable";
+      if (request.voicings.length === 0
+        || (request.allowRests && !request.voicings.some((voicing) => voicing.length > 0))) return "unavailable";
 
       let requestSnapshot: ProgressionPlaybackRequest;
       try {

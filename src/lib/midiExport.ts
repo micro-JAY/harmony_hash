@@ -61,8 +61,9 @@ export function encodeMidiVariableLength(value: number): number[] {
 function normalizeChordNotes(
   notes: readonly number[],
   chordIndex: number,
+  allowRests: boolean,
 ): number[] {
-  if (notes.length === 0) {
+  if (!allowRests && notes.length === 0) {
     throw new MidiExportError(`Chord ${chordIndex + 1} has no playable MIDI notes`);
   }
 
@@ -84,21 +85,31 @@ function normalizeChordNotes(
  */
 export function createProgressionMidiFile(
   chordVoicings: readonly (readonly number[])[],
+  options: { readonly allowRests?: boolean } = {},
 ): Uint8Array {
   if (chordVoicings.length === 0) {
     throw new MidiExportError("A progression is required for MIDI export");
   }
 
-  const voicings = chordVoicings.map(normalizeChordNotes);
+  const voicings = chordVoicings.map((notes, index) => normalizeChordNotes(notes, index, options.allowRests ?? false));
+  if (!voicings.some((notes) => notes.length > 0)) {
+    throw new MidiExportError("At least one playable chord is required for MIDI export");
+  }
   const track: number[] = [
     // Delta 0, Time Signature 4/4, 24 MIDI clocks per metronome click.
     0x00, 0xff, 0x58, 0x04, 0x04, 0x02, 0x18, 0x08,
   ];
 
+  let pendingRestTicks = 0;
   for (const notes of voicings) {
-    notes.forEach((note) => {
-      track.push(0x00, 0x90 | MIDI_CHANNEL, note, MIDI_NOTE_ON_VELOCITY);
+    if (notes.length === 0) {
+      pendingRestTicks += MIDI_TICKS_PER_BAR;
+      continue;
+    }
+    notes.forEach((note, noteIndex) => {
+      track.push(...encodeMidiVariableLength(noteIndex === 0 ? pendingRestTicks : 0), 0x90 | MIDI_CHANNEL, note, MIDI_NOTE_ON_VELOCITY);
     });
+    pendingRestTicks = 0;
     notes.forEach((note, noteIndex) => {
       track.push(
         ...encodeMidiVariableLength(noteIndex === 0 ? MIDI_TICKS_PER_BAR : 0),
@@ -109,7 +120,7 @@ export function createProgressionMidiFile(
     });
   }
 
-  track.push(0x00, 0xff, 0x2f, 0x00);
+  track.push(...encodeMidiVariableLength(pendingRestTicks), 0xff, 0x2f, 0x00);
   const header = [
     ...asciiBytes("MThd"),
     ...unsigned32(6),

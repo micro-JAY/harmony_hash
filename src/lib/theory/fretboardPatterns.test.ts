@@ -23,6 +23,19 @@ function chord(name: string) {
 }
 
 describe("fretboard patterns", () => {
+  it.each(["caged", "three-nps"] as const)("keeps the remembered %s selection and explains its ukulele fallback", (family) => {
+    const rows = buildFretboardRows("ukulele", "C", "major");
+    const result = buildFretboardPattern(rows, "ukulele", "ukulele-standard", "C", "major", {
+      family, cagedForm: "e", threeNpsStartDegree: 4,
+    });
+    expect(result).toMatchObject({
+      requestedFamily: family, effectiveFamily: "all", available: false,
+      reason: PATTERN_COMPATIBILITY_REASON,
+    });
+    expect(result.positionKeys).toEqual(rows.flatMap((row) => row.positions
+      .filter((position) => position.isScaleTone)
+      .map((position) => `${position.stringNumber}:${position.fret}`)));
+  });
   it("keeps All behavior-identical and deeply frozen", () => {
     const rows = buildFretboardRows("bass", "Eb", "dorian", 15, "bass-bead");
     const result = buildFretboardPattern(rows, "bass", "bass-bead", "Eb", "dorian", {

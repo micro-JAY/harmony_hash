@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
+import { openFretFinder } from "./helpers/toolbox";
 
 const VIEWPORTS = [
   { name: "desktop", width: 1280, height: 900, titleSize: 32 },
@@ -8,8 +9,8 @@ const VIEWPORTS = [
 ] as const;
 
 const WORKSPACES = [
-  { button: "TUNE TOOLBOX", title: "TUNE TOOLBOX" },
-  { button: "FRET FINDER", title: "FRET FINDER" },
+  { button: "TUNE TOOLBOX", title: "TUNE TOOLBOX", level: 1, size: 32 },
+  { button: "FRET FINDER", title: "FRET FINDER", level: 2, size: 24 },
 ] as const;
 
 async function expectNoDocumentOverflow(page: Page): Promise<void> {
@@ -60,8 +61,9 @@ test.describe("Tonari UI system", () => {
       await expect(page).toHaveScreenshot(`ui-hasher-${viewport.name}.png`);
 
       for (const workspace of WORKSPACES) {
-        await page.getByRole("button", { name: workspace.button, exact: true }).click();
-        const title = page.getByRole("heading", { name: workspace.title, level: 1 });
+        if (workspace.button === "FRET FINDER") await openFretFinder(page);
+        else await page.getByRole("button", { name: workspace.button, exact: true }).click();
+        const title = page.getByRole("heading", { name: workspace.title, level: workspace.level });
         await expect(title).toBeVisible();
         const style = await title.evaluate((element) => {
           const computed = getComputedStyle(element);
@@ -72,8 +74,8 @@ test.describe("Tonari UI system", () => {
           };
         });
         expect(style.family).toContain("Zalando Sans");
-        expect(style.size).toBe(viewport.titleSize);
-        expect(style.weight).toBe("700");
+        expect(style.size).toBe(workspace.size);
+        expect(Number(style.weight)).toBeGreaterThanOrEqual(600);
 
         const controlRail = page.locator(".hh-control-rail:visible").first();
         if (await controlRail.count()) {

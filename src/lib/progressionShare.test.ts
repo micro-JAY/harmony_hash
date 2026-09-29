@@ -8,6 +8,15 @@ import {
 } from "./progressionShare";
 
 describe("progression share links", () => {
+  it("round-trips ukulele chord identities including unavailable shapes", () => {
+    const result = parseProgressionShareUrl(createProgressionShareUrl("https://harmony.tonari.ai/", {
+      instrument: "ukulele", chordInputs: ["C", "F#maj9", "Am"],
+    }));
+    expect(result).toMatchObject({ status: "valid", share: { instrument: "ukulele" } });
+    if (result.status === "valid") {
+      expect(result.share.chords.map(({ input }) => input)).toEqual(["C", "F#maj9", "Am"]);
+    }
+  });
   it("serializes only validated chords, instrument, and version", () => {
     const serialized = createProgressionShareUrl(
       "https://harmony.tonari.ai/?prompt=private&token=secret#voice-session",

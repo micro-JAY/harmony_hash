@@ -85,6 +85,13 @@ describe("buildPlaybackSchedule", () => {
 });
 
 describe("buildMidiPlaybackSchedule", () => {
+  it("retains unavailable ukulele slots as explicit rests without changing chord indices", () => {
+    const schedule = buildMidiPlaybackSchedule([[67, 60, 64, 72], [], [69, 60, 64, 69]], 120, 2, true);
+    expect(schedule[1]).toEqual({ startTime: 1, duration: 1, notes: [], chordIndex: 1 });
+    expect(schedule[2]).toMatchObject({ startTime: 2, chordIndex: 2 });
+    expect(() => buildMidiPlaybackSchedule([[], []], 120, 2, true)).toThrow(/at least one playable/);
+    expect(() => buildMidiPlaybackSchedule([[128], []], 120, 2, true)).toThrow(/valid MIDI/);
+  });
   it("preserves physical guitar note order and duplicate pitch classes", () => {
     expect(buildMidiPlaybackSchedule([[40, 47, 52, 55, 60, 64]], 120)).toEqual([{
       startTime: 0,
@@ -230,6 +237,22 @@ describe("playSchedule", () => {
       0, 0, 0,
     ]);
     expect(fixture.filters).toHaveLength(0);
+  });
+
+  it("strums ukulele in physical high-G order with a short plucked envelope", () => {
+    vi.useFakeTimers();
+    const fixture = createAudioFixture();
+    playSchedule(
+      [{ startTime: 0, duration: 1, notes: [67, 60, 64, 72], chordIndex: 0 }],
+      fixture.context,
+      undefined,
+      "ukulele",
+    );
+    expect(fixture.oscillators.map((oscillator) => oscillator.frequency.value))
+      .toEqual([67, 60, 64, 72].map(midiToFrequency));
+    expect(fixture.oscillators.map((oscillator) => oscillator.start.mock.calls[0]?.[0]))
+      .toEqual([0, 0.02, 0.04, 0.06]);
+    expect(fixture.filters).toHaveLength(4);
   });
 
   it("uses a bounded low-pass sawtooth strum for guitar playback", () => {

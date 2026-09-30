@@ -4,7 +4,7 @@ import { I18nProvider } from "../i18n/I18nProvider";
 import InstrumentToggle from "./InstrumentToggle";
 
 describe("InstrumentToggle", () => {
-  it("exposes one named icon-only group with 44px-capable targets", () => {
+  it("exposes three named instrument choices with 44px-capable targets", () => {
     const markup = renderToStaticMarkup(
       <I18nProvider>
         <InstrumentToggle instrument="guitar" onInstrumentChange={() => undefined} />
@@ -12,14 +12,16 @@ describe("InstrumentToggle", () => {
     );
 
     expect(markup).toContain('role="group" aria-label="Instrument"');
-    expect(markup.match(/min-height:var\(--control-min-height\)/g)).toHaveLength(3);
-    expect(markup.match(/min-width:var\(--control-min-height\)/g)).toHaveLength(2);
+    expect(markup.match(/min-height:var\(--control-min-height\)/g)).toHaveLength(4);
+    expect(markup.match(/min-width:var\(--control-min-height\)/g)).toHaveLength(3);
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain('aria-pressed="false"');
     expect(markup).toContain('aria-label="Guitar"');
     expect(markup).toContain('aria-label="Piano"');
+    expect(markup).toContain('aria-label="Ukulele"');
     expect(markup).toContain('data-instrument-option="guitar"');
     expect(markup).toContain('data-instrument-option="piano"');
+    expect(markup).toContain('data-instrument-option="ukulele"');
     expect(markup).toContain("hh-instrument-toggle__option");
     expect(markup).toContain("var(--interactive-primary-bg)");
     expect(markup).toContain("inset 0 0 0 1px var(--border-subtle)");

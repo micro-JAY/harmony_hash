@@ -1,3 +1,4 @@
+import { openFretFinder } from "./helpers/toolbox";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { contrastRatio } from "./helpers/contrast";
 import { composeProgression } from "./helpers/progression";
@@ -214,7 +215,7 @@ test.describe("global chord-family presentation", () => {
 
   test("colors FRET FINDER overlay results, selection, and readout", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+    await openFretFinder(page);
     await page.getByRole("button", { name: "Choose a chord" }).click();
     await page.getByRole("searchbox", { name: "Search chord overlay" }).fill("G7#9");
     const result = page.getByRole("list", { name: "Chord overlay results" })

@@ -1,3 +1,4 @@
+import { openFretFinder, openMoodFilter } from "./helpers/toolbox";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
@@ -231,6 +232,7 @@ test.describe("IMPROV INSIGHT", () => {
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     await page.locator("#theory-root").selectOption("D");
     await page.locator("#theory-scale").selectOption("dorian");
+    await openMoodFilter(page);
     await page.locator("#theory-mood").selectOption("jazzy");
 
     const circleDisclosure = page.locator('button[aria-controls="theory-tool-circle"]');
@@ -284,9 +286,9 @@ test.describe("IMPROV INSIGHT", () => {
     await expect(synthAb).toBeVisible();
     expect(await synthAb.evaluate((element) => getComputedStyle(element).color)).toBe(improvColor);
 
-    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
-    await page.getByRole("combobox", { name: "Fretboard root" }).selectOption("F");
-    await page.getByRole("combobox", { name: "Fretboard mode" }).selectOption("major_blues");
+    await openFretFinder(page);
+    await page.locator("#theory-root").selectOption("F");
+    await page.locator("#theory-scale").selectOption("major_blues");
     const fretAb = page.getByRole("list", { name: "Scale notes and intervals" })
       .getByRole("listitem")
       .filter({ hasText: /^Ab/ });

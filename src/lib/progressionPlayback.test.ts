@@ -260,4 +260,18 @@ describe("progression playback controller", () => {
       message: "Playback request contains an invalid MIDI voicing",
     }));
   });
+
+  it("supports explicit ukulele rests but does not report rest-only input as playback", async () => {
+    const fixture = controllerFixture();
+    await expect(fixture.controller.start({
+      timbre: "ukulele", voicings: [[], []], bpm: 120, allowRests: true,
+    })).resolves.toBe("unavailable");
+    expect(fixture.createContext).not.toHaveBeenCalled();
+    await expect(fixture.controller.start({
+      timbre: "ukulele", voicings: [[67, 60, 64, 72], []], bpm: 120, allowRests: true,
+    })).resolves.toBe("started");
+    expect(fixture.schedule.mock.calls[0]?.[0]).toMatchObject({
+      timbre: "ukulele", voicings: [[67, 60, 64, 72], []], allowRests: true,
+    });
+  });
 });

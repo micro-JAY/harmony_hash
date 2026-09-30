@@ -35,7 +35,7 @@ test.describe("Circle of Fifths", () => {
 
     await expect.poll(() => page.locator("[data-theory-tool]").evaluateAll((tools) => (
       tools.map((tool) => tool.getAttribute("data-theory-tool"))
-    ))).toEqual(["scales", "circle", "network"]);
+    ))).toEqual(["fretboard", "scales", "circle", "network"]);
     await expect(page.locator('button[aria-controls="theory-tool-scales"]'))
       .toHaveAttribute("aria-expanded", "true");
     await expect(page.locator('button[aria-controls="theory-tool-circle"]'))

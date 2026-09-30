@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lookupChord } from "../lib/chordData";
+import { getUkuleleVoicings } from "../lib/ukuleleVoicings";
 import {
   createFloatingChordCard,
   floatingChordCardAvailableHeight,
@@ -28,6 +29,17 @@ const PIANO_PLACEMENT_METRICS = {
 } as const;
 
 describe("floating chord card state", () => {
+  it("clamps ukulele pins to real ukulele variants independently of guitar assets", () => {
+    const chord = { ...requiredChord("C"), variationCount: 0 };
+    const card = createFloatingChordCard(1, chord, "C", "ukulele", { x: 100, y: 100 },
+      GUITAR_PLACEMENT_METRICS, { width: 1024, height: 768, offsetLeft: 0, offsetTop: 0 });
+    const changed = floatingChordCardsReducer([card], { type: "set-variant", id: 1, variant: 100 });
+    expect(changed[0].variant).toBe(getUkuleleVoicings(chord).length);
+    const unavailable = floatingChordCardsReducer(changed, {
+      type: "set-chord", id: 1, chord: requiredChord("F#maj9"), displayName: "F#maj9",
+    });
+    expect(unavailable[0]).toMatchObject({ variant: 1, instrument: "ukulele", displayName: "F#maj9" });
+  });
   it("captures instrument and clamps initial placement inside the viewport", () => {
     const position = floatingChordCardPosition(
       { x: 1_010, y: 750 },

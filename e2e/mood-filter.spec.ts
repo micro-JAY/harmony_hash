@@ -1,3 +1,4 @@
+import { openMoodFilter } from "./helpers/toolbox";
 import { expect, test, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
@@ -35,6 +36,7 @@ test.describe("Theory mood lens separation", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cm7", "Fm7"]);
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
+    await openMoodFilter(page);
     const mood = page.locator("#theory-mood");
     await expect(mood).toHaveValue("");
     await mood.selectOption("dark");
@@ -59,6 +61,7 @@ test.describe("Theory mood lens separation", () => {
       const issues = collectPageIssues(page);
       await page.emulateMedia({ reducedMotion: "reduce" });
       await openToolbox(page);
+      await openMoodFilter(page);
       const mood = page.locator("#theory-mood");
       await mood.focus();
       await expect(mood).toBeFocused();

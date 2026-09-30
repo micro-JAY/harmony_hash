@@ -102,7 +102,7 @@ export interface TonalityGroup {
   subgroups: Subgroup[];
 }
 
-export type Instrument = "guitar" | "piano";
+export type Instrument = "guitar" | "piano" | "ukulele";
 export type Workspace =
   | "builder"
   | "theory"

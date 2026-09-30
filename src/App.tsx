@@ -75,6 +75,7 @@ import {
   type TimelineTransactionResult,
 } from "./lib/timelineTransactions";
 import type { GuitarMidiVoicingState } from "./lib/guitarPlayback";
+import { getInstrumentVariantCount, getUkuleleVoicing } from "./lib/ukuleleVoicings";
 import {
   isExplicitOnboardingDismissal,
   onboardingPersistence,
@@ -82,7 +83,6 @@ import {
 } from "./lib/onboardingPersistence";
 import { randomOnboardingDescription } from "./onboardingCopy";
 
-const FretboardExplorer = lazy(() => import("./components/FretboardExplorer"));
 const TheoryWorkspace = lazy(() => import("./components/TheoryWorkspace"));
 const ImprovInsight = lazy(() => import("./components/ImprovInsight"));
 
@@ -181,6 +181,7 @@ function App() {
   const chords = useMemo(() => timeline.map((item) => item.value), [timeline]);
   const chordsRef = useRef(chords);
   const [cardVariants, setCardVariants] = useState<Record<number, number>>({});
+  const [ukuleleVariants, setUkuleleVariants] = useState<Record<number, number>>({});
   const [guitarVoicingStates, setGuitarVoicingStates] = useState<
     Record<TimelineItemId, GuitarMidiVoicingState>
   >({});
@@ -252,6 +253,7 @@ function App() {
     DEFAULT_THEORY_CONTEXT,
   );
   const [theoryDisclosures, setTheoryDisclosures] = useState<TheoryDisclosures>({
+    fretboard: false,
     circle: false,
     scales: true,
     network: false,
@@ -277,6 +279,7 @@ function App() {
             request.voicings,
             request.bpm,
             request.beatsPerChord,
+            request.allowRests,
           ),
           context,
           onChordChange,
@@ -337,6 +340,7 @@ function App() {
     timelineRef.current = nextTimeline;
     setTimeline(nextTimeline);
     setCardVariants({});
+    setUkuleleVariants({});
     setGuitarVoicingStates({});
     setLockedCards(new Set());
     setPianoStyles({});
@@ -356,6 +360,7 @@ function App() {
     markTimelineMutation();
     setTimeline(nextTimeline);
     setCardVariants((current) => remapIndexedRecord(current, transaction.map));
+    setUkuleleVariants((current) => remapIndexedRecord(current, transaction.map));
     const survivingIds = new Set(nextTimeline.map((item) => item.id));
     setGuitarVoicingStates((current) => Object.fromEntries(
       Object.entries(current).filter(([id]) => survivingIds.has(Number(id))),
@@ -489,12 +494,13 @@ function App() {
   }, [handleCloseImprov, improvOpen, improvOrigin]);
 
   const theoryActive = workspace === "theory"
+    || workspace === "fretboard"
     || workspace === "circle"
     || workspace === "scales"
     || workspace === "network";
 
   useEffect(() => {
-    if (workspace !== "circle" && workspace !== "scales" && workspace !== "network") return;
+    if (workspace !== "fretboard" && workspace !== "circle" && workspace !== "scales" && workspace !== "network") return;
     setTheoryDisclosures((current) => ({ ...current, [workspace]: true }));
   }, [workspace]);
 
@@ -510,12 +516,16 @@ function App() {
 
   const getVariantForCard = useCallback(
     (index: number, maxVariants: number): number =>
-      clampVariant(cardVariants[index] ?? 1, maxVariants),
-    [cardVariants],
+      clampVariant((instrument === "ukulele" ? ukuleleVariants : cardVariants)[index] ?? 1, maxVariants),
+    [cardVariants, instrument, ukuleleVariants],
   );
 
   function handleCardVariantChange(index: number, nextVariant: number, maxVariants: number) {
     playbackController.stop();
+    if (instrument === "ukulele") {
+      setUkuleleVariants((prev) => ({ ...prev, [index]: clampVariant(nextVariant, maxVariants) }));
+      return;
+    }
     const itemId = timeline[index]?.id;
     if (itemId !== undefined) {
       setGuitarVoicingStates((current) => {
@@ -553,15 +563,15 @@ function App() {
     [chords],
   );
   const guitarMidiVoicings = useMemo(() => timeline.map((item, index) => {
-    const variant = getVariantForCard(index, item.value.chord.variationCount);
+    const variant = clampVariant(cardVariants[index] ?? 1, item.value.chord.variationCount);
     const expectedPath = getSvgPath(item.value.chord, variant);
     const state = guitarVoicingStates[item.id];
     return expectedPath && state?.status === "ready" && state.voicing.sourcePath === expectedPath
       ? state.voicing.notes.map((note) => note.midi)
       : [];
-  }), [getVariantForCard, guitarVoicingStates, timeline]);
+  }), [cardVariants, guitarVoicingStates, timeline]);
   const guitarMidiFailed = timeline.some((item, index) => {
-    const variant = getVariantForCard(index, item.value.chord.variationCount);
+    const variant = clampVariant(cardVariants[index] ?? 1, item.value.chord.variationCount);
     const expectedPath = getSvgPath(item.value.chord, variant);
     const state = guitarVoicingStates[item.id];
     if (!expectedPath) return true;
@@ -570,15 +580,21 @@ function App() {
   });
   const guitarPlaybackReady = guitarMidiVoicings.length > 0
     && guitarMidiVoicings.every((voicing) => voicing.length > 0);
+  const ukuleleMidiVoicings = useMemo(() => chords.map(({ chord }, index) => (
+    getUkuleleVoicing(chord, ukuleleVariants[index] ?? 1)?.notes.map((note) => note.midi) ?? []
+  )), [chords, ukuleleVariants]);
+  const ukulelePlaybackReady = ukuleleMidiVoicings.some((voicing) => voicing.length > 0);
   const midiExportVoicings = useMemo(
     () => instrument === "piano"
       ? pianoVoicings.map((voicing) => voicing.notes.map((note) => note.midi))
-      : guitarMidiVoicings,
-    [guitarMidiVoicings, instrument, pianoVoicings],
+      : instrument === "ukulele" ? ukuleleMidiVoicings : guitarMidiVoicings,
+    [guitarMidiVoicings, instrument, pianoVoicings, ukuleleMidiVoicings],
   );
-  const midiExportAvailability = instrument === "piano" || guitarPlaybackReady
+  const instrumentPlaybackReady = instrument === "piano"
+    || (instrument === "ukulele" ? ukulelePlaybackReady : guitarPlaybackReady);
+  const midiExportAvailability = instrumentPlaybackReady
     ? "ready"
-    : guitarMidiFailed
+    : instrument === "ukulele" || guitarMidiFailed
       ? "error"
       : "preparing";
 
@@ -588,11 +604,10 @@ function App() {
   function startProgressionPlayback() {
     return playbackController.start({
       timbre: instrument,
-      voicings: instrument === "piano"
-        ? pianoVoicings.map((voicing) => voicing.notes.map((note) => note.midi))
-        : guitarMidiVoicings,
+      voicings: midiExportVoicings,
       bpm: PLAYBACK_BPM,
       beatsPerChord: 2,
+      allowRests: instrument === "ukulele",
     });
   }
 
@@ -614,11 +629,12 @@ function App() {
 
   function randomizeAll() {
     playbackController.stop();
-    if (instrument === "guitar") {
-      setCardVariants((prev) => {
+    if (instrument !== "piano") {
+      const setVariants = instrument === "ukulele" ? setUkuleleVariants : setCardVariants;
+      setVariants((prev) => {
         const next = { ...prev };
         chords.forEach((chordResult, index) => {
-          const maxVariants = chordResult.chord.variationCount;
+          const maxVariants = getInstrumentVariantCount(chordResult.chord, instrument);
           if (lockedCards.has(index)) {
             next[index] = clampVariant(prev[index] ?? 1, maxVariants);
             return;
@@ -677,6 +693,10 @@ function App() {
     setCardVariants((prev) => ({
       ...prev,
       [index]: clampVariant(prev[index] ?? 1, option.chord.variationCount),
+    }));
+    setUkuleleVariants((prev) => ({
+      ...prev,
+      [index]: clampVariant(prev[index] ?? 1, getInstrumentVariantCount(option.chord, "ukulele")),
     }));
     setPianoStyles((prev) => {
       const currentStyle = prev[index];
@@ -941,18 +961,6 @@ function App() {
             />
           </div>
 
-          {workspace === "fretboard" ? (
-            <Suspense
-              fallback={(
-                <section className="flex flex-1 items-center justify-center px-4 py-16" role="status">
-                  <span className="readout">{t(`Loading ${workspace}…`)}</span>
-                </section>
-              )}
-            >
-              <FretboardExplorer />
-            </Suspense>
-          ) : null}
-
           <div hidden={!theoryActive}>
             <Suspense
               fallback={(
@@ -1035,7 +1043,7 @@ function App() {
                             : t("Play progression")
                       }
                       aria-busy={isPlaybackStarting}
-                      disabled={isPlaybackStarting || (instrument === "guitar" && !guitarPlaybackReady)}
+                      disabled={isPlaybackStarting || !instrumentPlaybackReady}
                       className="hh-action transition-all"
                       style={{
                         backgroundColor: isPlaying
@@ -1108,7 +1116,7 @@ function App() {
           >
             <div className="hh-chord-card-grid" data-instrument={instrument}>
               {chords.map((chordResult, index) => {
-                const maxVariants = chordResult.chord.variationCount;
+                const maxVariants = getInstrumentVariantCount(chordResult.chord, instrument);
                 return (
                   <ChordCard
                     key={timeline[index]?.id ?? index}

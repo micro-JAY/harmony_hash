@@ -1,3 +1,4 @@
+import { openFretFinder } from "./helpers/toolbox";
 import { expect, test, type Page } from "@playwright/test";
 
 interface BrowserIssue {
@@ -18,7 +19,7 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 
 async function openFretboard(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+  await openFretFinder(page);
   await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
 }
 

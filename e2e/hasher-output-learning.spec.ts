@@ -69,7 +69,8 @@ test.describe("HASHER output learning controls", () => {
     await expect(page.getByTestId("hasher-interval-legend")).toHaveCount(0);
     await expect(instrument.getByRole("button", { name: "Guitar" })).toHaveText("");
     await expect(instrument.getByRole("button", { name: "Piano" })).toHaveText("");
-    await expect(instrument.locator("svg")).toHaveCount(2);
+    await expect(instrument.getByRole("button", { name: "Ukulele" })).toHaveText("Uke");
+    await expect(instrument.locator("svg")).toHaveCount(3);
     await expect(browse).toHaveCSS("min-height", "44px");
     await expect(undo).toHaveCSS("min-height", "44px");
 

@@ -1,7 +1,7 @@
 # guitar-fretboard Specification
 
 ## Purpose
-Define the fretboard explorer's scale mapping, tunings, handedness, learning patterns, chord overlays, accessibility, and responsive behavior.
+Define Fret Finder's scale mapping, tunings, handedness, learning patterns, accessibility, and responsive behavior.
 ## Requirements
 ### Requirement: Pure fretted-instrument mapping
 The system SHALL expose deterministic, side-effect-free helpers that map a root and supported scale type across a selected immutable guitar or bass tuning from open string through fret 15.

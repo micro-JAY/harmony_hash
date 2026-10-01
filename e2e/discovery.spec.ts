@@ -118,6 +118,58 @@ test.describe("DISCOVERY", () => {
     await expect(page.getByRole("button", { name: "C4", exact: true })).toHaveAttribute("aria-pressed", "true");
   });
 
+  test("selects and preserves a recommended scale without mutating Hasher or direct note states", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
+    await page.getByRole("button", { name: "DISCOVERY", exact: true }).click();
+
+    const guide = page.locator('[data-tour="discovery-improv"]');
+    const selector = page.getByRole("combobox", { name: "Recommended scale" });
+    const highlight = page.getByRole("button", { name: "Highlight", exact: true });
+    await expect(selector.locator("option")).toHaveCount(6);
+    await expect(selector.locator("option").first()).toContainText("C Major · 100%");
+    await expect(guide).toHaveAttribute("data-highlight", "false");
+    await expect(highlight).toHaveAttribute("aria-pressed", "false");
+    await expect(page.locator('.discovery-key[data-scale-tone="true"]')).toHaveCount(0);
+
+    const alternateValue = await selector.locator("option").nth(1).getAttribute("value");
+    if (!alternateValue) throw new Error("Expected a second Discovery scale recommendation");
+    await selector.selectOption(alternateValue);
+    const selectedLabel = await selector.locator("option:checked").textContent();
+    await highlight.click();
+    await expect(guide).toHaveAttribute("data-highlight", "true");
+    await expect(highlight).toHaveAttribute("aria-pressed", "true");
+
+    const scaleKeys = page.locator('.discovery-key[data-scale-tone="true"]');
+    await expect(scaleKeys).not.toHaveCount(0);
+    expect(await page.locator('.discovery-key[data-scale-root="true"]').count()).toBeGreaterThan(1);
+    const selectedScaleKey = scaleKeys.filter({ hasNot: page.locator('[data-held="true"]') }).first();
+    await selectedScaleKey.click();
+    await expect(selectedScaleKey).toHaveAttribute("aria-pressed", "true");
+    expect(await selectedScaleKey.evaluate((element) => {
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--palette-gold)";
+      document.body.append(probe);
+      const expected = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return getComputedStyle(element).backgroundColor === expected;
+    })).toBe(true);
+    await expect(selectedScaleKey).toHaveAttribute("data-scale-tone", "true");
+
+    await page.getByRole("group", { name: "Discovery instrument" })
+      .getByRole("button", { name: "Fretboard", exact: true }).click();
+    await expect(selector).toHaveValue(alternateValue);
+    await expect(highlight).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("group", { name: "Discovery guitar fretboard" }))
+      .toHaveAttribute("data-scale-overlay", selectedLabel?.replace(/ · \d+%$/, "") ?? "");
+    await expect(page.locator('.discovery-fret[data-scale-tone="true"]')).not.toHaveCount(0);
+    await expect(page.locator('.discovery-fret[data-scale-root="true"]')).not.toHaveCount(0);
+
+    await page.getByRole("button", { name: "HASHER", exact: true }).click();
+    await expect(page.getByTestId("chord-card").locator("h3")).toHaveText(["Cmaj7", "Am7", "Dm7", "G7"]);
+  });
+
   test("pins a discovered chord for later inspection without editing Hasher", async ({ page }) => {
     await page.addInitScript(() => {
       const testWindow = window as Window & { __audioContextConstructions?: number };
@@ -335,12 +387,26 @@ test.describe("DISCOVERY", () => {
 
   test("contains its instruments within a mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await openDiscovery(page);
-    await page.getByRole("button", { name: "C4", exact: true }).click();
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await composeProgression(page, ["C", "F", "G"]);
+    await page.getByRole("button", { name: "DISCOVERY", exact: true }).click();
+    await page.getByRole("button", { name: "Highlight", exact: true }).click();
+    await page.locator('.discovery-key[data-midi="60"]').click();
     await expect(page.getByTestId("discovery-chord-name")).toHaveText("C");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole("group", { name: "Discovery instrument" }).getByRole("button", { name: "Fretboard", exact: true }).click();
+    const scroller = page.getByTestId("discovery-guitar-scroller");
+    await expect(scroller).toBeVisible();
+    await expect(page.locator('.discovery-fret[data-scale-tone="true"]')).not.toHaveCount(0);
+    await expect(page.locator('.discovery-fret[data-scale-root="true"]')).not.toHaveCount(0);
+    await expect(page.locator(".discovery-fretboard__string-row")).toHaveCount(6);
+    expect(await scroller.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
     await page.locator('[data-string="5"][data-fret="3"]').click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    for (const appearance of ["dark", "light"]) {
+      await page.evaluate((theme) => { document.documentElement.dataset.theme = theme; }, appearance);
+      await expect(scroller).toHaveCSS("background-color", /rgb/);
+      await expect(page.locator('.discovery-fret[data-scale-root="true"]').first()).toBeVisible();
+    }
   });
 });

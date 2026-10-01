@@ -1,10 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { Guitar, Keyboard, Minus, Pin, Play, Plus, Square, Usb, X } from "lucide-react";
+import { Guitar, Keyboard, Minus, Pin, Play, Plus, Sparkles, Square, Usb, X } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { useT } from "../i18n/I18nContext";
 import { discoveryKeyLabel, discoveryNoteName, identifyChords, normalizeDiscoveryNotes } from "../lib/discovery/chordIdentification";
 import { createDiscoveryLoop, scheduleDiscoveryLoop } from "../lib/discovery/discoveryAudio";
 import type { DiscoveryLoopState, DiscoveryPlaybackRequest } from "../lib/discovery/discoveryAudio";
+import {
+  buildDiscoveryScaleMembership,
+  discoveryScaleSuggestionId,
+  rankDiscoveryScaleSuggestions,
+  resolveDiscoveryScaleSelection,
+  type DiscoveryProgressionChord,
+} from "../lib/discovery/scaleOverlay";
 import { chordIntervalPresentation } from "../lib/visual/chordIntervals";
 import { chordFamilyColor, classifyChordFamily } from "../lib/visual/chordFamily";
 import { intervalColor } from "../lib/visual/musicVisuals";
@@ -20,11 +27,13 @@ export interface DiscoveryProps {
   readonly active?: boolean;
   readonly playbackRequest?: DiscoveryPlaybackRequest | null;
   readonly progressionLabels?: readonly string[];
+  readonly progressionChords?: ReadonlyArray<DiscoveryProgressionChord>;
   readonly onBeforeLoopStart?: () => void;
   readonly onPinChord?: (chordName: string, point: ChordPreviewPoint) => void;
 }
 
 const EMPTY_LABELS: readonly string[] = [];
+const EMPTY_PROGRESSION_CHORDS: ReadonlyArray<DiscoveryProgressionChord> = Object.freeze([]);
 const INSTRUMENTS = [
   { value: "piano", label: "Piano", icon: <Keyboard size={15} /> },
   { value: "guitar", label: "Fretboard", icon: <Guitar size={15} /> },
@@ -34,6 +43,7 @@ export default function Discovery({
   active = true,
   playbackRequest = null,
   progressionLabels = EMPTY_LABELS,
+  progressionChords = EMPTY_PROGRESSION_CHORDS,
   onBeforeLoopStart,
   onPinChord,
 }: DiscoveryProps) {
@@ -43,6 +53,8 @@ export default function Discovery({
   const [pianoNotes, setPianoNotes] = useState<readonly number[]>([]);
   const [frets, setFrets] = useState<Readonly<Record<number, number>>>({});
   const [bpm, setBpm] = useState(playbackRequest?.bpm ?? 110);
+  const [requestedScaleId, setRequestedScaleId] = useState<string | null>(null);
+  const [highlightScale, setHighlightScale] = useState(false);
   const [loopState, setLoopState] = useState<DiscoveryLoopState>({ phase: "idle", chordIndex: null });
   const [loopError, setLoopError] = useState(false);
   const live = useDiscoveryInput(active);
@@ -84,6 +96,24 @@ export default function Discovery({
   const primaryFamily = primary ? classifyChordFamily(primary.symbol) : null;
   const primaryColor = primary ? chordFamilyColor(primaryFamily ?? primary.symbol) : "var(--text-accent)";
   const pinnableChord = primary ? lookupChord(primary.symbol) : undefined;
+  const scaleSuggestions = useMemo(
+    () => rankDiscoveryScaleSuggestions(progressionChords),
+    [progressionChords],
+  );
+  const selectedScale = useMemo(
+    () => resolveDiscoveryScaleSelection(scaleSuggestions, requestedScaleId),
+    [requestedScaleId, scaleSuggestions],
+  );
+  const resolvedScaleId = selectedScale ? discoveryScaleSuggestionId(selectedScale) : null;
+  const scaleMembership = useMemo(
+    () => selectedScale ? buildDiscoveryScaleMembership(selectedScale) : null,
+    [selectedScale],
+  );
+  const visibleScaleMembership = highlightScale ? scaleMembership : null;
+
+  if (requestedScaleId !== resolvedScaleId) {
+    setRequestedScaleId(resolvedScaleId);
+  }
 
   function startLoop(nextBpm: number) {
     if (!active || !hasProgression || !playbackRequest) return;
@@ -119,7 +149,7 @@ export default function Discovery({
       <div className="hh-workspace__inner">
       <WorkspaceHeader titleId="discovery-title" title="Discovery" description="Find the name inside the notes. Choose a few, or play them live." />
 
-      <div className="discovery-controls">
+      <div className="discovery-controls" data-tour="discovery-input">
         <WorkspaceSegmentedControl label="Discovery instrument" value={instrument} options={INSTRUMENTS} onChange={setInstrument} reducedMotion={reducedMotion} />
         <div className="discovery-input-actions">
           <div className="discovery-computer-control">
@@ -159,7 +189,7 @@ export default function Discovery({
       {midiMessage ? <p className="discovery-status" role="status">{t(midiMessage)}{selectedMidiDevice ? ` · ${selectedMidiDevice.name}` : ""}</p> : null}
       {live.audioError || loopError ? <p className="discovery-error" role="alert">{t("Audio could not start. Check your browser audio permissions and try again.")}</p> : null}
 
-      <div className="discovery-hud" aria-live="polite" aria-atomic="true" data-testid="discovery-hud">
+      <div className="discovery-hud" aria-live="polite" aria-atomic="true" data-testid="discovery-hud" data-tour="discovery-results">
         <div className="discovery-hud__main">
           <span className="hh-control-label">{t(primary ? "Chord discovered" : "Your notes")}</span>
           <h2
@@ -246,12 +276,57 @@ export default function Discovery({
         </div>
       </div>
 
+      <section
+        className="discovery-improv"
+        aria-label={t("Improv Insight scale guide")}
+        data-tour="discovery-improv"
+        data-scale-selected={selectedScale?.label ?? "none"}
+        data-highlight={visibleScaleMembership ? "true" : "false"}
+      >
+        <div className="discovery-improv__intro">
+          <span className="hh-control-label">{t("Improv Insight")}</span>
+          <p>
+            {t(selectedScale
+              ? "Choose a recommended scale, then highlight its notes on the instrument."
+              : "Build a progression in HASHER to see scale recommendations.")}
+          </p>
+        </div>
+        <label className="discovery-improv__select" htmlFor="discovery-recommended-scale">
+          <span className="hh-control-label">{t("Recommended scale")}</span>
+          <select
+            id="discovery-recommended-scale"
+            className="hh-select"
+            value={resolvedScaleId ?? ""}
+            disabled={scaleSuggestions.length === 0}
+            onChange={(event) => setRequestedScaleId(event.currentTarget.value || null)}
+          >
+            {scaleSuggestions.length === 0 ? (
+              <option value="">{t("No scale recommendations")}</option>
+            ) : scaleSuggestions.map((suggestion) => (
+              <option key={discoveryScaleSuggestionId(suggestion)} value={discoveryScaleSuggestionId(suggestion)}>
+                {t(suggestion.label)} · {suggestion.match}%
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="discovery-action discovery-improv__toggle"
+          aria-pressed={Boolean(visibleScaleMembership)}
+          disabled={!selectedScale}
+          onClick={() => setHighlightScale((current) => !current)}
+        >
+          <Sparkles size={16} aria-hidden="true" />
+          {t("Highlight")}
+        </button>
+      </section>
+
       {instrument === "piano"
-        ? <DiscoveryPiano selectedNotes={selected} heldNotes={held} octave={live.octave} keyboardEnabled={live.keyboardEnabled} onToggle={togglePiano} />
-        : <DiscoveryFretboard frets={frets} heldNotes={held} onToggle={toggleFret} />}
+        ? <DiscoveryPiano selectedNotes={selected} heldNotes={held} octave={live.octave} keyboardEnabled={live.keyboardEnabled} scaleMembership={visibleScaleMembership} onToggle={togglePiano} />
+        : <DiscoveryFretboard frets={frets} heldNotes={held} scaleMembership={visibleScaleMembership} onToggle={toggleFret} />}
       <p className="discovery-caption">{t(instrument === "piano" ? "Three octaves · Scroll sideways to explore the full keyboard." : "Standard guitar tuning · One selected fret per string · Click a selected fret to mute it.")}</p>
 
-      <section className="discovery-accompaniment" aria-labelledby="discovery-loop-title">
+      <section className="discovery-accompaniment" aria-labelledby="discovery-loop-title" data-tour="discovery-loop">
         <div className="discovery-loop-heading"><div><h2 id="discovery-loop-title">{t("Play over your progression")}</h2><p>{t(hasProgression ? "Your Hasher chords, on repeat. Play along and explore." : "Build a progression in HASHER to enable your practice loop.")}</p></div>
           <button type="button" className="discovery-action" disabled={!hasProgression} onClick={() => looping ? loop.stop() : startLoop(bpm)} aria-label={t(looping ? "Stop Discovery loop" : "Play Discovery loop")}>
             {looping ? <Square size={16} /> : <Play size={16} />}{t(loopState.phase === "starting" ? "Starting…" : looping ? "Stop loop" : "Loop progression")}

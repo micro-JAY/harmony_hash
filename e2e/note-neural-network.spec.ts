@@ -114,7 +114,7 @@ test.describe("NOTE NEURAL NETWORK in TUNE TOOLBOX", () => {
     const canvas = network.getByTestId("note-network-canvas");
     await expect(graph).toHaveAttribute("data-graph-projection", "desktop-force-canvas");
     await expect(graph).toHaveAttribute("data-graph-motion", "settled");
-    await expect(graph).toHaveCSS("background-color", "rgb(0, 0, 0)");
+    await expect(graph).toHaveCSS("background-color", "rgb(5, 5, 7)");
     await expect(canvas).toHaveAttribute("data-simulation-state", "settled");
     await expect(canvas).toHaveAttribute("data-node-count", "18");
     const canvasGeometry = await canvas.evaluate((element) => ({

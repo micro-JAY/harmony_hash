@@ -33,4 +33,4 @@
 - [x] 6.1 Run focused unit and browser suites for appearance, Help / About, Discovery, Fret Finder, guided tour, and UI tokens; fix regressions and record the exact passing commands.
 - [x] 6.2 Run `npm run lint`, `npm run build`, and `npm run test`; verify all repository checks pass without skips or focused tests.
 - [x] 6.3 Capture and inspect final dark/light desktop and mobile screenshots for Hasher, Help / About, Discovery piano/guitar, Tune Toolbox, and the live tour handoffs; verify no clipping, stale canvas palette, unreadable state, or unintended horizontal overflow.
-- [ ] 6.4 Update `docs/long_horizon_log.md`, run strict OpenSpec validation, commit with conventional messages, push the feature branch, and open the requested PR with the repository template and test/visual evidence; verify CI is green and the PR is attached to this task.
+- [x] 6.4 Update `docs/long_horizon_log.md`, run strict OpenSpec validation, commit with conventional messages, push the feature branch, and open the requested PR with the repository template and test/visual evidence; verify CI is green and the PR is attached to this task.

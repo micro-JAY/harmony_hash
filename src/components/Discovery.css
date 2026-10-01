@@ -69,6 +69,20 @@
   background: var(--surface-raised);
   min-height: calc(var(--space-20) * 2);
 }
+
+.discovery-octave .discovery-icon-action--compact {
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.discovery-octave .discovery-icon-action--compact:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text-accent);
+}
 .discovery-hud h2 { max-width: 100%; overflow: hidden; font-family: var(--font-display); font-size: clamp(var(--text-2xl), 3.2vw, var(--text-3xl)); font-weight: var(--weight-bold); line-height: var(--leading-tight); margin: var(--space-2) 0; white-space: nowrap; text-overflow: ellipsis; }
 .discovery-hud p { font-size: var(--text-sm); color: var(--text-secondary); }
 .discovery-hud__detail { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: var(--space-2); }

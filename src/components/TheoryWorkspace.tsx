@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, type ReactNode } from "react";
+import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { ALL_KEYS } from "../lib/harmonyBrain";
 import {
@@ -23,10 +23,11 @@ import {
 const CircleOfFifths = lazy(() => import("./CircleOfFifths"));
 const ScaleSynthesia = lazy(() => import("./ScaleSynthesia"));
 const NoteNeuralNetwork = lazy(() => import("./NoteNeuralNetwork"));
+const FretboardExplorer = lazy(() => import("./FretboardExplorer"));
 
 export type TheoryWorkspaceContext = TheoryContext;
 
-export type TheoryToolId = "circle" | "scales" | "network";
+export type TheoryToolId = "fretboard" | "circle" | "scales" | "network";
 export type TheoryDisclosures = Readonly<Record<TheoryToolId, boolean>>;
 
 interface TheoryWorkspaceProps {
@@ -72,6 +73,7 @@ function TheoryToolSection({
           aria-expanded={expanded}
           aria-controls={bodyId}
           onClick={() => onExpandedChange(!expanded)}
+          aria-label={t(title)}
           className="flex min-w-0 flex-1 items-center gap-3 text-left"
           style={{ color: "var(--text-primary)" }}
         >
@@ -138,6 +140,7 @@ export default function TheoryWorkspace({
   active,
 }: TheoryWorkspaceProps) {
   const t = useT();
+  const [fretboardVisited, setFretboardVisited] = useState(false);
   const moodScaleIds = useMemo(
     () => context.mood === THEORY_MOOD_ANY
       ? null
@@ -234,6 +237,8 @@ export default function TheoryWorkspace({
               <option key={scale.id} value={scale.id}>{t(scale.label)}</option>
             ))}
           </WorkspaceSelectControl>
+          <details className="hh-tool-settings hh-tool-settings--inline">
+            <summary>{t("Mood filter")}: {t(moodLabel)}</summary>
           <WorkspaceSelectControl
             id="theory-mood"
             label="Mood"
@@ -249,6 +254,7 @@ export default function TheoryWorkspace({
               <option key={mood.id} value={mood.id}>{t(mood.label)}</option>
             ))}
           </WorkspaceSelectControl>
+          </details>
         </section>
 
         <p className="mb-4 readout" role="status" style={{ color: "var(--text-secondary)" }}>
@@ -256,6 +262,23 @@ export default function TheoryWorkspace({
         </p>
 
         <div className="grid gap-4">
+          <TheoryToolSection
+            id="fretboard"
+            title="Fret Finder"
+            summary={contextSummary}
+            expanded={disclosures.fretboard}
+            onExpandedChange={(expanded) => {
+              setFretboardVisited(true);
+              onDisclosureChange("fretboard", expanded);
+            }}
+          >
+            <Suspense fallback={<span className="readout">{t("Loading Fret Finder…")}</span>}>
+              {fretboardVisited || disclosures.fretboard
+                ? <FretboardExplorer embedded root={context.root} scaleId={context.scaleId} />
+                : null}
+            </Suspense>
+          </TheoryToolSection>
+
           <TheoryToolSection
             id="scales"
             title="Scale Synthesia"

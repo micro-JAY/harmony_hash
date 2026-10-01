@@ -121,7 +121,9 @@ export default function ShareProgression({
   const midiReady = midiAvailability === "ready"
     && midiVoicings.length === chords.length
     && midiVoicings.length > 0
-    && midiVoicings.every((notes) => notes.length > 0);
+    && (instrument === "ukulele"
+      ? midiVoicings.some((notes) => notes.length > 0)
+      : midiVoicings.every((notes) => notes.length > 0));
   const currentMidiState = midiState?.snapshotKey === midiSnapshotKey ? midiState : null;
 
   function focusAndSelectLink() {
@@ -194,7 +196,7 @@ export default function ShareProgression({
       return;
     }
     try {
-      const bytes = createProgressionMidiFile(midiVoicings);
+      const bytes = createProgressionMidiFile(midiVoicings, { allowRests: instrument === "ukulele" });
       triggerMidiDownload(
         bytes,
         progressionMidiFilename(chords.map(({ input }) => input)),
@@ -455,7 +457,9 @@ export default function ShareProgression({
                 role="alert"
                 style={{ margin: 0, color: "var(--status-error-text)", fontSize: "var(--text-sm)" }}
               >
-                {t("One or more selected guitar diagrams could not be loaded. Choose another variation and try again.")}
+                {t(instrument === "ukulele"
+                  ? "No playable ukulele shapes are available for MIDI export."
+                  : "One or more selected guitar diagrams could not be loaded. Choose another variation and try again.")}
               </p>
             ) : currentMidiState?.status === "downloaded" ? (
               <p

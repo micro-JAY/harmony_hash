@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type {
   Instrument,
   IndexedChord,
@@ -7,9 +8,15 @@ import type {
   VoicingStyle,
 } from "../lib/types";
 import { formatNoteForDisplay, parseNotes, prefersFlatNotation } from "../lib/chordData";
-import { isVoicingStyleAvailable } from "../lib/harmonyBrain";
+import {
+  isVoicingStyleAvailable,
+  PIANO_OCTAVE_SHIFT_MAX,
+  PIANO_OCTAVE_SHIFT_MIN,
+} from "../lib/harmonyBrain";
 import type { ChordModifierOption } from "../lib/chordModifiers";
 import GuitarChordDiagram from "./GuitarChordDiagram";
+import UkuleleChordDiagram from "./UkuleleChordDiagram";
+import { getInstrumentVariantCount, getUkuleleVoicing } from "../lib/ukuleleVoicings";
 import PianoKeyboard from "./PianoKeyboard";
 import ChordModifier from "./ChordModifier";
 import ChordCardFrame from "./ChordCardFrame";
@@ -32,6 +39,8 @@ interface ChordCardProps {
   priorVoicing?: VoicedChord;
   pianoStyle: VoicingStyle;
   onPianoStyleChange: (style: VoicingStyle) => void;
+  pianoOctaveOffset?: number;
+  onPianoOctaveShift?: (direction: -1 | 1) => void;
   onChordChange: (option: ChordModifierOption) => void;
   onGuitarPlaybackVoicingChange?: (state: GuitarMidiVoicingState) => void;
   harmonyContext?: HarmonyContext;
@@ -72,6 +81,8 @@ export default function ChordCard({
   priorVoicing,
   pianoStyle,
   onPianoStyleChange,
+  pianoOctaveOffset = 0,
+  onPianoOctaveShift,
   onChordChange,
   onGuitarPlaybackVoicingChange,
   harmonyContext,
@@ -81,8 +92,9 @@ export default function ChordCard({
   isAgentHighlighted = false,
 }: ChordCardProps) {
   const t = useT();
-  const maxVariants = chord.variationCount;
+  const maxVariants = getInstrumentVariantCount(chord, instrument);
   const boundedVariant = Math.min(Math.max(variant, 1), Math.max(maxVariants, 1));
+  const ukuleleVoicing = instrument === "ukulele" ? getUkuleleVoicing(chord, boundedVariant) : null;
   const [guitarDisplay, setGuitarDisplay] = useState<GuitarDisplayMode>("fingering");
   const [comparisonOpen, setComparisonOpen] = useState(false);
 
@@ -121,8 +133,8 @@ export default function ChordCard({
     >
       {/* Visualization */}
       <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-2 p-4">
-        {instrument === "guitar" ? (
-          <div className="hh-guitar-card-toolbar" data-testid="guitar-card-toolbar">
+        {instrument !== "piano" ? (
+          <div className="hh-guitar-card-toolbar" data-testid={`${instrument}-card-toolbar`}>
             <div className="hh-guitar-card-toolbar__modifier">
               <ChordModifier
                 chord={chord}
@@ -135,8 +147,8 @@ export default function ChordCard({
             </div>
             <div
               role="group"
-              aria-label={t(`Guitar labels for ${displayName}`)}
-              data-testid="guitar-label-modes"
+              aria-label={instrument === "ukulele" ? `${t("Ukulele labels")}: ${displayName}` : t(`Guitar labels for ${displayName}`)}
+              data-testid={`${instrument}-label-modes`}
               className="hh-guitar-card-toolbar__modes flex rounded-full p-0.5"
               style={{
                 backgroundColor: "var(--surface-overlay)",
@@ -168,7 +180,7 @@ export default function ChordCard({
                       fontFamily: "var(--font-body)",
                     }}
                   >
-                    {t(mode === "fingering" ? "Fingering" : mode === "intervals" ? "Intervals" : "Notes")}
+                    {t(mode === "fingering" ? (instrument === "ukulele" ? "Frets" : "Fingering") : mode === "intervals" ? "Intervals" : "Notes")}
                   </button>
                 );
               })}
@@ -185,9 +197,27 @@ export default function ChordCard({
             timeline={timelineChords ?? [chord]}
           />
         )}
-        {instrument === "guitar" ? (
+        {instrument !== "piano" ? (
           <>
-            {chord.svgBasePath ? (
+            {instrument === "ukulele" ? (
+              ukuleleVoicing ? (
+                <>
+                  <UkuleleChordDiagram chord={chord} voicing={ukuleleVoicing} displayMode={guitarDisplay} preferFlats={preferFlats} />
+                  {ukuleleVoicing.omittedTones.length > 0 ? (
+                    <p className="max-w-full text-center text-xs" data-testid="ukulele-omissions" style={{ color: "var(--text-secondary)" }}>
+                      {t("Reduced voicing; omitted tones")}: {ukuleleVoicing.omittedTones.map((tone) =>
+                        `${formatNoteForDisplay(tone.noteLabel, preferFlats)} (${tone.degree})`).join(", ")}
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="flex min-h-44 max-w-full items-center text-center text-sm" data-testid="ukulele-unavailable" style={{ color: "var(--text-muted)" }}>
+                  {t(chord.bass
+                    ? "No playable shape with this bass on high-G ukulele. This chord remains in your progression as a rest."
+                    : "No supported ukulele shape for this chord. This chord remains in your progression as a rest.")}
+                </p>
+              )
+            ) : chord.svgBasePath ? (
               <GuitarChordDiagram
                 chord={chord}
                 variant={boundedVariant}
@@ -209,7 +239,7 @@ export default function ChordCard({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  aria-label={t("Previous guitar variant")}
+                  aria-label={t(instrument === "ukulele" ? "Previous ukulele variant" : "Previous guitar variant")}
                   onClick={prevVariant}
                   className="w-7 h-7 flex items-center justify-center rounded-full transition-all"
                   style={{
@@ -240,7 +270,7 @@ export default function ChordCard({
                 </span>
                 <button
                   type="button"
-                  aria-label={t("Next guitar variant")}
+                  aria-label={t(instrument === "ukulele" ? "Next ukulele variant" : "Next guitar variant")}
                   onClick={nextVariant}
                   className="w-7 h-7 flex items-center justify-center rounded-full transition-all"
                   style={{
@@ -263,6 +293,44 @@ export default function ChordCard({
           </>
         ) : (
           <>
+            {onPianoOctaveShift ? (
+              <div
+                role="group"
+                aria-label={`${t("Piano octave")}: ${displayName}`}
+                data-testid="piano-octave-control"
+                className="flex items-center justify-center gap-2 rounded-full px-2 py-1"
+                style={{
+                  backgroundColor: "var(--surface-overlay)",
+                  border: "1px solid var(--border-subtle)",
+                  color: "var(--text-secondary)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-xs)",
+                }}
+              >
+                <button
+                  type="button"
+                  aria-label={`${t("Lower chord octave")}: ${displayName}`}
+                  disabled={pianoOctaveOffset <= PIANO_OCTAVE_SHIFT_MIN}
+                  onClick={() => onPianoOctaveShift(-1)}
+                  className="flex min-h-8 min-w-8 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ color: "var(--interactive-accent-text)", border: "1px solid var(--interactive-accent-border)" }}
+                >
+                  <ArrowDown size={14} />
+                </button>
+                <span>{t("Octave")}</span>
+                <output aria-label={t("Chord octave offset")}>{pianoOctaveOffset > 0 ? "+" : ""}{pianoOctaveOffset}</output>
+                <button
+                  type="button"
+                  aria-label={`${t("Raise chord octave")}: ${displayName}`}
+                  disabled={pianoOctaveOffset >= PIANO_OCTAVE_SHIFT_MAX}
+                  onClick={() => onPianoOctaveShift(1)}
+                  className="flex min-h-8 min-w-8 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ color: "var(--interactive-accent-text)", border: "1px solid var(--interactive-accent-border)" }}
+                >
+                  <ArrowUp size={14} />
+                </button>
+              </div>
+            ) : null}
             <div className="w-full max-w-full overflow-visible">
               <PianoKeyboard
                 voicedNotes={voicing.notes}
@@ -270,6 +338,7 @@ export default function ChordCard({
                 preferFlats={preferFlats}
                 rootNote={noteNames[0] ?? ""}
                 colorMode="interval"
+                octaveOffset={pianoOctaveOffset}
               />
             </div>
             {/* Only styles with an in-range voicing are useful choices for this chord. */}

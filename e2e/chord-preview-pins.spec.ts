@@ -1,3 +1,4 @@
+import { openFretFinder } from "./helpers/toolbox";
 import { expect, test } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
@@ -99,7 +100,7 @@ test("delays preview, promotes a silent full card, and preserves the pin across 
 
   await page.getByRole("button", { name: "Tune Toolbox" }).click();
   await expect(pin).toBeVisible();
-  await page.getByRole("button", { name: "Fret Finder" }).click();
+  await openFretFinder(page);
   await expect(pin).toBeVisible();
   await page.getByRole("button", { name: "Hasher" }).click();
   await composeProgression(page, ["Dm7", "G7", "Cmaj7"]);

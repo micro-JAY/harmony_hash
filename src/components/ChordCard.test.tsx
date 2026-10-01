@@ -10,12 +10,14 @@ function renderChordCard({
   chordName = "Cmaj7",
   instrument = "guitar",
   showLock = true,
+  pianoOctaveOffset = 0,
 }: {
   isPlaying?: boolean;
   isAgentHighlighted?: boolean;
   chordName?: string;
-  instrument?: "guitar" | "piano";
+  instrument?: "guitar" | "piano" | "ukulele";
   showLock?: boolean;
+  pianoOctaveOffset?: number;
 } = {}): string {
   const chord = lookupChord(chordName);
   if (!chord) throw new Error(`${chordName} fixture is missing from the chord dictionary`);
@@ -34,6 +36,8 @@ function renderChordCard({
         voicing={{ notes: [], voicingType: "root" }}
         pianoStyle="auto"
         onPianoStyleChange={() => undefined}
+        pianoOctaveOffset={pianoOctaveOffset}
+        onPianoOctaveShift={instrument === "piano" ? () => undefined : undefined}
         onChordChange={() => undefined}
         isPlaying={isPlaying}
         isAgentHighlighted={isAgentHighlighted}
@@ -75,6 +79,20 @@ describe("ChordCard emphasis", () => {
 });
 
 describe("ChordCard visual controls", () => {
+  it("renders genuine ukulele shapes and honest limitations per card", () => {
+    const markup = renderChordCard({ instrument: "ukulele", chordName: "C" });
+    expect(markup).toContain('data-testid="ukulele-chord-diagram"');
+    expect(markup).toContain('data-frets="0-0-0-3"');
+    expect(markup).not.toContain('data-testid="guitar-chord-diagram"');
+    expect(markup).not.toContain('data-testid="piano-keyboard"');
+    expect(markup).toContain("Next ukulele variant");
+    expect(renderChordCard({ instrument: "ukulele", chordName: "C9" }))
+      .toContain("Reduced voicing; omitted tones");
+    const unavailable = renderChordCard({ instrument: "ukulele", chordName: "Dm7/C#" });
+    expect(unavailable).toContain('data-testid="ukulele-unavailable"');
+    expect(unavailable).toContain("No playable shape with this bass");
+    expect(unavailable).toContain("Dm7/C#");
+  });
   it("colors the chord title by its harmonic family", () => {
     const markup = renderChordCard({ chordName: "Dm7" });
 
@@ -98,6 +116,17 @@ describe("ChordCard visual controls", () => {
 
     expect(pianoMarkup).toContain('data-testid="piano-keyboard"');
     expect(pianoMarkup).toContain('data-color-mode="interval"');
+  });
+
+  it("shows bounded per-card octave controls and shifts the rendered window", () => {
+    const raised = renderChordCard({ instrument: "piano", pianoOctaveOffset: 1 });
+    expect(raised).toContain('data-testid="piano-octave-control"');
+    expect(raised).toContain('aria-label="Lower chord octave: Cmaj7"');
+    expect(raised).toContain('aria-label="Raise chord octave: Cmaj7"');
+    expect(raised).toContain('data-octave-offset="1"');
+
+    const maximum = renderChordCard({ instrument: "piano", pianoOctaveOffset: 2 });
+    expect(maximum).toMatch(/aria-label="Raise chord octave: Cmaj7"[^>]*disabled=""/);
   });
 
   it("can omit timeline locking for visual-only floating cards", () => {

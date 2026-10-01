@@ -1,3 +1,4 @@
+import { openFretFinder } from "./helpers/toolbox";
 import { expect, test } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
@@ -68,7 +69,7 @@ test.describe("composer and committed timeline continuity", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await composeProgression(page, ["Cmaj7", "Am7", "Dm7", "G7"]);
 
-    await page.getByRole("button", { name: "FRET FINDER" }).click();
+    await openFretFinder(page);
     await page.getByRole("button", { name: "HASHER" }).click();
 
     const composer = page.getByRole("group", { name: "Chord progression composer" });

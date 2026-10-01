@@ -1,6 +1,7 @@
 import { isVoicingStyleAvailable } from "../lib/harmonyBrain";
 import { parseNotes } from "../lib/chordData";
 import type { IndexedChord, Instrument, VoicingStyle } from "../lib/types";
+import { getInstrumentVariantCount } from "../lib/ukuleleVoicings";
 import type { ChordPreviewPoint } from "./chordPreviewIntent";
 
 export interface FloatingChordCard {
@@ -237,7 +238,7 @@ export function floatingChordCardsReducer(
       return cards.map((card) => card.id === action.id
         ? {
             ...card,
-            variant: clamp(action.variant, 1, Math.max(card.chord.variationCount, 1)),
+            variant: clamp(action.variant, 1, Math.max(getInstrumentVariantCount(card.chord, card.instrument), 1)),
           }
         : card);
     case "set-piano-style":
@@ -255,7 +256,7 @@ export function floatingChordCardsReducer(
           ...card,
           chord: action.chord,
           displayName: action.displayName,
-          variant: clamp(card.variant, 1, Math.max(action.chord.variationCount, 1)),
+          variant: clamp(card.variant, 1, Math.max(getInstrumentVariantCount(action.chord, card.instrument), 1)),
           pianoStyle: nextStyle,
         };
       });

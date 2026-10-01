@@ -294,6 +294,8 @@
   /* Harmony Hash pairs its primary entry controls on one shared geometry rail. */
   --control-entry-height: 3rem;
   --control-action-width: 7rem;
+  /* Three instrument choices need room for the ukulele label without clipping. */
+  --hasher-instrument-width: 11rem;
 
   /* Harmony Hash floating snapshots share widths, conservative placement heights, and toolbar geometry. */
   --floating-chord-card-guitar-width: 18rem;

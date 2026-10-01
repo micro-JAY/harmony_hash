@@ -1,3 +1,4 @@
+import { openFretFinder, openMoodFilter } from "./helpers/toolbox";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
@@ -36,13 +37,14 @@ async function firstRowCardCount(page: Page): Promise<number> {
 test.describe("HASHER learning suite", () => {
   test.describe.configure({ timeout: 120_000 });
 
-  test("uses the three alliterative destinations and the rebuilt HASHER hierarchy", async ({ page }) => {
+  test("keeps Fret Finder in the toolbox and the rebuilt HASHER hierarchy", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const nav = page.getByRole("navigation", { name: "Workspace" });
     await expect(nav.getByRole("button")).toHaveCount(3);
     await expect(nav.getByRole("button", { name: "HASHER", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(nav.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toBeVisible();
-    await expect(nav.getByRole("button", { name: "FRET FINDER", exact: true })).toBeVisible();
+    await expect(nav.getByRole("button", { name: "DISCOVERY", exact: true })).toBeVisible();
+    await expect(nav.getByRole("button", { name: "FRET FINDER", exact: true })).toHaveCount(0);
     await expect(nav.getByRole("button", { name: "Circle", exact: true })).toHaveCount(0);
 
     const context = page.getByRole("group", { name: "HASHER harmony context" });
@@ -394,6 +396,7 @@ test.describe("HASHER learning suite", () => {
 
     const root = page.locator("#theory-root");
     const scale = page.locator("#theory-scale");
+    await openMoodFilter(page);
     const mood = page.locator("#theory-mood");
     await expect(root).toHaveValue("C");
     await expect(scale).toHaveValue("major");
@@ -429,6 +432,7 @@ test.describe("HASHER learning suite", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: "TUNE TOOLBOX", exact: true }).click();
     const scale = page.locator("#theory-scale");
+    await openMoodFilter(page);
     const mood = page.locator("#theory-mood");
 
     await scale.selectOption("whole_tone");
@@ -482,9 +486,10 @@ test.describe("HASHER learning suite", () => {
     const nav = page.getByRole("navigation", { name: "ワークスペース" });
     await expect(nav.getByRole("button", { name: "ハッシャー", exact: true })).toBeVisible();
     await expect(nav.getByRole("button", { name: "チューン・ツールボックス", exact: true })).toBeVisible();
-    await expect(nav.getByRole("button", { name: "フレット・ファインダー", exact: true })).toBeVisible();
+    await expect(nav.getByRole("button", { name: "フレット・ファインダー", exact: true })).toHaveCount(0);
     await nav.getByRole("button", { name: "チューン・ツールボックス", exact: true }).click();
     await expect(page.getByRole("heading", { name: "チューン・ツールボックス" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "フレット・ファインダー" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "五度圏" })).toBeVisible();
     await expectNoDocumentOverflow(page);
   });
@@ -505,7 +510,7 @@ test.describe("HASHER learning suite", () => {
     await expect(network.getByRole("group", { name: "Network viewport controls" })).toHaveCount(0);
     await expectNoDocumentOverflow(page);
 
-    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+    await openFretFinder(page);
     await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
     await expect(page.getByTestId("fretboard-tuning-readout")).toHaveCount(0);
     await expect(page.getByRole("combobox", { name: "Fretboard tuning" })).toBeVisible();

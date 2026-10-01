@@ -22,6 +22,7 @@ export default function Header({
   const t = useT();
   const reduceMotion = useReducedMotion();
   const theoryActive = workspace === "theory"
+    || workspace === "fretboard"
     || workspace === "circle"
     || workspace === "scales"
     || workspace === "network";
@@ -33,7 +34,7 @@ export default function Header({
   const destinations = [
     { workspace: "builder", label: "Hasher" },
     { workspace: "theory", label: "Tune Toolbox" },
-    { workspace: "fretboard", label: "Fret Finder" },
+    { workspace: "discovery", label: "Discovery" },
   ] as const;
 
   return (

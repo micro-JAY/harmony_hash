@@ -1,3 +1,4 @@
+import { openFretFinder } from "./helpers/toolbox";
 import { expect, test, type Page } from "@playwright/test";
 
 interface BrowserIssue {
@@ -18,7 +19,7 @@ function collectBrowserIssues(page: Page): BrowserIssue[] {
 
 async function openFretboard(page: Page): Promise<void> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+  await openFretFinder(page);
   await expect(page.getByRole("heading", { name: "FRET FINDER" })).toBeVisible();
 }
 
@@ -54,7 +55,7 @@ test.describe("Fretboard patterns and chord overlays", () => {
     const learning = page.getByTestId("fretboard-learning-layer");
     await expect(learning.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "true");
 
-    await page.getByRole("combobox", { name: "Fretboard root" }).selectOption("G");
+    await page.locator("#theory-root").selectOption("G");
     await learning.getByRole("button", { name: "CAGED", exact: true }).click();
     await learning.getByRole("combobox", { name: "Fretboard caged form" }).selectOption("e");
     const scroller = page.getByTestId("fretboard-scroller");
@@ -144,8 +145,8 @@ test.describe("Fretboard patterns and chord overlays", () => {
     await expect(scroller.locator("button[tabindex='0']")).toHaveCount(1);
 
     await chooseOverlayWithKeyboard(page, "Cmaj7");
-    await page.getByRole("combobox", { name: "Fretboard root" }).selectOption("Eb");
-    await page.getByRole("combobox", { name: "Fretboard mode" }).selectOption("dorian");
+    await page.locator("#theory-root").selectOption("Eb");
+    await page.locator("#theory-scale").selectOption("dorian");
     await page.getByRole("button", { name: "Notes", exact: true }).click();
     await page.getByRole("button", { name: "Left-handed", exact: true }).click();
     await page.getByRole("combobox", { name: "Fretboard caged form" }).selectOption("a");

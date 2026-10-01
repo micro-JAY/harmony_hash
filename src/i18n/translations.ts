@@ -1,7 +1,10 @@
+import { discoveryTranslations } from "./discoveryTranslations";
+
 export type Locale = "en" | "ja";
 
 export const translations: Record<Locale, Record<string, string>> = {
   en: {
+    ...discoveryTranslations.en,
     tonality: "Tonality",
     key: "Key",
     piano: "Piano",
@@ -71,6 +74,24 @@ export const translations: Record<Locale, Record<string, string>> = {
     "theory.function.secondaryDominant": "Secondary dominant",
   },
   ja: {
+    ...discoveryTranslations.ja,
+    ukulele: "ウクレレ",
+    Ukulele: "ウクレレ",
+    "Fretboard settings": "指板の詳細設定",
+    "Fretboard display settings": "指板の表示設定",
+    "Mood filter": "ムードで絞り込む",
+    "Loading Fret Finder…": "フレット・ファインダーを読み込み中…",
+    Uke: "ウクレレ",
+    "Ukulele labels": "ウクレレの音名表示",
+    "Ukulele chord diagram": "ウクレレのコード図",
+    Frets: "フレット",
+    "Standard high-G": "標準（ハイG）",
+    "Reduced voicing; omitted tones": "省略ボイシング・省略した音",
+    "Previous ukulele variant": "前のウクレレ・フォーム",
+    "Next ukulele variant": "次のウクレレ・フォーム",
+    "No playable shape with this bass on high-G ukulele. This chord remains in your progression as a rest.": "ハイGのウクレレでこのベース音を保つフォームはありません。このコードの拍は休符として進行に残ります。",
+    "No supported ukulele shape for this chord. This chord remains in your progression as a rest.": "このコードに対応するウクレレ・フォームはありません。このコードの拍は休符として進行に残ります。",
+    "No playable ukulele shapes are available for MIDI export.": "MIDIに書き出せるウクレレ・フォームがありません。",
     tonality: "調性",
     piano: "ピアノ",
     guitar: "ギター",
@@ -202,6 +223,14 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Randomize All Variants": "すべてのバリエーションをランダム化",
     "Randomize All Voicings": "すべてのボイシングをランダム化",
     "RANDOMIZE (UNLOCKED VOICES)": "ランダム化（ロックされていないボイス）",
+    "Piano octave": "ピアノのオクターブ",
+    "Lower chord octave": "コードを1オクターブ下げる",
+    "Raise chord octave": "コードを1オクターブ上げる",
+    "Chord octave offset": "コードのオクターブ位置",
+    "Progression octave": "コード進行のオクターブ",
+    "Lower whole progression one octave": "コード進行全体を1オクターブ下げる",
+    "Raise whole progression one octave": "コード進行全体を1オクターブ上げる",
+    "ALL OCTAVES": "全体のオクターブ",
     SHARE: "共有",
     "Starting playback": "再生を開始中",
     "Stop playback": "再生を停止",

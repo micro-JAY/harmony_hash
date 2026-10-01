@@ -23,7 +23,7 @@ import type { ChordModifierOption } from "../lib/chordModifiers";
 import type { HarmonyContext } from "../lib/theory";
 import { useT } from "../i18n/I18nContext";
 import ChordCard from "./ChordCard";
-import type { ChordPreviewPoint, ChordPreviewRequest } from "./chordPreviewIntent";
+import type { ChordPinRequest, ChordPreviewPoint, ChordPreviewRequest } from "./chordPreviewIntent";
 import {
   createFloatingChordCard,
   floatingChordCardAvailableHeight,
@@ -41,6 +41,10 @@ type FloatingCardPlacementMetricsByInstrument = Readonly<
 
 const FLOATING_CARD_PLACEMENT_TOKENS = {
   guitar: {
+    width: "--floating-chord-card-guitar-width",
+    height: "--floating-chord-card-guitar-placement-height",
+  },
+  ukulele: {
     width: "--floating-chord-card-guitar-width",
     height: "--floating-chord-card-guitar-placement-height",
   },
@@ -88,6 +92,8 @@ interface FloatingChordCardsProps {
   readonly onPreviewEnter: () => void;
   readonly onPreviewLeave: () => void;
   readonly onPreviewDismiss: () => void;
+  readonly pinRequest?: ChordPinRequest | null;
+  readonly onPinRequestHandled?: (requestId: number) => void;
 }
 
 interface FloatingCardBodyProps {
@@ -210,7 +216,7 @@ function readFloatingCardPlacementMetrics(): FloatingCardPlacementMetricsByInstr
     ),
     ...sharedMetrics,
   });
-  return { guitar: readMetrics("guitar"), piano: readMetrics("piano") };
+  return { guitar: readMetrics("guitar"), ukulele: readMetrics("ukulele"), piano: readMetrics("piano") };
 }
 
 function samePlacementMetrics(
@@ -223,6 +229,11 @@ function samePlacementMetrics(
     && first.guitar.edgeGap === second.guitar.edgeGap
     && first.guitar.pointerGap === second.guitar.pointerGap
     && first.guitar.toolbarHeight === second.guitar.toolbarHeight
+    && first.ukulele.width === second.ukulele.width
+    && first.ukulele.height === second.ukulele.height
+    && first.ukulele.edgeGap === second.ukulele.edgeGap
+    && first.ukulele.pointerGap === second.ukulele.pointerGap
+    && first.ukulele.toolbarHeight === second.ukulele.toolbarHeight
     && first.piano.width === second.piano.width
     && first.piano.height === second.piano.height
     && first.piano.edgeGap === second.piano.edgeGap
@@ -454,6 +465,8 @@ export default function FloatingChordCards({
   onPreviewEnter,
   onPreviewLeave,
   onPreviewDismiss,
+  pinRequest = null,
+  onPinRequestHandled,
 }: FloatingChordCardsProps) {
   const t = useT();
   const shouldReduceMotion = useReducedMotion();
@@ -462,6 +475,7 @@ export default function FloatingChordCards({
   const placementMetrics = placementMetricsByInstrument?.[instrument];
   const constraintsRef = useRef<HTMLDivElement>(null);
   const nextPinIdRef = useRef(1);
+  const handledPinRequestRef = useRef<number | null>(null);
   const livePositionsRef = useRef(new Map<number, ChordPreviewPoint>());
   const [cards, dispatch] = useReducer(floatingChordCardsReducer, []);
   const previewChord = preview ? lookupChord(preview.chordName) : undefined;
@@ -496,6 +510,30 @@ export default function FloatingChordCards({
   ) => {
     livePositionsRef.current.set(id, position);
   }, []);
+
+  useEffect(() => {
+    if (!pinRequest || handledPinRequestRef.current === pinRequest.requestId
+      || !placementMetricsByInstrument) return;
+    handledPinRequestRef.current = pinRequest.requestId;
+    const requestedChord = lookupChord(pinRequest.chordName);
+    if (requestedChord) {
+      const id = nextPinIdRef.current++;
+      dispatch({
+        type: "add",
+        card: createFloatingChordCard(
+          id,
+          requestedChord,
+          pinRequest.chordName,
+          instrument,
+          pinRequest.point,
+          placementMetricsByInstrument[instrument],
+          viewport,
+          cards.map((card) => livePositionsRef.current.get(card.id) ?? card.initialPosition),
+        ),
+      });
+    }
+    onPinRequestHandled?.(pinRequest.requestId);
+  }, [cards, instrument, onPinRequestHandled, pinRequest, placementMetricsByInstrument, viewport]);
 
   function pinPreview() {
     if (!preview || !previewChord || !placementMetrics) return;

@@ -1,3 +1,4 @@
+import { openFretFinder } from "./helpers/toolbox";
 import { expect, test, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
 
@@ -92,7 +93,7 @@ test.describe("Chord card focus states", () => {
 
     await setHanzFocus(page, 1);
     await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(1);
-    await page.getByRole("button", { name: "FRET FINDER", exact: true }).click();
+    await openFretFinder(page);
     await page.getByRole("button", { name: "HASHER", exact: true }).click();
     await expect(page.locator('[data-agent-highlighted="true"]')).toHaveCount(0);
   });

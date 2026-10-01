@@ -20,7 +20,7 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
     button: "Privacy Policy",
     title: "PRIVACY POLICY",
     close: "Close privacy policy",
-    effective: "Effective December 13, 2025 · Last updated August 10, 2026",
+    effective: "Effective December 13, 2025 · Last updated October 2, 2026",
     intro: "This notice explains how Harmony Hash processes musical, technical, prompt, and live voice information, including the choices and rights available in the EEA, United Kingdom, United States, Japan, and other regions.",
     contact: "Questions and rights requests: privacy@tonari.ai",
     sections: [
@@ -30,11 +30,11 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
       },
       {
         title: "2. Information and sources",
-        body: "We process musical choices such as chords, keys, modes, instruments, voicings, and progression state; text you enter into the progression builder; live microphone audio and conversation text when you start Harmony; device language and onboarding state; and technical data such as IP address, browser, requested URL, timestamp, approximate region, security events, and service diagnostics.",
+        body: "We process musical choices such as chords, keys, modes, instruments, voicings, and progression state; text you enter into the progression builder; live microphone audio and conversation text when you start Harmony; device language, onboarding state, and appearance preference; and technical data such as IP address, browser, requested URL, timestamp, approximate region, security events, and service diagnostics.",
       },
       {
         title: "3. Local musical state",
-        body: "Chord selections, playback state, and most workspace activity remain in browser memory. Share links encode a progression in the URL you choose to copy. Onboarding preferences may be stored in localStorage or sessionStorage. Tonari does not maintain an account database of your Harmony Hash progressions.",
+        body: "Chord selections, playback state, and most workspace activity remain in browser memory. Share links encode a progression in the URL you choose to copy. Onboarding preferences may be stored in localStorage or sessionStorage. Your appearance preference is stored in localStorage and remains on your device until you change it or clear site data. Tonari does not maintain an account database of your Harmony Hash progressions.",
       },
       {
         title: "4. AI progression builder",
@@ -98,13 +98,13 @@ export const privacyPolicyContent: Record<Locale, PrivacyPolicyCopy> = {
     button: "プライバシーポリシー",
     title: "プライバシーポリシー",
     close: "プライバシーポリシーを閉じる",
-    effective: "施行日：2025年12月13日・最終更新日：2026年8月10日",
+    effective: "施行日：2025年12月13日・最終更新日：2026年10月2日",
     intro: "本通知では、Harmony Hashが取り扱う音楽情報、技術情報、プロンプト、ライブ音声と、EEA、英国、米国、日本その他の地域で利用できる選択肢および権利を説明します。",
     contact: "ご質問・権利請求：privacy@tonari.ai",
     sections: [
       { title: "1. 適用範囲と運営者", body: "本通知はHarmony Hashに適用されます。Tonari Labsは、日本在住の個人運営者ジェニングス ジャナ（Jana Jennings）が使用する屋号です。下記の利用目的を定め、本通知に記載する個人情報の取扱いに責任を負う者はジェニングス ジャナです。連絡先：privacy@tonari.ai。個人の安全確保のため私的な居住住所はウェブ上に掲載しませんが、適用法令上必要な場合、privacy@tonari.aiへの請求に対し遅滞なく回答します。リンク先には各運営者の通知が適用されます。" },
-      { title: "2. 取り扱う情報と取得元", body: "コード、キー、モード、楽器、ボイシング、進行状態等の音楽上の選択、進行ビルダーへ入力した文章、Harmonyを開始した場合のライブマイク音声と会話テキスト、端末言語とオンボーディング状態、IPアドレス、ブラウザ、URL、時刻、おおよその地域、セキュリティイベント、診断情報等を処理します。" },
-      { title: "3. 端末内の音楽データ", body: "コード選択、再生状態、ワークスペース操作の大部分はブラウザメモリ内に留まります。共有リンクにはコピーを選択した進行がURLとして含まれます。オンボーディング設定はlocalStorageまたはsessionStorageへ保存する場合があります。Tonariは進行を保存するアカウントデータベースを運営しません。" },
+      { title: "2. 取り扱う情報と取得元", body: "コード、キー、モード、楽器、ボイシング、進行状態等の音楽上の選択、進行ビルダーへ入力した文章、Harmonyを開始した場合のライブマイク音声と会話テキスト、端末言語、オンボーディング状態、外観設定、IPアドレス、ブラウザ、URL、時刻、おおよその地域、セキュリティイベント、診断情報等を処理します。" },
+      { title: "3. 端末内の音楽データ", body: "コード選択、再生状態、ワークスペース操作の大部分はブラウザメモリ内に留まります。共有リンクにはコピーを選択した進行がURLとして含まれます。オンボーディング設定はlocalStorageまたはsessionStorageへ保存する場合があります。外観設定はlocalStorageに保存され、変更するかサイトデータを削除するまで端末内に残ります。Tonariは進行を保存するアカウントデータベースを運営しません。" },
       { title: "4. AI進行ビルダー", body: "説明を送信すると、プロンプトと関連する音楽情報がCloudflare Workerを経由してOpenAI Responses APIへ送られます。リクエストはstore:falseでアプリケーション状態の保存を要求しませんが、承認済みデータ管理設定がない場合、標準の不正利用監視ログに事業者所定の期間保存される可能性があります。Tonari独自モデルの学習には利用しません。" },
       { title: "5. Harmony音声コンパニオン", body: "Harmonyは音声機能を選択しマイクを許可した場合のみ開始します。ライブマイク音声と会話テキストは、リアルタイムの文字起こしと応答生成のためOpenAI Realtimeへ送信され、音楽クライアントツールはコード・進行状態を交換します。会話表示のため、このブラウザタブは利用者とHarmonyの直近20件までのメッセージをReactメモリ内に一時保持します。セッションの開始時または切断時に消去し、Tonariはこれらのメッセージや音声をブラウザストレージまたはアプリケーションデータベースへ保存しません。OpenAIでは、セキュリティ、不正利用監視、法令遵守のために内容が処理またはログへ記録される場合があり、事業者側の取扱いにはOpenAIの適用されるデータ管理設定とポリシーが適用されます。" },
       { title: "6. 利用目的と法的根拠", body: "要求された音楽機能、進行生成、Harmony、設定保存、セキュリティ、診断、不正防止、集計された信頼性把握、法令遵守、紛争対応に利用します。GDPR等が適用される場合、要求機能は依頼の履行または契約前手続、必要な安全管理・診断・改善は正当な利益、法令対応は法的義務、法令上必要な非必須保存・分析は同意に基づきます。" },

@@ -23,8 +23,8 @@ describe("guitarDegreePresentation", () => {
   it("falls back safely when a diagram pitch cannot be resolved", () => {
     expect(guitarDegreePresentation(12, 4)).toEqual({
       interval: null,
-      color: "var(--palette-white)",
-      labelColor: "var(--text-inverse)",
+      color: "var(--instrument-key-white)",
+      labelColor: "var(--instrument-key-white-text)",
     });
   });
 });

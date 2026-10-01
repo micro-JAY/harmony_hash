@@ -62,13 +62,6 @@
   to { stroke-dasharray: 900 1; }
 }
 
-:root {
-  --music-match-low: #e9a0ad;
-  --music-match-mid: #e8c77a;
-  --music-match-good: #83bee5;
-  --music-match-high: #9bd3a5;
-}
-
 body {
   margin: 0;
   background-color: var(--surface-base);
@@ -1159,6 +1152,32 @@ svg [data-note-tooltip="true"]:focus-visible {
   object-fit: cover;
 }
 
+.hh-onboarding-logo-stack {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  justify-self: stretch;
+}
+
+.hh-onboarding-logo-stack > .hh-onboarding-logo {
+  grid-area: 1 / 1;
+}
+
+.hh-onboarding-logo--light {
+  display: none;
+}
+
+html[data-theme="light"] .hh-onboarding-logo--dark {
+  display: none;
+}
+
+html[data-theme="light"] .hh-onboarding-logo--light {
+  display: block;
+}
+
 .hh-onboarding-copy {
   display: flex;
   flex-direction: column;
@@ -1237,6 +1256,63 @@ svg [data-note-tooltip="true"]:focus-visible {
   border-color: var(--border-strong);
 }
 
+.hh-onboarding-appearance {
+  display: grid;
+  gap: var(--space-2);
+  width: min(100%, 24rem);
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.hh-onboarding-appearance__label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.hh-onboarding-appearance__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.hh-onboarding-appearance__option {
+  display: inline-flex;
+  min-width: 0;
+  min-height: var(--control-min-height);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--interactive-secondary-text);
+  background: var(--interactive-secondary-bg);
+  border: 1px solid var(--interactive-secondary-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.hh-onboarding-appearance__option:hover {
+  color: var(--text-primary);
+  background: var(--interactive-secondary-bg-hover);
+}
+
+.hh-onboarding-appearance__option[aria-pressed="true"] {
+  color: var(--interactive-accent-text);
+  background: var(--interactive-accent-bg);
+  border-color: var(--interactive-accent-border);
+}
+
 .hh-onboarding-destinations {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1267,7 +1343,7 @@ svg [data-note-tooltip="true"]:focus-visible {
   color: var(--text-warm);
 }
 
-.hh-onboarding-destination--fret .hh-onboarding-destination-mark {
+.hh-onboarding-destination--discovery .hh-onboarding-destination-mark {
   color: var(--text-academy);
 }
 
@@ -1298,6 +1374,10 @@ svg [data-note-tooltip="true"]:focus-visible {
   inset: 0;
   z-index: 1100;
   pointer-events: auto;
+}
+
+.hh-guided-tour[data-tour-mode="handoff"] {
+  pointer-events: none;
 }
 
 .hh-guided-tour__backdrop {
@@ -1347,6 +1427,15 @@ svg [data-note-tooltip="true"]:focus-visible {
   transition:
     top var(--duration-normal) var(--ease-out),
     left var(--duration-normal) var(--ease-out);
+}
+
+.hh-guided-tour[data-tour-mode="handoff"] .hh-guided-tour__tooltip {
+  pointer-events: auto;
+  transition: none;
+}
+
+.hh-guided-tour[data-tour-mode="handoff"] .hh-guided-tour__spotlight {
+  transition: none;
 }
 
 .hh-guided-tour__header {
@@ -1472,6 +1561,25 @@ svg [data-note-tooltip="true"]:focus-visible {
     width: var(--control-min-height);
     height: var(--control-min-height);
     transform: none;
+  }
+}
+
+@media (max-width: 35.99rem) and (max-height: 32rem) {
+  .hh-guided-tour__tooltip {
+    padding: var(--space-3);
+  }
+
+  .hh-guided-tour__title,
+  .hh-guided-tour__body {
+    margin-top: var(--space-2);
+  }
+
+  .hh-guided-tour__body {
+    line-height: var(--leading-normal);
+  }
+
+  .hh-guided-tour__actions {
+    margin-top: var(--space-3);
   }
 }
 

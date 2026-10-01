@@ -1,7 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { translate } from "../i18n/translations";
-import GuidedTour, { type GuidedTourLabels } from "./GuidedTour";
+import GuidedTour, {
+  type GuidedTourLabels,
+  type GuidedTourStep,
+} from "./GuidedTour";
 import { calculateTourLayout } from "./guidedTourLayout";
 
 const labels: GuidedTourLabels = {
@@ -60,6 +63,39 @@ describe("GuidedTour", () => {
     )).toBe("");
   });
 
+  it("renders a handoff as non-modal and withholds every forward control", () => {
+    const handoff: GuidedTourStep = {
+      id: "toolbox-handoff",
+      kind: "handoff",
+      destinationSelector: '[data-tour-workspace="theory"]',
+      title: "Continue in Tune Toolbox",
+      instruction: "Select the highlighted Tune Toolbox tab to continue.",
+    };
+    const markup = renderToStaticMarkup(
+      <GuidedTour
+        open
+        labels={labels}
+        steps={[
+          handoff,
+          {
+            id: "fretboard",
+            targetSelector: '[data-theory-tool="fretboard"]',
+            title: "Find notes on the fretboard",
+            body: "Explore the first tool.",
+          },
+        ]}
+        onRequestClose={() => undefined}
+      />,
+    );
+
+    expect(markup).toContain('data-tour-mode="handoff"');
+    expect(markup).toContain('aria-modal="false"');
+    expect(markup).toContain("Select the highlighted Tune Toolbox tab to continue.");
+    expect(markup).not.toContain('aria-label="Next"');
+    expect(markup).not.toContain(">Next<");
+    expect(markup).toContain('aria-label="Previous"');
+  });
+
   it("keeps a missing target centered and clamps a visible target inside the viewport", () => {
     expect(calculateTourLayout(
       null,
@@ -77,10 +113,12 @@ describe("GuidedTour", () => {
     expect(visible.tooltipTop).toBe(364);
   });
 
-  it("ships natural Japanese labels and guidance for instrument, playback, and tool handoff", () => {
+  it("ships natural Japanese labels and guidance for the refreshed tour and handoffs", () => {
     expect(translate("ja", "TAKE A TOUR")).toBe("ツアーを見る");
+    expect(translate("ja", "Next")).toBe("次へ");
     expect(translate("ja", "Choose your instrument")).toBe("楽器を選ぶ");
-    expect(translate("ja", "Play what you build")).toBe("作った進行を聴く");
-    expect(translate("ja", "Carry ideas between tools")).toBe("ツール間でアイデアをつなぐ");
+    expect(translate("ja", "Continue in Tune Toolbox")).toBe("チューン・ツールボックスへ進む");
+    expect(translate("ja", "Continue in Discovery")).toBe("ディスカバリーへ進む");
+    expect(translate("ja", "Practice over your progression")).toBe("コード進行に合わせて練習する");
   });
 });

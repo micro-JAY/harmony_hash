@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type {
   Instrument,
   IndexedChord,
@@ -7,7 +8,11 @@ import type {
   VoicingStyle,
 } from "../lib/types";
 import { formatNoteForDisplay, parseNotes, prefersFlatNotation } from "../lib/chordData";
-import { isVoicingStyleAvailable } from "../lib/harmonyBrain";
+import {
+  isVoicingStyleAvailable,
+  PIANO_OCTAVE_SHIFT_MAX,
+  PIANO_OCTAVE_SHIFT_MIN,
+} from "../lib/harmonyBrain";
 import type { ChordModifierOption } from "../lib/chordModifiers";
 import GuitarChordDiagram from "./GuitarChordDiagram";
 import UkuleleChordDiagram from "./UkuleleChordDiagram";
@@ -34,6 +39,8 @@ interface ChordCardProps {
   priorVoicing?: VoicedChord;
   pianoStyle: VoicingStyle;
   onPianoStyleChange: (style: VoicingStyle) => void;
+  pianoOctaveOffset?: number;
+  onPianoOctaveShift?: (direction: -1 | 1) => void;
   onChordChange: (option: ChordModifierOption) => void;
   onGuitarPlaybackVoicingChange?: (state: GuitarMidiVoicingState) => void;
   harmonyContext?: HarmonyContext;
@@ -74,6 +81,8 @@ export default function ChordCard({
   priorVoicing,
   pianoStyle,
   onPianoStyleChange,
+  pianoOctaveOffset = 0,
+  onPianoOctaveShift,
   onChordChange,
   onGuitarPlaybackVoicingChange,
   harmonyContext,
@@ -284,6 +293,44 @@ export default function ChordCard({
           </>
         ) : (
           <>
+            {onPianoOctaveShift ? (
+              <div
+                role="group"
+                aria-label={`${t("Piano octave")}: ${displayName}`}
+                data-testid="piano-octave-control"
+                className="flex items-center justify-center gap-2 rounded-full px-2 py-1"
+                style={{
+                  backgroundColor: "var(--surface-overlay)",
+                  border: "1px solid var(--border-subtle)",
+                  color: "var(--text-secondary)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-xs)",
+                }}
+              >
+                <button
+                  type="button"
+                  aria-label={`${t("Lower chord octave")}: ${displayName}`}
+                  disabled={pianoOctaveOffset <= PIANO_OCTAVE_SHIFT_MIN}
+                  onClick={() => onPianoOctaveShift(-1)}
+                  className="flex min-h-8 min-w-8 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ color: "var(--interactive-accent-text)", border: "1px solid var(--interactive-accent-border)" }}
+                >
+                  <ArrowDown size={14} />
+                </button>
+                <span>{t("Octave")}</span>
+                <output aria-label={t("Chord octave offset")}>{pianoOctaveOffset > 0 ? "+" : ""}{pianoOctaveOffset}</output>
+                <button
+                  type="button"
+                  aria-label={`${t("Raise chord octave")}: ${displayName}`}
+                  disabled={pianoOctaveOffset >= PIANO_OCTAVE_SHIFT_MAX}
+                  onClick={() => onPianoOctaveShift(1)}
+                  className="flex min-h-8 min-w-8 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ color: "var(--interactive-accent-text)", border: "1px solid var(--interactive-accent-border)" }}
+                >
+                  <ArrowUp size={14} />
+                </button>
+              </div>
+            ) : null}
             <div className="w-full max-w-full overflow-visible">
               <PianoKeyboard
                 voicedNotes={voicing.notes}
@@ -291,6 +338,7 @@ export default function ChordCard({
                 preferFlats={preferFlats}
                 rootNote={noteNames[0] ?? ""}
                 colorMode="interval"
+                octaveOffset={pianoOctaveOffset}
               />
             </div>
             {/* Only styles with an in-range voicing are useful choices for this chord. */}

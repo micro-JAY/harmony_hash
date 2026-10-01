@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Guitar, Keyboard, Minus, Play, Plus, Square, Usb, X } from "lucide-react";
+import { Guitar, Keyboard, Minus, Pin, Play, Plus, Square, Usb, X } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { useT } from "../i18n/I18nContext";
 import { discoveryKeyLabel, discoveryNoteName, identifyChords, normalizeDiscoveryNotes } from "../lib/discovery/chordIdentification";
 import { createDiscoveryLoop, scheduleDiscoveryLoop } from "../lib/discovery/discoveryAudio";
 import type { DiscoveryLoopState, DiscoveryPlaybackRequest } from "../lib/discovery/discoveryAudio";
+import { chordIntervalPresentation } from "../lib/visual/chordIntervals";
+import { chordFamilyColor, classifyChordFamily } from "../lib/visual/chordFamily";
+import { intervalColor } from "../lib/visual/musicVisuals";
+import { lookupChord } from "../lib/chordData";
+import type { ChordPreviewPoint } from "./chordPreviewIntent";
 import { WorkspaceHeader, WorkspaceSegmentedControl } from "./WorkspaceChrome";
 import DiscoveryPiano from "./DiscoveryPiano";
 import DiscoveryFretboard, { DISCOVERY_GUITAR_STRINGS } from "./DiscoveryFretboard";
@@ -16,6 +21,7 @@ export interface DiscoveryProps {
   readonly playbackRequest?: DiscoveryPlaybackRequest | null;
   readonly progressionLabels?: readonly string[];
   readonly onBeforeLoopStart?: () => void;
+  readonly onPinChord?: (chordName: string, point: ChordPreviewPoint) => void;
 }
 
 const EMPTY_LABELS: readonly string[] = [];
@@ -24,7 +30,13 @@ const INSTRUMENTS = [
   { value: "guitar", label: "Fretboard", icon: <Guitar size={15} /> },
 ] as const;
 
-export default function Discovery({ active = true, playbackRequest = null, progressionLabels = EMPTY_LABELS, onBeforeLoopStart }: DiscoveryProps) {
+export default function Discovery({
+  active = true,
+  playbackRequest = null,
+  progressionLabels = EMPTY_LABELS,
+  onBeforeLoopStart,
+  onPinChord,
+}: DiscoveryProps) {
   const t = useT();
   const reducedMotion = Boolean(useReducedMotion());
   const [instrument, setInstrument] = useState<"piano" | "guitar">("piano");
@@ -67,7 +79,11 @@ export default function Discovery({ active = true, playbackRequest = null, progr
   const hasProgression = Boolean(playbackRequest?.voicings.some((voicing) => voicing.length > 0));
   const looping = loopState.phase !== "idle";
   const midiConnected = live.midiState.status === "connected" || live.midiState.status === "empty";
+  const selectedMidiDevice = live.midiState.devices.find((device) => device.id === live.midiState.selectedDeviceId);
   const pitchCount = new Set(notes.map((midi) => midi % 12)).size;
+  const primaryFamily = primary ? classifyChordFamily(primary.symbol) : null;
+  const primaryColor = primary ? chordFamilyColor(primaryFamily ?? primary.symbol) : "var(--text-accent)";
+  const pinnableChord = primary ? lookupChord(primary.symbol) : undefined;
 
   function startLoop(nextBpm: number) {
     if (!active || !hasProgression || !playbackRequest) return;
@@ -106,45 +122,128 @@ export default function Discovery({ active = true, playbackRequest = null, progr
       <div className="discovery-controls">
         <WorkspaceSegmentedControl label="Discovery instrument" value={instrument} options={INSTRUMENTS} onChange={setInstrument} reducedMotion={reducedMotion} />
         <div className="discovery-input-actions">
-          <button className="discovery-action" type="button" aria-pressed={live.keyboardEnabled} onClick={live.toggleKeyboard}>
-            <Keyboard size={16} />{t("Computer keys")}
-          </button>
-          <button className="discovery-action" type="button" disabled={live.midiState.status === "connecting"} onClick={midiConnected ? live.disconnectMidi : live.connectMidi}>
-            <Usb size={16} />{t(live.midiState.status === "connecting" ? "Connecting MIDI…" : midiConnected ? "Disconnect MIDI" : "Connect MIDI")}
-          </button>
+          <div className="discovery-computer-control">
+            <div className="discovery-octave" aria-label={`${t("Octave")} ${live.octave}, Z / X`}>
+              <button className="discovery-icon-action discovery-icon-action--compact" type="button" aria-label={t("Lower keyboard octave")} disabled={live.octave <= 1} onClick={() => live.shiftOctave(-1)}><Minus size={13} /></button>
+              <span>{t("Octave")} {live.octave} <small>· <kbd>Z</kbd> / <kbd>X</kbd></small></span>
+              <button className="discovery-icon-action discovery-icon-action--compact" type="button" aria-label={t("Raise keyboard octave")} disabled={live.octave >= 6} onClick={() => live.shiftOctave(1)}><Plus size={13} /></button>
+            </div>
+            <button className="discovery-action" type="button" aria-pressed={live.keyboardEnabled} onClick={live.toggleKeyboard}>
+              <Keyboard size={16} />{t("Computer keys")}
+            </button>
+          </div>
+          <div className="discovery-midi-control">
+            {live.midiState.devices.length > 1 ? (
+              <label className="discovery-midi-select">
+                <span className="hh-control-label">{t("MIDI input")}</span>
+                <select
+                  className="hh-select"
+                  aria-label={t("MIDI input")}
+                  value={live.midiState.selectedDeviceId ?? ""}
+                  onChange={(event) => live.selectMidiDevice(event.currentTarget.value)}
+                >
+                  {live.midiState.devices.map((device) => <option value={device.id} key={device.id}>{device.name}</option>)}
+                </select>
+              </label>
+            ) : null}
+            <button className="discovery-action" type="button" disabled={live.midiState.status === "connecting"} onClick={midiConnected ? live.disconnectMidi : live.connectMidi}>
+              <Usb size={16} />{t(live.midiState.status === "connecting" ? "Connecting MIDI…" : midiConnected ? "Disconnect MIDI" : "Connect MIDI")}
+            </button>
+          </div>
           <button className="discovery-action" type="button" disabled={notes.length === 0} onClick={() => { setPianoNotes([]); setFrets({}); live.silence(); }}>
             <X size={16} />{t("Clear notes")}
           </button>
         </div>
       </div>
 
-      {live.keyboardEnabled ? (
-        <div className="discovery-keyboard-help">
-          <p>{t("White keys: A S D F G H J K L · Black keys: W E T Y U O")}</p>
-          <div className="discovery-octave">
-            <button className="discovery-icon-action" type="button" aria-label={t("Lower keyboard octave")} disabled={live.octave <= 1} onClick={() => live.shiftOctave(-1)}><Minus size={15} /></button>
-            <span>{t("Octave")} {live.octave} <small>· Z / X</small></span>
-            <button className="discovery-icon-action" type="button" aria-label={t("Raise keyboard octave")} disabled={live.octave >= 6} onClick={() => live.shiftOctave(1)}><Plus size={15} /></button>
-          </div>
-        </div>
-      ) : null}
-      {midiMessage ? <p className="discovery-status" role="status">{t(midiMessage)}{live.midiState.deviceNames.length > 0 ? ` · ${live.midiState.deviceNames.join(", ")}` : ""}</p> : null}
+      {midiMessage ? <p className="discovery-status" role="status">{t(midiMessage)}{selectedMidiDevice ? ` · ${selectedMidiDevice.name}` : ""}</p> : null}
       {live.audioError || loopError ? <p className="discovery-error" role="alert">{t("Audio could not start. Check your browser audio permissions and try again.")}</p> : null}
 
       <div className="discovery-hud" aria-live="polite" aria-atomic="true" data-testid="discovery-hud">
         <div className="discovery-hud__main">
           <span className="hh-control-label">{t(primary ? "Chord discovered" : "Your notes")}</span>
-          <h2 data-testid="discovery-chord-name">{primary?.symbol ?? (pitchCount === 1 ? discoveryNoteName(notes[0]) : notes.length > 0 ? t("Keep exploring") : t("Play a chord"))}</h2>
+          <h2
+            data-testid="discovery-chord-name"
+            data-chord-family={primaryFamily ?? undefined}
+            style={{ color: primaryColor }}
+          >
+            {primary?.symbol ?? (pitchCount === 1 ? discoveryNoteName(notes[0]) : notes.length > 0 ? t("Keep exploring") : t("Play a chord"))}
+          </h2>
           <p>{primary ? t(`discovery.quality.${primary.quality}`) : t(notes.length === 0 ? "Click notes to hold them. Click again to release." : pitchCount === 1 ? "Add another note to start finding harmony." : "No common exact match. Try adding or removing a note.")}</p>
         </div>
         <div className="discovery-hud__detail">
-          {notes.length > 0 ? <p className="discovery-bass"><span>{t("Lowest note")}</span><strong>{discoveryNoteName(notes[0], true)}</strong>{primary ? <span>{t(primary.kind === "slash" ? "Separate bass" : primary.inversion === 0 ? "Root position" : "Inversion")}</span> : null}</p> : null}
+          <div className="discovery-detail-row discovery-selected-notes">
+            <span className="hh-control-label">{t("Selected notes")}</span>
+            <div className="discovery-note-strip" aria-label={t("Selected notes")}>
+              {notes.length > 0 ? notes.map((midi) => {
+                const relativeInterval = primary
+                  ? ((midi % 12) - primary.root + 12) % 12
+                  : null;
+                return (
+                  <span
+                    className="discovery-note-chip"
+                    data-held={held.has(midi) ? "true" : "false"}
+                    data-interval={relativeInterval ?? undefined}
+                    key={midi}
+                    style={relativeInterval === null ? undefined : {
+                      color: intervalColor(relativeInterval),
+                      borderColor: intervalColor(relativeInterval),
+                    }}
+                  >
+                    {discoveryKeyLabel(midi)}
+                  </span>
+                );
+              }) : <span className="discovery-note-hint">{t("Your selected notes appear here.")}</span>}
+            </div>
+          </div>
+          {primary ? (
+            <div className="discovery-detail-row discovery-interval-ledger">
+              <span className="hh-control-label">{t("Chord intervals")}</span>
+              <div>
+                {primary.intervals.map((interval) => {
+                  const presentation = chordIntervalPresentation(interval);
+                  if (!presentation) return null;
+                  return (
+                    <span
+                      className="discovery-interval"
+                      data-interval={interval}
+                      key={interval}
+                      style={{ color: intervalColor(interval), borderColor: intervalColor(interval) }}
+                    >
+                      <strong>{presentation.degree}</strong>
+                      <span>{t(presentation.name)}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+          {primary || notes.length > 0 ? (
+            <div className="discovery-detail-summary">
+              {primary ? (
+                <button
+                  type="button"
+                  className="discovery-action discovery-pin-action"
+                  disabled={!pinnableChord || !onPinChord}
+                  title={t(pinnableChord ? "Pin chord card for later" : "Chord card unavailable")}
+                  aria-label={`${t("Pin chord card")}: ${primary.symbol}`}
+                  onClick={(event) => {
+                    if (!pinnableChord || !onPinChord) return;
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    onPinChord(primary.symbol, {
+                      x: bounds.left + bounds.width / 2,
+                      y: bounds.top + bounds.height / 2,
+                    });
+                  }}
+                >
+                  <Pin size={15} />{t("Pin chord card")}
+                </button>
+              ) : null}
+              {notes.length > 0 ? <p className="discovery-bass"><span>{t("Lowest note")}</span><strong>{discoveryNoteName(notes[0], true)}</strong>{primary ? <span>{t(primary.kind === "slash" ? "Separate bass" : primary.inversion === 0 ? "Root position" : "Inversion")}</span> : null}</p> : null}
+            </div>
+          ) : null}
           {matches.length > 1 ? <div className="discovery-alternatives"><span className="hh-control-label">{t("Also heard as")}</span><div>{matches.slice(1).map((match) => <span className="discovery-alternative" key={match.symbol}>{match.symbol}</span>)}</div></div> : null}
         </div>
-      </div>
-
-      <div className="discovery-note-strip" aria-label={t("Selected notes")}>
-        {notes.length > 0 ? notes.map((midi) => <span className="discovery-note-chip" data-held={held.has(midi) ? "true" : "false"} key={midi}>{discoveryKeyLabel(midi)}</span>) : <span className="discovery-note-hint">{t("Your selected notes appear here.")}</span>}
       </div>
 
       {instrument === "piano"
@@ -160,7 +259,15 @@ export default function Discovery({ active = true, playbackRequest = null, progr
         </div>
         {hasProgression ? <>
           <div className="discovery-loop-timeline" aria-label={t("Hasher progression")}>
-            {progressionLabels.map((label, index) => <span key={`${index}-${label}`} aria-current={loopState.chordIndex === index ? "step" : undefined}>{label}</span>)}
+            {progressionLabels.map((label, index) => (
+              <span
+                key={`${index}-${label}`}
+                aria-current={loopState.chordIndex === index ? "step" : undefined}
+                data-voicing-midis={playbackRequest?.voicings[index]?.join(",")}
+              >
+                {label}
+              </span>
+            ))}
           </div>
           <label className="discovery-tempo"><span>{t("Tempo")}</span><input type="range" min={40} max={200} step={1} value={bpm} aria-label={t("Discovery loop tempo")} onChange={(event) => {
             const next = Number(event.currentTarget.value);

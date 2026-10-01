@@ -35,6 +35,14 @@ describe("Discovery workspace", () => {
     expect((guitar.match(/aria-pressed="true"/g) ?? [])).toHaveLength(1);
   });
 
+  it("keeps white-key octave labels together and separates shortcut rows", () => {
+    const piano = renderToStaticMarkup(<I18nProvider><DiscoveryPiano selectedNotes={new Set()} heldNotes={new Set()} octave={2} keyboardEnabled onToggle={() => undefined} /></I18nProvider>);
+    expect(piano).toContain('<span class="discovery-key__note">C2</span>');
+    expect(piano).toContain('<span class="discovery-key__note">D2</span>');
+    expect(piano).toContain('<kbd class="discovery-key__shortcut">W</kbd>');
+    expect(piano).not.toContain('class="discovery-key__octave"');
+  });
+
   it("localizes the workspace and chord qualities without changing chord notation", () => {
     const html = renderToStaticMarkup(<I18nContext.Provider value={{ locale: "ja", setLocale: () => undefined, t: (key) => translate("ja", key) }}><Discovery /></I18nContext.Provider>);
     expect(html).toContain("ディスカバリー");

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { PianoDisplayMode, VoicedNote } from "../lib/types";
 import { formatNoteForDisplay } from "../lib/chordData";
 import { useT } from "../i18n/I18nContext";
@@ -24,11 +24,10 @@ interface PianoKeyboardProps {
   rootNote: string;
   size?: PianoKeyboardSize;
   colorMode?: "hand" | "interval";
+  octaveOffset?: number;
 }
 
-// 3-octave keyboard: C3 to B5
-const OCTAVE_START = 3;
-const OCTAVE_END = 5;
+const BASE_OCTAVE_START = 3;
 
 const NOTE_TO_PITCH_CLASS: Record<string, number> = {
   C: 0,
@@ -77,9 +76,9 @@ function normalizeNoteName(raw: string): string {
   return letter;
 }
 
-function buildKeyboard(): KeyDef[] {
+function buildKeyboard(octaveStart: number): KeyDef[] {
   const keys: KeyDef[] = [];
-  for (let oct = OCTAVE_START; oct <= OCTAVE_END; oct++) {
+  for (let oct = octaveStart; oct <= octaveStart + 2; oct++) {
     const whiteNotes = [
       { note: "C", pc: 0 },
       { note: "D", pc: 2 },
@@ -106,10 +105,6 @@ function buildKeyboard(): KeyDef[] {
   return keys;
 }
 
-const ALL_KEYS = buildKeyboard();
-const WHITE_KEYS = ALL_KEYS.filter((k) => !k.isBlack);
-const BLACK_KEYS = ALL_KEYS.filter((k) => k.isBlack);
-
 export default function PianoKeyboard({
   voicedNotes,
   displayMode,
@@ -117,10 +112,15 @@ export default function PianoKeyboard({
   rootNote,
   size = "standard",
   colorMode = "hand",
+  octaveOffset = 0,
 }: PianoKeyboardProps) {
   const t = useT();
   const keyboardRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<NoteRoleTooltipState | null>(null);
+  const octaveStart = BASE_OCTAVE_START + octaveOffset;
+  const allKeys = useMemo(() => buildKeyboard(octaveStart), [octaveStart]);
+  const whiteKeys = allKeys.filter((key) => !key.isBlack);
+  const blackKeys = allKeys.filter((key) => key.isBlack);
   const activeSet = new Map<number, VoicedNote>();
   for (const note of voicedNotes) {
     activeSet.set(note.midi, note);
@@ -203,13 +203,14 @@ export default function PianoKeyboard({
       data-size={size}
       data-color-mode={colorMode}
       data-active-midis={activeMidis.join(",")}
+      data-octave-offset={octaveOffset}
       role="group"
       aria-label={t(`Piano voicing: ${voicedNoteLabel || "no notes"}`)}
       className="relative mx-auto"
       style={{ width: "100%", maxWidth, height: whiteKeyH }}
     >
       {/* White keys */}
-      {WHITE_KEYS.map((key, i) => {
+      {whiteKeys.map((key, i) => {
         const geometry = getWhiteKeyGeometry(i);
         const active = activeSet.get(key.midi);
         const label = active ? getActiveLabel(active) : "";
@@ -274,14 +275,14 @@ export default function PianoKeyboard({
       })}
 
       {/* Black keys */}
-      {BLACK_KEYS.map((key) => {
+      {blackKeys.map((key) => {
         const active = activeSet.get(key.midi);
         const label = active ? getActiveLabel(active) : "";
         const rootFingerKey = active ? isRootFingerKey(active) : false;
         const rootNoteLabel = active ? isRootLabel(active) : false;
         const interval = active ? activeInterval(active) : null;
         const tooltipData = active ? tooltipAttributes(active) : null;
-        const geometry = getBlackKeyGeometry(key.note, key.octave, size);
+        const geometry = getBlackKeyGeometry(key.note, key.octave, size, octaveStart);
 
         return (
           <div

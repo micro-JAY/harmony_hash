@@ -15,3 +15,11 @@
 ## 4. Handoff
 
 - [x] 4.1 Validate OpenSpec and regression tests, record exact outcomes and commit the isolated feature for integration without deploying.
+
+## 5. Review refinements
+
+- [x] 5.1 Refine the Discovery HUD, interval ledger, family color, piano note/shortcut typography, and compact octave hint; add component and browser coverage for long names, C2/D2 alignment, and key-label containment.
+- [x] 5.2 Add single-device MIDI selection over enumerated inputs with hotplug, switching, note release, port cleanup, localized UI, and unit/browser regressions.
+- [x] 5.3 Add stable per-card and atomic whole-progression Piano octave controls, a shifted three-octave keyboard window, and tests proving Hasher playback/MIDI/voice and Discovery loop consume the transformed voicings.
+- [x] 5.4 Add the dictionary-gated Discovery pin action through the existing silent floating-card layer and verify cross-workspace persistence without timeline or audio mutation.
+- [ ] 5.5 Apply PR #112's Wrangler 4.144.0 lockfile graph with `sharp` 0.35.4; run build, lint, unit, focused/full browser, dependency, and strict OpenSpec validation; refresh visual evidence and PR #110 notes without deploying.

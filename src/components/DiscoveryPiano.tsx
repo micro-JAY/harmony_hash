@@ -39,10 +39,11 @@ export default function DiscoveryPiano({ selectedNotes, heldNotes, octave, keybo
         style={{ left: `${left}%`, width: `${(black ? 0.64 : 1) * 100 / whites.length}%` }}
         onClick={() => onToggle(midi)}
       >
-        <span className="discovery-key__note">{discoveryNoteName(midi)}</span>
-        {!black ? <span className="discovery-key__octave">{Math.floor(midi / 12) - 1}</span> : null}
-        {keyboardEnabled && keyboardLabels.has(midi)
-          ? <kbd className="discovery-key__shortcut">{keyboardLabels.get(midi)}</kbd> : null}
+        <span className="discovery-key__legend">
+          <span className="discovery-key__note">{discoveryNoteName(midi, !black)}</span>
+          {keyboardEnabled && keyboardLabels.has(midi)
+            ? <kbd className="discovery-key__shortcut">{keyboardLabels.get(midi)}</kbd> : null}
+        </span>
       </button>
     );
   };

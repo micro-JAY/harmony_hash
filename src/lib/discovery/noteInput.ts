@@ -134,9 +134,16 @@ export function createMidiNoteSession(deviceId: string, input: HeldNoteInput): M
 
 export type MidiConnectionStatus = "idle" | "connecting" | "connected" | "empty" | "unsupported" | "denied" | "error";
 
+export interface MidiInputDevice {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface MidiConnectionState {
   readonly status: MidiConnectionStatus;
   readonly deviceNames: readonly string[];
+  readonly devices: readonly MidiInputDevice[];
+  readonly selectedDeviceId: string | null;
 }
 
 export function createDiscoveryMidiConnection(deps: {
@@ -150,8 +157,18 @@ export function createDiscoveryMidiConnection(deps: {
   let generation = 0;
   let connecting = false;
   let closing: Promise<void> = Promise.resolve();
-  const devices = new Map<string, { port: MIDIInput; session: MidiNoteSession; listener: (event: MIDIMessageEvent) => void }>();
-  const setState = (status: MidiConnectionStatus, deviceNames: readonly string[] = []) => deps.onState({ status, deviceNames });
+  let selectedDeviceId: string | null = null;
+  let activeDevice: { port: MIDIInput; session: MidiNoteSession; listener: (event: MIDIMessageEvent) => void } | null = null;
+  let syncQueue: Promise<void> = Promise.resolve();
+  const setState = (status: MidiConnectionStatus, ports: readonly MIDIInput[] = []) => {
+    const devices = ports.map((port) => ({ id: port.id, name: port.name ?? "MIDI keyboard" }));
+    deps.onState({
+      status,
+      deviceNames: devices.map((device) => device.name),
+      devices,
+      selectedDeviceId: devices.some((device) => device.id === selectedDeviceId) ? selectedDeviceId : null,
+    });
+  };
   const closePort = (port: MIDIInput) => {
     const closed = port.close().then(() => undefined, (error: unknown) => {
       // An unplugged port is already unavailable. Surface other close failures.
@@ -159,45 +176,76 @@ export function createDiscoveryMidiConnection(deps: {
     });
     closing = Promise.all([closing, closed]).then(() => undefined);
   };
-  const sync = () => {
-    if (!access) return;
-    const connected = [...access.inputs.values()].filter((port) => port.state === "connected");
-    for (const [id, device] of devices) {
-      if (!connected.some((port) => port.id === id)) {
-        device.port.removeEventListener("midimessage", device.listener);
-        device.session.clear();
-        closePort(device.port);
-        devices.delete(id);
-      }
+  const releaseActiveDevice = () => {
+    if (!activeDevice) return;
+    activeDevice.port.removeEventListener("midimessage", activeDevice.listener);
+    activeDevice.session.clear();
+    closePort(activeDevice.port);
+    activeDevice = null;
+  };
+  const sync = async () => {
+    const currentAccess = access;
+    const currentGeneration = generation;
+    if (!currentAccess) return;
+    const connected = [...currentAccess.inputs.values()].filter((port) => port.state === "connected");
+    if (!selectedDeviceId || !connected.some((port) => port.id === selectedDeviceId)) {
+      selectedDeviceId = connected[0]?.id ?? null;
     }
-    for (const port of connected) {
-      if (devices.has(port.id)) continue;
-      const session = createMidiNoteSession(port.id, deps.input);
+    const selectedPort = connected.find((port) => port.id === selectedDeviceId) ?? null;
+    if (activeDevice && activeDevice.port.id !== selectedPort?.id) releaseActiveDevice();
+    if (!selectedPort) {
+      releaseActiveDevice();
+      setState("empty", connected);
+      return;
+    }
+    if (!activeDevice) {
+      await closing;
+      try {
+        await selectedPort.open();
+      } catch (error) {
+        if (access === currentAccess && generation === currentGeneration) {
+          deps.onError(error);
+          setState("error", connected);
+        }
+        return;
+      }
+      if (access !== currentAccess || generation !== currentGeneration
+        || selectedDeviceId !== selectedPort.id || selectedPort.state !== "connected") {
+        closePort(selectedPort);
+        return;
+      }
+      const session = createMidiNoteSession(selectedPort.id, deps.input);
       const listener = (event: MIDIMessageEvent) => {
         if (event.data && (deps.canReceive?.() ?? true)) session.receive(event.data);
       };
-      devices.set(port.id, { port, session, listener });
-      port.addEventListener("midimessage", listener);
+      activeDevice = { port: selectedPort, session, listener };
+      selectedPort.addEventListener("midimessage", listener);
     }
-    setState(connected.length > 0 ? "connected" : "empty", connected.map((port) => port.name ?? "MIDI keyboard"));
+    setState("connected", connected);
   };
+  const queueSync = () => {
+    syncQueue = syncQueue.then(sync, sync);
+    return syncQueue;
+  };
+  const handleStateChange = () => { void queueSync(); };
   const disconnect = () => {
     generation++;
     connecting = false;
-    access?.removeEventListener("statechange", sync);
+    access?.removeEventListener("statechange", handleStateChange);
     access = null;
-    for (const device of devices.values()) {
-      device.port.removeEventListener("midimessage", device.listener);
-      device.session.clear();
-      closePort(device.port);
-    }
-    devices.clear();
+    selectedDeviceId = null;
+    releaseActiveDevice();
     setState("idle");
   };
   return {
     disconnect,
     silence() {
-      for (const device of devices.values()) device.session.clear();
+      activeDevice?.session.clear();
+    },
+    async selectDevice(deviceId: string) {
+      if (!access || ![...access.inputs.values()].some((port) => port.id === deviceId && port.state === "connected")) return;
+      selectedDeviceId = deviceId;
+      await queueSync();
     },
     async connect() {
       if (access || connecting) return;
@@ -217,8 +265,8 @@ export function createDiscoveryMidiConnection(deps: {
         if (attempt !== generation) return;
         connecting = false;
         access = result;
-        access.addEventListener("statechange", sync);
-        sync();
+        access.addEventListener("statechange", handleStateChange);
+        await queueSync();
       } catch (error) {
         if (attempt !== generation) return;
         connecting = false;

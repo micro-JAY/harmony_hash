@@ -10,7 +10,12 @@ export function useDiscoveryInput(active: boolean) {
   const [keyboardEnabled, setKeyboardEnabled] = useState(false);
   const [octave, setOctave] = useState(3);
   const [audioError, setAudioError] = useState(false);
-  const [midiState, setMidiState] = useState<MidiConnectionState>({ status: "idle", deviceNames: [] });
+  const [midiState, setMidiState] = useState<MidiConnectionState>({
+    status: "idle",
+    deviceNames: [],
+    devices: [],
+    selectedDeviceId: null,
+  });
   const [synth] = useState(() => createDiscoverySynth((error) => {
     console.error("Discovery note audio failed", error);
     setAudioError(true);
@@ -91,6 +96,7 @@ export function useDiscoveryInput(active: boolean) {
       void synth.prepare();
       void midi.connect();
     },
+    selectMidiDevice(deviceId: string) { void midi.selectDevice(deviceId); },
     disconnectMidi: midi.disconnect,
     silence() { input.clear(); midi.silence(); synth.silence(); },
   };

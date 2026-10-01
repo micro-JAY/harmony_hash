@@ -9,5 +9,7 @@ describe("Harmony voice prompt", () => {
     expect(HANZ_SYSTEM_PROMPT).toContain("Do not volunteer capabilities");
     expect(HANZ_SYSTEM_PROMPT).toContain('Do not end with offers such as "I can also"');
     expect(HANZ_SYSTEM_PROMPT).toContain("do not repeat capability explanations in the session");
+    expect(HANZ_SYSTEM_PROMPT).toContain("Treat typed requests like spoken requests and keep answering aloud");
+    expect(HANZ_SYSTEM_PROMPT).toContain("piano, guitar, or ukulele");
   });
 });

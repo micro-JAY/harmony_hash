@@ -6,13 +6,20 @@
  * capture ambient audio. The Worker client-secret route, browser WebRTC/SDP
  * exchange, OpenAI Realtime session, client tool, React bridge, remote audio,
  * and visible timeline are all real.
+ * Set HH_VOICE_INPUT_MODE=type to exercise the actual Type composer instead.
+ * HH_VOICE_APP_URL selects the UI; optional HH_VOICE_API_URL selects the API
+ * origin to count when a development setup already routes requests separately.
  */
 import { chromium, type Page } from "playwright";
 
 const appUrl = process.env.HH_VOICE_APP_URL ?? "http://127.0.0.1:8787";
-const clientSecretUrl = new URL("/api/voice/client-secret", appUrl).href;
+const apiUrl = process.env.HH_VOICE_API_URL ?? appUrl;
+const clientSecretUrl = new URL("/api/voice/client-secret", apiUrl).href;
+const inputMode = process.env.HH_VOICE_INPUT_MODE ?? "voice";
 const realtimeCallsUrl = "https://api.openai.com/v1/realtime/calls";
 const replacement = ["Fmaj7", "Gm7", "C7", "Fmaj7"];
+const typedPrompt = `Replace the timeline with exactly these four chords, in this order: ${replacement.join(", ")}. `
+  + "Use replace_progression, then briefly tell me that you finished.";
 const helpLabel = /Need help\?|Stuck\?|Writer's block got you down\?|Phone a friend/;
 
 interface TransportSnapshot {
@@ -22,6 +29,8 @@ interface TransportSnapshot {
   peerStates: string[];
   channelStates: string[];
   senderTrackStates: string[];
+  microphoneRequests: number;
+  typedAcknowledgements: number;
   responseDoneCount: number;
   audioTranscriptDoneCount: number;
 }
@@ -32,6 +41,8 @@ async function transportSnapshot(page: Page): Promise<TransportSnapshot> {
       peers: Array<{ id: number; value: RTCPeerConnection }>;
       channels: Array<{ id: number; value: RTCDataChannel }>;
       eventTypeCounts: Record<string, number>;
+      microphoneRequests: number;
+      typedAcknowledgements: number;
     } | undefined;
     if (!smoke) throw new Error("Realtime transport capture was not installed");
 
@@ -46,6 +57,8 @@ async function transportSnapshot(page: Page): Promise<TransportSnapshot> {
       senderTrackStates: smoke.peers.flatMap(({ value }) =>
         value.getSenders().flatMap(({ track }) => track ? [track.readyState] : []),
       ),
+      microphoneRequests: smoke.microphoneRequests,
+      typedAcknowledgements: smoke.typedAcknowledgements,
       responseDoneCount: smoke.eventTypeCounts["response.done"] ?? 0,
       audioTranscriptDoneCount:
         smoke.eventTypeCounts["response.output_audio_transcript.done"] ?? 0,
@@ -91,6 +104,9 @@ async function sendDeterministicToolTurn(page: Page, channelId: number): Promise
 }
 
 async function main(): Promise<void> {
+  if (inputMode !== "voice" && inputMode !== "type") {
+    throw new Error("HH_VOICE_INPUT_MODE must be voice or type");
+  }
   const browser = await chromium.launch({
     headless: true,
     args: [
@@ -102,7 +118,9 @@ async function main(): Promise<void> {
 
   try {
     const context = await browser.newContext();
-    await context.grantPermissions(["microphone"], { origin: new URL(appUrl).origin });
+    if (inputMode === "voice") {
+      await context.grantPermissions(["microphone"], { origin: new URL(appUrl).origin });
+    }
     const page = await context.newPage();
     let clientSecretRequests = 0;
     let realtimeCallRequests = 0;
@@ -125,9 +143,9 @@ async function main(): Promise<void> {
       }
     });
 
-    // Capture transport identities and safe event-type counts only. Provider
+    // Capture transport identities and safe event/acknowledgement counts only. Provider
     // payloads, authorization headers, credentials, and SDP are never retained.
-    await page.addInitScript(() => {
+    await page.addInitScript(({ expectedTypedPrompt }) => {
       const NativeRTCPeerConnection = window.RTCPeerConnection;
       const state = {
         nextPeerId: 1,
@@ -135,7 +153,14 @@ async function main(): Promise<void> {
         peers: [] as Array<{ id: number; value: RTCPeerConnection }>,
         channels: [] as Array<{ id: number; value: RTCDataChannel }>,
         eventTypeCounts: Object.create(null) as Record<string, number>,
+        microphoneRequests: 0,
+        typedAcknowledgements: 0,
         transportFailure: null as { stage: string; name: string } | null,
+      };
+      const nativeGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+      navigator.mediaDevices.getUserMedia = (...mediaArgs) => {
+        state.microphoneRequests += 1;
+        return nativeGetUserMedia(...mediaArgs);
       };
 
       const CapturingRTCPeerConnection = new Proxy(NativeRTCPeerConnection, {
@@ -148,39 +173,47 @@ async function main(): Promise<void> {
           const nativeSetLocalDescription = peer.setLocalDescription.bind(peer);
           const nativeSetRemoteDescription = peer.setRemoteDescription.bind(peer);
 
-          peer.createOffer = async (...offerArgs) => {
-            try {
-              return await nativeCreateOffer(...offerArgs);
-            } catch (error) {
-              state.transportFailure = {
-                stage: "createOffer",
-                name: error instanceof Error ? error.name : "unknown",
-              };
-              throw error;
-            }
-          };
-          peer.setLocalDescription = async (...descriptionArgs) => {
-            try {
-              await nativeSetLocalDescription(...descriptionArgs);
-            } catch (error) {
-              state.transportFailure = {
-                stage: "setLocalDescription",
-                name: error instanceof Error ? error.name : "unknown",
-              };
-              throw error;
-            }
-          };
-          peer.setRemoteDescription = async (...descriptionArgs) => {
-            try {
-              await nativeSetRemoteDescription(...descriptionArgs);
-            } catch (error) {
-              state.transportFailure = {
-                stage: "setRemoteDescription",
-                name: error instanceof Error ? error.name : "unknown",
-              };
-              throw error;
-            }
-          };
+          // Proxies preserve the native promise/callback overloads while
+          // retaining safe stage/name diagnostics when negotiation fails.
+          peer.createOffer = new Proxy(nativeCreateOffer, {
+            async apply(target, receiver, args) {
+              try {
+                return await Reflect.apply(target, receiver, args);
+              } catch (error) {
+                state.transportFailure = {
+                  stage: "createOffer",
+                  name: error instanceof Error ? error.name : "unknown",
+                };
+                throw error;
+              }
+            },
+          });
+          peer.setLocalDescription = new Proxy(nativeSetLocalDescription, {
+            async apply(target, receiver, args) {
+              try {
+                await Reflect.apply(target, receiver, args);
+              } catch (error) {
+                state.transportFailure = {
+                  stage: "setLocalDescription",
+                  name: error instanceof Error ? error.name : "unknown",
+                };
+                throw error;
+              }
+            },
+          });
+          peer.setRemoteDescription = new Proxy(nativeSetRemoteDescription, {
+            async apply(target, receiver, args) {
+              try {
+                await Reflect.apply(target, receiver, args);
+              } catch (error) {
+                state.transportFailure = {
+                  stage: "setRemoteDescription",
+                  name: error instanceof Error ? error.name : "unknown",
+                };
+                throw error;
+              }
+            },
+          });
 
           peer.createDataChannel = (...channelArgs) => {
             const channel = nativeCreateDataChannel(...channelArgs);
@@ -189,10 +222,23 @@ async function main(): Promise<void> {
             channel.addEventListener("message", (event) => {
               if (typeof event.data !== "string") return;
               try {
-                const payload = JSON.parse(event.data) as { type?: unknown };
+                const payload = JSON.parse(event.data) as { type?: unknown; item?: unknown };
                 if (typeof payload.type === "string") {
                   state.eventTypeCounts[payload.type] =
                     (state.eventTypeCounts[payload.type] ?? 0) + 1;
+                }
+                if (
+                  payload.type === "conversation.item.added"
+                  && typeof payload.item === "object"
+                  && payload.item !== null
+                  && "role" in payload.item && payload.item.role === "user"
+                  && "content" in payload.item && Array.isArray(payload.item.content)
+                  && payload.item.content.some((content: unknown) =>
+                    typeof content === "object" && content !== null
+                    && "type" in content && content.type === "input_text"
+                    && "text" in content && content.text === expectedTypedPrompt)
+                ) {
+                  state.typedAcknowledgements += 1;
                 }
               } catch {
                 // The shipped runtime owns validation and reporting.
@@ -209,7 +255,7 @@ async function main(): Promise<void> {
         configurable: true,
         value: CapturingRTCPeerConnection,
       });
-    });
+    }, { expectedTypedPrompt: typedPrompt });
 
     await page.goto(appUrl, { waitUntil: "domcontentloaded" });
     const onboardingClose = page.getByRole("button", { name: "Close Harmony Hash introduction" });
@@ -219,14 +265,19 @@ async function main(): Promise<void> {
       .fill("Help me finish and understand this progression");
     await page.getByRole("button", { name: helpLabel }).click();
     let dialog = page.getByRole("dialog", { name: "Harmony" });
+    if (inputMode === "type") {
+      await dialog.getByText("Type", { exact: true }).click();
+    }
     await page.getByRole("button", { name: "Harmony, Help!" }).click();
-    const listening = page.getByText("Listening", { exact: true });
+    const connected = dialog.getByText(
+      inputMode === "type" ? /^(Responding|Ready)$/ : "Listening", { exact: true },
+    );
     const alert = page.getByRole("alert");
     await Promise.any([
-      listening.waitFor({ timeout: 20_000 }),
+      connected.waitFor({ timeout: 20_000 }),
       alert.waitFor({ timeout: 20_000 }),
     ]);
-    if (!await listening.isVisible()) {
+    if (!await connected.isVisible()) {
       const message = (await alert.textContent())?.trim() || "unknown browser error";
       const capturedFailure = await page.evaluate(() => {
         const smoke = Reflect.get(window, "__hhRealtimeSmoke") as {
@@ -256,6 +307,11 @@ async function main(): Promise<void> {
       return Number(panel?.getAttribute("data-audio-packets") ?? 0) > 0
         && (smoke?.eventTypeCounts["response.done"] ?? 0) > 0;
     }, undefined, { timeout: 30_000 });
+    if (inputMode === "type") {
+      // Let the greeting finish playing so later audio/transcript counts can
+      // only pass from the actual typed turn, not buffered greeting output.
+      await dialog.getByText("Ready", { exact: true }).waitFor({ timeout: 30_000 });
+    }
 
     const beforeClose = await transportSnapshot(page);
     if (
@@ -264,6 +320,11 @@ async function main(): Promise<void> {
       || beforeClose.openChannelIds.length !== 1
     ) {
       throw new Error("Harmony did not keep exactly one open Realtime transport");
+    }
+    if (inputMode === "type" && (
+      beforeClose.microphoneRequests !== 0 || beforeClose.senderTrackStates.length !== 0
+    )) {
+      throw new Error("Type mode requested microphone input or attached a sender track");
     }
     const activeChannelId = beforeClose.openChannelIds[0];
     const audioPacketsBeforeTurn = Number(await dialog.getAttribute("data-audio-packets"));
@@ -281,7 +342,8 @@ async function main(): Promise<void> {
 
     await page.getByRole("button", { name: helpLabel }).click();
     dialog = page.getByRole("dialog", { name: "Harmony" });
-    await page.getByText("Listening", { exact: true }).waitFor({ timeout: 10_000 });
+    await dialog.getByText(inputMode === "type" ? "Ready" : "Listening", { exact: true })
+      .waitFor({ timeout: 10_000 });
     const afterReopen = await transportSnapshot(page);
     if (
       (await dialog.getAttribute("data-session-kind")) !== "voice"
@@ -294,7 +356,21 @@ async function main(): Promise<void> {
       throw new Error("Reopening Harmony did not resume the same Realtime session");
     }
 
-    await sendDeterministicToolTurn(page, activeChannelId);
+    if (inputMode === "type") {
+      const composer = dialog.getByRole("textbox", { name: "Message Harmony" });
+      await composer.fill(typedPrompt);
+      await dialog.getByRole("button", { name: "Send", exact: true }).click({ timeout: 30_000 });
+      await dialog.getByRole("listitem").filter({ hasText: typedPrompt }).waitFor({ timeout: 30_000 });
+      await page.waitForFunction(() => {
+        const composer = document.querySelector<HTMLTextAreaElement>("#harmony-message");
+        const smoke = Reflect.get(window, "__hhRealtimeSmoke") as {
+          typedAcknowledgements: number;
+        } | undefined;
+        return smoke?.typedAcknowledgements === 1 && composer?.value === "" && !composer.readOnly;
+      }, undefined, { timeout: 30_000 });
+    } else {
+      await sendDeterministicToolTurn(page, activeChannelId);
+    }
     await page.waitForFunction((expected) => {
       const rendered = Array.from(
         document.querySelectorAll<HTMLElement>('[data-testid="chord-card"] h3'),
@@ -319,6 +395,15 @@ async function main(): Promise<void> {
     }, { timeout: 30_000 });
 
     const audioPackets = Number(await dialog.getAttribute("data-audio-packets"));
+    const afterTurn = await transportSnapshot(page);
+    if (inputMode === "type" && (
+      afterTurn.microphoneRequests !== 0 || afterTurn.senderTrackStates.length !== 0
+    )) {
+      throw new Error("Type mode acquired microphone input during the conversation");
+    }
+    if (inputMode === "type" && afterTurn.typedAcknowledgements !== 1) {
+      throw new Error("Type request did not receive exactly one matching provider acknowledgement");
+    }
     await page.getByRole("button", { name: "End conversation" }).click();
     await page.getByText("Offline", { exact: true }).waitFor({ timeout: 10_000 });
     await page.waitForFunction(() => {
@@ -338,13 +423,26 @@ async function main(): Promise<void> {
     if ((await dialog.getAttribute("data-session-kind")) !== "none") {
       throw new Error("Harmony remained attached to a voice session after disconnect");
     }
+    if (inputMode === "type" && (
+      disconnected.microphoneRequests !== 0 || disconnected.senderTrackStates.length !== 0
+    )) {
+      throw new Error("Type mode did not remain microphone-free through disconnect");
+    }
 
     console.log(JSON.stringify({
       connected: true,
+      inputMode,
       sessionKind: "voice",
+      microphoneRequests: disconnected.microphoneRequests,
+      senderTracksWhileConnected: afterTurn.senderTrackStates.length,
+      ...(inputMode === "type" ? {
+        typedPromptAcknowledged: afterTurn.typedAcknowledgements === 1,
+        typedDraftCleared: true,
+      } : {}),
       workerClientSecretRequests: clientSecretRequests,
       realtimeCallRequests,
       remoteAudioPackets: audioPackets,
+      spokenReplyTranscripts: afterTurn.audioTranscriptDoneCount - postToolAudioBaseline,
       clientToolMutation: rendered,
       closeReopenContinuity: true,
       peerStatesAfterDisconnect: disconnected.peerStates,

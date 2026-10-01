@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import type {
   RealtimeConnectionStatus,
   RealtimeServerEvent,
+  VoiceInputMode,
 } from "./openAIRealtimeSession";
 import {
   createProgressionAgentToolDispatcher,
@@ -17,6 +18,11 @@ const TOOL_PROTOCOL_ERROR =
   "The voice session received an invalid tool response. Please try again.";
 const PROVIDER_EVENT_ERROR =
   "The voice session ran into a problem. Please try again.";
+const TEXT_SEND_ERROR =
+  "Your message could not be sent. End the conversation and try again.";
+
+export const HARMONY_TEXT_MAX_LENGTH = 2000;
+export type TextSendResult = "sent" | "empty" | "too-long" | "unavailable" | "busy" | "failed";
 
 const BENIGN_REALTIME_ERROR_CODES = new Set([
   "response_cancel_not_active",
@@ -36,8 +42,14 @@ export interface VoiceAgentContextValue {
   status: RealtimeConnectionStatus;
   message: string | null;
   playbackError: string | null;
-  startSession: (signal?: AbortSignal) => Promise<void>;
+  startSession: (inputMode: VoiceInputMode, signal?: AbortSignal) => Promise<void>;
   endSession: () => Promise<void>;
+  sendText: (text: string) => TextSendResult;
+  draft: string;
+  setDraft: (draft: string) => void;
+  textPending: boolean;
+  replyPending: boolean;
+  resumePlayback: () => void;
   setVolume: (options: { volume: number }) => void;
   transcript: TranscriptEntry[];
   sessionKind: "voice" | "text" | null;
@@ -70,12 +82,21 @@ export interface VoiceAgentCoordinatorSink {
   setAgentReplyCount(count: number): void;
   setAgentReplyAudioBaseline(count: number): void;
   setFatalError(message: string): void;
+  setReplyPending(pending: boolean): void;
+  setTextPending(pending: boolean): void;
+  acknowledgeTextDraft(draft: string): void;
 }
 
 interface ToolResponseGroup {
   readonly pendingByCallId: Map<string, Promise<void>>;
   responseDone: boolean;
   continued: boolean;
+}
+
+interface PendingTextItem {
+  id: string;
+  text: string;
+  draft: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -190,6 +211,16 @@ export class VoiceAgentEventCoordinator {
   private readonly responseIdByCallId = new Map<string, string>();
   private readonly completedUserItemIds = new Set<string>();
   private readonly completedAgentItemIds = new Set<string>();
+  private readonly completedResponseIds = new Set<string>();
+  private readonly activeResponseIds = new Set<string>();
+  private readonly activeAudioResponseIds = new Set<string>();
+  private readonly finishedAudioResponseIds = new Set<string>();
+  private inputMode: VoiceInputMode = "voice";
+  private connected = false;
+  private replyPending = false;
+  private awaitingResponse = false;
+  private pendingTextItem: PendingTextItem | null = null;
+  private textSequence = 0;
   private audioPacketCount = 0;
   private currentTurnAudioBaseline = 0;
   private agentReplyCount = 0;
@@ -206,7 +237,7 @@ export class VoiceAgentEventCoordinator {
     this.transport = transport;
   }
 
-  beginSession(bridge: ProgressionBridge): void {
+  beginSession(bridge: ProgressionBridge, inputMode: VoiceInputMode = "voice"): void {
     this.sessionGeneration += 1;
     this.bridge = bridge;
     this.dispatcher = createProgressionAgentToolDispatcher(bridge);
@@ -216,6 +247,14 @@ export class VoiceAgentEventCoordinator {
     this.responseIdByCallId.clear();
     this.completedUserItemIds.clear();
     this.completedAgentItemIds.clear();
+    this.completedResponseIds.clear();
+    this.activeResponseIds.clear();
+    this.activeAudioResponseIds.clear();
+    this.finishedAudioResponseIds.clear();
+    this.inputMode = inputMode;
+    this.connected = false;
+    this.awaitingResponse = true;
+    this.setPendingTextItem(null);
     this.audioPacketCount = 0;
     this.currentTurnAudioBaseline = 0;
     this.agentReplyCount = 0;
@@ -228,7 +267,39 @@ export class VoiceAgentEventCoordinator {
   }
 
   handleConnected(): void {
+    this.connected = true;
     this.sink.setSessionKind("voice");
+  }
+
+  sendText(value: string): TextSendResult {
+    const text = value.trim();
+    if (!text) return "empty";
+    if (text.length > HARMONY_TEXT_MAX_LENGTH) return "too-long";
+    if (!this.connected || this.failed || this.inputMode !== "text") return "unavailable";
+    if (this.replyPending) return "busy";
+
+    this.awaitingResponse = true;
+    const item = { id: `hh_typed_${++this.textSequence}`, text, draft: value };
+    this.setPendingTextItem(item);
+    const itemSent = this.transport?.send({
+      type: "conversation.item.create",
+      item: {
+        id: item.id,
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text }],
+      },
+    }) ?? false;
+    const responseSent = itemSent && (this.transport?.send({
+      type: "response.create",
+      response: { output_modalities: ["audio"] },
+    }) ?? false);
+    if (!responseSent) {
+      void this.failClosed(TEXT_SEND_ERROR);
+      return "failed";
+    }
+    this.currentTurnAudioBaseline = this.audioPacketCount;
+    return "sent";
   }
 
   handlePacketCount(packetCount: number): void {
@@ -245,6 +316,13 @@ export class VoiceAgentEventCoordinator {
     this.responseIdByCallId.clear();
     this.completedUserItemIds.clear();
     this.completedAgentItemIds.clear();
+    this.completedResponseIds.clear();
+    this.activeResponseIds.clear();
+    this.activeAudioResponseIds.clear();
+    this.finishedAudioResponseIds.clear();
+    this.connected = false;
+    this.awaitingResponse = false;
+    this.setPendingTextItem(null);
     this.sink.setTranscript([]);
     this.sink.setSessionKind(null);
     void this.clearFocus();
@@ -265,12 +343,34 @@ export class VoiceAgentEventCoordinator {
     if (normalizedTranscriptEvent) {
       this.handleTranscriptEvent(normalizedTranscriptEvent, event);
     }
+    if (event.type === "conversation.item.added") this.handleTypedItem(event);
 
     switch (event.type) {
       case "response.created": {
         const responseId = responseIdFor(event);
-        if (responseId) {
+        if (responseId && !this.completedResponseIds.has(responseId)) {
+          this.awaitingResponse = false;
+          this.activeResponseIds.add(responseId);
+          this.refreshReplyPending();
           this.responseAudioBaselines.set(responseId, this.audioPacketCount);
+        }
+        return;
+      }
+      case "output_audio_buffer.started": {
+        const responseId = responseIdFor(event);
+        if (responseId && !this.finishedAudioResponseIds.has(responseId)) {
+          this.activeAudioResponseIds.add(responseId);
+          this.refreshReplyPending();
+        }
+        return;
+      }
+      case "output_audio_buffer.stopped":
+      case "output_audio_buffer.cleared": {
+        const responseId = responseIdFor(event);
+        if (responseId) {
+          this.finishedAudioResponseIds.add(responseId);
+          this.activeAudioResponseIds.delete(responseId);
+          this.refreshReplyPending();
         }
         return;
       }
@@ -291,6 +391,48 @@ export class VoiceAgentEventCoordinator {
       default:
         return;
     }
+  }
+
+  private refreshReplyPending(): void {
+    const toolsPending = [...this.responseToolGroups.values()].some((group) => !group.continued);
+    const pending = this.awaitingResponse || this.activeResponseIds.size > 0
+      || this.activeAudioResponseIds.size > 0 || toolsPending || this.pendingTextItem !== null;
+    this.replyPending = pending;
+    this.sink.setReplyPending(pending);
+  }
+
+  private setPendingTextItem(item: PendingTextItem | null): void {
+    this.pendingTextItem = item;
+    this.sink.setTextPending(item !== null);
+    this.refreshReplyPending();
+  }
+
+  private handleTypedItem(event: RealtimeServerEvent): void {
+    const item = isRecord(event.item) ? event.item : null;
+    const eventId = nonEmptyString(event.event_id);
+    const itemId = nonEmptyString(item?.id);
+    if (!eventId || !itemId || item?.type !== "message" || item.role !== "user") return;
+    if (!Array.isArray(item.content)) return;
+    const text = item.content.flatMap((part: unknown) =>
+      isRecord(part) && part.type === "input_text" && typeof part.text === "string"
+        ? [part.text]
+        : [],
+    ).join("\n");
+    if (!text.trim()) return;
+    if (this.pendingTextItem?.id === itemId) {
+      if (this.pendingTextItem.text !== text) {
+        void this.failClosed(TEXT_SEND_ERROR);
+        return;
+      }
+      this.sink.acknowledgeTextDraft(this.pendingTextItem.draft);
+      this.setPendingTextItem(null);
+    }
+    this.handleTranscriptEvent({
+      type: "user-transcript-completed",
+      eventId: `${eventId}:text`,
+      itemId,
+      transcript: text,
+    }, event);
   }
 
   private handleTranscriptEvent(
@@ -336,6 +478,12 @@ export class VoiceAgentEventCoordinator {
     const response = isRecord(event.response) ? event.response : null;
     const responseId = nonEmptyString(response?.id);
     if (!responseId) return;
+    const alreadyCompleted = this.completedResponseIds.has(responseId);
+    this.completedResponseIds.add(responseId);
+    if (!alreadyCompleted) {
+      this.awaitingResponse = false;
+      this.activeResponseIds.delete(responseId);
+    }
 
     if (response?.status === "failed") {
       await this.failClosed(PROVIDER_EVENT_ERROR);
@@ -345,10 +493,19 @@ export class VoiceAgentEventCoordinator {
     if (response?.status !== "completed") {
       this.responseToolGroups.delete(responseId);
       this.responseAudioBaselines.delete(responseId);
+      this.refreshReplyPending();
       return;
     }
 
     const output = response && Array.isArray(response.output) ? response.output : [];
+    // Generation can finish while WebRTC is still draining this response's audio.
+    const hasAudio = output.some((item: unknown) => isRecord(item)
+      && Array.isArray(item.content)
+      && item.content.some((part: unknown) => isRecord(part)
+        && (part.type === "audio" || part.type === "output_audio")));
+    if (hasAudio && !this.finishedAudioResponseIds.has(responseId)) {
+      this.activeAudioResponseIds.add(responseId);
+    }
     for (const item of output) {
       if (isRecord(item) && item.type === "function_call") {
         if (item.status !== "completed") {
@@ -361,8 +518,13 @@ export class VoiceAgentEventCoordinator {
     }
 
     const group = this.responseToolGroups.get(responseId);
-    if (!group) return;
+    if (!group) {
+      this.responseAudioBaselines.delete(responseId);
+      this.refreshReplyPending();
+      return;
+    }
     group.responseDone = true;
+    this.refreshReplyPending();
     this.continueAfterTools(responseId, group);
   }
 
@@ -443,6 +605,8 @@ export class VoiceAgentEventCoordinator {
       return;
     }
     group.continued = true;
+    this.awaitingResponse = true;
+    this.refreshReplyPending();
     if (!(this.transport?.send({ type: "response.create" }) ?? false)) {
       void this.failClosed(TOOL_PROTOCOL_ERROR);
       return;
@@ -453,7 +617,13 @@ export class VoiceAgentEventCoordinator {
   private async failClosed(message: string): Promise<void> {
     if (this.failed) return;
     this.failed = true;
-    console.error("[harmony-hash-voice] Realtime session rejected an invalid provider event");
+    this.connected = false;
+    this.awaitingResponse = false;
+    this.activeResponseIds.clear();
+    this.activeAudioResponseIds.clear();
+    this.responseToolGroups.clear();
+    this.setPendingTextItem(null);
+    console.error("[harmony-hash-voice] Realtime session stopped after a conversation error");
     try {
       await this.transport?.stop();
     } catch {

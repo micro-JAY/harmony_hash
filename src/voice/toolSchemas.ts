@@ -123,7 +123,7 @@ export const TOOL_SCHEMAS: ClientToolSchema[] = [
   {
     name: "randomize_progression",
     description:
-      "Reshuffle the guitar variants or piano voicings of the chords already on the timeline. This does NOT generate new chords — it re-rolls how the existing chords are voiced or fingered. To create new chords, choose them yourself and call replace_progression or add_chords.",
+      "Reshuffle the guitar or ukulele fingerings, or piano voicings, of the chords already on the timeline. This does NOT generate new chords — it re-rolls how the existing chords are voiced or fingered. To create new chords, choose them yourself and call replace_progression or add_chords.",
     parameters: { type: "object", properties: {} },
     expectsResponse: true,
   },

@@ -34,6 +34,7 @@ export default function Header({
   const destinations = [
     { workspace: "builder", label: "Hasher" },
     { workspace: "theory", label: "Tune Toolbox" },
+    { workspace: "discovery", label: "Discovery" },
   ] as const;
 
   return (

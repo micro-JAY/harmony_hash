@@ -1,7 +1,10 @@
+import { discoveryTranslations } from "./discoveryTranslations";
+
 export type Locale = "en" | "ja";
 
 export const translations: Record<Locale, Record<string, string>> = {
   en: {
+    ...discoveryTranslations.en,
     tonality: "Tonality",
     key: "Key",
     piano: "Piano",
@@ -71,6 +74,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "theory.function.secondaryDominant": "Secondary dominant",
   },
   ja: {
+    ...discoveryTranslations.ja,
     ukulele: "ウクレレ",
     Ukulele: "ウクレレ",
     "Fretboard settings": "指板の詳細設定",
@@ -219,6 +223,14 @@ export const translations: Record<Locale, Record<string, string>> = {
     "Randomize All Variants": "すべてのバリエーションをランダム化",
     "Randomize All Voicings": "すべてのボイシングをランダム化",
     "RANDOMIZE (UNLOCKED VOICES)": "ランダム化（ロックされていないボイス）",
+    "Piano octave": "ピアノのオクターブ",
+    "Lower chord octave": "コードを1オクターブ下げる",
+    "Raise chord octave": "コードを1オクターブ上げる",
+    "Chord octave offset": "コードのオクターブ位置",
+    "Progression octave": "コード進行のオクターブ",
+    "Lower whole progression one octave": "コード進行全体を1オクターブ下げる",
+    "Raise whole progression one octave": "コード進行全体を1オクターブ上げる",
+    "ALL OCTAVES": "全体のオクターブ",
     SHARE: "共有",
     "Starting playback": "再生を開始中",
     "Stop playback": "再生を停止",

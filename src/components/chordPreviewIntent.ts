@@ -10,6 +10,10 @@ export interface ChordPreviewRequest {
   readonly point: ChordPreviewPoint;
 }
 
+export interface ChordPinRequest extends ChordPreviewRequest {
+  readonly requestId: number;
+}
+
 interface ChordPreviewIntent {
   start: (chordName: string, point: ChordPreviewPoint) => void;
   updatePoint: (point: ChordPreviewPoint) => void;

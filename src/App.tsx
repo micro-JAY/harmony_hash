@@ -9,7 +9,7 @@ import {
   type ComponentType,
   type ReactNode,
 } from "react";
-import { Guitar, Play, Square, Wrench } from "lucide-react";
+import { ArrowDown, ArrowUp, Guitar, Play, Square, Wrench } from "lucide-react";
 import type {
   Instrument,
   IndexedChord,
@@ -33,11 +33,15 @@ import ShareProgression from "./components/ShareProgression";
 import ChordCard from "./components/ChordCard";
 import FloatingChordCards from "./components/FloatingChordCards";
 import type { ChordPreviewRequest } from "./components/ChordReferenceGrid";
+import type { ChordPinRequest, ChordPreviewPoint } from "./components/chordPreviewIntent";
 import { useT } from "./i18n/I18nContext";
 import {
   computeVoiceLedProgression,
   EXPLICIT_VOICING_STYLES,
   isVoicingStyleAvailable,
+  PIANO_OCTAVE_SHIFT_MAX,
+  PIANO_OCTAVE_SHIFT_MIN,
+  shiftVoicedChordOctaves,
 } from "./lib/harmonyBrain";
 import { getSvgPath, lookupChord, parseNotes } from "./lib/chordData";
 import { buildMidiPlaybackSchedule, playSchedule } from "./lib/audioEngine";
@@ -75,6 +79,7 @@ import {
   type TimelineTransactionResult,
 } from "./lib/timelineTransactions";
 import type { GuitarMidiVoicingState } from "./lib/guitarPlayback";
+import type { DiscoveryPlaybackRequest } from "./lib/discovery/discoveryAudio";
 import { getInstrumentVariantCount, getUkuleleVoicing } from "./lib/ukuleleVoicings";
 import {
   isExplicitOnboardingDismissal,
@@ -84,6 +89,7 @@ import {
 import { randomOnboardingDescription } from "./onboardingCopy";
 
 const TheoryWorkspace = lazy(() => import("./components/TheoryWorkspace"));
+const Discovery = lazy(() => import("./components/Discovery"));
 const ImprovInsight = lazy(() => import("./components/ImprovInsight"));
 
 let voiceRuntimePromise: Promise<typeof import("./voice/VoiceAgentRuntime")> | null = null;
@@ -153,6 +159,12 @@ function App() {
     initialShare.status === "valid" ? initialShare.share.instrument : "guitar",
   );
   const [workspace, setWorkspace] = useState<Workspace>("builder");
+  const [discoveryVisited, setDiscoveryVisited] = useState(false);
+
+  function handleWorkspaceChange(next: Workspace) {
+    if (next === "discovery") setDiscoveryVisited(true);
+    setWorkspace(next);
+  }
   const helpButtonRef = useRef<HTMLButtonElement>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(() => {
     // Keep the returning-visitor fixture useful for automated flows while the
@@ -187,6 +199,7 @@ function App() {
   >({});
   const [lockedCards, setLockedCards] = useState<Set<number>>(new Set());
   const [pianoStyles, setPianoStyles] = useState<Record<number, VoicingStyle>>({});
+  const [pianoOctaveOffsets, setPianoOctaveOffsets] = useState<Record<TimelineItemId, number>>({});
   const [activeChordIndex, setActiveChordIndex] = useState<number | null>(null);
   const [playbackPhase, setPlaybackPhase] = useState<PlaybackControllerState>("idle");
   // Voice-companion highlight, kept SEPARATE from activeChordIndex: the latter is
@@ -195,6 +208,8 @@ function App() {
   const [highlightedChordIndex, setHighlightedChordIndex] = useState<number | null>(null);
   const [chordBrowserOpen, setChordBrowserOpen] = useState(false);
   const [chordPreview, setChordPreview] = useState<ChordPreviewRequest | null>(null);
+  const [chordPinRequest, setChordPinRequest] = useState<ChordPinRequest | null>(null);
+  const nextChordPinRequestIdRef = useRef(1);
   const chordPreviewDismissTimerRef = useRef<number | null>(null);
 
   const cancelChordPreviewDismiss = useCallback(() => {
@@ -220,6 +235,19 @@ function App() {
     cancelChordPreviewDismiss();
     setChordPreview(request);
   }, [cancelChordPreviewDismiss]);
+
+  const handleDiscoveryChordPin = useCallback((chordName: string, point: ChordPreviewPoint) => {
+    if (!lookupChord(chordName)) return;
+    setChordPinRequest({
+      requestId: nextChordPinRequestIdRef.current++,
+      chordName,
+      point,
+    });
+  }, []);
+
+  const handleChordPinRequestHandled = useCallback((requestId: number) => {
+    setChordPinRequest((current) => current?.requestId === requestId ? null : current);
+  }, []);
 
   useEffect(() => () => cancelChordPreviewDismiss(), [cancelChordPreviewDismiss]);
 
@@ -344,6 +372,7 @@ function App() {
     setGuitarVoicingStates({});
     setLockedCards(new Set());
     setPianoStyles({});
+    setPianoOctaveOffsets({});
     setHighlightedChordIndex(null);
     playbackController.stop();
   }, [markTimelineMutation, playbackController]);
@@ -363,6 +392,9 @@ function App() {
     setUkuleleVariants((current) => remapIndexedRecord(current, transaction.map));
     const survivingIds = new Set(nextTimeline.map((item) => item.id));
     setGuitarVoicingStates((current) => Object.fromEntries(
+      Object.entries(current).filter(([id]) => survivingIds.has(Number(id))),
+    ));
+    setPianoOctaveOffsets((current) => Object.fromEntries(
       Object.entries(current).filter(([id]) => survivingIds.has(Number(id))),
     ));
     setPianoStyles((current) => remapIndexedRecord(current, transaction.map));
@@ -553,11 +585,55 @@ function App() {
     });
   }
 
-  const pianoVoicings = useMemo(() => {
+  function pianoOctaveOffsetAt(index: number): number {
+    const itemId = timeline[index]?.id;
+    return itemId === undefined ? 0 : pianoOctaveOffsets[itemId] ?? 0;
+  }
+
+  function handlePianoOctaveShift(index: number, direction: -1 | 1) {
+    const itemId = timeline[index]?.id;
+    if (itemId === undefined) return;
+    playbackController.stop();
+    setPianoOctaveOffsets((current) => {
+      const nextOffset = Math.min(
+        PIANO_OCTAVE_SHIFT_MAX,
+        Math.max(PIANO_OCTAVE_SHIFT_MIN, (current[itemId] ?? 0) + direction),
+      );
+      const next = { ...current };
+      if (nextOffset === 0) delete next[itemId];
+      else next[itemId] = nextOffset;
+      return next;
+    });
+  }
+
+  const canLowerPianoProgression = timeline.length > 0
+    && timeline.every((_, index) => pianoOctaveOffsetAt(index) > PIANO_OCTAVE_SHIFT_MIN);
+  const canRaisePianoProgression = timeline.length > 0
+    && timeline.every((_, index) => pianoOctaveOffsetAt(index) < PIANO_OCTAVE_SHIFT_MAX);
+
+  function handlePianoProgressionOctaveShift(direction: -1 | 1) {
+    if (direction < 0 ? !canLowerPianoProgression : !canRaisePianoProgression) return;
+    playbackController.stop();
+    setPianoOctaveOffsets((current) => {
+      const next = { ...current };
+      for (const item of timeline) {
+        const nextOffset = (current[item.id] ?? 0) + direction;
+        if (nextOffset === 0) delete next[item.id];
+        else next[item.id] = nextOffset;
+      }
+      return next;
+    });
+  }
+
+  const basePianoVoicings = useMemo(() => {
     const noteSets = chords.map((c) => parseNotes(c.chord.entry));
     const styles = chords.map((_, i) => getPianoStyle(i));
     return computeVoiceLedProgression(noteSets, styles);
   }, [chords, getPianoStyle]);
+  const pianoVoicings = useMemo(() => basePianoVoicings.map((voicing, index) => {
+    const itemId = timeline[index]?.id;
+    return shiftVoicedChordOctaves(voicing, itemId === undefined ? 0 : pianoOctaveOffsets[itemId] ?? 0);
+  }), [basePianoVoicings, pianoOctaveOffsets, timeline]);
   const indexedTimelineChords = useMemo(
     () => chords.map((chord) => chord.chord),
     [chords],
@@ -597,6 +673,18 @@ function App() {
     : instrument === "ukulele" || guitarMidiFailed
       ? "error"
       : "preparing";
+  const discoveryPlaybackRequest = useMemo<DiscoveryPlaybackRequest | null>(() => (
+    chords.length > 0 && instrumentPlaybackReady
+      ? {
+          timbre: instrument,
+          voicings: midiExportVoicings,
+          bpm: PLAYBACK_BPM,
+          beatsPerChord: 2,
+          allowRests: instrument === "ukulele",
+        }
+      : null
+  ), [chords.length, instrument, instrumentPlaybackReady, midiExportVoicings]);
+  const discoveryProgressionLabels = useMemo(() => chords.map(({ input }) => input), [chords]);
 
   const isPlaying = playbackPhase === "playing";
   const isPlaybackStarting = playbackPhase === "starting";
@@ -899,7 +987,7 @@ function App() {
     <div className="min-h-screen flex flex-col">
       <Header
         workspace={workspace}
-        onWorkspaceChange={setWorkspace}
+        onWorkspaceChange={handleWorkspaceChange}
         onOpenHelp={() => {
           setOnboardingDescriptionKey(randomOnboardingDescription());
           setOnboardingOpen(true);
@@ -999,6 +1087,20 @@ function App() {
             </Suspense>
           </div>
 
+          {discoveryVisited ? (
+            <div hidden={workspace !== "discovery"}>
+              <Suspense fallback={<section className="hh-workspace" role="status">{t("Loading Discovery…")}</section>}>
+                <Discovery
+                  active={workspace === "discovery"}
+                  playbackRequest={discoveryPlaybackRequest}
+                  progressionLabels={discoveryProgressionLabels}
+                  onBeforeLoopStart={playbackController.stop}
+                  onPinChord={handleDiscoveryChordPin}
+                />
+              </Suspense>
+            </div>
+          ) : null}
+
           {/* Progression playback and voicing actions. */}
           <section
             className="w-full px-4"
@@ -1012,6 +1114,43 @@ function App() {
                 <div
                   className={`flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center ${chords.length > 0 ? "" : "hidden"}`}
                 >
+                  {instrument === "piano" ? (
+                    <div
+                      role="group"
+                      aria-label={t("Progression octave")}
+                      data-testid="progression-octave-control"
+                      className="flex min-h-10 items-center justify-center gap-2 rounded-lg px-2"
+                      style={{
+                        backgroundColor: "var(--surface-overlay)",
+                        border: "1px solid var(--border-subtle)",
+                        color: "var(--text-secondary)",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "var(--text-xs)",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        aria-label={t("Lower whole progression one octave")}
+                        disabled={!canLowerPianoProgression}
+                        onClick={() => handlePianoProgressionOctaveShift(-1)}
+                        className="flex min-h-8 min-w-8 items-center justify-center rounded-md disabled:cursor-not-allowed disabled:opacity-40"
+                        style={{ color: "var(--interactive-accent-text)", border: "1px solid var(--interactive-accent-border)" }}
+                      >
+                        <ArrowDown size={14} />
+                      </button>
+                      <span>{t("ALL OCTAVES")}</span>
+                      <button
+                        type="button"
+                        aria-label={t("Raise whole progression one octave")}
+                        disabled={!canRaisePianoProgression}
+                        onClick={() => handlePianoProgressionOctaveShift(1)}
+                        className="flex min-h-8 min-w-8 items-center justify-center rounded-md disabled:cursor-not-allowed disabled:opacity-40"
+                        style={{ color: "var(--interactive-accent-text)", border: "1px solid var(--interactive-accent-border)" }}
+                      >
+                        <ArrowUp size={14} />
+                      </button>
+                    </div>
+                  ) : null}
                   <button
                     onClick={randomizeAll}
                     className="hh-action transition-all"
@@ -1133,6 +1272,8 @@ function App() {
                     priorVoicing={pianoVoicings[index - 1]}
                     pianoStyle={getPianoStyle(index)}
                     onPianoStyleChange={(style) => handlePianoStyleChange(index, style)}
+                    pianoOctaveOffset={pianoOctaveOffsetAt(index)}
+                    onPianoOctaveShift={(direction) => handlePianoOctaveShift(index, direction)}
                     onChordChange={(option) => replaceChordAt(index, option)}
                     onGuitarPlaybackVoicingChange={(state) => {
                       const itemId = timeline[index]?.id;
@@ -1177,6 +1318,8 @@ function App() {
         onPreviewEnter={cancelChordPreviewDismiss}
         onPreviewLeave={scheduleChordPreviewDismiss}
         onPreviewDismiss={dismissChordPreviewNow}
+        pinRequest={chordPinRequest}
+        onPinRequestHandled={handleChordPinRequestHandled}
       />
       {voiceRuntimeRequested ? (
         VoiceAgentRuntime ? (

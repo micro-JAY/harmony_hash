@@ -306,6 +306,32 @@ export function computeVoiceLedProgression(
   return result;
 }
 
+export const PIANO_OCTAVE_SHIFT_MIN = -2;
+export const PIANO_OCTAVE_SHIFT_MAX = 2;
+
+/**
+ * Move an already-computed voicing as one unit without recomputing its voice
+ * leading. Keeping this transform after the progression solver means a user's
+ * per-card register choice survives reordering and reaches every playback
+ * consumer unchanged.
+ */
+export function shiftVoicedChordOctaves(voicing: VoicedChord, octaves: number): VoicedChord {
+  if (!Number.isInteger(octaves)
+    || octaves < PIANO_OCTAVE_SHIFT_MIN
+    || octaves > PIANO_OCTAVE_SHIFT_MAX) {
+    throw new RangeError(`Piano octave shift must be an integer from ${PIANO_OCTAVE_SHIFT_MIN} to ${PIANO_OCTAVE_SHIFT_MAX}`);
+  }
+  const semitones = octaves * 12;
+  return {
+    ...voicing,
+    notes: voicing.notes.map((note) => ({
+      ...note,
+      octave: note.octave + octaves,
+      midi: note.midi + semitones,
+    })),
+  };
+}
+
 // ─── 3.8: Extended Voicing Styles (v3) ──────────────────────────────
 
 /** Canonical order shared by randomization and the comparison UI. */

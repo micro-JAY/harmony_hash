@@ -31,13 +31,14 @@ export function getBlackKeyGeometry(
   note: string,
   octave: number,
   size: PianoKeyboardSize,
+  octaveStart = 3,
 ): PianoKeyGeometry {
   const withinOctave = BLACK_KEY_POSITIONS[note];
-  if (withinOctave === undefined || octave < 3 || octave > 5) {
-    throw new RangeError(`Black key is outside the C3-B5 keyboard: ${note}${octave}`);
+  if (withinOctave === undefined || octave < octaveStart || octave > octaveStart + 2) {
+    throw new RangeError(`Black key is outside the rendered three-octave keyboard: ${note}${octave}`);
   }
 
-  const absoluteWhitePosition = ((octave - 3) * 7) + withinOctave;
+  const absoluteWhitePosition = ((octave - octaveStart) * 7) + withinOctave;
   const referenceWidth = size === "compact" ? 252 : 630;
   const referenceBlackKeyWidth = size === "compact" ? 8 : 18;
 

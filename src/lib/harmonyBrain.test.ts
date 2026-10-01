@@ -11,6 +11,7 @@ import {
   isStyleApplicable,
   isVoicingStyleAvailable,
   noteToPitchClass,
+  shiftVoicedChordOctaves,
 } from "./harmonyBrain";
 import { lookupChord } from "./chordData";
 import type { VoicedChord, VoicedNote, VoicingStyle } from "./types";
@@ -300,6 +301,27 @@ function naiveProgression(progressionNotes: string[][]): VoicedChord[] {
 function withinVisibleRange(notes: VoicedNote[]): boolean {
   return notes.every((n) => n.midi >= 48 && n.midi <= 83);
 }
+
+describe("shiftVoicedChordOctaves", () => {
+  it("moves every note as one voicing while preserving pitch roles and the source", () => {
+    const source = computeVoiceLedProgression([["C", "E", "G"]])[0];
+    const shifted = shiftVoicedChordOctaves(source, -2);
+
+    expect(shifted.voicingType).toBe(source.voicingType);
+    expect(shifted.notes.map((note) => note.midi)).toEqual(source.notes.map((note) => note.midi - 24));
+    expect(shifted.notes.map((note) => note.octave)).toEqual(source.notes.map((note) => note.octave - 2));
+    expect(shifted.notes.map((note) => [note.name, note.pitchClass, note.hand]))
+      .toEqual(source.notes.map((note) => [note.name, note.pitchClass, note.hand]));
+    expect(source.notes.every((note) => note.octave >= 3)).toBe(true);
+  });
+
+  it("rejects fractional and out-of-range register changes", () => {
+    const source = computeVoiceLedProgression([["C", "E", "G"]])[0];
+    expect(() => shiftVoicedChordOctaves(source, -3)).toThrow(RangeError);
+    expect(() => shiftVoicedChordOctaves(source, 0.5)).toThrow(RangeError);
+    expect(() => shiftVoicedChordOctaves(source, 3)).toThrow(RangeError);
+  });
+});
 
 describe("computeVoiceLedProgression", () => {
   it("returns an empty list for empty input", () => {

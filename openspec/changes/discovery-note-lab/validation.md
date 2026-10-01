@@ -40,6 +40,32 @@ Use screenshots of the desktop selected chord and 390px piano/fretboard when rev
 - Desktop, tablet and mobile screenshots are committed; the selected Cmin7 HUD and highlighted notes were visually inspected.
 - Physical MIDI and live provider audio remain separate manual/provider checks. Browser MIDI, Web Audio scheduling, sustain and device lifecycle are verified deterministically.
 
+## Review refinements — 2026-10-01
+
+PR #110 now includes the requested Discovery and Piano review pass:
+
+- The Discovery HUD uses the shared chord-family and chromatic-interval palettes, keeps the complete chord symbol on one compact line at desktop width, aligns its explanatory details in the right column, and places a dictionary-gated pin action in that detail surface.
+- Piano key note/octave labels are centered and non-wrapping, computer shortcuts occupy their own bounded row, and the pastel-green Z/X octave hint sits directly above Computer keys.
+- Web MIDI enumerates all connected inputs after permission, listens to one selected input, exposes a selector only when needed, releases and closes the old port on switch, and falls back when the selected device disappears. The lifecycle follows Context7 `/mdn/content` guidance for `MIDIAccess.inputs`, `statechange`, `MIDIPort.open()`, and `MIDIPort.close()`.
+- Hasher Piano cards expose bounded per-card octave controls and a whole-progression control. Offsets are keyed by stable timeline item id, survive reorder, move the rendered three-octave window, and feed the same effective voicings to playback, MIDI export, Hanz, and the Discovery loop.
+- A supported discovered chord creates the existing silent, draggable, cross-workspace floating card without mutating the Hasher timeline or starting audio. Unsupported detector-only spellings remain visible with an honest disabled pin action.
+- PR #112's exact Wrangler 4.144.0 dependency commit was cherry-picked, resolving `sharp` to 0.35.4. A fresh audit then identified and non-breakingly resolved transitive `nanoid` 3.3.19 and `brace-expansion` 1.1.21/5.0.12 in the lockfile.
+
+Final validation on a fresh `npm ci` install:
+
+- `npm audit --audit-level=low`: **0 vulnerabilities**.
+- `npm run lint`: passed.
+- `npm test`: **71 files / 1,419 tests passed** (Vitest 5.0.0).
+- `npm run build`: passed; the existing large main-chunk advisory remains informational.
+- `npx playwright test e2e/discovery.spec.ts --project=chromium`: **14 passed**.
+- `npx playwright test --project=chromium`: **225 passed**.
+- `openspec validate discovery-note-lab --strict`: passed.
+- `git diff --check`: passed.
+
+The refreshed selected-Cmin7 and shared desktop/tablet/mobile Discovery baselines were visually inspected. No deployment was performed. Physical multi-device MIDI remains a manual hardware check; deterministic browser doubles cover permission, selection, sustain, hotplug, switching, and cleanup.
+
+PR #110 was retargeted from the merged #109 feature branch to `main`, and its description was refreshed with the review changes, theory rationale, current screenshots, exact validation evidence, risks, and the #112 consolidation note. PR #111 remains an independent draft; PR #112 was not closed or otherwise mutated.
+
 ## References
 
 - Ableton Computer MIDI Keyboard mapping: https://www.ableton.com/en/manual/routing-and-i-o/#playing-midi-with-the-computer-keyboard

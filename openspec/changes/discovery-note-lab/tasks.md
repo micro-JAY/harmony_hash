@@ -22,4 +22,4 @@
 - [x] 5.2 Add single-device MIDI selection over enumerated inputs with hotplug, switching, note release, port cleanup, localized UI, and unit/browser regressions.
 - [x] 5.3 Add stable per-card and atomic whole-progression Piano octave controls, a shifted three-octave keyboard window, and tests proving Hasher playback/MIDI/voice and Discovery loop consume the transformed voicings.
 - [x] 5.4 Add the dictionary-gated Discovery pin action through the existing silent floating-card layer and verify cross-workspace persistence without timeline or audio mutation.
-- [ ] 5.5 Apply PR #112's Wrangler 4.144.0 lockfile graph with `sharp` 0.35.4; run build, lint, unit, focused/full browser, dependency, and strict OpenSpec validation; refresh visual evidence and PR #110 notes without deploying.
+- [x] 5.5 Apply PR #112's Wrangler 4.144.0 lockfile graph with `sharp` 0.35.4 and the fresh audit's non-breaking transitive resolutions; run build, lint, unit, focused/full browser, dependency, and strict OpenSpec validation; refresh visual evidence and PR #110 notes without deploying.

@@ -10,12 +10,14 @@ function renderChordCard({
   chordName = "Cmaj7",
   instrument = "guitar",
   showLock = true,
+  pianoOctaveOffset = 0,
 }: {
   isPlaying?: boolean;
   isAgentHighlighted?: boolean;
   chordName?: string;
   instrument?: "guitar" | "piano" | "ukulele";
   showLock?: boolean;
+  pianoOctaveOffset?: number;
 } = {}): string {
   const chord = lookupChord(chordName);
   if (!chord) throw new Error(`${chordName} fixture is missing from the chord dictionary`);
@@ -34,6 +36,8 @@ function renderChordCard({
         voicing={{ notes: [], voicingType: "root" }}
         pianoStyle="auto"
         onPianoStyleChange={() => undefined}
+        pianoOctaveOffset={pianoOctaveOffset}
+        onPianoOctaveShift={instrument === "piano" ? () => undefined : undefined}
         onChordChange={() => undefined}
         isPlaying={isPlaying}
         isAgentHighlighted={isAgentHighlighted}
@@ -112,6 +116,17 @@ describe("ChordCard visual controls", () => {
 
     expect(pianoMarkup).toContain('data-testid="piano-keyboard"');
     expect(pianoMarkup).toContain('data-color-mode="interval"');
+  });
+
+  it("shows bounded per-card octave controls and shifts the rendered window", () => {
+    const raised = renderChordCard({ instrument: "piano", pianoOctaveOffset: 1 });
+    expect(raised).toContain('data-testid="piano-octave-control"');
+    expect(raised).toContain('aria-label="Lower chord octave: Cmaj7"');
+    expect(raised).toContain('aria-label="Raise chord octave: Cmaj7"');
+    expect(raised).toContain('data-octave-offset="1"');
+
+    const maximum = renderChordCard({ instrument: "piano", pianoOctaveOffset: 2 });
+    expect(maximum).toMatch(/aria-label="Raise chord octave: Cmaj7"[^>]*disabled=""/);
   });
 
   it("can omit timeline locking for visual-only floating cards", () => {

@@ -106,6 +106,7 @@ export type Instrument = "guitar" | "piano" | "ukulele";
 export type Workspace =
   | "builder"
   | "theory"
+  | "discovery"
   | "fretboard"
   // Compatibility aliases retained for in-session handoffs created by the old IA.
   | "circle"

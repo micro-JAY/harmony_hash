@@ -25,6 +25,14 @@ describe("piano keyboard percentage geometry", () => {
     }
   });
 
+  it("uses the same geometry for a shifted three-octave window", () => {
+    expect(getBlackKeyGeometry("Cs", 1, "standard", 1))
+      .toEqual(getBlackKeyGeometry("Cs", 3, "standard"));
+    expect(getBlackKeyGeometry("As", 7, "compact", 5))
+      .toEqual(getBlackKeyGeometry("As", 5, "compact"));
+    expect(() => getBlackKeyGeometry("Cs", 4, "standard", 1)).toThrow(RangeError);
+  });
+
   it("retains the established visual widths while allowing responsive shrinkage", () => {
     expect(getKeyboardMaxWidth("standard")).toBe(630);
     expect(getKeyboardMaxWidth("compact")).toBe(252);

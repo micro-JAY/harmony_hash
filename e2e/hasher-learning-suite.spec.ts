@@ -40,9 +40,10 @@ test.describe("HASHER learning suite", () => {
   test("keeps Fret Finder in the toolbox and the rebuilt HASHER hierarchy", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const nav = page.getByRole("navigation", { name: "Workspace" });
-    await expect(nav.getByRole("button")).toHaveCount(2);
+    await expect(nav.getByRole("button")).toHaveCount(3);
     await expect(nav.getByRole("button", { name: "HASHER", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(nav.getByRole("button", { name: "TUNE TOOLBOX", exact: true })).toBeVisible();
+    await expect(nav.getByRole("button", { name: "DISCOVERY", exact: true })).toBeVisible();
     await expect(nav.getByRole("button", { name: "FRET FINDER", exact: true })).toHaveCount(0);
     await expect(nav.getByRole("button", { name: "Circle", exact: true })).toHaveCount(0);
 

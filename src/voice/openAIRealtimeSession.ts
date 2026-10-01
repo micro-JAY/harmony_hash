@@ -13,6 +13,7 @@ export type RealtimeConnectionStatus =
   | "error";
 
 export type RealtimeServerEvent = Record<string, unknown> & { type: string };
+export type VoiceInputMode = "voice" | "text";
 
 export interface RealtimeSessionCallbacks {
   onStatus: (status: RealtimeConnectionStatus, message: string | null) => void;
@@ -189,7 +190,11 @@ export class OpenAIRealtimeSession {
     return this.status;
   }
 
-  async start(clientSecretEndpoint: string, externalSignal?: AbortSignal): Promise<void> {
+  async start(
+    clientSecretEndpoint: string,
+    externalSignal?: AbortSignal,
+    inputMode: VoiceInputMode = "voice",
+  ): Promise<void> {
     if (this.status === "connecting" || this.status === "connected") return;
 
     this.cleanupResources();
@@ -212,32 +217,10 @@ export class OpenAIRealtimeSession {
       const secret = await this.mintClientSecret(clientSecretEndpoint, controller.signal);
       this.ensureCurrent(generation, controller.signal);
 
-      let stream: MediaStream;
-      try {
-        stream = await this.dependencies.getUserMedia({ audio: true, video: false });
-      } catch (error) {
-        if (controller.signal.aborted) throw abortError();
-        const name = error instanceof Error ? error.name : "unknown";
-        throw new SessionStartError(
-          name === "NotAllowedError"
-            ? "Microphone permission was denied. Allow access and try again."
-            : "The microphone could not be started. Check it and try again.",
-        );
-      }
-      try {
+      if (inputMode === "voice") {
+        await this.acquireMicrophone(generation, controller.signal);
         this.ensureCurrent(generation, controller.signal);
-      } catch (error) {
-        for (const track of stream.getTracks()) track.stop();
-        throw error;
       }
-      this.microphoneStream = stream;
-
-      const audioTracks = stream.getAudioTracks();
-      if (audioTracks.length === 0) {
-        throw new SessionStartError("The selected microphone did not provide an audio track.");
-      }
-      for (const extraTrack of audioTracks.slice(1)) extraTrack.stop();
-      for (const videoTrack of stream.getVideoTracks()) videoTrack.stop();
 
       let peer: RTCPeerConnection;
       try {
@@ -273,7 +256,12 @@ export class OpenAIRealtimeSession {
       audio.volume = 1;
       this.installPeerHandlers(peer, audio, generation);
       this.installDataChannelHandlers(channel, generation);
-      peer.addTrack(audioTracks[0], stream);
+      if (this.microphoneStream) {
+        peer.addTrack(this.microphoneStream.getAudioTracks()[0], this.microphoneStream);
+      } else {
+        // A receive-only media section negotiates spoken replies without a device.
+        peer.addTransceiver("audio", { direction: "recvonly" });
+      }
 
       const ready = this.waitUntilReady(controller.signal);
       // Readiness can fail while offer/answer negotiation is still awaited.
@@ -387,6 +375,24 @@ export class OpenAIRealtimeSession {
     if (this.audioElement) this.audioElement.volume = Math.min(1, Math.max(0, volume));
   }
 
+  resumePlayback(): void {
+    const audio = this.audioElement;
+    if (!audio || !this.remoteTrackReady) return;
+    const generation = this.generation;
+    void audio.play().then(
+      () => {
+        if (generation === this.generation) this.callbacks.onPlaybackError(null);
+      },
+      () => {
+        if (generation === this.generation) {
+          this.callbacks.onPlaybackError(
+            "Harmony audio could not play in this browser. Check your output device and try again.",
+          );
+        }
+      },
+    );
+  }
+
   checkDeadline(): void {
     if (this.status !== "connected") return;
     const monotonicExpired = this.deadlineMonotonicMs !== null &&
@@ -406,6 +412,34 @@ export class OpenAIRealtimeSession {
     } catch {
       return false;
     }
+  }
+
+  private async acquireMicrophone(generation: number, signal: AbortSignal): Promise<void> {
+    let stream: MediaStream;
+    try {
+      stream = await this.dependencies.getUserMedia({ audio: true, video: false });
+    } catch (error) {
+      if (signal.aborted) throw abortError();
+      const name = error instanceof Error ? error.name : "unknown";
+      throw new SessionStartError(
+        name === "NotAllowedError"
+          ? "Microphone permission was denied. Allow access and try again."
+          : "The microphone could not be started. Check it and try again.",
+      );
+    }
+    try {
+      this.ensureCurrent(generation, signal);
+    } catch (error) {
+      for (const track of stream.getTracks()) track.stop();
+      throw error;
+    }
+    this.microphoneStream = stream;
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length === 0) {
+      throw new SessionStartError("The selected microphone did not provide an audio track.");
+    }
+    for (const extraTrack of audioTracks.slice(1)) extraTrack.stop();
+    for (const videoTrack of stream.getVideoTracks()) videoTrack.stop();
   }
 
   private async mintClientSecret(
@@ -459,18 +493,7 @@ export class OpenAIRealtimeSession {
       audio.srcObject = stream;
       this.remoteTrackReady = true;
       this.maybeResolveReady();
-      void audio.play().then(
-        () => {
-          if (generation === this.generation) this.callbacks.onPlaybackError(null);
-        },
-        () => {
-          if (generation === this.generation) {
-            this.callbacks.onPlaybackError(
-              "Harmony audio could not play in this browser. Check your output device and try again.",
-            );
-          }
-        },
-      );
+      this.resumePlayback();
     };
     peer.onconnectionstatechange = () => {
       if (generation !== this.generation || this.intentionalStop) return;
@@ -648,6 +671,9 @@ export class OpenAIRealtimeSession {
         instructions: `Say exactly this greeting and nothing else: ${JSON.stringify(HANZ_FIRST_MESSAGE)}`,
       },
     });
+    if (!this.greetingSent) {
+      throw new SessionStartError("The voice connection could not send the greeting. Please try again.");
+    }
   }
 
   private handleTransportFailure(message: string): void {

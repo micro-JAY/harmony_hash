@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { useVoiceAgent } from "./voiceAgentContext";
+import { HARMONY_TEXT_MAX_LENGTH, useVoiceAgent } from "./voiceAgentContext";
+import type { VoiceInputMode } from "./openAIRealtimeSession";
 import { voiceAudioHealthIssue } from "./audioHealth";
 import { useT } from "../i18n/I18nContext";
 
@@ -9,8 +10,8 @@ import { useT } from "../i18n/I18nContext";
  * the progression builder lives (beside the playback / randomize controls).
  *
  * The provider mints a short-lived Realtime client secret before requesting the
- * microphone. The permission prompt therefore fires only when the user starts
- * a session (the connect button), never on mount.
+ * microphone in Voice mode. Type mode receives spoken audio without requesting
+ * a microphone. Neither mode connects before the user starts a session.
  *
  * Styling follows the repo convention: Tailwind for layout only; every color,
  * type, surface and motion value is a semantic CSS variable applied inline (see
@@ -31,6 +32,12 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
     playbackError,
     startSession,
     endSession,
+    sendText,
+    draft,
+    setDraft,
+    textPending,
+    replyPending,
+    resumePlayback,
     setVolume,
     transcript,
     sessionKind,
@@ -42,6 +49,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [inputMode, setInputMode] = useState<VoiceInputMode>("voice");
   const connectionAttemptRef = useRef<AbortController | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -50,6 +58,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   // status is included as a second guard against duplicate starts.
   const busy = connecting || status === "connecting";
   const state: "live" | "wait" | "idle" = live ? "live" : busy ? "wait" : "idle";
+  const canSend = live && !replyPending && draft.trim().length > 0;
 
   const displayError =
     error ?? playbackError ?? audioError ??
@@ -63,7 +72,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
     setAudioError(null);
     setConnecting(true);
     try {
-      await startSession(controller.signal);
+      await startSession(inputMode, controller.signal);
       if (controller.signal.aborted) await endSession();
     } catch (e) {
       if (controller.signal.aborted || (e instanceof Error && e.name === "AbortError")) return;
@@ -74,7 +83,23 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
         setConnecting(false);
       }
     }
-  }, [endSession, startSession, t]);
+  }, [endSession, inputMode, startSession, t]);
+
+  const handleSend = useCallback(() => {
+    const result = sendText(draft);
+    if (result === "sent") {
+      setError(null);
+      return;
+    }
+    const errors = {
+      empty: t("Enter a message for Harmony."),
+      "too-long": t("Keep your message within 2000 characters."),
+      unavailable: t("Start a Type conversation before sending a message."),
+      busy: t("Wait for Harmony to finish replying before sending."),
+      failed: t("Your message could not be sent. End the conversation and try again."),
+    };
+    setError(errors[result]);
+  }, [draft, sendText, t]);
 
   const handleStop = useCallback(async () => {
     try {
@@ -166,7 +191,9 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
   const statusLabel = displayError
     ? t("Needs attention")
     : live
-      ? t("Listening")
+      ? inputMode === "text"
+        ? t(replyPending ? "Responding" : "Ready")
+        : t("Listening")
       : busy
         ? t("Connecting")
         : t("Offline");
@@ -180,6 +207,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
       aria-labelledby="hanz-hasher-title"
       className="hhv hhv-popup hh-panel flex w-full max-w-md flex-col gap-4"
       data-session-kind={sessionKind ?? "none"}
+      data-input-mode={inputMode}
       data-audio-packets={audioPacketCount}
       style={{
         position: "fixed",
@@ -290,6 +318,55 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
               : t("Talk through a chord progression, or get the theory behind the one on your timeline.")}
           </p>
 
+          <fieldset
+            disabled={live || busy}
+            className="flex flex-col gap-2"
+            style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}
+          >
+            <legend style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-xs)",
+              color: "var(--text-secondary)",
+              marginBottom: "var(--space-2)",
+            }}>
+              {t("Your input")}
+            </legend>
+            <div className="grid grid-cols-2 gap-2">
+              {(["voice", "text"] as const).map((mode) => (
+                <label
+                  key={mode}
+                  className="hhv-mode rounded-lg text-center"
+                  style={{
+                    padding: "var(--space-2) var(--space-3)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-sm)",
+                    color: inputMode === mode ? "var(--text-accent)" : "var(--text-muted)",
+                    background: inputMode === mode ? "var(--interactive-accent-bg)" : "var(--surface-sunken)",
+                    border: `1px solid ${inputMode === mode ? "var(--border-accent)" : "var(--border-subtle)"}`,
+                    cursor: live || busy ? "default" : "pointer",
+                  }}
+                >
+                  <input
+                    className="sr-only"
+                    type="radio"
+                    name="harmony-input-mode"
+                    value={mode}
+                    checked={inputMode === mode}
+                    onChange={() => { setInputMode(mode); setError(null); }}
+                  />
+                  {t(mode === "voice" ? "Voice" : "Type")}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "var(--text-xs)", lineHeight: "var(--leading-normal)" }}>
+            {live || busy
+              ? t("End the conversation to change input mode. Harmony replies aloud.")
+              : inputMode === "text"
+                ? t("Type your messages. Harmony replies aloud. No microphone needed.")
+                : t("Speak into your microphone. Harmony replies aloud.")}
+          </p>
+
           {transcript.length > 0 && (
         <ul
           className="flex flex-col gap-2 rounded-lg"
@@ -331,6 +408,72 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
         </ul>
           )}
 
+          {live && inputMode === "text" && (
+            <form
+              className="flex flex-col gap-2"
+              onSubmit={(event) => { event.preventDefault(); handleSend(); }}
+            >
+              <label htmlFor="harmony-message" style={{ color: "var(--text-secondary)", fontSize: "var(--text-xs)" }}>
+                {t("Message Harmony")}
+              </label>
+              <textarea
+                id="harmony-message"
+                className="hhv-message w-full rounded-lg"
+                value={draft}
+                readOnly={textPending}
+                onChange={(event) => setDraft(event.target.value)}
+                maxLength={HARMONY_TEXT_MAX_LENGTH}
+                rows={3}
+                aria-describedby="harmony-compose-hint"
+                placeholder={t("Ask for chords, changes, or theory…")}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                    event.preventDefault();
+                    if (canSend) handleSend();
+                  }
+                }}
+                style={{
+                  padding: "var(--space-3)",
+                  minHeight: "var(--space-16)",
+                  resize: "vertical",
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-sm)",
+                  lineHeight: "var(--leading-normal)",
+                  color: "var(--text-primary)",
+                  background: "var(--surface-sunken)",
+                  border: "1px solid var(--border-default)",
+                }}
+              />
+              <div className="flex items-center justify-between gap-3">
+                <span id="harmony-compose-hint" role="status" style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)", lineHeight: "var(--leading-normal)" }}>
+                  {textPending
+                    ? t("Sending your message…")
+                    : replyPending
+                      ? t("Harmony is replying…")
+                      : t("Enter to send · Shift+Enter for a new line.")}
+                  <span className="block">{draft.length} / {HARMONY_TEXT_MAX_LENGTH}</span>
+                </span>
+                <button
+                  type="submit"
+                  className="hhv-btn rounded-lg"
+                  disabled={!canSend}
+                  style={{
+                    padding: "var(--space-2) var(--space-4)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-sm)",
+                    color: "var(--interactive-accent-text)",
+                    background: "var(--interactive-accent-bg)",
+                    border: "1px solid var(--interactive-accent-border)",
+                    cursor: canSend ? "pointer" : "default",
+                    opacity: canSend ? 1 : 0.6,
+                  }}
+                >
+                  {t("Send")}
+                </button>
+              </div>
+            </form>
+          )}
+
           {displayError && (
         <p
           role="alert"
@@ -347,6 +490,24 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
         >
           {displayError}
         </p>
+          )}
+
+          {live && playbackError && (
+            <button
+              type="button"
+              className="hhv-btn rounded-lg"
+              onClick={resumePlayback}
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                fontSize: "var(--text-sm)",
+                color: "var(--text-accent)",
+                background: "var(--surface-raised)",
+                border: "1px solid var(--border-accent)",
+                cursor: "pointer",
+              }}
+            >
+              {t("Enable Harmony audio")}
+            </button>
           )}
 
           {live ? (
@@ -412,7 +573,7 @@ export function VoiceAgentPanel({ open, onClose }: VoiceAgentPanelProps) {
         .hhv-orb[data-state="wait"] .hhv-orb-core { animation: hhv-breathe 1.4s var(--ease-out, ease-in-out) infinite; }
         .hhv-orb[data-state="live"] .hhv-orb-core { animation: hhv-breathe 2.4s var(--ease-out, ease-in-out) infinite; }
         .hhv-orb[data-state="live"] .hhv-orb-ring { animation: hhv-ring 2.4s var(--ease-out, ease-out) infinite; }
-        .hhv-btn:focus-visible, .hhv-toggle:focus-visible { outline: 2px solid var(--interactive-focus-ring); outline-offset: 2px; }
+        .hhv-btn:focus-visible, .hhv-toggle:focus-visible, .hhv-message:focus-visible, .hhv-mode:has(input:focus-visible) { outline: 2px solid var(--interactive-focus-ring); outline-offset: 2px; }
         @media (prefers-reduced-motion: reduce) {
           .hhv-orb-core, .hhv-orb-ring { animation: none !important; }
         }

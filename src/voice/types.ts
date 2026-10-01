@@ -78,7 +78,7 @@ export interface ProgressionBridge {
   clear(): void | Promise<void>;
   /** Play the current progression using the instrument currently active in the app. */
   play(): PlaybackResult | Promise<PlaybackResult>;
-  /** Reshuffle the guitar variants / piano voicings of the current chords (does NOT generate chords). */
+  /** Reshuffle guitar/ukulele fingerings or piano voicings (does NOT generate chords). */
   randomize(): void | Promise<void>;
   /** Visually highlight a chord while the agent talks about it; null clears it. */
   highlightChord(ref: ChordRef | null): void | Promise<void>;

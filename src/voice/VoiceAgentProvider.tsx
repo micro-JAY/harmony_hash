@@ -8,6 +8,7 @@ import {
 import {
   OpenAIRealtimeSession,
   type RealtimeConnectionStatus,
+  type VoiceInputMode,
 } from "./openAIRealtimeSession";
 import type { ProgressionBridge } from "./types";
 import {
@@ -39,6 +40,9 @@ export function VoiceAgentProvider({
   const [audioPacketCount, setAudioPacketCount] = useState(0);
   const [agentReplyCount, setAgentReplyCount] = useState(0);
   const [agentReplyAudioBaseline, setAgentReplyAudioBaseline] = useState(0);
+  const [replyPending, setReplyPending] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [textPending, setTextPending] = useState(false);
 
   const [coordinator] = useState(
     () => new VoiceAgentEventCoordinator(bridge, {
@@ -47,6 +51,11 @@ export function VoiceAgentProvider({
       setAudioPacketCount,
       setAgentReplyCount,
       setAgentReplyAudioBaseline,
+      setReplyPending,
+      setTextPending,
+      acknowledgeTextDraft: (sentDraft) => {
+        setDraft((currentDraft) => currentDraft === sentDraft ? "" : currentDraft);
+      },
       setFatalError: (errorMessage) => {
         setSessionKind(null);
         setMessage(errorMessage);
@@ -72,15 +81,15 @@ export function VoiceAgentProvider({
     return realtimeSession;
   });
 
-  const startSession = useCallback(async (signal?: AbortSignal) => {
+  const startSession = useCallback(async (inputMode: VoiceInputMode, signal?: AbortSignal) => {
     if (
       session.connectionStatus === "connecting"
       || session.connectionStatus === "connected"
     ) {
       return;
     }
-    coordinator.beginSession(bridge);
-    await session.start(clientSecretEndpoint, signal);
+    coordinator.beginSession(bridge, inputMode);
+    await session.start(clientSecretEndpoint, signal, inputMode);
   }, [bridge, clientSecretEndpoint, coordinator, session]);
 
   const endSession = useCallback(async () => {
@@ -94,6 +103,14 @@ export function VoiceAgentProvider({
   const setVolume = useCallback(({ volume }: { volume: number }) => {
     session.setVolume(volume);
   }, [session]);
+
+  const resumePlayback = useCallback(() => session.resumePlayback(), [session]);
+
+  const sendText = useCallback((text: string) => {
+    session.checkDeadline();
+    session.resumePlayback();
+    return coordinator.sendText(text);
+  }, [coordinator, session]);
 
   useEffect(() => {
     const handlePageHide = () => {
@@ -127,6 +144,12 @@ export function VoiceAgentProvider({
       playbackError,
       startSession,
       endSession,
+      sendText,
+      draft,
+      setDraft,
+      textPending,
+      replyPending,
+      resumePlayback,
       setVolume,
       transcript,
       sessionKind,
@@ -142,6 +165,11 @@ export function VoiceAgentProvider({
       playbackError,
       startSession,
       endSession,
+      sendText,
+      draft,
+      textPending,
+      replyPending,
+      resumePlayback,
       setVolume,
       transcript,
       sessionKind,

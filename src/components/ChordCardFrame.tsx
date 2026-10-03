@@ -15,6 +15,7 @@ interface ChordCardFrameProps {
   showLock?: boolean;
   isPlaying: boolean;
   isAgentHighlighted: boolean;
+  onAudition?: () => void;
   children: ReactNode;
 }
 
@@ -27,6 +28,7 @@ export default function ChordCardFrame({
   showLock = true,
   isPlaying,
   isAgentHighlighted,
+  onAudition,
   children,
 }: ChordCardFrameProps) {
   const t = useT();
@@ -77,11 +79,44 @@ export default function ChordCardFrame({
         {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
       </button> : null}
 
-      <div
-        className="w-full text-center py-3 px-4"
-        style={{ borderBottom: "1px solid var(--border-subtle)" }}
-      >
-        <h3
+      {onAudition ? (
+        <div role="heading" aria-level={3} className="w-full">
+          <button
+            type="button"
+            aria-label={`${t("Play chord")}: ${displayName}`}
+            onClick={onAudition}
+            className="hh-chord-card__audition w-full text-center py-3 px-4"
+            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+          >
+            <span
+              data-chord-family={titlePresentation.family}
+              className="inline-flex rounded-md px-2 py-0.5 text-lg font-semibold"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: titlePresentation.color,
+                backgroundColor: titlePresentation.backgroundColor,
+                border: `1px solid ${titlePresentation.borderColor}`,
+                fontWeight: "var(--weight-semibold)",
+              }}
+            >
+              {displayName}
+            </span>
+            {localizedUsageNotes && (
+              <span
+                className="block text-xs mt-0.5"
+                style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
+              >
+                {localizedUsageNotes}
+              </span>
+            )}
+          </button>
+        </div>
+      ) : (
+        <div
+          className="w-full text-center py-3 px-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
+          <h3
           data-chord-family={titlePresentation.family}
           className="inline-flex rounded-md px-2 py-0.5 text-lg font-semibold"
           style={{
@@ -91,9 +126,20 @@ export default function ChordCardFrame({
             border: `1px solid ${titlePresentation.borderColor}`,
             fontWeight: "var(--weight-semibold)",
           }}
-        >
-          {displayName}
-        </h3>
+          >
+            {displayName}
+          </h3>
+          {localizedUsageNotes && (
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
+            >
+              {localizedUsageNotes}
+            </p>
+          )}
+        </div>
+      )}
+      <div className="contents">
         {isAgentHighlighted && (
           <span
             role="status"
@@ -113,14 +159,6 @@ export default function ChordCardFrame({
             <AudioLines size={12} aria-hidden="true" />
             {t("Harmony focus")}
           </span>
-        )}
-        {localizedUsageNotes && (
-          <p
-            className="text-xs mt-0.5"
-            style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
-          >
-            {localizedUsageNotes}
-          </p>
         )}
       </div>
 

@@ -318,6 +318,36 @@ function App() {
       onError: (error) => console.error("Progression playback failed", error),
     }),
   );
+  const [chordAudition] = useState(() => {
+    let timelineIndex: number | null = null;
+    const controller = createProgressionPlaybackController({
+      createContext: createAudioContext,
+      schedule: (request, context, onChordChange) =>
+        playSchedule(
+          buildMidiPlaybackSchedule(
+            request.voicings,
+            request.bpm,
+            request.beatsPerChord,
+            request.allowRests,
+          ),
+          context,
+          onChordChange,
+          request.timbre,
+        ),
+      onChordChange: (index) => {
+        setActiveChordIndex(index === null ? null : timelineIndex);
+      },
+      onStateChange: () => undefined,
+      onError: (error) => console.error("Chord audition failed", error),
+    });
+    return {
+      controller,
+      setTimelineIndex: (index: number) => {
+        timelineIndex = index;
+      },
+    };
+  });
+  const chordAuditionController = chordAudition.controller;
   const nextCardKeyRef = useRef(importedChordCount + 1);
   const initialTimelineVersion = importedChordCount > 0 ? 1 : 0;
   const timelineVersionRef = useRef(initialTimelineVersion);
@@ -690,12 +720,28 @@ function App() {
   const isPlaybackStarting = playbackPhase === "starting";
 
   function startProgressionPlayback() {
+    chordAuditionController.stop();
     return playbackController.start({
       timbre: instrument,
       voicings: midiExportVoicings,
       bpm: PLAYBACK_BPM,
       beatsPerChord: 2,
       allowRests: instrument === "ukulele",
+    });
+  }
+
+  function handleChordAudition(index: number) {
+    const voicing = midiExportVoicings[index];
+    if (!voicing || voicing.length === 0) return;
+
+    playbackController.stop();
+    chordAuditionController.stop();
+    chordAudition.setTimelineIndex(index);
+    void chordAuditionController.start({
+      timbre: instrument,
+      voicings: [voicing],
+      bpm: PLAYBACK_BPM,
+      beatsPerChord: 2,
     });
   }
 
@@ -712,8 +758,9 @@ function App() {
   useEffect(() => {
     return () => {
       playbackController.stop();
+      chordAuditionController.stop();
     };
-  }, [chords, pianoVoicings, playbackController]);
+  }, [chordAuditionController, chords, midiExportVoicings, playbackController]);
 
   function randomizeAll() {
     playbackController.stop();
@@ -1329,6 +1376,9 @@ function App() {
                     timelineChords={indexedTimelineChords}
                     isPlaying={activeChordIndex === index}
                     isAgentHighlighted={highlightedChordIndex === index}
+                    onAudition={midiExportVoicings[index]?.length > 0
+                      ? () => handleChordAudition(index)
+                      : undefined}
                   />
                 );
               })}

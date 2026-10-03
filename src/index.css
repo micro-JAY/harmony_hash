@@ -912,6 +912,23 @@ svg [data-note-tooltip="true"]:focus-visible {
   container: harmony-chord-card / inline-size;
 }
 
+.hh-chord-card__audition {
+  appearance: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.hh-chord-card__audition:hover {
+  background-color: var(--surface-highlight);
+}
+
+.hh-chord-card__audition:focus-visible {
+  outline: 2px solid var(--border-accent);
+  outline-offset: -3px;
+}
+
 .hh-floating-chord-layer {
   position: fixed;
   inset: 0;

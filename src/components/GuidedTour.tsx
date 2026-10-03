@@ -26,12 +26,24 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(",");
 
-export interface GuidedTourStep {
+interface GuidedTourStepBase {
   id: string;
-  targetSelector: string;
   title: string;
+}
+
+export interface GuidedTourSpotlightStep extends GuidedTourStepBase {
+  kind?: "spotlight";
+  targetSelector: string;
   body: string;
 }
+
+export interface GuidedTourHandoffStep extends GuidedTourStepBase {
+  kind: "handoff";
+  destinationSelector: string;
+  instruction: string;
+}
+
+export type GuidedTourStep = GuidedTourSpotlightStep | GuidedTourHandoffStep;
 
 export interface GuidedTourLabels {
   tour: string;
@@ -93,6 +105,18 @@ function toTourRect(rect: DOMRect): TourRect {
   };
 }
 
+function isGuidedTourHandoffStep(
+  step: GuidedTourStep,
+): step is GuidedTourHandoffStep {
+  return step.kind === "handoff";
+}
+
+function targetSelectorForStep(step: GuidedTourStep): string {
+  return isGuidedTourHandoffStep(step)
+    ? step.destinationSelector
+    : step.targetSelector;
+}
+
 export default function GuidedTour({
   open,
   steps,
@@ -127,6 +151,8 @@ export default function GuidedTour({
   const currentStep = steps[safeIndex];
   const isFirst = safeIndex === 0;
   const isLast = safeIndex === steps.length - 1;
+  const isHandoff = currentStep ? isGuidedTourHandoffStep(currentStep) : false;
+  const targetSelector = currentStep ? targetSelectorForStep(currentStep) : "";
 
   useEffect(() => {
     currentIndexRef.current = safeIndex;
@@ -143,13 +169,16 @@ export default function GuidedTour({
   useEffect(() => {
     if (!open || !portalNode) return;
     document.body.append(portalNode);
-    const restoreBackground = setBackgroundInert(portalNode);
 
     return () => {
-      restoreBackground();
       portalNode.remove();
     };
   }, [open, portalNode]);
+
+  useEffect(() => {
+    if (!open || !portalNode || isHandoff) return;
+    return setBackgroundInert(portalNode);
+  }, [isHandoff, open, portalNode]);
 
   useEffect(() => {
     if (!open || !currentStep) return;
@@ -160,7 +189,7 @@ export default function GuidedTour({
 
     function measureTarget() {
       if (cancelled) return;
-      const nextTarget = document.querySelector<HTMLElement>(currentStep.targetSelector);
+      const nextTarget = document.querySelector<HTMLElement>(targetSelector);
       if (nextTarget !== observedTarget) {
         resizeObserver?.disconnect();
         observedTarget = nextTarget;
@@ -185,13 +214,21 @@ export default function GuidedTour({
       }
       if (cancelled) return;
       frame = requestAnimationFrame(() => {
-        const nextTarget = document.querySelector<HTMLElement>(currentStep.targetSelector);
-        nextTarget?.scrollIntoView({
-          behavior: reduceMotion ? "auto" : "smooth",
-          block: "center",
-          inline: "center",
+        const nextTarget = document.querySelector<HTMLElement>(targetSelector);
+        const scrollTarget = isHandoff
+          ? nextTarget?.closest<HTMLElement>(".hh-app-header") ?? nextTarget
+          : nextTarget;
+        scrollTarget?.scrollIntoView({
+          behavior: reduceMotion || isHandoff ? "auto" : "smooth",
+          block: isHandoff ? "start" : "center",
+          inline: isHandoff ? "nearest" : "center",
         });
-        measureTarget();
+        if (isHandoff) {
+          nextTarget?.focus({ preventScroll: true });
+        } else {
+          (closeRef.current ?? dialogRef.current)?.focus({ preventScroll: true });
+        }
+        frame = requestAnimationFrame(measureTarget);
       });
     }
 
@@ -209,7 +246,39 @@ export default function GuidedTour({
       window.removeEventListener("resize", measureTarget);
       window.removeEventListener("scroll", measureTarget, true);
     };
-  }, [currentStep, open, reduceMotion, safeIndex]);
+  }, [currentStep, isHandoff, open, reduceMotion, safeIndex, targetSelector]);
+
+  useEffect(() => {
+    if (!open || !currentStep || !isGuidedTourHandoffStep(currentStep)) return;
+    const handoffStep = currentStep;
+    let cancelled = false;
+    let advanceFrame = 0;
+    let activationObserved = false;
+
+    function handleActivation(event: MouseEvent) {
+      if (activationObserved || !(event.target instanceof Element)) return;
+      const destination = event.target.closest(handoffStep.destinationSelector);
+      if (!(destination instanceof HTMLElement)) return;
+      activationObserved = true;
+      advanceFrame = requestAnimationFrame(() => {
+        if (cancelled || event.defaultPrevented || currentIndexRef.current !== safeIndex) {
+          activationObserved = false;
+          return;
+        }
+        setTargetRect(null);
+        setCurrentIndex((index) => (
+          index === safeIndex ? Math.min(steps.length - 1, index + 1) : index
+        ));
+      });
+    }
+
+    document.addEventListener("click", handleActivation, true);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(advanceFrame);
+      document.removeEventListener("click", handleActivation, true);
+    };
+  }, [currentStep, open, safeIndex, steps.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -235,12 +304,21 @@ export default function GuidedTour({
 
   useEffect(() => {
     if (!open) return;
-    const dialog = dialogRef.current;
     const previouslyFocused = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
     const returnFocusTarget = returnFocusRef?.current ?? previouslyFocused;
-    const focusFrame = requestAnimationFrame(() => (closeRef.current ?? dialog)?.focus());
+
+    return () => {
+      requestAnimationFrame(() => {
+        if (returnFocusTarget?.isConnected) returnFocusTarget.focus();
+      });
+    };
+  }, [open, returnFocusRef]);
+
+  useEffect(() => {
+    if (!open) return;
+    const dialog = dialogRef.current;
 
     function movePrevious() {
       if (currentIndexRef.current === 0) return;
@@ -269,10 +347,10 @@ export default function GuidedTour({
       }
       if (event.key === "ArrowRight") {
         event.preventDefault();
-        moveNext();
+        if (!isHandoff) moveNext();
         return;
       }
-      if (event.key !== "Tab" || !dialog) return;
+      if (event.key !== "Tab" || !dialog || isHandoff) return;
 
       const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
       if (focusable.length === 0) {
@@ -293,13 +371,9 @@ export default function GuidedTour({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      cancelAnimationFrame(focusFrame);
       window.removeEventListener("keydown", handleKeyDown);
-      requestAnimationFrame(() => {
-        if (returnFocusTarget?.isConnected) returnFocusTarget.focus();
-      });
     };
-  }, [open, returnFocusRef, steps.length]);
+  }, [isHandoff, open, steps.length]);
 
   if (!open || !currentStep || steps.length === 0) return null;
 
@@ -321,6 +395,7 @@ export default function GuidedTour({
       className="hh-guided-tour"
       data-reduced-motion={reduceMotion ? "true" : "false"}
       data-target-missing={targetRect ? "false" : "true"}
+      data-tour-mode={isHandoff ? "handoff" : "modal"}
     >
       <div className="hh-guided-tour__backdrop" aria-hidden="true" />
       {targetRect ? (
@@ -330,7 +405,7 @@ export default function GuidedTour({
       <section
         ref={dialogRef}
         role="dialog"
-        aria-modal="true"
+        aria-modal={!isHandoff}
         aria-labelledby={titleId}
         aria-describedby={bodyId}
         tabIndex={-1}
@@ -350,18 +425,20 @@ export default function GuidedTour({
         >
           <ChevronLeft aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          className="hh-guided-tour__screen-arrow hh-guided-tour__screen-arrow--next"
-          aria-label={labels.next}
-          disabled={isLast}
-          onClick={() => {
-            setTargetRect(null);
-            setCurrentIndex((index) => Math.min(steps.length - 1, index + 1));
-          }}
-        >
-          <ChevronRight aria-hidden="true" />
-        </button>
+        {!isHandoff ? (
+          <button
+            type="button"
+            className="hh-guided-tour__screen-arrow hh-guided-tour__screen-arrow--next"
+            aria-label={labels.next}
+            disabled={isLast}
+            onClick={() => {
+              setTargetRect(null);
+              setCurrentIndex((index) => Math.min(steps.length - 1, index + 1));
+            }}
+          >
+            <ChevronRight aria-hidden="true" />
+          </button>
+        ) : null}
 
         <header className="hh-guided-tour__header">
           <p className="hh-guided-tour__progress">
@@ -382,7 +459,11 @@ export default function GuidedTour({
         </header>
         <div aria-live="polite">
           <h2 id={titleId} className="hh-guided-tour__title">{currentStep.title}</h2>
-          <p id={bodyId} className="hh-guided-tour__body">{currentStep.body}</p>
+          <p id={bodyId} className="hh-guided-tour__body">
+            {isGuidedTourHandoffStep(currentStep)
+              ? currentStep.instruction
+              : currentStep.body}
+          </p>
         </div>
         <footer className="hh-guided-tour__actions">
           <button
@@ -397,7 +478,7 @@ export default function GuidedTour({
             <ChevronLeft size={16} aria-hidden="true" />
             {labels.previous}
           </button>
-          {isLast ? (
+          {isHandoff ? null : isLast ? (
             <button
               type="button"
               className="hh-action hh-guided-tour__primary"

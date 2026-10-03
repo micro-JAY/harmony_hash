@@ -173,6 +173,11 @@ export default function PianoKeyboard({
     return isBlack ? "var(--text-accent)" : "var(--palette-gold)";
   }
 
+  function activeLabelColor(rootFingerKey: boolean, isBlack: boolean): string {
+    if (colorMode === "interval" || rootFingerKey || isBlack) return "var(--text-inverse)";
+    return "var(--instrument-key-white-text)";
+  }
+
   const compact = size === "compact";
   const whiteKeyH = compact ? 64 : 100;
   const blackKeyH = compact ? 40 : 60;
@@ -245,7 +250,7 @@ export default function PianoKeyboard({
               height: whiteKeyH,
               backgroundColor: active
                 ? activeKeyColor(active, rootFingerKey, false)
-                : "var(--palette-white)",
+                : "var(--instrument-key-white)",
               border: "1px solid var(--border-default)",
               borderRadius: "0 0 var(--radius-sm) var(--radius-sm)",
               transition: `background-color var(--duration-normal) var(--ease-out)`,
@@ -255,14 +260,11 @@ export default function PianoKeyboard({
               <span
                 className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs font-semibold"
                 style={{
-                  color:
-                    displayMode === "notes"
-                      ? rootNoteLabel
-                        ? "var(--text-accent)"
-                        : "var(--text-primary)"
-                      : rootFingerKey
-                        ? "var(--surface-base)"
-                        : "var(--text-primary)",
+                  color: displayMode === "notes"
+                    ? rootNoteLabel
+                      ? "var(--text-accent)"
+                      : "var(--text-primary)"
+                    : activeLabelColor(rootFingerKey, false),
                   fontSize: "9px",
                   fontFamily: "var(--font-mono)",
                 }}
@@ -310,7 +312,7 @@ export default function PianoKeyboard({
               height: blackKeyH,
               backgroundColor: active
                 ? activeKeyColor(active, rootFingerKey, true)
-                : "var(--palette-black)",
+                : "var(--instrument-key-black)",
               border: "1px solid var(--border-strong)",
               borderRadius: "0 0 var(--radius-sm) var(--radius-sm)",
               zIndex: 1,
@@ -321,14 +323,11 @@ export default function PianoKeyboard({
               <span
                 className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs font-semibold"
                 style={{
-                  color:
-                    displayMode === "notes"
-                      ? rootNoteLabel
-                        ? "var(--text-accent)"
-                        : "var(--text-primary)"
-                      : rootFingerKey
-                        ? "var(--surface-base)"
-                        : "var(--text-primary)",
+                  color: displayMode === "notes"
+                    ? rootNoteLabel
+                      ? "var(--text-accent)"
+                      : "var(--text-primary)"
+                    : activeLabelColor(rootFingerKey, true),
                   fontSize: "8px",
                   fontFamily: "var(--font-mono)",
                 }}

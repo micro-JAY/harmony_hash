@@ -8,7 +8,9 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { X } from "lucide-react";
+import { Moon, Sun, X } from "lucide-react";
+import { useAppearance } from "../appearance/AppearanceContext";
+import { useT } from "../i18n/I18nContext";
 import type { OnboardingCloseReason } from "../lib/onboardingPersistence";
 
 const FOCUSABLE_SELECTOR = [
@@ -76,8 +78,11 @@ export default function OnboardingModal({
   onSecondaryAction,
   returnFocusRef,
 }: OnboardingModalProps) {
+  const { appearance, setAppearance } = useAppearance();
+  const t = useT();
   const titleId = useId();
   const descriptionId = useId();
+  const appearanceLabelId = useId();
   const reduceMotion = Boolean(useReducedMotion());
   const dialogRef = useRef<HTMLElement>(null);
   const primaryActionRef = useRef<HTMLButtonElement>(null);
@@ -232,6 +237,37 @@ export default function OnboardingModal({
                   </button>
                 ) : null}
               </div>
+              <section className="hh-onboarding-appearance" aria-labelledby={appearanceLabelId}>
+                <p id={appearanceLabelId} className="hh-onboarding-appearance__label">
+                  {t("Appearance")}
+                </p>
+                <div
+                  className="hh-onboarding-appearance__options"
+                  role="group"
+                  aria-labelledby={appearanceLabelId}
+                >
+                  <button
+                    type="button"
+                    className="hh-onboarding-appearance__option"
+                    data-active={appearance === "dark" ? "true" : "false"}
+                    aria-pressed={appearance === "dark"}
+                    onClick={() => setAppearance("dark")}
+                  >
+                    <Moon size={17} aria-hidden="true" />
+                    <span>{t("Dark appearance")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="hh-onboarding-appearance__option"
+                    data-active={appearance === "light" ? "true" : "false"}
+                    aria-pressed={appearance === "light"}
+                    onClick={() => setAppearance("light")}
+                  >
+                    <Sun size={17} aria-hidden="true" />
+                    <span>{t("Light appearance")}</span>
+                  </button>
+                </div>
+              </section>
             </header>
           </div>
           <div className="hh-onboarding-destinations">{children}</div>

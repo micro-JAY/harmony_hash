@@ -58,6 +58,28 @@
 .discovery-status, .discovery-caption { color: var(--text-muted); font-size: var(--text-xs); margin: var(--space-3) 0; }
 .discovery-error { color: var(--status-error-text); background: var(--status-error-bg); border: 1px solid var(--status-error-border); padding: var(--space-3); border-radius: var(--radius-md); }
 
+.discovery-improv {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(14rem, 0.8fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--music-insight-surface-border);
+  border-radius: var(--radius-lg);
+  background: var(--music-insight-surface-bg);
+}
+.discovery-improv__intro { min-width: 0; }
+.discovery-improv__intro .hh-control-label { color: var(--music-insight-surface-text); }
+.discovery-improv__intro p { margin: var(--space-1) 0 0; color: var(--text-secondary); font-size: var(--text-sm); }
+.discovery-improv__select { display: flex; min-width: 0; flex-direction: column; gap: var(--space-1); }
+.discovery-improv__select .hh-select { width: 100%; }
+.discovery-improv__toggle[aria-pressed="true"] {
+  border-color: var(--music-insight-surface-border);
+  background: color-mix(in srgb, var(--music-insight-surface-text) 20%, var(--surface-raised));
+  color: var(--music-insight-surface-text);
+}
+
 .discovery-hud {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -102,31 +124,71 @@
 .discovery-interval strong { display: inline-flex; min-width: var(--space-5); min-height: var(--space-5); align-items: center; justify-content: center; border: 1px solid currentColor; border-radius: var(--radius-full); }
 .discovery-interval span { color: var(--text-secondary); font-family: var(--font-body); }
 .discovery-pin-action { align-self: flex-start; color: var(--text-accent); border-color: var(--border-accent); }
-.discovery-instrument-scroll { width: 100%; overflow-x: auto; border: 1px solid var(--border-strong); border-radius: var(--radius-lg); background: var(--surface-sunken); padding: var(--space-1); }
+.discovery-instrument-scroll { width: 100%; overflow-x: auto; border: 1px solid var(--instrument-anatomy); border-radius: var(--radius-lg); background: var(--instrument-board-bg); padding: var(--space-1); }
 .discovery-piano { position: relative; min-width: calc(var(--space-12) * 22); height: calc(var(--space-16) * 3); }
-.discovery-key { position: absolute; top: 0; display: block; padding: 0; border: 1px solid var(--border-strong); border-radius: 0 0 var(--radius-sm) var(--radius-sm); cursor: pointer; font-family: var(--font-mono); font-size: var(--text-xs); transition: background-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out); }
-.discovery-key--white { height: 100%; background: var(--palette-white); color: var(--palette-black); }
-.discovery-key--black { height: 63%; z-index: 1; background: var(--palette-black); color: var(--palette-white); }
+.discovery-key { position: absolute; top: 0; display: block; padding: 0; border: 1px solid var(--instrument-anatomy); border-radius: 0 0 var(--radius-sm) var(--radius-sm); cursor: pointer; font-family: var(--font-mono); font-size: var(--text-xs); transition: background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out); }
+.discovery-key--white { --discovery-key-base: var(--instrument-key-white); height: 100%; background: var(--discovery-key-base); color: var(--instrument-key-white-text); }
+.discovery-key--black { --discovery-key-base: var(--instrument-key-black); height: 63%; z-index: 1; background: var(--discovery-key-base); color: var(--instrument-key-black-text); }
 .discovery-key__legend { position: absolute; right: 0; bottom: var(--space-3); left: 0; display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: flex-end; gap: var(--space-1); line-height: 1; text-align: center; }
 .discovery-key--black .discovery-key__legend { bottom: var(--space-2); }
 .discovery-key__note { display: block; max-width: 100%; white-space: nowrap; }
 .discovery-key__shortcut { display: block; margin: 0; color: inherit; font: inherit; font-weight: var(--weight-bold); line-height: 1; white-space: nowrap; }
-.discovery-key[aria-pressed="true"] { background: var(--palette-gold); color: var(--palette-black); box-shadow: var(--glow-accent); }
-.discovery-key[data-held="true"] { background: var(--palette-sky); color: var(--palette-black); box-shadow: var(--glow-academy); }
+.discovery-key[data-scale-tone="true"] {
+  border-color: var(--music-insight-surface-text);
+  background: color-mix(in srgb, var(--music-insight-surface-text) 24%, var(--discovery-key-base));
+  box-shadow: inset 0 calc(-1 * var(--space-2)) 0 color-mix(in srgb, var(--music-insight-surface-text) 28%, transparent);
+}
+.discovery-key[data-scale-root="true"] {
+  border-color: var(--music-interval-root);
+  box-shadow: inset 0 calc(-1 * var(--space-2)) 0 color-mix(in srgb, var(--music-interval-root) 40%, transparent);
+}
+.discovery-key[aria-pressed="true"] { background: var(--palette-gold); color: var(--instrument-key-white-text); box-shadow: var(--glow-accent); }
+.discovery-key[data-held="true"] { background: var(--palette-sky); color: var(--instrument-key-white-text); box-shadow: var(--glow-academy); }
 .discovery-key:focus-visible, .discovery-fret:focus-visible { outline: var(--space-1) solid var(--interactive-focus-ring); outline-offset: calc(-1 * var(--space-1)); z-index: 2; }
-.discovery-workspace[data-reduced-motion="true"] .discovery-key { transition: none; }
+.discovery-workspace[data-reduced-motion="true"] .discovery-key,
+.discovery-workspace[data-reduced-motion="true"] .discovery-fret { transition: none; }
 
-.discovery-fretboard { min-width: calc(var(--space-12) * 14); padding: var(--space-3) var(--space-2); }
-.discovery-fretboard__row { display: grid; grid-template-columns: var(--space-10) repeat(13, minmax(0, 1fr)); align-items: center; }
-.discovery-fretboard__numbers { text-align: center; font-family: var(--font-mono); color: var(--text-muted); font-size: var(--text-xs); margin-bottom: var(--space-2); }
+.discovery-fretboard-scroll { padding: 0; }
+.discovery-fretboard {
+  width: 100%;
+  min-width: calc(var(--space-20) * 9);
+  padding: var(--space-3) var(--space-2) var(--space-2);
+  background: var(--instrument-board-bg);
+}
+.discovery-fretboard__row {
+  display: grid;
+  grid-template-columns:
+    var(--space-10)
+    var(--space-10)
+    repeat(3, minmax(var(--space-10), 1.22fr))
+    repeat(3, minmax(var(--space-10), 1.12fr))
+    repeat(3, minmax(var(--space-10), 1fr))
+    repeat(3, minmax(var(--space-10), 0.9fr));
+  align-items: center;
+}
+.discovery-fretboard__numbers { min-height: var(--space-6); text-align: center; font-family: var(--font-mono); color: var(--text-muted); font-size: var(--text-xs); }
+.discovery-fretboard__numbers > span:not(:first-child) { align-self: stretch; border-right: 1px solid var(--instrument-anatomy); }
+.discovery-fretboard__numbers > span:nth-child(2) { border-right: var(--space-1) solid var(--instrument-anatomy); color: var(--text-warm); }
+.discovery-fretboard__string-row { --discovery-string-weight: 1px; position: relative; background: var(--surface-raised); }
+.discovery-fretboard__string-row[data-string="2"] { --discovery-string-weight: 1.25px; }
+.discovery-fretboard__string-row[data-string="3"] { --discovery-string-weight: 1.5px; }
+.discovery-fretboard__string-row[data-string="4"] { --discovery-string-weight: 2px; }
+.discovery-fretboard__string-row[data-string="5"] { --discovery-string-weight: 2.5px; }
+.discovery-fretboard__string-row[data-string="6"] { --discovery-string-weight: 3px; }
 .discovery-fretboard__string { display: flex; justify-content: center; gap: var(--space-1); font-family: var(--font-mono); color: var(--text-secondary); }
 .discovery-fretboard__string small { color: var(--text-muted); }
-.discovery-fret { position: relative; min-height: var(--space-10); border: 0; border-right: 1px solid var(--border-strong); background: transparent; color: var(--text-muted); cursor: pointer; padding: var(--space-1); }
-.discovery-fret::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: var(--border-strong); }
-.discovery-fret[data-fret="0"] { border-right: var(--space-1) solid var(--border-strong); }
-.discovery-fret span { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: var(--space-8); min-height: var(--space-8); background: var(--surface-sunken); border-radius: var(--radius-full); font-family: var(--font-mono); font-size: var(--text-xs); }
-.discovery-fret[aria-pressed="true"] span { background: var(--palette-gold); color: var(--palette-black); box-shadow: var(--glow-accent); }
-.discovery-fret[data-held="true"] span { background: var(--palette-sky); color: var(--palette-black); box-shadow: var(--glow-academy); }
+.discovery-fret { position: relative; min-width: var(--control-min-height); min-height: var(--control-min-height); border: 0; border-right: 1px solid var(--instrument-anatomy); background: transparent; color: var(--text-muted); cursor: pointer; padding: var(--space-1); transition: background-color var(--duration-fast) var(--ease-out); }
+.discovery-fret:nth-child(even) { background: var(--surface-highlight); }
+.discovery-fret::before { content: ""; position: absolute; z-index: 0; top: 50%; left: 0; right: 0; height: var(--discovery-string-weight); background: var(--instrument-anatomy); transform: translateY(-50%); }
+.discovery-fret[data-fret="0"] { border-right: var(--space-1) solid var(--text-secondary); background: var(--surface-overlay); }
+.discovery-fret span { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; min-width: var(--space-8); min-height: var(--space-8); border: 1px solid var(--border-subtle); background: var(--surface-sunken); border-radius: var(--radius-full); font-family: var(--font-mono); font-size: var(--text-xs); transition: background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out); }
+.discovery-fret[data-scale-tone="true"] span { border-color: var(--music-insight-surface-text); background: color-mix(in srgb, var(--music-insight-surface-text) 24%, var(--surface-raised)); color: var(--text-primary); font-weight: var(--weight-semibold); }
+.discovery-fret[data-scale-root="true"] span { border: 3px double var(--music-interval-root); color: var(--music-interval-root); box-shadow: 0 0 0 2px color-mix(in srgb, var(--music-interval-root) 18%, transparent); }
+.discovery-fret[aria-pressed="true"] span { background: var(--palette-gold); color: var(--instrument-key-white-text); box-shadow: var(--glow-accent); }
+.discovery-fret[data-held="true"] span { background: var(--palette-sky); color: var(--instrument-key-white-text); box-shadow: var(--glow-academy); }
+.discovery-fretboard__markers { min-height: var(--space-6); }
+.discovery-fretboard__markers > span { display: flex; align-items: center; justify-content: center; gap: var(--space-1); }
+.discovery-fretboard__markers i { display: block; width: var(--space-1); height: var(--space-1); border-radius: var(--radius-full); background: var(--text-muted); }
 
 .discovery-accompaniment { margin-top: var(--space-8); padding: var(--space-5); background: var(--surface-raised); border: 1px solid var(--border-default); border-radius: var(--radius-xl); }
 .discovery-loop-heading h2 { color: var(--text-primary); font-size: var(--text-lg); font-family: var(--font-display); margin: 0 0 var(--space-1); }
@@ -150,5 +212,7 @@
   .discovery-midi-control > .discovery-action, .discovery-midi-select { flex: 1 1 100%; }
   .discovery-midi-control > .discovery-action, .discovery-midi-select .hh-select { width: 100%; max-width: none; }
   .discovery-action { font-size: var(--text-xs); }
+  .discovery-improv { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+  .discovery-improv__toggle { width: 100%; }
   .discovery-accompaniment { padding: var(--space-4); }
 }

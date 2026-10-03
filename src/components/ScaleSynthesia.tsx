@@ -177,7 +177,6 @@ export default function ScaleSynthesia({
   const decoratedGuitarPositions = decorateFretboardPositions(
     displayedGuitarRows,
     guitarPattern,
-    [],
   );
 
   useEffect(() => () => {
@@ -422,8 +421,6 @@ export default function ScaleSynthesia({
                 labelMode="notes"
                 pattern={guitarPattern}
                 decoratedPositions={decoratedGuitarPositions}
-                keyName={root}
-                modeLabel={definition.label}
               />
             )}
           </div>

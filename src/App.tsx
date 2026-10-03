@@ -9,7 +9,7 @@ import {
   type ComponentType,
   type ReactNode,
 } from "react";
-import { ArrowDown, ArrowUp, Guitar, Play, Square, Wrench } from "lucide-react";
+import { ArrowDown, ArrowUp, Compass, Play, Square, Wrench } from "lucide-react";
 import type {
   Instrument,
   IndexedChord,
@@ -318,6 +318,36 @@ function App() {
       onError: (error) => console.error("Progression playback failed", error),
     }),
   );
+  const [chordAudition] = useState(() => {
+    let timelineIndex: number | null = null;
+    const controller = createProgressionPlaybackController({
+      createContext: createAudioContext,
+      schedule: (request, context, onChordChange) =>
+        playSchedule(
+          buildMidiPlaybackSchedule(
+            request.voicings,
+            request.bpm,
+            request.beatsPerChord,
+            request.allowRests,
+          ),
+          context,
+          onChordChange,
+          request.timbre,
+        ),
+      onChordChange: (index) => {
+        setActiveChordIndex(index === null ? null : timelineIndex);
+      },
+      onStateChange: () => undefined,
+      onError: (error) => console.error("Chord audition failed", error),
+    });
+    return {
+      controller,
+      setTimelineIndex: (index: number) => {
+        timelineIndex = index;
+      },
+    };
+  });
+  const chordAuditionController = chordAudition.controller;
   const nextCardKeyRef = useRef(importedChordCount + 1);
   const initialTimelineVersion = importedChordCount > 0 ? 1 : 0;
   const timelineVersionRef = useRef(initialTimelineVersion);
@@ -690,12 +720,28 @@ function App() {
   const isPlaybackStarting = playbackPhase === "starting";
 
   function startProgressionPlayback() {
+    chordAuditionController.stop();
     return playbackController.start({
       timbre: instrument,
       voicings: midiExportVoicings,
       bpm: PLAYBACK_BPM,
       beatsPerChord: 2,
       allowRests: instrument === "ukulele",
+    });
+  }
+
+  function handleChordAudition(index: number) {
+    const voicing = midiExportVoicings[index];
+    if (!voicing || voicing.length === 0) return;
+
+    playbackController.stop();
+    chordAuditionController.stop();
+    chordAudition.setTimelineIndex(index);
+    void chordAuditionController.start({
+      timbre: instrument,
+      voicings: [voicing],
+      bpm: PLAYBACK_BPM,
+      beatsPerChord: 2,
     });
   }
 
@@ -712,8 +758,9 @@ function App() {
   useEffect(() => {
     return () => {
       playbackController.stop();
+      chordAuditionController.stop();
     };
-  }, [chords, pianoVoicings, playbackController]);
+  }, [chordAuditionController, chords, midiExportVoicings, playbackController]);
 
   function randomizeAll() {
     playbackController.stop();
@@ -851,31 +898,13 @@ function App() {
       id: "workspaces",
       targetSelector: '[data-tour="workspace-navigation"]',
       title: t("Choose a workspace"),
-      body: t("HASHER builds progressions, TUNE TOOLBOX connects the theory, and FRET FINDER maps the result across the instrument."),
-    },
-    {
-      id: "instrument",
-      targetSelector: '[data-tour="instrument-switcher"]',
-      title: t("Choose your instrument"),
-      body: t("Switch between guitar and piano without rebuilding your progression. The same chord timeline drives both views."),
-    },
-    {
-      id: "context",
-      targetSelector: '[data-tour="hasher-context"]',
-      title: t("Set the harmonic context"),
-      body: t("Choose a key and mode once. Presets, chord suggestions, and analysis all follow that shared context."),
-    },
-    {
-      id: "presets",
-      targetSelector: '[data-tour="hasher-presets"]',
-      title: t("Start with a preset"),
-      body: t("Pick a proven progression, then keep editing it just like one you built yourself."),
+      body: t("HASHER builds progressions, TUNE TOOLBOX groups FRET FINDER with the theory tools, and DISCOVERY turns notes and your progression into a practice space."),
     },
     {
       id: "describe",
       targetSelector: '[data-tour="hasher-describe"]',
       title: t("Describe what you hear"),
-      body: t("Describe a mood or progression and run the builder. If you get stuck, check the small help prompt; Harmony has you covered."),
+      body: t("Describe a mood or progression and run the builder. The small Harmony prompt opens the companion when you want Voice or Type guidance."),
     },
     {
       id: "composer",
@@ -890,51 +919,107 @@ function App() {
       body: t("Open BROWSE CHORDS for dictionary-valid choices. Suggestions and colors show how each chord relates to your context."),
     },
     {
-      id: "cards",
-      targetSelector: '[data-tour="chord-output"]',
-      title: t("Shape each chord"),
-      body: t("Each card renders the same chord for guitar or piano. Lock the voices you want to preserve and use MODIFY for alternatives."),
+      id: "context",
+      targetSelector: '[data-tour="hasher-context"]',
+      title: t("Set the harmonic context"),
+      body: t("Choose a key and mode once. Presets, chord suggestions, and analysis all follow that shared context."),
+    },
+    {
+      id: "instrument",
+      targetSelector: '[data-tour="instrument-switcher"]',
+      title: t("Choose your instrument"),
+      body: t("Switch between guitar, ukulele, and piano without rebuilding your progression. The same chord timeline drives every view."),
+    },
+    {
+      id: "presets",
+      targetSelector: '[data-tour="hasher-presets"]',
+      title: t("Start with a preset"),
+      body: t("Pick a proven progression, then keep editing it just like one you built yourself."),
     },
     {
       id: "playback",
       targetSelector: '[data-tour="hasher-actions"]',
-      title: t("Play what you build"),
-      body: t("Use PLAY to hear the full progression. RANDOMIZE (UNLOCKED VOICES) gives unlocked guitar variants or piano voicings a fresh performance without changing your chords."),
+      title: t("Hear and explore your progression"),
+      body: t("Use PLAY to hear the timeline, RANDOMIZE to refresh unlocked voicings, and IMPROV INSIGHT to find compatible scales without changing your chords."),
+    },
+    {
+      id: "cards",
+      targetSelector: '[data-tour="chord-output"]',
+      title: t("Shape each chord"),
+      body: t("Each card renders the same chord for guitar, ukulele, or piano. Lock the voices you want to preserve and use MODIFY for alternatives."),
+    },
+    {
+      id: "toolbox-handoff",
+      kind: "handoff",
+      destinationSelector: '[data-tour-workspace="theory"]',
+      title: t("Continue in Tune Toolbox"),
+      instruction: t("Select the highlighted TUNE TOOLBOX tab to continue. The tour will wait for you."),
+    },
+    {
+      id: "fretboard",
+      targetSelector: '[data-theory-tool="fretboard"]',
+      title: t("Find notes on the fretboard"),
+      body: t("FRET FINDER comes first in TUNE TOOLBOX. Explore scales, intervals, and practice patterns without changing your HASHER progression."),
     },
     {
       id: "scales",
-      targetSelector: '[data-testid="scale-synthesia"]',
+      targetSelector: '[data-theory-tool="scales"]',
       title: t("See a scale on the keyboard"),
       body: t("SCALE SYNTHESIA names each degree, shows its color, and can send a compatible root and mode back to HASHER."),
     },
     {
       id: "circle",
-      targetSelector: '[data-testid="circle-of-fifths"]',
-      title: t("THE CIRCLE"),
+      targetSelector: '[data-theory-tool="circle"]',
+      title: t("Explore The Circle"),
       body: t("Compare neighboring keys, modes, and practical key changes or open IMPROV INSIGHT without leaving TUNE TOOLBOX."),
     },
     {
       id: "network",
-      targetSelector: '[data-testid="note-neural-network"]',
+      targetSelector: '[data-theory-tool="network"]',
       title: t("Connect the note network"),
       body: t("NOTE NEURAL NETWORK makes relative, parallel, and neighboring scale relationships visible and keeps the shared theory context in sync."),
     },
     {
-      id: "fretboard",
-      targetSelector: '[data-testid="fretboard-workspace"]',
-      title: t("Map the fretboard"),
-      body: t("FRET FINDER maps the selected scale from open strings through the highest visible fret, with stable interval colors and responsive detail."),
+      id: "discovery-handoff",
+      kind: "handoff",
+      destinationSelector: '[data-tour-workspace="discovery"]',
+      title: t("Continue in Discovery"),
+      instruction: t("Select the highlighted DISCOVERY tab to continue. Your HASHER progression will come with you."),
     },
     {
-      id: "handoff",
-      targetSelector: '[data-tour="workspace-navigation"]',
-      title: t("Carry ideas between tools"),
-      body: t("Move between HASHER, TUNE TOOLBOX, and FRET FINDER without losing your key, mode, or progression. Send a scale or chord idea back to the workspace where you need it."),
+      id: "discovery-input",
+      targetSelector: '[data-tour="discovery-input"]',
+      title: t("Play notes in Discovery"),
+      body: t("Choose Piano or Fretboard, click notes, use computer keys, or connect MIDI. Discovery keeps this note-first input separate from your HASHER timeline."),
+    },
+    {
+      id: "discovery-results",
+      targetSelector: '[data-tour="discovery-results"]',
+      title: t("Name the harmony you find"),
+      body: t("Discovery identifies the notes you play, shows intervals and alternate matches, and lets you pin a recognized chord for reference."),
+    },
+    {
+      id: "discovery-improv",
+      targetSelector: '[data-tour="discovery-improv"]',
+      title: t("Highlight a scale path"),
+      body: t("IMPROV INSIGHT ranks scales for your HASHER progression. Choose a recommendation, then turn Highlight on to map its tones across the active instrument."),
+    },
+    {
+      id: "discovery-loop",
+      targetSelector: '[data-tour="discovery-loop"]',
+      title: t("Practice over your progression"),
+      body: t("Loop the read-only HASHER progression, set a tempo, and play over it. Your original chords stay unchanged."),
     },
   ], [t]);
 
   const handleBeforeTourStep = useCallback((step: GuidedTourStep) => {
-    if (step.id === "circle" || step.id === "scales" || step.id === "network") {
+    if (step.id === "toolbox-handoff" || step.id === "discovery-handoff") return;
+    if (
+      step.id === "fretboard"
+      || step.id === "circle"
+      || step.id === "scales"
+      || step.id === "network"
+    ) {
       setWorkspace("theory");
       setTheoryDisclosures((current) => ({
         ...current,
@@ -942,8 +1027,9 @@ function App() {
       }));
       return;
     }
-    if (step.id === "fretboard") {
-      setWorkspace("fretboard");
+    if (step.id.startsWith("discovery-")) {
+      setDiscoveryVisited(true);
+      setWorkspace("discovery");
       return;
     }
     setWorkspace("builder");
@@ -969,6 +1055,7 @@ function App() {
     onboardingPersistence.dismiss();
     setChordBrowserOpen(false);
     dismissChordPreviewNow();
+    setWorkspace("builder");
     setOnboardingOpen(false);
     setTourOpen(true);
   }, [dismissChordPreviewNow, handleResult, theoryDisclosures, workspace]);
@@ -1093,6 +1180,7 @@ function App() {
                 <Discovery
                   active={workspace === "discovery"}
                   playbackRequest={discoveryPlaybackRequest}
+                  progressionChords={chords}
                   progressionLabels={discoveryProgressionLabels}
                   onBeforeLoopStart={playbackController.stop}
                   onPinChord={handleDiscoveryChordPin}
@@ -1288,6 +1376,9 @@ function App() {
                     timelineChords={indexedTimelineChords}
                     isPlaying={activeChordIndex === index}
                     isAgentHighlighted={highlightedChordIndex === index}
+                    onAudition={midiExportVoicings[index]?.length > 0
+                      ? () => handleChordAudition(index)
+                      : undefined}
                   />
                 );
               })}
@@ -1349,14 +1440,22 @@ function App() {
           onSecondaryAction={handleStartTour}
           returnFocusRef={helpButtonRef}
           visual={(
-            <img
-              src="/hh_logo.png"
-              alt=""
-              aria-hidden="true"
-              className="hh-onboarding-logo"
-              width="1000"
-              height="1000"
-            />
+            <div className="hh-onboarding-logo-stack" aria-hidden="true">
+              <img
+                src="/hh_logo.png"
+                alt=""
+                className="hh-onboarding-logo hh-onboarding-logo--dark"
+                width="1000"
+                height="1000"
+              />
+              <img
+                src="/hh_logo_light.jpg"
+                alt=""
+                className="hh-onboarding-logo hh-onboarding-logo--light"
+                width="1000"
+                height="1000"
+              />
+            </div>
           )}
         >
           <section className="hh-onboarding-destination hh-onboarding-destination--hasher">
@@ -1376,20 +1475,20 @@ function App() {
             />
             <div>
               <h2>{t("Tune Toolbox")}</h2>
-              <p>{t("Connect theory")}</p>
+              <p>{t("Fret Finder + theory")}</p>
             </div>
           </section>
-          <section className="hh-onboarding-destination hh-onboarding-destination--fret">
-            <Guitar
+          <section className="hh-onboarding-destination hh-onboarding-destination--discovery">
+            <Compass
               aria-hidden="true"
               className="hh-onboarding-destination-mark"
-              data-onboarding-destination-icon="fret"
+              data-onboarding-destination-icon="discovery"
               size={24}
               strokeWidth={1.75}
             />
             <div>
-              <h2>{t("Fret Finder")}</h2>
-              <p>{t("Map the neck")}</p>
+              <h2>{t("Discovery")}</h2>
+              <p>{t("Play and discover")}</p>
             </div>
           </section>
         </OnboardingModal>

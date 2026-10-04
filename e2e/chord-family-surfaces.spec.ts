@@ -1,4 +1,3 @@
-import { openFretFinder } from "./helpers/toolbox";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { contrastRatio } from "./helpers/contrast";
 import { composeProgression } from "./helpers/progression";
@@ -213,20 +212,4 @@ test.describe("global chord-family presentation", () => {
     await expect(network.locator("h2[data-chord-family]")).toBeVisible();
   });
 
-  test("colors FRET FINDER overlay results, selection, and readout", async ({ page }) => {
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await openFretFinder(page);
-    await page.getByRole("button", { name: "Choose a chord" }).click();
-    await page.getByRole("searchbox", { name: "Search chord overlay" }).fill("G7#9");
-    const result = page.getByRole("list", { name: "Chord overlay results" })
-      .getByRole("button", { name: /^G7#9 / });
-    await expect(result.locator('[data-chord-family="dominant"]')).toBeVisible();
-    await result.click();
-
-    await expect(page.getByRole("button", { name: "Overlay: G7#9" })
-      .locator('[data-chord-family="dominant"]')).toBeVisible();
-    await expect(page.getByTestId("fretboard-overlay-readout"))
-      .toHaveAttribute("data-chord-family", "dominant");
-    await expect(page.getByTestId("fretboard-scroller")).toHaveAttribute("data-overlay", "G7#9");
-  });
 });

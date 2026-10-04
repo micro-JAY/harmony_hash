@@ -29,5 +29,7 @@ describe("PianoKeyboard note education", () => {
     expect(markup).toContain('aria-label="C4 · 1 · Root"');
     expect(markup).toContain('aria-label="E4 · 3 · Major third"');
     expect(markup).toContain('aria-label="G4 · 5 · Perfect fifth"');
+    expect(markup).toContain("background-color:var(--instrument-key-white)");
+    expect(markup).toContain("background-color:var(--instrument-key-black)");
   });
 });

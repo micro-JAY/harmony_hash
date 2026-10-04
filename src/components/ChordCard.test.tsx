@@ -11,6 +11,7 @@ function renderChordCard({
   instrument = "guitar",
   showLock = true,
   pianoOctaveOffset = 0,
+  auditionable = false,
 }: {
   isPlaying?: boolean;
   isAgentHighlighted?: boolean;
@@ -18,6 +19,7 @@ function renderChordCard({
   instrument?: "guitar" | "piano" | "ukulele";
   showLock?: boolean;
   pianoOctaveOffset?: number;
+  auditionable?: boolean;
 } = {}): string {
   const chord = lookupChord(chordName);
   if (!chord) throw new Error(`${chordName} fixture is missing from the chord dictionary`);
@@ -41,6 +43,7 @@ function renderChordCard({
         onChordChange={() => undefined}
         isPlaying={isPlaying}
         isAgentHighlighted={isAgentHighlighted}
+        onAudition={auditionable ? () => undefined : undefined}
       />
     </I18nProvider>,
   );
@@ -79,6 +82,16 @@ describe("ChordCard emphasis", () => {
 });
 
 describe("ChordCard visual controls", () => {
+  it("exposes the full card heading as a native chord-audition button when playable", () => {
+    const playable = renderChordCard({ chordName: "Fm6", auditionable: true });
+    const unavailable = renderChordCard({ chordName: "Fm6" });
+
+    expect(playable).toContain('<button type="button" aria-label="Play chord: Fm6"');
+    expect(playable).toContain("dark, emotional");
+    expect(playable).toContain("hh-chord-card__audition");
+    expect(unavailable).not.toContain('aria-label="Play chord: Fm6"');
+  });
+
   it("renders genuine ukulele shapes and honest limitations per card", () => {
     const markup = renderChordCard({ instrument: "ukulele", chordName: "C" });
     expect(markup).toContain('data-testid="ukulele-chord-diagram"');

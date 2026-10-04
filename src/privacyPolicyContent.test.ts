@@ -30,8 +30,8 @@ describe("privacy policy content", () => {
     expect(privacyPolicyContent.en.button).toBe("Privacy Policy");
     expect(privacyPolicyContent.ja.title).toBe("プライバシーポリシー");
     expect(privacyPolicyContent.ja.button).toBe("プライバシーポリシー");
-    expect(privacyPolicyContent.en.effective).toContain("Last updated August 10, 2026");
-    expect(privacyPolicyContent.ja.effective).toContain("最終更新日：2026年8月10日");
+    expect(privacyPolicyContent.en.effective).toContain("Last updated October 2, 2026");
+    expect(privacyPolicyContent.ja.effective).toContain("最終更新日：2026年10月2日");
   });
 
   it("limits Cloudflare disclosure to repository-supported processing", () => {
@@ -60,5 +60,17 @@ describe("privacy policy content", () => {
     expect(japaneseHarmony).toContain("セッションの開始時または切断時に消去");
     expect(japaneseHarmony).toContain("ブラウザストレージまたはアプリケーションデータベースへ保存しません");
     expect(japaneseHarmony).toContain("セキュリティ、不正利用監視、法令遵守");
+  });
+
+  it("discloses the device-local appearance preference in both locales", () => {
+    const englishLocalState = privacyPolicyContent.en.sections[2]?.body ?? "";
+    const japaneseLocalState = privacyPolicyContent.ja.sections[2]?.body ?? "";
+
+    expect(englishLocalState).toContain("appearance preference");
+    expect(englishLocalState).toContain("stored in localStorage");
+    expect(englishLocalState).toContain("remains on your device");
+    expect(japaneseLocalState).toContain("外観設定");
+    expect(japaneseLocalState).toContain("localStorage");
+    expect(japaneseLocalState).toContain("端末内に残ります");
   });
 });

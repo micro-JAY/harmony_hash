@@ -50,6 +50,8 @@ interface ChordCardProps {
   isPlaying?: boolean;
   /** True when Harmony is calling attention to this chord during a voice session. */
   isAgentHighlighted?: boolean;
+  /** Auditions this card's current rendered voicing when the heading is activated. */
+  onAudition?: () => void;
 }
 
 const VOICING_TYPE_LABEL: Partial<Record<VoicedChord["voicingType"], string>> = {
@@ -90,6 +92,7 @@ export default function ChordCard({
   timelineChords,
   isPlaying = false,
   isAgentHighlighted = false,
+  onAudition,
 }: ChordCardProps) {
   const t = useT();
   const maxVariants = getInstrumentVariantCount(chord, instrument);
@@ -130,6 +133,7 @@ export default function ChordCard({
       showLock={showLock}
       isPlaying={isPlaying}
       isAgentHighlighted={isAgentHighlighted}
+      onAudition={onAudition}
     >
       {/* Visualization */}
       <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-2 p-4">

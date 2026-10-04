@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { AppearanceProvider } from "../appearance/AppearanceProvider";
 import NoteNeuralNetwork from "./NoteNeuralNetwork";
 import { I18nContext } from "../i18n/I18nContext";
 import { I18nProvider } from "../i18n/I18nProvider";
@@ -15,13 +16,15 @@ const DEFAULT_STATE = {
 describe("NoteNeuralNetwork", () => {
   it("renders the default learning graph with an accessible selection model", () => {
     const markup = renderToStaticMarkup(
-      <I18nProvider>
-        <NoteNeuralNetwork
-          onOpenScale={() => undefined}
-          state={DEFAULT_STATE}
-          onStateChange={() => undefined}
-        />
-      </I18nProvider>,
+      <AppearanceProvider initialAppearance="dark">
+        <I18nProvider>
+          <NoteNeuralNetwork
+            onOpenScale={() => undefined}
+            state={DEFAULT_STATE}
+            onStateChange={() => undefined}
+          />
+        </I18nProvider>
+      </AppearanceProvider>,
     );
 
     expect(markup).toContain('aria-label="E relationship network"');
@@ -34,6 +37,8 @@ describe("NoteNeuralNetwork", () => {
     expect(markup).toContain('data-relationship-strength="weak"');
     expect(markup).toContain('<canvas');
     expect(markup).toContain('data-graph-projection="desktop-force-canvas"');
+    expect(markup).toContain("background-color:var(--network-canvas-bg)");
+    expect(markup).not.toContain("background-color:#000");
     expect(markup).toContain("Explore the map: drag a node to move it");
     expect(markup).not.toContain("550ms");
     expect(markup).toContain('aria-label="About NOTE NEURAL NETWORK"');
@@ -49,14 +54,16 @@ describe("NoteNeuralNetwork", () => {
 
   it("keeps Family and Relationship exploration available when embedded", () => {
     const markup = renderToStaticMarkup(
-      <I18nProvider>
-        <NoteNeuralNetwork
-          embedded
-          onOpenScale={() => undefined}
-          state={DEFAULT_STATE}
-          onStateChange={() => undefined}
-        />
-      </I18nProvider>,
+      <AppearanceProvider initialAppearance="dark">
+        <I18nProvider>
+          <NoteNeuralNetwork
+            embedded
+            onOpenScale={() => undefined}
+            state={DEFAULT_STATE}
+            onStateChange={() => undefined}
+          />
+        </I18nProvider>
+      </AppearanceProvider>,
     );
 
     expect(markup).toContain('aria-label="NOTE NEURAL NETWORK"');
@@ -69,18 +76,20 @@ describe("NoteNeuralNetwork", () => {
 
   it("localizes graph, semantic-node, and detail labels", () => {
     const markup = renderToStaticMarkup(
-      <I18nContext.Provider value={{
-        locale: "ja",
-        setLocale: () => undefined,
-        t: (key) => translate("ja", key),
-      }}>
-        <NoteNeuralNetwork
-          embedded
-          onOpenScale={() => undefined}
-          state={{ ...DEFAULT_STATE, root: "C", familyId: "major", selectedScaleId: "major" }}
-          onStateChange={() => undefined}
-        />
-      </I18nContext.Provider>,
+      <AppearanceProvider initialAppearance="light">
+        <I18nContext.Provider value={{
+          locale: "ja",
+          setLocale: () => undefined,
+          t: (key) => translate("ja", key),
+        }}>
+          <NoteNeuralNetwork
+            embedded
+            onOpenScale={() => undefined}
+            state={{ ...DEFAULT_STATE, root: "C", familyId: "major", selectedScaleId: "major" }}
+            onStateChange={() => undefined}
+          />
+        </I18nContext.Provider>
+      </AppearanceProvider>,
     );
 
     expect(markup).toContain('aria-label="ノート・ニューラル・ネットワーク"');

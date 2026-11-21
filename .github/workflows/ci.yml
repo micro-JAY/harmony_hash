@@ -32,7 +32,8 @@ jobs:
         run: npm run test
 
   playwright:
-    runs-on: ubuntu-latest
+    # The locked Chromium build supports Ubuntu 24.04.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7

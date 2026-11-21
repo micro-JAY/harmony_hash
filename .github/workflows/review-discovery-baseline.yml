@@ -1,4 +1,4 @@
-name: Review Discovery screenshot
+name: Verify security release candidate
 on:
   push:
     branches: [chore/november-dependency-security]
@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   capture:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -33,3 +33,27 @@ jobs:
           name: discovery-main-reference
           path: e2e/__screenshots__/discovery.spec.ts/discovery-minor-seventh.png
           retention-days: 3
+
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify the clean installation and both audits
+        run: |
+          npm ci
+          npm ls --all > "$RUNNER_TEMP/security-tree.txt"
+          npm audit
+          npm audit --omit=dev
+          sha256sum package-lock.json
+      - name: Lint, build and package the Worker
+        run: |
+          npm run lint
+          npm run build
+          npx --no-install wrangler deploy --dry-run --outdir="$RUNNER_TEMP/harmony-worker"
+          git diff --exit-code -- package-lock.json package.json

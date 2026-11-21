@@ -1,0 +1,35 @@
+name: Review Discovery screenshot
+on:
+  push:
+    branches: [chore/november-dependency-security]
+    paths: ['.github/workflows/review-discovery-baseline.yml']
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: a77a85b2d8e9e369a10925cef5c83033d5e10c8f
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npx --no-install playwright install --with-deps chromium
+      - name: Capture the shipped Discovery layout on main
+        run: npx --no-install playwright test e2e/discovery.spec.ts --grep "identifies the user's note" --update-snapshots=changed
+      - name: Repeat the scenario against the candidate reference
+        run: npx --no-install playwright test e2e/discovery.spec.ts --grep "identifies the user's note"
+      - name: Record reference image for review
+        run: |
+          file=e2e/__screenshots__/discovery.spec.ts/discovery-minor-seventh.png
+          sha256sum "$file"
+          git diff --binary -- "$file"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: discovery-main-reference
+          path: e2e/__screenshots__/discovery.spec.ts/discovery-minor-seventh.png
+          retention-days: 3

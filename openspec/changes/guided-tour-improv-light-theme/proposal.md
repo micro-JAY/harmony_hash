@@ -21,7 +21,7 @@ The guided tour no longer reflects the shipped Tune Toolbox, Discovery, and Harm
 
 - `splash-onboarding`: Bring the tour up to date and make cross-workspace progression depend on the user's explicit tab click.
 - `app-shell`: Add a persisted light appearance and expose the appearance control inside Help / About.
-- `guitar-fretboard`: Remove the Fret Finder chord-overlay controls and associated chord-tone rendering behavior.
+- `guitar-fretboard`: Remove the Fret Finder chord-overlay controls and associated chord-tone rendering behavior. At archive, update the capability purpose to cover Fret Finder scale mapping, tunings, handedness, learning patterns, accessibility, and responsive behavior.
 
 ## Impact
 

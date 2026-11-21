@@ -116,6 +116,7 @@ The application SHALL provide explicit Dark and Light appearance options inside 
 #### Scenario: Theme-appropriate welcome mark
 - **WHEN** the welcome or Help / About dialog is visible
 - **THEN** Dark SHALL show the existing Harmony Hash mark and Light SHALL show the supplied light Harmony Hash mark from a shipped public asset
+- **AND** the browser SHALL request only the active appearance’s mark when the dialog first opens
 - **AND** the runtime light mark SHALL NOT depend on a file under `initial_data/`
 
 #### Scenario: Appearance disclosure

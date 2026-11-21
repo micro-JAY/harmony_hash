@@ -20,7 +20,7 @@
 
 - [x] 4.1 Remove the Fret Finder chord-overlay picker, state, legend, renderer props, styles, and overlay-only translation copy; verify no overlay control or chord-tone data attribute is rendered.
 - [x] 4.2 Simplify Fret Finder decoration and spatial-navigation helpers to the pattern-only visible set while preserving Scale Synthesia callers; verify mapping, pattern, keyboard, handedness, tuning, latency, and responsive tests pass.
-- [x] 4.3 Remove or refocus obsolete overlay tests and update the canonical guitar-fretboard purpose to match the new scope; verify no production import of the removed picker remains and strict OpenSpec validation still succeeds.
+- [x] 4.3 Remove or refocus obsolete overlay tests and record the revised guitar-fretboard purpose for application with the requirement deltas at archive; verify no production import of the removed picker remains and strict OpenSpec validation still succeeds.
 
 ## 5. Guided-tour refresh
 

@@ -179,7 +179,7 @@ function App() {
   const tourRestoreRef = useRef<{
     workspace: Workspace;
     theoryDisclosures: TheoryDisclosures;
-    seededTimeline: boolean;
+    seededTimelineVersion: number | null;
   } | null>(null);
   const [timeline, setTimeline] = useState<Array<TimelineItem<DisplayChord>>>(() =>
     initialShare.status === "valid"
@@ -989,21 +989,17 @@ function App() {
   }, []);
 
   const handleStartTour = useCallback(() => {
-    const seededTimeline = chordsRef.current.length === 0;
-    tourRestoreRef.current = {
-      workspace,
-      theoryDisclosures,
-      seededTimeline,
-    };
-
-    if (seededTimeline) {
+    let seededTimelineVersion: number | null = null;
+    if (chordsRef.current.length === 0) {
       const demoChords = ["Cmaj7", "Am7", "Dm7", "G7"].map((input) => {
         const chord = lookupChord(input);
         if (!chord) throw new Error(`Guided tour chord is unavailable: ${input}`);
         return { input, chord };
       });
       handleResult(demoChords, []);
+      seededTimelineVersion = timelineVersionRef.current;
     }
+    tourRestoreRef.current = { workspace, theoryDisclosures, seededTimelineVersion };
 
     onboardingPersistence.dismiss();
     setChordBrowserOpen(false);
@@ -1020,7 +1016,7 @@ function App() {
     if (!restore) return;
     setWorkspace(restore.workspace);
     setTheoryDisclosures(restore.theoryDisclosures);
-    if (restore.seededTimeline) handleResult([], []);
+    if (restore.seededTimelineVersion === timelineVersionRef.current) handleResult([], []);
   }, [handleResult]);
 
   return (
@@ -1389,24 +1385,6 @@ function App() {
           onRequestClose={handleOnboardingClose}
           onSecondaryAction={handleStartTour}
           returnFocusRef={helpButtonRef}
-          visual={(
-            <div className="hh-onboarding-logo-stack" aria-hidden="true">
-              <img
-                src="/hh_logo.png"
-                alt=""
-                className="hh-onboarding-logo hh-onboarding-logo--dark"
-                width="1000"
-                height="1000"
-              />
-              <img
-                src="/hh_logo_light.jpg"
-                alt=""
-                className="hh-onboarding-logo hh-onboarding-logo--light"
-                width="1000"
-                height="1000"
-              />
-            </div>
-          )}
         >
           <section className="hh-onboarding-destination hh-onboarding-destination--hasher">
             <span aria-hidden="true" className="hh-onboarding-destination-mark">#</span>

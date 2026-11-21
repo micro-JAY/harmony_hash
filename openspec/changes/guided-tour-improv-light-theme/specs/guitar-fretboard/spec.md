@@ -1,3 +1,7 @@
+## Purpose
+
+Define Fret Finder's scale mapping, tunings, handedness, learning patterns, accessibility, and responsive behavior.
+
 ## MODIFIED Requirements
 
 ### Requirement: First-class explorer controls

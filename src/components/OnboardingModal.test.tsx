@@ -25,7 +25,6 @@ describe("OnboardingModal", () => {
         secondaryActionLabel="TAKE A TOUR"
         onRequestClose={() => undefined}
         onSecondaryAction={() => undefined}
-        visual={<img src="/hh_logo.png" alt="" />}
       >
         <p>HASHER, TUNE TOOLBOX, and FRET FINDER work together.</p>
       </OnboardingModal>,
@@ -52,7 +51,6 @@ describe("OnboardingModal", () => {
         closeLabel="Close"
         primaryActionLabel="Continue"
         onRequestClose={() => undefined}
-        visual={<span />}
       >
         <p>Welcome.</p>
       </OnboardingModal>,
@@ -75,7 +73,6 @@ describe("OnboardingModal", () => {
           closeLabel="Close"
           primaryActionLabel="Continue"
           onRequestClose={() => undefined}
-          visual={<span />}
         >
           <p>Welcome.</p>
         </OnboardingModal>,
@@ -89,6 +86,8 @@ describe("OnboardingModal", () => {
       expect(markup).toContain(`data-active="true" aria-pressed="true"`);
       expect(markup.match(/aria-pressed="true"/g)).toHaveLength(1);
       expect(markup.match(/hh-onboarding-appearance__option"/g)).toHaveLength(2);
+      const logos = Array.from(markup.matchAll(/<img\b[^>]+src="([^"]+)"/g), (match) => match[1]);
+      expect(logos).toEqual([appearance === "light" ? "/hh_logo_light.jpg" : "/hh_logo.png"]);
     },
   );
 });

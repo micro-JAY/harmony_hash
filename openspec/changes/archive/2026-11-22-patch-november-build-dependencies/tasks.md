@@ -7,4 +7,4 @@
 
 - [x] 2.1 Resolve the affected dependencies and compare all installed copies.
 - [x] 2.2 Verify the Discovery screenshot against the current main layout.
-- [ ] 2.3 Run the dependency audits, clean installation, lint, build, unit and browser tests, and Worker packaging.
+- [x] 2.3 Run the dependency audits, clean installation, lint, build, unit and browser tests, and Worker packaging.

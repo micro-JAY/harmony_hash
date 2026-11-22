@@ -979,3 +979,15 @@ The new explicit Dark/Light preference lives in Help / About, persists under `hh
 **Local release verification:** production build and lint pass; Vitest passes 73 files / 1,457 tests; the exact full sequential Chromium matrix passes 236/236 in 3.2 minutes; strict OpenSpec and diff hygiene pass. No skip, focused test, or snapshot-tolerance change was introduced. The inherited Vite main-chunk advisory remains unchanged and non-blocking.
 
 **Current state:** implementation is published as [PR #113](https://github.com/micro-JAY/harmony_hash/pull/113) from `feat/guided-tour-improv-light-theme` and attached to the active task. The exact implementation head passed both build-and-test runs, both 236-test Playwright runs, CodeQL, and the Worker build before the final delivery-record update. No merge, deployment, or OpenSpec archive is authorized in this change.
+
+---
+
+## 2026-11-22 JST — Dependency security update
+
+The npm audit of `main` at `a77a85b` reported seven high and ten moderate affected package entries. The update in [PR #116](https://github.com/micro-JAY/harmony_hash/pull/116) brings both the full audit and the production-only audit to zero. The revised `package-lock.json` has SHA-256 `e0a989a1f93a407d090baa46365ca14ed6f593b6a9227697702ace384648261a`. Its resolved packages also fall outside all affected ranges in the repository's [Dependabot update job](https://github.com/micro-JAY/harmony_hash/actions/runs/41609510218).
+
+Node 24 clean installation, dependency resolution, ESLint, production build and Wrangler dry-run packaging passed. The candidate passed 1,436 unit tests and 230 Chromium browser scenarios. Playwright 1.60 runs on Ubuntu 24.04. The Discovery reference now captures the compact 24-pixel octave buttons present on the original production branch. An independent run captured that branch and repeated the screenshot assertion. [Build and browser results](https://github.com/micro-JAY/harmony_hash/actions/runs/44960049972) · [Audits, packaging and baseline verification](https://github.com/micro-JAY/harmony_hash/actions/runs/44959307503)
+
+The October PHP2Shell and November 19 PHP security releases apply to PHP runtimes. The tracked application serves static assets and handles API requests in a TypeScript Cloudflare Worker. The source tree, npm manifests, Actions workflow and Worker configuration contain no PHP runtime, Composer install or PHP request handler. [PHP release announcements](https://www.php.net/archive/2026.php)
+
+Strict OpenSpec validation passed for this change and its new canonical specification. Comparing every item with the original `main` reproduced the same seven pre-existing validation failures in older specifications and proposals.

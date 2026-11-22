@@ -71,27 +71,45 @@ interface BackgroundState {
   ariaHidden: string | null;
 }
 
-function setBackgroundInert(portalNode: HTMLElement): () => void {
+function setBackgroundInert(portalNode: HTMLElement, destinationSelector: string | null): () => void {
   const states: BackgroundState[] = [];
+  const observer = new MutationObserver(isolate);
 
-  for (const child of Array.from(document.body.children)) {
-    if (!(child instanceof HTMLElement) || child === portalNode) continue;
-    states.push({
-      element: child,
-      inert: child.inert,
-      ariaHidden: child.getAttribute("aria-hidden"),
-    });
-    child.inert = true;
-    child.setAttribute("aria-hidden", "true");
-  }
-
-  return () => {
+  function restore() {
+    observer.disconnect();
     for (const { element, inert, ariaHidden } of states) {
       element.inert = inert;
       if (ariaHidden === null) element.removeAttribute("aria-hidden");
       else element.setAttribute("aria-hidden", ariaHidden);
     }
-  };
+    states.length = 0;
+  }
+
+  function isolate() {
+    restore();
+    const destination = destinationSelector ? document.querySelector(destinationSelector) : null;
+
+    // Keep the portal and the path to the requested tab accessible. Inert each
+    // sibling subtree, including controls mounted while the tour is open.
+    function isolateSiblings(parent: HTMLElement) {
+      observer.observe(parent, { childList: true, subtree: !!destinationSelector && !destination });
+      for (const child of parent.children) {
+        if (!(child instanceof HTMLElement) || child === portalNode || child === destination) continue;
+        if (destination && child.contains(destination)) {
+          isolateSiblings(child);
+          continue;
+        }
+        states.push({ element: child, inert: child.inert, ariaHidden: child.getAttribute("aria-hidden") });
+        child.inert = true;
+        child.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    isolateSiblings(document.body);
+  }
+
+  isolate();
+  return restore;
 }
 
 function toTourRect(rect: DOMRect): TourRect {
@@ -175,10 +193,11 @@ export default function GuidedTour({
     };
   }, [open, portalNode]);
 
+  const handoffSelector = isHandoff ? targetSelector : null;
   useEffect(() => {
-    if (!open || !portalNode || isHandoff) return;
-    return setBackgroundInert(portalNode);
-  }, [isHandoff, open, portalNode]);
+    if (!open || !portalNode) return;
+    return setBackgroundInert(portalNode, handoffSelector);
+  }, [handoffSelector, open, portalNode]);
 
   useEffect(() => {
     if (!open || !currentStep) return;
@@ -350,7 +369,7 @@ export default function GuidedTour({
         if (!isHandoff) moveNext();
         return;
       }
-      if (event.key !== "Tab" || !dialog || isHandoff) return;
+      if (event.key !== "Tab" || !dialog) return;
 
       const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
       if (focusable.length === 0) {
@@ -358,7 +377,8 @@ export default function GuidedTour({
         dialog.focus();
         return;
       }
-      const first = focusable[0];
+      const destination = handoffSelector ? document.querySelector<HTMLElement>(handoffSelector) : null;
+      const first = destination ?? focusable[0];
       const last = focusable[focusable.length - 1];
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
@@ -373,7 +393,7 @@ export default function GuidedTour({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isHandoff, open, steps.length]);
+  }, [handoffSelector, isHandoff, open, steps.length]);
 
   if (!open || !currentStep || steps.length === 0) return null;
 

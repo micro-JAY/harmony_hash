@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { composeProgression } from "./helpers/progression";
+import { collectWelcomeLogoRequests } from "./helpers/welcomeLogo";
 
 interface BrowserIssue {
   type: "console" | "pageerror";
@@ -32,6 +33,7 @@ async function chooseAppearance(page: Page, name: "Dark appearance" | "Light app
 test.describe("appearance", () => {
   test("restores the warm light appearance before the welcome view and uses the light logo", async ({ page }) => {
     const issues = collectBrowserIssues(page);
+    const logoRequests = collectWelcomeLogoRequests(page);
     await page.addInitScript(() => {
       localStorage.removeItem("hh:onboarding:v2:dismissed");
       localStorage.setItem("hh:appearance:v1", "light");
@@ -47,7 +49,8 @@ test.describe("appearance", () => {
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#F0EDE8");
     await expect(dialog).toHaveCSS("background-color", "rgb(240, 237, 232)");
     await expect(dialog.locator('img[src="/hh_logo_light.jpg"]')).toBeVisible();
-    await expect(dialog.locator('img[src="/hh_logo.png"]')).toBeHidden();
+    await expect(dialog.locator('img[src="/hh_logo.png"]')).toHaveCount(0);
+    await expect.poll(() => [...logoRequests]).toEqual(["/hh_logo_light.jpg"]);
     await expect(dialog.getByRole("button", { name: "Light appearance" }))
       .toHaveAttribute("aria-pressed", "true");
     await expect(dialog).toHaveScreenshot("appearance-light-welcome-desktop.png");
@@ -55,6 +58,8 @@ test.describe("appearance", () => {
     await chooseAppearance(page, "Dark appearance");
     await expect(root).toHaveAttribute("data-theme", "dark");
     await expect(dialog.locator('img[src="/hh_logo.png"]')).toBeVisible();
+    await expect(dialog.locator('img[src="/hh_logo_light.jpg"]')).toHaveCount(0);
+    await expect.poll(() => [...logoRequests]).toEqual(["/hh_logo_light.jpg", "/hh_logo.png"]);
     await chooseAppearance(page, "Light appearance");
     await expect(dialog.locator('img[src="/hh_logo_light.jpg"]')).toBeVisible();
     await expect.poll(() => page.evaluate(() => localStorage.getItem("hh:appearance:v1")))

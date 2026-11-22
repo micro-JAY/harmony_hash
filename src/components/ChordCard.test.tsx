@@ -86,7 +86,8 @@ describe("ChordCard visual controls", () => {
     const playable = renderChordCard({ chordName: "Fm6", auditionable: true });
     const unavailable = renderChordCard({ chordName: "Fm6" });
 
-    expect(playable).toContain('<button type="button" aria-label="Play chord: Fm6"');
+    expect(playable).toMatch(/<h3 aria-label="Fm6"[^>]*data-chord-family="minor"[^>]*><button[^>]*aria-label="Play chord: Fm6"[^>]*>Fm6<\/button><\/h3>/);
+    expect(unavailable).toMatch(/<h3[^>]*>Fm6<\/h3>/);
     expect(playable).toContain("dark, emotional");
     expect(playable).toContain("hh-chord-card__audition");
     expect(unavailable).not.toContain('aria-label="Play chord: Fm6"');

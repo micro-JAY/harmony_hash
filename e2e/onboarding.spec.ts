@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { collectWelcomeLogoRequests } from "./helpers/welcomeLogo";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -38,6 +39,7 @@ async function expectReachableHandoff(
 }
 
 test("first visit welcomes people with the logo and three destinations, persists dismissal, and reopens from Help", async ({ page }) => {
+  const logoRequests = collectWelcomeLogoRequests(page);
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
   const dialog = page.getByRole("dialog", { name: "HARMONY HASH" });
@@ -53,12 +55,13 @@ test("first visit welcomes people with the logo and three destinations, persists
     "https://harmony.tonari.ai/harmony-hash-share-v2.png",
   );
   await expect(dialog.locator('img[src="/hh_logo.png"]')).toBeVisible();
-  await expect(dialog.locator('img[src="/hh_logo_light.jpg"]')).toBeAttached();
+  await expect(dialog.locator('img[src="/hh_logo_light.jpg"]')).toHaveCount(0);
+  await expect.poll(() => [...logoRequests]).toEqual(["/hh_logo.png"]);
   await expect(dialog.locator('[data-onboarding-destination-icon="toolbox"]')).toBeVisible();
   await expect(dialog.locator('[data-onboarding-destination-icon="discovery"]')).toBeVisible();
   const [visualBox, logoBox] = await Promise.all([
     dialog.locator('[data-onboarding-visual="true"]').boundingBox(),
-    dialog.locator(".hh-onboarding-logo-stack").boundingBox(),
+    dialog.locator(".hh-onboarding-logo").boundingBox(),
   ]);
   expect(visualBox).not.toBeNull();
   expect(logoBox).not.toBeNull();
@@ -135,8 +138,19 @@ test("guided tour waits for real workspace handoffs and resolves every current t
   await expect(page.getByRole("dialog", { name: "Continue in TUNE TOOLBOX" })).toBeVisible();
   await expect(hasherTab).toHaveAttribute("aria-pressed", "true");
 
-  await discoveryTab.click();
-  await expect(discoveryTab).toHaveAttribute("aria-pressed", "true");
+  const composerInput = page.getByTestId("chord-composer").locator("input");
+  await composerInput.focus();
+  await expect(toolboxTab).toBeFocused();
+  await expect(page.getByRole("textbox", { name: "Chord progression input" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Help / About" })).toHaveCount(0);
+  await page.keyboard.press("Shift+Tab");
+  await expect(tour.locator("footer").getByRole("button", { name: "Previous" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(toolboxTab).toBeFocused();
+
+  // Send a real pointer click to the inert tab without waiting for it to become interactive.
+  await discoveryTab.click({ force: true });
+  await expect(hasherTab).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("dialog", { name: "Continue in TUNE TOOLBOX" })).toBeVisible();
   await toolboxTab.click();
 
@@ -161,8 +175,8 @@ test("guided tour waits for real workspace handoffs and resolves every current t
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("dialog", { name: "Continue in DISCOVERY" })).toBeVisible();
   await expect(toolboxTab).toHaveAttribute("aria-pressed", "true");
-  await hasherTab.click();
-  await expect(hasherTab).toHaveAttribute("aria-pressed", "true");
+  await hasherTab.click({ force: true });
+  await expect(toolboxTab).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("dialog", { name: "Continue in DISCOVERY" })).toBeVisible();
 
   await discoveryTab.focus();
@@ -181,6 +195,7 @@ test("guided tour waits for real workspace handoffs and resolves every current t
   await expect(hasherTab).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("chord-card")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Help / About" })).toBeFocused();
+  await expect(page.getByRole("textbox", { name: "Chord progression input" })).toBeEditable();
 });
 
 test("starting the tour collapses the chord browser before the preset step", async ({ page }) => {
@@ -229,6 +244,16 @@ test("handoff prompt fits a short mobile viewport without bypassing the requeste
   await page.keyboard.press("ArrowRight");
   await expect(handoff).toBeVisible();
   await expect(page.locator('[data-tour-workspace="builder"]')).toHaveAttribute("aria-pressed", "true");
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByRole("dialog", { name: "Shape each chord" })).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(toolboxTab).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("dialog", { name: "Find notes on the fretboard" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Help / About" })).toBeFocused();
+  await expect(page.getByTestId("chord-card")).toHaveCount(0);
 });
 
 test("blocked storage remains usable and dismissal lasts for the page session", async ({ page }) => {

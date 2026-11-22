@@ -56,12 +56,14 @@ The guided tour SHALL pause at each forward workspace boundary and SHALL continu
 - **AND** the tour SHALL resume in Discovery only after that activation
 
 #### Scenario: Wrong workspace does not satisfy handoff
-- **WHEN** the tour is paused for one destination and another workspace control is activated
-- **THEN** the requested handoff SHALL remain pending and SHALL NOT skip a tour step
+- **WHEN** the tour is paused for one destination and a user tries to activate a different workspace control
+- **THEN** the active workspace and tour step SHALL remain unchanged
 
 #### Scenario: Accessible handoff state
 - **WHEN** the tour pauses for a tab activation
 - **THEN** the requested tab SHALL remain operable, receive programmatic focus, and be named in an announced instruction
+- **AND** only that tab and the tour dialog controls SHALL accept pointer or keyboard input during the handoff
+- **AND** the tour SHALL restore the original interaction and accessibility state when it closes
 - **AND** ordinary modal steps SHALL continue to block background interaction
 
 #### Scenario: Tour closes during a handoff

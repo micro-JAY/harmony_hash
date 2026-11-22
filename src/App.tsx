@@ -44,7 +44,7 @@ import {
   shiftVoicedChordOctaves,
 } from "./lib/harmonyBrain";
 import { getSvgPath, lookupChord, parseNotes } from "./lib/chordData";
-import { buildMidiPlaybackSchedule, playSchedule } from "./lib/audioEngine";
+import { buildMidiPlaybackSchedule, playSchedule, type ProgressionPlaybackRequest } from "./lib/audioEngine";
 import {
   createProgressionPlaybackController,
   type PlaybackControllerState,
@@ -179,7 +179,7 @@ function App() {
   const tourRestoreRef = useRef<{
     workspace: Workspace;
     theoryDisclosures: TheoryDisclosures;
-    seededTimeline: boolean;
+    seededTimelineVersion: number | null;
   } | null>(null);
   const [timeline, setTimeline] = useState<Array<TimelineItem<DisplayChord>>>(() =>
     initialShare.status === "valid"
@@ -298,28 +298,8 @@ function App() {
     relationship: "relative",
     selectedScaleId: "major",
   });
-  const [playbackController] = useState(() =>
-    createProgressionPlaybackController({
-      createContext: createAudioContext,
-      schedule: (request, context, onChordChange) =>
-        playSchedule(
-          buildMidiPlaybackSchedule(
-            request.voicings,
-            request.bpm,
-            request.beatsPerChord,
-            request.allowRests,
-          ),
-          context,
-          onChordChange,
-          request.timbre,
-        ),
-      onChordChange: setActiveChordIndex,
-      onStateChange: setPlaybackPhase,
-      onError: (error) => console.error("Progression playback failed", error),
-    }),
-  );
-  const [chordAudition] = useState(() => {
-    let timelineIndex: number | null = null;
+  const [playbackController] = useState(() => {
+    let auditionIndex: number | null = null;
     const controller = createProgressionPlaybackController({
       createContext: createAudioContext,
       schedule: (request, context, onChordChange) =>
@@ -334,20 +314,26 @@ function App() {
           onChordChange,
           request.timbre,
         ),
-      onChordChange: (index) => {
-        setActiveChordIndex(index === null ? null : timelineIndex);
+      onChordChange: (index) => setActiveChordIndex(
+        index === null ? null : auditionIndex ?? index,
+      ),
+      onStateChange: (phase) => {
+        if (phase === "idle") auditionIndex = null;
+        if (auditionIndex === null) setPlaybackPhase(phase);
       },
-      onStateChange: () => undefined,
-      onError: (error) => console.error("Chord audition failed", error),
+      onError: (error) => console.error("Progression playback failed", error),
     });
     return {
-      controller,
-      setTimelineIndex: (index: number) => {
-        timelineIndex = index;
+      stop: controller.stop,
+      isProgressionActive: () => auditionIndex === null && controller.getState() !== "idle",
+      start(request: ProgressionPlaybackRequest, cardIndex: number | null = null) {
+        // Retrigger every card activation. Repeated progression starts stay idempotent.
+        if (cardIndex !== null || auditionIndex !== null) controller.stop();
+        auditionIndex = cardIndex;
+        return controller.start(request);
       },
     };
   });
-  const chordAuditionController = chordAudition.controller;
   const nextCardKeyRef = useRef(importedChordCount + 1);
   const initialTimelineVersion = importedChordCount > 0 ? 1 : 0;
   const timelineVersionRef = useRef(initialTimelineVersion);
@@ -720,7 +706,6 @@ function App() {
   const isPlaybackStarting = playbackPhase === "starting";
 
   function startProgressionPlayback() {
-    chordAuditionController.stop();
     return playbackController.start({
       timbre: instrument,
       voicings: midiExportVoicings,
@@ -734,19 +719,16 @@ function App() {
     const voicing = midiExportVoicings[index];
     if (!voicing || voicing.length === 0) return;
 
-    playbackController.stop();
-    chordAuditionController.stop();
-    chordAudition.setTimelineIndex(index);
-    void chordAuditionController.start({
+    void playbackController.start({
       timbre: instrument,
       voicings: [voicing],
       bpm: PLAYBACK_BPM,
       beatsPerChord: 2,
-    });
+    }, index);
   }
 
   function handleTogglePlayback() {
-    if (playbackController.getState() !== "idle") {
+    if (playbackController.isProgressionActive()) {
       playbackController.stop();
       return;
     }
@@ -758,9 +740,8 @@ function App() {
   useEffect(() => {
     return () => {
       playbackController.stop();
-      chordAuditionController.stop();
     };
-  }, [chordAuditionController, chords, midiExportVoicings, playbackController]);
+  }, [chords, pianoVoicings, playbackController]);
 
   function randomizeAll() {
     playbackController.stop();
@@ -1036,21 +1017,17 @@ function App() {
   }, []);
 
   const handleStartTour = useCallback(() => {
-    const seededTimeline = chordsRef.current.length === 0;
-    tourRestoreRef.current = {
-      workspace,
-      theoryDisclosures,
-      seededTimeline,
-    };
-
-    if (seededTimeline) {
+    let seededTimelineVersion: number | null = null;
+    if (chordsRef.current.length === 0) {
       const demoChords = ["Cmaj7", "Am7", "Dm7", "G7"].map((input) => {
         const chord = lookupChord(input);
         if (!chord) throw new Error(`Guided tour chord is unavailable: ${input}`);
         return { input, chord };
       });
       handleResult(demoChords, []);
+      seededTimelineVersion = timelineVersionRef.current;
     }
+    tourRestoreRef.current = { workspace, theoryDisclosures, seededTimelineVersion };
 
     onboardingPersistence.dismiss();
     setChordBrowserOpen(false);
@@ -1067,7 +1044,7 @@ function App() {
     if (!restore) return;
     setWorkspace(restore.workspace);
     setTheoryDisclosures(restore.theoryDisclosures);
-    if (restore.seededTimeline) handleResult([], []);
+    if (restore.seededTimelineVersion === timelineVersionRef.current) handleResult([], []);
   }, [handleResult]);
 
   return (
@@ -1439,24 +1416,6 @@ function App() {
           onRequestClose={handleOnboardingClose}
           onSecondaryAction={handleStartTour}
           returnFocusRef={helpButtonRef}
-          visual={(
-            <div className="hh-onboarding-logo-stack" aria-hidden="true">
-              <img
-                src="/hh_logo.png"
-                alt=""
-                className="hh-onboarding-logo hh-onboarding-logo--dark"
-                width="1000"
-                height="1000"
-              />
-              <img
-                src="/hh_logo_light.jpg"
-                alt=""
-                className="hh-onboarding-logo hh-onboarding-logo--light"
-                width="1000"
-                height="1000"
-              />
-            </div>
-          )}
         >
           <section className="hh-onboarding-destination hh-onboarding-destination--hasher">
             <span aria-hidden="true" className="hh-onboarding-destination-mark">#</span>

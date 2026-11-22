@@ -38,6 +38,16 @@ async function expectReachableHandoff(
   }).toBe(true);
 }
 
+async function expectBlockedTab(tab: Locator) {
+  // A forced pointer click can hit a tour control occupying the same pixels.
+  // Ask the browser which element receives input at the inactive tab instead.
+  await expect.poll(() => tab.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+    return Boolean(element.closest("[inert]") && hit && !element.contains(hit));
+  })).toBe(true);
+}
+
 test("first visit welcomes people with the logo and three destinations, persists dismissal, and reopens from Help", async ({ page }) => {
   const logoRequests = collectWelcomeLogoRequests(page);
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -148,8 +158,7 @@ test("guided tour waits for real workspace handoffs and resolves every current t
   await page.keyboard.press("Tab");
   await expect(toolboxTab).toBeFocused();
 
-  // Send a real pointer click to the inert tab without waiting for it to become interactive.
-  await discoveryTab.click({ force: true });
+  await expectBlockedTab(discoveryTab);
   await expect(hasherTab).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("dialog", { name: "Continue in TUNE TOOLBOX" })).toBeVisible();
   await toolboxTab.click();
@@ -175,7 +184,7 @@ test("guided tour waits for real workspace handoffs and resolves every current t
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("dialog", { name: "Continue in DISCOVERY" })).toBeVisible();
   await expect(toolboxTab).toHaveAttribute("aria-pressed", "true");
-  await hasherTab.click({ force: true });
+  await expectBlockedTab(hasherTab);
   await expect(toolboxTab).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("dialog", { name: "Continue in DISCOVERY" })).toBeVisible();
 

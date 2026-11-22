@@ -991,3 +991,14 @@ Node 24 clean installation, dependency resolution, ESLint, production build and 
 The October PHP2Shell and November 19 PHP security releases apply to PHP runtimes. The tracked application serves static assets and handles API requests in a TypeScript Cloudflare Worker. The source tree, npm manifests, Actions workflow and Worker configuration contain no PHP runtime, Composer install or PHP request handler. [PHP release announcements](https://www.php.net/archive/2026.php)
 
 Strict OpenSpec validation passed for this change and its new canonical specification. Comparing every item with the original `main` reproduced the same seven pre-existing validation failures in older specifications and proposals.
+
+
+---
+
+## 2026-11-22 JST — Guided tour and chord audition release validation
+
+[PR #113](https://github.com/micro-JAY/harmony_hash/pull/113) and [PR #114](https://github.com/micro-JAY/harmony_hash/pull/114) merged separately into the release branch based on security update #116. The tour exposes the requested workspace tab and the tour controls during each handoff, restores focus on exit, and preserves incoming Hanz edits. Welcome and Help load the logo for the selected appearance. A playable card retains its chord-name heading and uses the active instrument and voicing on each audition.
+
+The combined feature commit `ea55c8c` passed 1,459 unit tests and all 240 Chromium scenarios on the first attempt. Browser tests recorded Web Audio note starts and cancellations for repeated pointer clicks, Enter and Space, instrument changes, rests, and transitions to and from progression playback. The progression catalog test covers LF and CRLF. The clean install reported zero vulnerabilities and the lockfile matches #116. [Combined CI](https://github.com/micro-JAY/harmony_hash/actions/runs/44964708636)
+
+The first tour-only run passed after retrying a forced click on an inert tab. The release test now checks the browser’s hit target and inert state directly. The real destination controls are activated with the pointer and keyboard. Both proposals are archived, with all five affected canonical specifications validated. [Tour CI](https://github.com/micro-JAY/harmony_hash/actions/runs/44963747045)

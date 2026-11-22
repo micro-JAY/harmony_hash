@@ -1,8 +1,10 @@
 # guitar-fretboard Specification
 
 ## Purpose
-Define the fretboard explorer's scale mapping, tunings, handedness, learning patterns, chord overlays, accessibility, and responsive behavior.
+Define Fret Finder's scale mapping, tunings, handedness, learning patterns, accessibility, and responsive behavior.
+
 ## Requirements
+
 ### Requirement: Pure fretted-instrument mapping
 The system SHALL expose deterministic, side-effect-free helpers that map a root and supported scale type across a selected immutable guitar or bass tuning from open string through fret 15.
 
@@ -37,16 +39,16 @@ The system SHALL expose deterministic, side-effect-free helpers that map a root 
 - **THEN** matching display notes SHALL prefer flat spellings while pitch-class placement remains enharmonically correct
 
 ### Requirement: First-class explorer controls
-The Fretboard workspace SHALL provide independent controls for instrument, tuning, handedness, root, mode, label display, pattern family, pattern sub-selection, and chord overlay without mutating progression-builder state. The selected tuning SHALL remain available through its labeled control and board semantics without a duplicate standalone header badge.
+The Fret Finder workspace SHALL provide independent controls for instrument, tuning, handedness, root, mode, label display, pattern family, and pattern sub-selection without mutating progression-builder state. The selected tuning SHALL remain available through its labeled control and board semantics without a duplicate standalone header badge.
 
 #### Scenario: Default explorer state
-- **WHEN** the Fretboard workspace opens for the first time
-- **THEN** Guitar, Standard tuning, Right-handed, C, Major, Intervals, All pattern, and no chord overlay SHALL be selected
+- **WHEN** Fret Finder opens for the first time
+- **THEN** Guitar, Standard tuning, Right-handed, C, Major, Intervals, and All pattern SHALL be selected
 
 #### Scenario: Guitar and bass selection
 - **WHEN** the user selects Bass
 - **THEN** the board SHALL render four strings in the selected bass tuning instead of six guitar strings
-- **AND** the builder's guitar/piano instrument selection SHALL remain unchanged
+- **AND** the builder's guitar, ukulele, or piano instrument selection SHALL remain unchanged
 
 #### Scenario: Supported modes
 - **WHEN** the mode control is opened
@@ -76,19 +78,23 @@ The Fretboard workspace SHALL provide independent controls for instrument, tunin
 - **THEN** the prior family and sub-selection SHALL become effective again without additional input
 
 #### Scenario: Keyboard overlay selection
-- **WHEN** a keyboard user opens the overlay picker, searches `G7#9`, and activates the dictionary result
-- **THEN** `G7#9` SHALL become active, the picker SHALL close, and focus SHALL return to the surviving overlay trigger
+- **WHEN** a keyboard user navigates the Fret Finder learning controls
+- **THEN** no overlay picker or overlay-search control SHALL be present in the focus order
 
 #### Scenario: Escape closes without selection
-- **WHEN** the overlay picker is open and the user presses Escape
-- **THEN** it SHALL close, restore trigger focus, and leave the active overlay unchanged
+- **WHEN** a keyboard user presses Escape while a Fret Finder control has focus
+- **THEN** no overlay selection modal or hidden overlay state SHALL be opened or changed
 
 #### Scenario: Builder independence
-- **WHEN** pattern or overlay controls change
+- **WHEN** scale, tuning, handedness, or pattern controls change
 - **THEN** builder chords, locks, variants, instrument, playback cursor, and agent-result invalidation state SHALL remain unchanged
 
+#### Scenario: Overlay settings are absent
+- **WHEN** Fret Finder renders at any supported viewport
+- **THEN** no chord overlay trigger, picker, search, legend, or clear-overlay action SHALL be present
+
 ### Requirement: Horizontal fretboard rendering
-The explorer SHALL render open strings and frets 1 through 15 horizontally, with conventional high-to-low visual string order, selected tuning labels, fret numbers, position markers, a pattern-filtered scale map, and the selected chord-tone union.
+The explorer SHALL render open strings and frets 1 through 15 horizontally, with conventional high-to-low visual string order, selected tuning labels, fret numbers, position markers, and a pattern-filtered scale map.
 
 #### Scenario: Guitar anatomy
 - **WHEN** Guitar is active
@@ -110,20 +116,20 @@ The explorer SHALL render open strings and frets 1 through 15 horizontally, with
 - **AND** high-to-low string row order and string numbers SHALL remain unchanged
 
 #### Scenario: Visible position union
-- **WHEN** a pattern and chord overlay are active
-- **THEN** focusable positions SHALL equal the visible pattern scale tones plus visible chord tones exactly
+- **WHEN** a pattern is active
+- **THEN** focusable positions SHALL equal the visible pattern scale tones exactly
 - **AND** hidden non-pattern scale tones SHALL NOT remain focusable
 
 #### Scenario: Exact position semantics
 - **WHEN** a highlighted note receives focus
-- **THEN** its accessible name SHALL include handedness, instrument string, selected tuning, fret, note name, scale interval when present, pattern membership, chord degree when present, and scale-fit status
+- **THEN** its accessible name SHALL include handedness, instrument string, selected tuning, fret, note name, scale interval, and pattern membership
 
 #### Scenario: Exact orientation semantics
 - **WHEN** a highlighted note receives focus
 - **THEN** its accessible name SHALL include handedness, instrument string, selected tuning, fret, note name, and interval label
 
 ### Requirement: Keyboard and reduced-motion behavior
-The explorer SHALL support visual-direction keyboard navigation across the visible pattern/chord union and SHALL not require animation to understand tuning, handedness, pattern, or overlay changes.
+The explorer SHALL support visual-direction keyboard navigation across the visible pattern scale tones and SHALL not require animation to understand tuning, handedness, or pattern changes.
 
 #### Scenario: Spatial keyboard navigation
 - **WHEN** a highlighted position has focus and the user presses an arrow key
@@ -140,10 +146,10 @@ The explorer SHALL support visual-direction keyboard navigation across the visib
 
 #### Scenario: Arrow boundary
 - **WHEN** an arrow key has no visible destination in its spatial direction
-- **THEN** focus SHALL remain on the current position and native page/scroller movement SHALL be prevented
+- **THEN** focus SHALL remain on the current position and native page or scroller movement SHALL be prevented
 
 #### Scenario: Filtered focus recovery
-- **WHEN** a pattern, overlay, key, or mode change removes the current roving-focus position
+- **WHEN** a pattern, key, or mode change removes the current roving-focus position
 - **THEN** exactly one surviving visible position SHALL receive `tabIndex=0`
 - **AND** focus SHALL move there only when the removed position previously owned DOM focus
 
@@ -152,15 +158,15 @@ The explorer SHALL support visual-direction keyboard navigation across the visib
 - **THEN** the board SHALL reveal the open-string edge without requiring manual scrolling
 
 #### Scenario: Visible focus
-- **WHEN** a pattern control, overlay control, picker result, or highlighted position receives keyboard focus
+- **WHEN** a pattern control or highlighted position receives keyboard focus
 - **THEN** a visible Tonari focus ring SHALL be rendered
 
 #### Scenario: Reduced motion
 - **WHEN** the user prefers reduced motion
-- **THEN** tuning, orientation, workspace, pattern, overlay, picker, and note-state transitions SHALL complete without animation
+- **THEN** tuning, orientation, workspace, pattern, and note-state transitions SHALL complete without animation
 
 ### Requirement: Responsive containment and performance
-The explorer SHALL preserve document-width containment across desktop, tablet, and 375px mobile viewports while keeping tuning, orientation, pattern, and overlay updates responsive.
+The explorer SHALL preserve document-width containment across desktop, tablet, and 375px mobile viewports while keeping tuning, orientation, and pattern updates responsive.
 
 #### Scenario: Desktop board
 - **WHEN** the viewport is at least 1024px wide
@@ -173,21 +179,21 @@ The explorer SHALL preserve document-width containment across desktop, tablet, a
 
 #### Scenario: Desktop learning layer
 - **WHEN** the viewport is at least 1024px wide
-- **THEN** pattern and overlay controls SHALL fit in a separate deterministic learning-layer surface without destabilizing the primary control rail
+- **THEN** pattern controls SHALL fit in a separate deterministic learning-layer surface without destabilizing the primary control rail
 
 #### Scenario: Mobile controls
 - **WHEN** the viewport is 375px wide
-- **THEN** primary controls, pattern controls, overlay trigger, picker search, results, summary, and clear action SHALL wrap without overlap
+- **THEN** primary and pattern controls SHALL wrap without overlap
 - **AND** the document SHALL not overflow horizontally
 - **AND** the fretboard SHALL retain one internal horizontal scroller
 
 #### Scenario: Interaction latency
-- **WHEN** instrument, tuning, handedness, root, mode, label, pattern, pattern sub-selection, overlay selection, or overlay clear state changes after initial render
+- **WHEN** instrument, tuning, handedness, root, mode, label, pattern, or pattern sub-selection changes after initial render
 - **THEN** the representative rendered board state SHALL update within 500 milliseconds
 
 #### Scenario: Workspace continuity
-- **WHEN** the user changes pattern or overlay state, visits Builder, and returns to Fretboard
-- **THEN** progression content, locks, playback/highlight state, and the mounted Harmony Companion provider/panel SHALL remain unchanged
+- **WHEN** the user changes pattern state, visits another workspace, and returns to Fret Finder
+- **THEN** progression content, locks, playback or highlight state, and the mounted Harmony Companion provider or panel SHALL remain unchanged
 
 ### Requirement: Pattern-filtered scale mapping
 The system SHALL expose deterministic, deeply frozen, orientation-neutral pattern results that filter the selected scale into `All`, five CAGED forms, or seven three-notes-per-string positions without changing the underlying scale rows.
@@ -226,63 +232,3 @@ The system SHALL expose deterministic, deeply frozen, orientation-neutral patter
 - **WHEN** handedness changes for a CAGED or 3NPS result
 - **THEN** the same numeric `stringNumber:fret` keys and envelopes SHALL remain selected
 - **AND** only their rendered column order SHALL reverse
-
-### Requirement: Dictionary-valid chord overlays
-The explorer SHALL let musicians select one shared-dictionary chord and SHALL derive immutable chord-tone pitch classes, degree labels, scale-fit status, and optional slash-bass identity without using a second chord parser.
-
-#### Scenario: Unique dictionary search
-- **WHEN** the overlay picker searches chord names, long names, or aliases
-- **THEN** it SHALL return at most 24 unique catalog-entry results
-- **AND** every selectable result SHALL re-resolve through the shared chord lookup before becoming active
-
-#### Scenario: Invalid chord input
-- **WHEN** submitted overlay text does not resolve through the shared chord lookup
-- **THEN** the picker SHALL show an inline error, retain the prior overlay, and SHALL NOT create a best-effort chord
-
-#### Scenario: Cmaj7 over C Major
-- **WHEN** `Cmaj7` is overlaid on C Major
-- **THEN** C, E, G, and B SHALL all be classified as in-scale chord tones with degrees `1`, `3`, `5`, and `7`
-
-#### Scenario: Altered dominant over C Major
-- **WHEN** `G7#9` is overlaid on C Major
-- **THEN** G, B, D, and F SHALL be classified as in-scale chord tones
-- **AND** A-sharp/B-flat SHALL remain visible as an outside-scale chord tone with degree `#9`
-
-#### Scenario: Slash bass identity
-- **WHEN** a valid slash chord adds a bass pitch absent from the upper structure
-- **THEN** that pitch SHALL be included once with a `bass` role while existing chord tones remain deduplicated
-
-#### Scenario: Overlay under All
-- **WHEN** a chord overlay is active with `All`
-- **THEN** every matching chord pitch class SHALL be rendered across open strings through fret 15
-
-#### Scenario: Overlay under a focused pattern
-- **WHEN** a chord overlay is active with CAGED or 3NPS
-- **THEN** in-scale chord tones SHALL appear only at selected pattern positions
-- **AND** outside-scale chord tones SHALL appear inside the pattern's per-string fret envelopes without repopulating the rest of the neck
-
-#### Scenario: Overlay persistence
-- **WHEN** root, mode, tuning, handedness, labels, instrument, pattern family, or pattern sub-selection changes
-- **THEN** the same selected chord identity and display spelling SHALL remain active while its scale-fit classification recomputes
-
-#### Scenario: Clear overlay
-- **WHEN** the active overlay is cleared
-- **THEN** the board SHALL restore the exact scale/pattern marker set, labels, accessible names, and roving focus behavior produced without an overlay
-
-### Requirement: Non-color-only chord-tone rendering
-The fretboard SHALL render scale membership, pattern membership, chord membership, chord degree, and outside-scale status with visible and accessible cues that do not rely on color alone.
-
-#### Scenario: In-scale chord-tone treatment
-- **WHEN** a visible scale position is also a selected chord tone
-- **THEN** it SHALL retain its existing scale-degree fill and label
-- **AND** it SHALL gain a distinct outer ring plus `chord tone <degree>, in scale` semantics
-
-#### Scenario: Outside-scale chord-tone treatment
-- **WHEN** a visible selected chord tone is outside the selected scale
-- **THEN** it SHALL use a dashed outline and distinct shape/surface treatment
-- **AND** it SHALL show its note name even in Intervals mode
-- **AND** its accessible name SHALL include chord degree and `outside <root> <mode>`
-
-#### Scenario: Overlay legend
-- **WHEN** a chord overlay is active
-- **THEN** visible legend text SHALL explain that a ring means chord tone and a dashed marker means outside the selected scale

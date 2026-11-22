@@ -208,7 +208,7 @@ test.describe("Privacy policy", () => {
     await expect(dialog.getByRole("heading", { name: "PRIVACY POLICY", level: 2 })).toBeVisible();
     await expect(dialog.locator("h3")).toHaveCount(17);
     await expect(dialog).toContainText("Jana Jennings");
-    await expect(dialog).toContainText("Last updated August 10, 2026");
+    await expect(dialog).toContainText("Last updated October 2, 2026");
     await expect(dialog.getByRole("link", { name: /privacy@tonari\.ai/ })).toHaveAttribute(
       "href",
       "mailto:privacy@tonari.ai",

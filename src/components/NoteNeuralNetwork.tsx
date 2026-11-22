@@ -480,7 +480,7 @@ export default function NoteNeuralNetwork({
                 data-graph-projection="mobile-static"
                 data-layout-width={mobileLayout.width}
                 data-viewport-height={graphViewportSize.height}
-                style={{ backgroundColor: "#000", height: `${mobileLayout.height}px` }}
+                style={{ backgroundColor: "var(--network-canvas-bg)", height: `${mobileLayout.height}px` }}
               >
                 <svg
                   viewBox={`0 0 ${mobileLayout.width} ${mobileLayout.height}`}

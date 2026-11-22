@@ -209,6 +209,26 @@
   --music-insight-surface-text:   #efbcd5;
   --music-insight-surface-border: rgba(239, 188, 213, 0.25);
 
+  /* Harmony Hash instruments keep physical light/dark anatomy separate from
+     the page appearance so renderers never depend on raw palette aliases. */
+  --instrument-key-white:         #f0ede8;
+  --instrument-key-black:         #09090b;
+  --instrument-key-white-text:    #09090b;
+  --instrument-key-black-text:    #f0ede8;
+  --instrument-board-bg:          var(--surface-sunken);
+  --instrument-anatomy:           var(--border-strong);
+
+  /* Canvas pixels cannot inherit after drawing, so these semantic values are
+     read into the NOTE NEURAL NETWORK palette whenever appearance changes. */
+  --network-canvas-bg:             #050507;
+  --network-label-bg:              rgba(9, 9, 11, 0.86);
+
+  /* Match quality remains categorical while gaining theme-specific contrast. */
+  --music-match-low:               #e9a0ad;
+  --music-match-mid:               #e8c77a;
+  --music-match-good:              #83bee5;
+  --music-match-high:              #9bd3a5;
+
 
   /* ----------------------------------------------------------
      TYPOGRAPHY
@@ -368,6 +388,142 @@
 
 }
 
+/* Harmony Hash light appearance — warm paper plus ink, bronze, and muted
+   lavender approved for this app. Music hues are deliberately deepened so
+   interval and chord labels retain their meaning and meet text contrast. */
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --surface-base:        #F0EDE8;
+  --surface-raised:      #F8F6F2;
+  --surface-overlay:     color-mix(in srgb, #F8F6F2 92%, #18181E);
+  --surface-sunken:      color-mix(in srgb, #F0EDE8 90%, #18181E);
+  --surface-highlight:   rgba(103, 105, 124, 0.10);
+
+  --border-subtle:       rgba(24, 24, 30, 0.14);
+  --border-default:      rgba(24, 24, 30, 0.25);
+  --border-strong:       rgba(24, 24, 30, 0.46);
+  --border-accent:       rgba(138, 101, 23, 0.52);
+
+  --text-primary:        #18181E;
+  --text-secondary:      #67697C;
+  --text-muted:          #67697C;
+  --text-accent:         #8A6517;
+  --text-warm:           #8A6517;
+  --text-soft:           #795E6E;
+  --text-academy:        #3E617B;
+  --text-inverse:        #F8F6F2;
+
+  --interactive-primary-bg:          #18181E;
+  --interactive-primary-bg-hover:    color-mix(in srgb, #18181E 88%, #F8F6F2);
+  --interactive-primary-bg-active:   color-mix(in srgb, #18181E 80%, #F8F6F2);
+  --interactive-primary-text:        #F8F6F2;
+
+  --interactive-secondary-bg:        transparent;
+  --interactive-secondary-bg-hover:  rgba(24, 24, 30, 0.08);
+  --interactive-secondary-bg-active: rgba(24, 24, 30, 0.14);
+  --interactive-secondary-text:      #67697C;
+  --interactive-secondary-border:    rgba(24, 24, 30, 0.28);
+
+  --interactive-ghost-bg:            transparent;
+  --interactive-ghost-bg-hover:      rgba(24, 24, 30, 0.08);
+  --interactive-ghost-text:          #67697C;
+
+  --interactive-accent-bg:           rgba(138, 101, 23, 0.11);
+  --interactive-accent-bg-hover:     rgba(138, 101, 23, 0.18);
+  --interactive-accent-text:         #8A6517;
+  --interactive-accent-border:       rgba(138, 101, 23, 0.40);
+
+  --interactive-warm-bg:             rgba(138, 101, 23, 0.10);
+  --interactive-warm-bg-hover:       rgba(138, 101, 23, 0.17);
+  --interactive-warm-text:           #8A6517;
+  --interactive-warm-border:         rgba(138, 101, 23, 0.38);
+
+  --interactive-soft-bg:             rgba(121, 94, 110, 0.10);
+  --interactive-soft-text:           #795E6E;
+  --interactive-soft-border:         rgba(121, 94, 110, 0.32);
+
+  --interactive-academy-bg:          rgba(62, 97, 123, 0.10);
+  --interactive-academy-bg-hover:    rgba(62, 97, 123, 0.17);
+  --interactive-academy-text:        #3E617B;
+  --interactive-academy-border:      rgba(62, 97, 123, 0.34);
+
+  --interactive-disabled-bg:         rgba(103, 105, 124, 0.08);
+  --interactive-disabled-text:       rgba(103, 105, 124, 0.72);
+  --interactive-disabled-border:     rgba(103, 105, 124, 0.18);
+  --interactive-focus-ring:          #8A6517;
+
+  --status-success-bg:     rgba(47, 113, 74, 0.10);
+  --status-success-text:   #2F714A;
+  --status-success-border: rgba(47, 113, 74, 0.30);
+  --status-warning-bg:     rgba(138, 101, 23, 0.10);
+  --status-warning-text:   #8A6517;
+  --status-warning-border: rgba(138, 101, 23, 0.32);
+  --status-error-bg:       rgba(125, 64, 67, 0.10);
+  --status-error-text:     #7D4043;
+  --status-error-border:   rgba(125, 64, 67, 0.30);
+  --status-info-bg:        rgba(103, 105, 124, 0.10);
+  --status-info-text:      #67697C;
+  --status-info-border:    rgba(103, 105, 124, 0.30);
+  --status-academy-bg:     rgba(62, 97, 123, 0.10);
+  --status-academy-text:   #3E617B;
+  --status-academy-border: rgba(62, 97, 123, 0.30);
+
+  --music-interval-root:    #8A6517;
+  --music-interval-flat-2:  #7A5742;
+  --music-interval-2:       #40607D;
+  --music-interval-minor-3: #5F5379;
+  --music-interval-major-3: #4E5880;
+  --music-interval-4:       #426A5C;
+  --music-interval-tritone: #755371;
+  --music-interval-5:       #7A4C58;
+  --music-interval-flat-6:  #664F79;
+  --music-interval-6:       #336668;
+  --music-interval-flat-7:  #596944;
+  --music-interval-major-7: #7A5742;
+
+  --music-chord-major:       #586F61;
+  --music-chord-minor:       #795D47;
+  --music-chord-dominant:    #B42339;
+  --music-chord-on-dominant: #F8F6F2;
+  --music-chord-sus:         #7B6E4E;
+  --music-chord-diminished:  #795E6E;
+  --music-chord-augmented:   #18181E;
+
+  --music-insight-action-bg:       color-mix(in srgb, #F8F6F2 88%, #795E6E);
+  --music-insight-action-bg-hover: color-mix(in srgb, #F8F6F2 82%, #795E6E);
+  --music-insight-action-text:     #18181E;
+  --music-insight-action-border:   rgba(121, 94, 110, 0.34);
+  --music-insight-surface-bg:      rgba(121, 94, 110, 0.09);
+  --music-insight-surface-text:    #795E6E;
+  --music-insight-surface-border:  rgba(121, 94, 110, 0.28);
+
+  --instrument-key-white:      #F8F6F2;
+  --instrument-key-black:      #18181E;
+  --instrument-key-white-text: #18181E;
+  --instrument-key-black-text: #F8F6F2;
+  --instrument-board-bg:       var(--surface-sunken);
+  --instrument-anatomy:        var(--border-strong);
+
+  --network-canvas-bg: #F0EDE8;
+  --network-label-bg:  rgba(248, 246, 242, 0.90);
+
+  --music-match-low:  #76555E;
+  --music-match-mid:  #766747;
+  --music-match-good: #486378;
+  --music-match-high: #536C5B;
+
+  --shadow-sm: 0 1px 3px rgba(24, 24, 30, 0.12);
+  --shadow-md: 0 4px 12px rgba(24, 24, 30, 0.15);
+  --shadow-lg: 0 8px 32px rgba(24, 24, 30, 0.18);
+  --shadow-xl: 0 16px 64px rgba(24, 24, 30, 0.22);
+
+  --glow-accent: 0 0 0 1px rgba(138, 101, 23, 0.12), 0 8px 28px rgba(138, 101, 23, 0.16);
+  --glow-warm:   0 0 0 1px rgba(138, 101, 23, 0.10), 0 8px 24px rgba(138, 101, 23, 0.12);
+  --glow-soft:   0 0 0 1px rgba(121, 94, 110, 0.10), 0 8px 24px rgba(121, 94, 110, 0.12);
+  --glow-academy: 0 0 0 1px rgba(62, 97, 123, 0.10), 0 8px 24px rgba(62, 97, 123, 0.12);
+}
+
 
 /* ----------------------------------------------------------
    BASE RESET
@@ -380,6 +536,7 @@
 }
 
 html {
+  color-scheme: dark;
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -418,6 +575,10 @@ a {
 
 a:hover {
   color: var(--palette-apricot);
+}
+
+html[data-theme="light"] a:hover {
+  color: var(--text-primary);
 }
 
 :focus-visible {

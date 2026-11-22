@@ -1,5 +1,4 @@
 import type { ScaleFormulaType } from "./scaleBasics";
-import type { ChordTone } from "./chordTones";
 import type {
   FretboardInstrument,
   FretboardPosition,
@@ -39,9 +38,6 @@ export interface DecoratedFretboardPosition {
   readonly key: string;
   readonly position: FretboardPosition;
   readonly isPatternTone: boolean;
-  readonly chordTone?: ChordTone;
-  readonly isChordTone: boolean;
-  readonly isInScale: boolean;
 }
 
 export const PATTERN_COMPATIBILITY_REASON = "Patterns currently require Standard six-string guitar";
@@ -344,33 +340,15 @@ export function buildFretboardPattern(
 export function decorateFretboardPositions(
   rows: ReadonlyArray<FretboardStringRow>,
   pattern: FretboardPatternResult,
-  chordTones: ReadonlyArray<ChordTone> = [],
 ): ReadonlyArray<DecoratedFretboardPosition> {
   const patternKeys = new Set(pattern.positionKeys);
-  const envelopeByString = new Map(pattern.envelopes.map((envelope) => [
-    envelope.stringNumber,
-    envelope,
-  ]));
-  const toneByPitchClass = new Map(chordTones.map((tone) => [tone.pitchClass, tone]));
   return Object.freeze(rows.flatMap((row) => row.positions.flatMap((position) => {
     const key = positionKey(position.stringNumber, position.fret);
-    const isPatternTone = patternKeys.has(key);
-    const chordTone = toneByPitchClass.get(position.pitchClass);
-    const envelope = envelopeByString.get(position.stringNumber);
-    const outsideToneVisible = chordTone !== undefined
-      && !position.isScaleTone
-      && (pattern.effectiveFamily === "all"
-        || (envelope !== undefined
-          && position.fret >= envelope.minFret
-          && position.fret <= envelope.maxFret));
-    if (!isPatternTone && !outsideToneVisible) return [];
+    if (!patternKeys.has(key)) return [];
     return [Object.freeze({
       key,
       position,
-      isPatternTone,
-      ...(chordTone ? { chordTone } : {}),
-      isChordTone: chordTone !== undefined,
-      isInScale: position.isScaleTone,
+      isPatternTone: true,
     })];
   })));
 }

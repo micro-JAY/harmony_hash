@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark" style="color-scheme: dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,6 +8,25 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="description" content="Find the harmony inside every chord." />
     <meta name="theme-color" content="#09090b" />
+    <script>
+      (() => {
+        const preferenceKey = "hh:appearance:v1";
+        let appearance = "dark";
+        try {
+          const storedAppearance = window.localStorage.getItem(preferenceKey);
+          if (storedAppearance === "dark" || storedAppearance === "light") {
+            appearance = storedAppearance;
+          }
+        } catch {
+          // A blocked storage API must not prevent the dark-default shell.
+        }
+        document.documentElement.dataset.theme = appearance;
+        document.documentElement.style.colorScheme = appearance;
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", appearance === "light" ? "#F0EDE8" : "#09090b");
+      })();
+    </script>
     <link rel="canonical" href="https://harmony.tonari.ai/" />
     <!-- Open Graph -->
     <meta property="og:type" content="website" />

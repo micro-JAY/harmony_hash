@@ -15,6 +15,7 @@ interface ChordCardFrameProps {
   showLock?: boolean;
   isPlaying: boolean;
   isAgentHighlighted: boolean;
+  onAudition?: () => void;
   children: ReactNode;
 }
 
@@ -27,6 +28,7 @@ export default function ChordCardFrame({
   showLock = true,
   isPlaying,
   isAgentHighlighted,
+  onAudition,
   children,
 }: ChordCardFrameProps) {
   const t = useT();
@@ -78,10 +80,11 @@ export default function ChordCardFrame({
       </button> : null}
 
       <div
-        className="w-full text-center py-3 px-4"
+        className="hh-chord-card__header relative w-full text-center py-3 px-4"
         style={{ borderBottom: "1px solid var(--border-subtle)" }}
       >
         <h3
+          aria-label={onAudition ? displayName : undefined}
           data-chord-family={titlePresentation.family}
           className="inline-flex rounded-md px-2 py-0.5 text-lg font-semibold"
           style={{
@@ -92,7 +95,16 @@ export default function ChordCardFrame({
             fontWeight: "var(--weight-semibold)",
           }}
         >
-          {displayName}
+          {onAudition ? (
+            <button
+              type="button"
+              aria-label={`${t("Play chord")}: ${displayName}`}
+              onClick={onAudition}
+              className="hh-chord-card__audition"
+            >
+              {displayName}
+            </button>
+          ) : displayName}
         </h3>
         {isAgentHighlighted && (
           <span

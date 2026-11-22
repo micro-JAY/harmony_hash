@@ -23,9 +23,6 @@ interface HorizontalFretboardProps {
   labelMode: FretboardLabelMode;
   pattern: FretboardPatternResult;
   decoratedPositions: ReadonlyArray<DecoratedFretboardPosition>;
-  keyName: string;
-  modeLabel: string;
-  overlayLabel?: string;
 }
 
 interface ActivePosition {
@@ -74,9 +71,6 @@ export default function HorizontalFretboard({
   labelMode,
   pattern,
   decoratedPositions,
-  keyName,
-  modeLabel,
-  overlayLabel,
 }: HorizontalFretboardProps) {
   const t = useT();
   const { locale } = useLocale();
@@ -195,7 +189,6 @@ export default function HorizontalFretboard({
         data-handedness={handedness}
         data-tuning={tuning.id}
         data-pattern={pattern.effectiveFamily}
-        data-overlay={overlayLabel ?? "none"}
         onFocusCapture={() => {
           focusWithinBoard.current = true;
         }}
@@ -272,30 +265,16 @@ export default function HorizontalFretboard({
                 const position = row.positions[fret];
                 const key = positionKey(rowIndex, position.fret);
                 const active = activePositions.find((item) => item.key === key);
-                const outsideScale = active !== undefined && !active.decoration.isInScale;
-                const baseVisual = roleStyle(position);
-                const visual = outsideScale ? {
-                  backgroundColor: "var(--status-warning-bg)",
-                  borderColor: "var(--status-warning-text)",
-                  color: "var(--status-warning-text)",
-                  boxShadow: "none",
-                } : baseVisual;
-                const chordSemantics = active?.decoration.chordTone
-                  ? `, chord tone ${active.decoration.chordTone.degree}, ${active.decoration.isInScale ? "in scale" : `outside ${keyName} ${modeLabel}`}`
-                  : "";
                 const patternSemantics = active?.decoration.isPatternTone
                   ? `, ${pattern.label} pattern tone`
                   : pattern.effectiveFamily === "all"
                     ? ", visible across All positions"
-                    : `, chord tone inside ${pattern.label} envelope`;
-                const japaneseChordSemantics = active?.decoration.chordTone
-                  ? `、コードトーン${active.decoration.chordTone.degree}、${active.decoration.isInScale ? "スケール内" : `${keyName}${modeLabel}スケール外`}`
-                  : "";
+                    : "";
                 const japanesePatternSemantics = active?.decoration.isPatternTone
                   ? `、${t(pattern.label)}のパターン音`
                   : pattern.effectiveFamily === "all"
                     ? `、${t("All positions")}に表示`
-                    : `、${t(pattern.label)}の範囲内のコードトーン`;
+                    : "";
                 return (
                   <span
                     key={key}
@@ -340,24 +319,19 @@ export default function HorizontalFretboard({
                         onFocus={() => setActiveFocusKey(key)}
                         onKeyDown={(event) => handleKeyDown(event, active)}
                         aria-label={locale === "ja"
-                          ? `${t(handednessLabel)}${t(instrumentName)}、${position.stringNumber}弦（${position.stringLabel}）、${t(tuning.label)}チューニング、${position.fret}フレット、${position.noteLabel}${position.intervalLabel ? `、音程${position.intervalLabel}` : ""}${japanesePatternSemantics}${japaneseChordSemantics}`
-                          : `${handednessLabel} ${instrumentName} string ${position.stringNumber} (${position.stringLabel}), ${tuning.label} tuning, fret ${position.fret}, ${position.noteLabel}${position.intervalLabel ? `, interval ${position.intervalLabel}` : ""}${patternSemantics}${chordSemantics}`}
+                          ? `${t(handednessLabel)}${t(instrumentName)}、${position.stringNumber}弦（${position.stringLabel}）、${t(tuning.label)}チューニング、${position.fret}フレット、${position.noteLabel}${position.intervalLabel ? `、音程${position.intervalLabel}` : ""}${japanesePatternSemantics}`
+                          : `${handednessLabel} ${instrumentName} string ${position.stringNumber} (${position.stringLabel}), ${tuning.label} tuning, fret ${position.fret}, ${position.noteLabel}${position.intervalLabel ? `, interval ${position.intervalLabel}` : ""}${patternSemantics}`}
                         data-string={position.stringNumber}
                         data-fret={position.fret}
                         data-note={position.noteLabel}
                         data-interval={position.intervalLabel}
                         data-root={position.isRoot ? "true" : "false"}
                         data-pattern-tone={active.decoration.isPatternTone ? "true" : "false"}
-                        data-chord-tone={active.decoration.isChordTone ? active.decoration.chordTone?.degree : undefined}
-                        data-scale-fit={active.decoration.isChordTone ? (active.decoration.isInScale ? "in" : "outside") : undefined}
                         className="hh-fretboard-note relative z-10 flex items-center justify-center rounded-full"
                         style={{
-                          ...visual,
-                          borderWidth: outsideScale ? "2px" : "1px",
-                          borderStyle: outsideScale ? "dashed" : "solid",
-                          boxShadow: active.decoration.isChordTone && active.decoration.isInScale
-                            ? `${visual.boxShadow === "none" ? "" : `${visual.boxShadow}, `}0 0 0 3px var(--surface-sunken), 0 0 0 5px var(--interactive-primary-bg)`
-                            : visual.boxShadow,
+                          ...roleStyle(position),
+                          borderWidth: "1px",
+                          borderStyle: "solid",
                           fontFamily: "var(--font-mono)",
                           fontSize: "var(--text-xs)",
                           fontWeight: "var(--weight-semibold)",
@@ -366,7 +340,7 @@ export default function HorizontalFretboard({
                         }}
                       >
                         <span className="hh-fretboard-note-label">
-                          {outsideScale || labelMode === "notes" ? position.noteLabel : position.intervalLabel}
+                          {labelMode === "notes" ? position.noteLabel : position.intervalLabel}
                         </span>
                       </button>
                     )}

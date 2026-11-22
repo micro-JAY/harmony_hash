@@ -32,6 +32,7 @@ import {
   type NoteNetworkKnowledgeNode,
   type NoteNetworkKnowledgeRelationshipKind,
 } from "../lib/theory";
+import { useAppearance } from "../appearance/AppearanceContext";
 import { useT } from "../i18n/I18nContext";
 
 export interface NoteNetworkCanvasTone {
@@ -81,6 +82,8 @@ interface StoredSimulation {
 
 interface CanvasPalette {
   readonly accent: string;
+  readonly background: string;
+  readonly labelBackground: string;
   readonly muted: string;
   readonly primary: string;
   readonly mono: string;
@@ -126,10 +129,25 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value));
 }
 
-function resolveCssColor(value: string, style: CSSStyleDeclaration, fallback: string): string {
-  const variable = value.match(/^var\((--[^,)]+)/)?.[1];
-  if (variable) return style.getPropertyValue(variable).trim() || fallback;
-  return value.trim() || fallback;
+function resolveCssColor(
+  value: string,
+  style: CSSStyleDeclaration,
+  probe: HTMLElement,
+  fallback: string,
+): string {
+  let resolved = value;
+  for (let depth = 0; depth < 4 && resolved.includes("var("); depth += 1) {
+    resolved = resolved.replace(
+      /var\((--[^,)]+)(?:,[^)]+)?\)/g,
+      (_match, variable: string) => style.getPropertyValue(variable).trim() || fallback,
+    );
+  }
+  const candidate = resolved.trim() || fallback;
+  if (candidate === "transparent") return candidate;
+  probe.style.color = "";
+  probe.style.color = candidate;
+  if (!probe.style.color) return fallback;
+  return getComputedStyle(probe).color || candidate;
 }
 
 function buildCanvasPalette(
@@ -138,27 +156,39 @@ function buildCanvasPalette(
   nodeToneFor: NoteNetworkCanvasProps["nodeToneFor"],
 ): CanvasPalette {
   const style = getComputedStyle(document.documentElement);
-  const edgeColors = new Map<NoteNetworkKnowledgeRelationshipKind, string>();
-  for (const kind of EDGE_KINDS) {
-    edgeColors.set(kind, resolveCssColor(edgeColorFor(kind), style, "#727484"));
+  const probe = document.createElement("span");
+  probe.hidden = true;
+  document.documentElement.append(probe);
+  try {
+    const resolve = (value: string, fallback: string): string => (
+      resolveCssColor(value, style, probe, fallback)
+    );
+    const edgeColors = new Map<NoteNetworkKnowledgeRelationshipKind, string>();
+    for (const kind of EDGE_KINDS) {
+      edgeColors.set(kind, resolve(edgeColorFor(kind), "#727484"));
+    }
+    const nodeColors = new Map<string, CanvasNodeColors>();
+    for (const node of catalog.nodes) {
+      const tone = nodeToneFor(node);
+      nodeColors.set(node.id, Object.freeze({
+        background: resolve(tone.background, "rgba(168, 169, 184, 0.16)"),
+        border: resolve(tone.border, "#a8a9b8"),
+        text: resolve(tone.text, "#f3f3f7"),
+      }));
+    }
+    return Object.freeze({
+      accent: resolve("var(--text-accent)", "#E8C05A"),
+      background: resolve("var(--network-canvas-bg)", "#050507"),
+      labelBackground: resolve("var(--network-label-bg)", "rgba(9, 9, 11, 0.86)"),
+      muted: resolve("var(--text-muted)", "#727484"),
+      primary: resolve("var(--text-primary)", "#f3f3f7"),
+      mono: style.getPropertyValue("--font-mono").trim() || "monospace",
+      edgeColors,
+      nodeColors,
+    });
+  } finally {
+    probe.remove();
   }
-  const nodeColors = new Map<string, CanvasNodeColors>();
-  for (const node of catalog.nodes) {
-    const tone = nodeToneFor(node);
-    nodeColors.set(node.id, Object.freeze({
-      background: resolveCssColor(tone.background, style, "rgba(168, 169, 184, 0.16)"),
-      border: resolveCssColor(tone.border, style, "#a8a9b8"),
-      text: resolveCssColor(tone.text, style, "#f3f3f7"),
-    }));
-  }
-  return Object.freeze({
-    accent: style.getPropertyValue("--text-accent").trim() || "#E8C05A",
-    muted: style.getPropertyValue("--text-muted").trim() || "#727484",
-    primary: style.getPropertyValue("--text-primary").trim() || "#f3f3f7",
-    mono: style.getPropertyValue("--font-mono").trim() || "monospace",
-    edgeColors,
-    nodeColors,
-  });
 }
 
 function screenToWorld(
@@ -236,7 +266,7 @@ function drawCanvasGraph(
 ): void {
   context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
   context.clearRect(0, 0, size.width, size.height);
-  context.fillStyle = "#000";
+  context.fillStyle = palette.background;
   context.fillRect(0, 0, size.width, size.height);
   context.save();
   context.translate(size.width / 2 + camera.panX, size.height / 2 + camera.panY);
@@ -371,7 +401,7 @@ function drawCanvasGraph(
     const labelTop = node.y + node.radius + 5;
     context.save();
     context.globalAlpha = related ? (hovered || inspected || node.anchored ? 1 : 0.82) : 0.12;
-    context.fillStyle = "rgba(0, 0, 0, 0.78)";
+    context.fillStyle = palette.labelBackground;
     roundedLabelBackground(
       context,
       node.x - labelWidth / 2,
@@ -435,6 +465,7 @@ export default function NoteNetworkCanvas({
   onInspect,
   onPinChange,
 }: NoteNetworkCanvasProps) {
+  const { appearance } = useAppearance();
   const t = useT();
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -479,6 +510,7 @@ export default function NoteNetworkCanvas({
         const colors = palette.nodeColors.get(node.id);
         return colors ? [{ id: node.id, ...colors }] : [];
       }));
+      canvas.dataset.appearance = appearance;
       canvas.dataset.expandedNodes = JSON.stringify([...expandedNodeIds]);
     }
 
@@ -528,7 +560,7 @@ export default function NoteNetworkCanvas({
       canvas.dataset.simulationContext = nextContextKey;
     }
     needsDrawRef.current = true;
-  }, [catalog, edgeColorFor, expandedNodeIds, localizedLabels, nodeToneFor, pinnedNodeIds, reducedMotion]);
+  }, [appearance, catalog, edgeColorFor, expandedNodeIds, localizedLabels, nodeToneFor, pinnedNodeIds, reducedMotion]);
 
   function updateCameraDataset(): void {
     const canvas = canvasRef.current;
@@ -864,7 +896,7 @@ export default function NoteNetworkCanvas({
         data-testid="mode-network-graph-scroller"
         data-graph-motion={reducedMotion ? "settled" : "force"}
         data-graph-projection="desktop-force-canvas"
-        style={{ backgroundColor: "#000", height: "clamp(34rem, 58vw, 41.25rem)" }}
+        style={{ backgroundColor: "var(--network-canvas-bg)", height: "clamp(34rem, 58vw, 41.25rem)" }}
       >
         <canvas
           ref={canvasRef}
@@ -886,7 +918,7 @@ export default function NoteNetworkCanvas({
           }}
           onPointerMove={handlePointerMove}
           onPointerUp={(event) => finishPointer(event, false)}
-          style={{ backgroundColor: "#000", cursor: "move", touchAction: "none" }}
+          style={{ backgroundColor: "var(--network-canvas-bg)", cursor: "move", touchAction: "none" }}
         >
           {t("Use the complete node list below to inspect every relationship.")}
         </canvas>

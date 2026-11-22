@@ -61,6 +61,7 @@ export default function Header({
             <button
               key={destination.workspace}
               type="button"
+              data-tour-workspace={destination.workspace}
               onClick={() => onWorkspaceChange(destination.workspace)}
               aria-pressed={active}
               className={locale === "ja"

@@ -6,9 +6,6 @@ describe("Japanese translations", () => {
     expect(translate("ja", "Modify G7#9 chord")).toBe("G7#9のコードを変更");
     expect(translate("ja", "Change G7 to G7#9")).toBe("G7をG7#9に変更");
     expect(translate("ja", "Compare voicings for Cmaj7")).toBe("Cmaj7のボイシングを比較");
-    expect(translate("ja", "15 dictionary results · Enter submits the exact text")).toBe(
-      "辞書の候補15件・Enterで入力内容を確定",
-    );
   });
 
   it("keeps established musical terms while localizing tool chrome", () => {
@@ -33,6 +30,15 @@ describe("Japanese translations", () => {
     expect(translate("en", "Ask Harmony about Improv Insight")).toBe(
       "Ask Harmony about IMPROV INSIGHT",
     );
+  });
+
+  it("localizes the Help / About appearance controls", () => {
+    expect(translate("en", "Appearance")).toBe("Appearance");
+    expect(translate("en", "Dark appearance")).toBe("Dark appearance");
+    expect(translate("en", "Light appearance")).toBe("Light appearance");
+    expect(translate("ja", "Appearance")).toBe("外観");
+    expect(translate("ja", "Dark appearance")).toBe("ダーク");
+    expect(translate("ja", "Light appearance")).toBe("ライト");
   });
 
   it("localizes mood-aware learning summaries", () => {

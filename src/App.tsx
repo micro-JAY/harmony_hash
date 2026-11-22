@@ -44,7 +44,7 @@ import {
   shiftVoicedChordOctaves,
 } from "./lib/harmonyBrain";
 import { getSvgPath, lookupChord, parseNotes } from "./lib/chordData";
-import { buildMidiPlaybackSchedule, playSchedule } from "./lib/audioEngine";
+import { buildMidiPlaybackSchedule, playSchedule, type ProgressionPlaybackRequest } from "./lib/audioEngine";
 import {
   createProgressionPlaybackController,
   type PlaybackControllerState,
@@ -298,8 +298,9 @@ function App() {
     relationship: "relative",
     selectedScaleId: "major",
   });
-  const [playbackController] = useState(() =>
-    createProgressionPlaybackController({
+  const [playbackController] = useState(() => {
+    let auditionIndex: number | null = null;
+    const controller = createProgressionPlaybackController({
       createContext: createAudioContext,
       schedule: (request, context, onChordChange) =>
         playSchedule(
@@ -313,11 +314,26 @@ function App() {
           onChordChange,
           request.timbre,
         ),
-      onChordChange: setActiveChordIndex,
-      onStateChange: setPlaybackPhase,
+      onChordChange: (index) => setActiveChordIndex(
+        index === null ? null : auditionIndex ?? index,
+      ),
+      onStateChange: (phase) => {
+        if (phase === "idle") auditionIndex = null;
+        if (auditionIndex === null) setPlaybackPhase(phase);
+      },
       onError: (error) => console.error("Progression playback failed", error),
-    }),
-  );
+    });
+    return {
+      stop: controller.stop,
+      isProgressionActive: () => auditionIndex === null && controller.getState() !== "idle",
+      start(request: ProgressionPlaybackRequest, cardIndex: number | null = null) {
+        // Retrigger every card activation. Repeated progression starts stay idempotent.
+        if (cardIndex !== null || auditionIndex !== null) controller.stop();
+        auditionIndex = cardIndex;
+        return controller.start(request);
+      },
+    };
+  });
   const nextCardKeyRef = useRef(importedChordCount + 1);
   const initialTimelineVersion = importedChordCount > 0 ? 1 : 0;
   const timelineVersionRef = useRef(initialTimelineVersion);
@@ -699,8 +715,20 @@ function App() {
     });
   }
 
+  function handleChordAudition(index: number) {
+    const voicing = midiExportVoicings[index];
+    if (!voicing || voicing.length === 0) return;
+
+    void playbackController.start({
+      timbre: instrument,
+      voicings: [voicing],
+      bpm: PLAYBACK_BPM,
+      beatsPerChord: 2,
+    }, index);
+  }
+
   function handleTogglePlayback() {
-    if (playbackController.getState() !== "idle") {
+    if (playbackController.isProgressionActive()) {
       playbackController.stop();
       return;
     }
@@ -1325,6 +1353,9 @@ function App() {
                     timelineChords={indexedTimelineChords}
                     isPlaying={activeChordIndex === index}
                     isAgentHighlighted={highlightedChordIndex === index}
+                    onAudition={midiExportVoicings[index]?.length > 0
+                      ? () => handleChordAudition(index)
+                      : undefined}
                   />
                 );
               })}

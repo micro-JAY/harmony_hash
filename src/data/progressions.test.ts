@@ -145,10 +145,11 @@ describe("progression library", () => {
     }
   });
 
-  test("keeps the documented library synchronized with runtime data", () => {
+  test.each(["LF", "CRLF"])("keeps the documented library synchronized with runtime data (%s)", (format) => {
+    const guide = libraryGuide.replace(/\r?\n/g, format === "CRLF" ? "\r\n" : "\n");
     let group = "";
     let subgroup = "";
-    const documentedEntries = libraryGuide.split("\n").flatMap((line) => {
+    const documentedEntries = guide.split(/\r?\n/).flatMap((line) => {
       if (line.startsWith("## ")) {
         group = documentedGroups.get(line.slice(3)) ?? "";
         subgroup = group === "Advanced" ? "Chromatic & Secondary Dominant Movement" : "";

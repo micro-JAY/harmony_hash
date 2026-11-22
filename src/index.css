@@ -912,6 +912,31 @@ svg [data-note-tooltip="true"]:focus-visible {
   container: harmony-chord-card / inline-size;
 }
 
+.hh-chord-card__header {
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.hh-chord-card__header:has(.hh-chord-card__audition:hover) {
+  background-color: var(--surface-highlight);
+}
+
+/* Extend the native button's hit area to the header, below the lock control. */
+.hh-chord-card__audition::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.hh-chord-card__audition:focus-visible {
+  outline: none;
+}
+
+.hh-chord-card__audition:focus-visible::after {
+  outline: 2px solid var(--interactive-focus-ring);
+  outline-offset: -3px;
+}
+
 .hh-floating-chord-layer {
   position: fixed;
   inset: 0;

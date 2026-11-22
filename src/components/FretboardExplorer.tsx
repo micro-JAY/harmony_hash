@@ -2,15 +2,12 @@ import { useMemo, useState } from "react";
 import { Guitar, Music2 } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { ALL_KEYS } from "../lib/harmonyBrain";
-import type { IndexedChord } from "../lib/types";
-import { chordFamilyPresentation } from "../lib/visual/chordFamily";
 import type { ScaleFormulaType } from "../lib/theory/scaleBasics";
 import {
   buildFretboardPattern,
   buildFretboardRows,
   CAGED_FORM_OPTIONS,
   decorateFretboardPositions,
-  deriveChordTones,
   fretboardTuningDefinitionFor,
   fretboardTuningsFor,
   scaleLearningDefinitionFor,
@@ -21,7 +18,6 @@ import {
   type FretboardTuningId,
   type ThreeNpsStartDegree,
 } from "../lib/theory";
-import ChordOverlayPicker from "./ChordOverlayPicker";
 import HorizontalFretboard, {
   type FretboardHandedness,
   type FretboardLabelMode,
@@ -75,8 +71,6 @@ export default function FretboardExplorer({ embedded = false, root, scaleId }: F
   const [patternFamily, setPatternFamily] = useState<FretboardPatternFamily>("all");
   const [cagedForm, setCagedForm] = useState<CagedFormId>("e");
   const [threeNpsStartDegree, setThreeNpsStartDegree] = useState<ThreeNpsStartDegree>(1);
-  const [overlay, setOverlay] = useState<{ chord: IndexedChord; displayName: string }>();
-  const overlayPresentation = overlay ? chordFamilyPresentation(overlay.chord) : null;
   const tuningId = tuningByInstrument[instrument];
   const tuning = fretboardTuningDefinitionFor(instrument, tuningId);
   const tuningOptions = fretboardTuningsFor(instrument);
@@ -111,13 +105,9 @@ export default function FretboardExplorer({ embedded = false, root, scaleId }: F
     scaleType,
     { family: patternFamily, cagedForm, threeNpsStartDegree },
   ), [rows, instrument, tuningId, keyName, scaleType, patternFamily, cagedForm, threeNpsStartDegree]);
-  const chordTones = useMemo(
-    () => overlay ? deriveChordTones(overlay.chord) : [],
-    [overlay],
-  );
   const decoratedPositions = useMemo(
-    () => decorateFretboardPositions(rows, pattern, chordTones),
-    [rows, pattern, chordTones],
+    () => decorateFretboardPositions(rows, pattern),
+    [rows, pattern],
   );
 
   return (
@@ -254,13 +244,6 @@ export default function FretboardExplorer({ embedded = false, root, scaleId }: F
                   ))}
                 </WorkspaceSelectControl>
               ) : null}
-              <ChordOverlayPicker
-                selectedChord={overlay?.chord}
-                selectedLabel={overlay?.displayName}
-                reducedMotion={Boolean(reduceMotion)}
-                onSelect={setOverlay}
-                onClear={() => setOverlay(undefined)}
-              />
             </div>
             <p
               role="status"
@@ -287,25 +270,6 @@ export default function FretboardExplorer({ embedded = false, root, scaleId }: F
               </p>
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 {t(pattern.available ? pattern.label : "All positions")}
-                {overlay && overlayPresentation ? (
-                  <>
-                    {" · "}
-                    <span
-                      data-testid="fretboard-overlay-readout"
-                      data-chord-family={overlayPresentation.family}
-                      className="inline-flex rounded px-1.5 py-0.5"
-                      style={{
-                        color: overlayPresentation.color,
-                        backgroundColor: overlayPresentation.backgroundColor,
-                        border: `1px solid ${overlayPresentation.borderColor}`,
-                        fontFamily: "var(--font-mono)",
-                      }}
-                    >
-                      {overlay.displayName}
-                    </span>
-                    {` ${t("overlay")}`}
-                  </>
-                ) : null}
               </p>
             </div>
             <ol className="mt-2 flex flex-wrap gap-1.5" aria-label={t("Scale notes and intervals")}>
@@ -338,9 +302,6 @@ export default function FretboardExplorer({ embedded = false, root, scaleId }: F
           labelMode={labelMode}
           pattern={pattern}
           decoratedPositions={decoratedPositions}
-          keyName={keyName}
-          modeLabel={modeLabel}
-          overlayLabel={overlay?.displayName}
         />
 
         <aside
@@ -357,18 +318,6 @@ export default function FretboardExplorer({ embedded = false, root, scaleId }: F
             </span>
             );
           })}
-          {overlay ? (
-            <>
-              <span className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full" style={{ border: "2px solid var(--interactive-primary-bg)" }} />
-                {t("Ring = chord tone")}
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full" style={{ border: "2px dashed var(--status-warning-text)" }} />
-                {t("Dashed = outside selected scale")}
-              </span>
-            </>
-          ) : null}
         </aside>
       </div>
     </section>

@@ -8,7 +8,9 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { X } from "lucide-react";
+import { Moon, Sun, X } from "lucide-react";
+import { useAppearance } from "../appearance/AppearanceContext";
+import { useT } from "../i18n/I18nContext";
 import type { OnboardingCloseReason } from "../lib/onboardingPersistence";
 
 const FOCUSABLE_SELECTOR = [
@@ -27,7 +29,6 @@ interface OnboardingModalProps {
   closeLabel: string;
   primaryActionLabel: string;
   secondaryActionLabel?: string;
-  visual: ReactNode;
   children: ReactNode;
   onRequestClose: (reason: OnboardingCloseReason) => void;
   onSecondaryAction?: () => void;
@@ -70,14 +71,16 @@ export default function OnboardingModal({
   closeLabel,
   primaryActionLabel,
   secondaryActionLabel,
-  visual,
   children,
   onRequestClose,
   onSecondaryAction,
   returnFocusRef,
 }: OnboardingModalProps) {
+  const { appearance, setAppearance } = useAppearance();
+  const t = useT();
   const titleId = useId();
   const descriptionId = useId();
+  const appearanceLabelId = useId();
   const reduceMotion = Boolean(useReducedMotion());
   const dialogRef = useRef<HTMLElement>(null);
   const primaryActionRef = useRef<HTMLButtonElement>(null);
@@ -204,7 +207,15 @@ export default function OnboardingModal({
           className="hh-onboarding-scroll-region"
         >
           <div className="hh-onboarding-hero">
-            <div data-onboarding-visual="true" className="hh-onboarding-visual">{visual}</div>
+            <div data-onboarding-visual="true" className="hh-onboarding-visual">
+              <img
+                src={appearance === "light" ? "/hh_logo_light.jpg" : "/hh_logo.png"}
+                alt=""
+                className="hh-onboarding-logo"
+                width="1000"
+                height="1000"
+              />
+            </div>
             <header className="hh-onboarding-copy">
               <p className="hh-onboarding-brand">{brandLabel}</p>
               <h1 id={titleId} className="hh-onboarding-title">{title}</h1>
@@ -232,6 +243,37 @@ export default function OnboardingModal({
                   </button>
                 ) : null}
               </div>
+              <section className="hh-onboarding-appearance" aria-labelledby={appearanceLabelId}>
+                <p id={appearanceLabelId} className="hh-onboarding-appearance__label">
+                  {t("Appearance")}
+                </p>
+                <div
+                  className="hh-onboarding-appearance__options"
+                  role="group"
+                  aria-labelledby={appearanceLabelId}
+                >
+                  <button
+                    type="button"
+                    className="hh-onboarding-appearance__option"
+                    data-active={appearance === "dark" ? "true" : "false"}
+                    aria-pressed={appearance === "dark"}
+                    onClick={() => setAppearance("dark")}
+                  >
+                    <Moon size={17} aria-hidden="true" />
+                    <span>{t("Dark appearance")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="hh-onboarding-appearance__option"
+                    data-active={appearance === "light" ? "true" : "false"}
+                    aria-pressed={appearance === "light"}
+                    onClick={() => setAppearance("light")}
+                  >
+                    <Sun size={17} aria-hidden="true" />
+                    <span>{t("Light appearance")}</span>
+                  </button>
+                </div>
+              </section>
             </header>
           </div>
           <div className="hh-onboarding-destinations">{children}</div>

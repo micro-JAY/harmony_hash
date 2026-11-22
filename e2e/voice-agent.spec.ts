@@ -425,6 +425,36 @@ test.describe("Harmony voice sessions", () => {
     expect(events.some(({ type }) => type === "response.create")).toBe(true);
   });
 
+  test("preserves a live voice edit received during the guided tour", async ({ page }) => {
+    await installRealtimeVoiceMock(page);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await connectHarmony(page);
+    await page.getByRole("button", { name: "Close Harmony" }).click();
+    await page.getByRole("button", { name: "Help / About" }).click();
+    await page.getByRole("button", { name: "TAKE A TOUR" }).click();
+    await expect(page.getByTestId("chord-card")).toHaveCount(4);
+
+    const replacement = ["Dm7", "G7", "Cmaj7"];
+    await emitRealtimeEvent(page, {
+      type: "response.done",
+      event_id: "tour-edit",
+      response: {
+        id: "tour-response",
+        status: "completed",
+        output: [{
+          type: "function_call",
+          status: "completed",
+          call_id: "tour-replace",
+          name: "replace_progression",
+          arguments: JSON.stringify({ chords: replacement }),
+        }],
+      },
+    });
+    await expect(page.getByTestId("chord-card")).toHaveCount(replacement.length);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("heading", { level: 3 })).toHaveText(replacement);
+  });
+
   test("cleans up the live session on pagehide without Strict Mode duplication", async ({ page }) => {
     const mock = await installRealtimeVoiceMock(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });

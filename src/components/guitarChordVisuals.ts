@@ -20,8 +20,8 @@ export function guitarDegreePresentation(
   ) {
     return {
       interval: null,
-      color: "var(--palette-white)",
-      labelColor: "var(--text-inverse)",
+      color: "var(--instrument-key-white)",
+      labelColor: "var(--instrument-key-white-text)",
     };
   }
 

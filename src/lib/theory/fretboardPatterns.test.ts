@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lookupChord } from "../chordData";
 import type { ScaleType } from "../types";
-import { deriveChordTones } from "./chordTones";
 import { buildFretboardRows } from "./fretboard";
 import {
   buildFretboardPattern,
@@ -15,12 +13,6 @@ const ROOTS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const MODES: ScaleType[] = [
   "major", "natural_minor", "harmonic_minor", "dorian", "mixolydian", "lydian", "phrygian",
 ];
-
-function chord(name: string) {
-  const resolved = lookupChord(name);
-  if (!resolved) throw new Error(`Missing test chord ${name}`);
-  return resolved;
-}
 
 describe("fretboard patterns", () => {
   it.each(["caged", "three-nps"] as const)("keeps the remembered %s selection and explains its ukulele fallback", (family) => {
@@ -145,47 +137,15 @@ describe("fretboard patterns", () => {
       .map((position) => `${position.stringNumber}:${position.fret}`)));
   });
 
-  it("decorates all chord tones under All and limits chromatic tones to focused envelopes", () => {
+  it("decorates exactly the immutable pattern-only visible set", () => {
     const rows = buildFretboardRows("guitar", "C", "major");
-    const tones = deriveChordTones(chord("G7#9"));
-    expect(tones.map((tone) => [tone.pitchClass, tone.degree])).toEqual([
-      [7, "1"], [11, "3"], [2, "5"], [5, "b7"], [10, "#9"],
-    ]);
-    const all = buildFretboardPattern(rows, "guitar", "guitar-standard", "C", "major", {
-      family: "all", cagedForm: "e", threeNpsStartDegree: 1,
-    });
-    const allDecorated = decorateFretboardPositions(rows, all, tones);
-    const expectedAllChordPositions = rows.flatMap((row) => row.positions)
-      .filter((position) => tones.some((tone) => tone.pitchClass === position.pitchClass));
-    expect(allDecorated.filter((item) => item.isChordTone)).toHaveLength(expectedAllChordPositions.length);
-    expect(allDecorated.filter((item) => item.position.pitchClass === 10)).not.toHaveLength(0);
-    expect(allDecorated.filter((item) => item.isChordTone && item.isInScale)
-      .every((item) => [7, 11, 2, 5].includes(item.position.pitchClass))).toBe(true);
-
     const focused = buildFretboardPattern(rows, "guitar", "guitar-standard", "C", "major", {
       family: "caged", cagedForm: "e", threeNpsStartDegree: 1,
     });
-    const focusedDecorated = decorateFretboardPositions(rows, focused, tones);
-    const focusedKeys = new Set(focused.positionKeys);
-    expect(focusedDecorated
-      .filter((item) => item.isChordTone && item.isInScale)
-      .every((item) => focusedKeys.has(item.key))).toBe(true);
-    for (const item of focusedDecorated.filter((position) => !position.isInScale)) {
-      const envelope = focused.envelopes.find((entry) => entry.stringNumber === item.position.stringNumber);
-      expect(envelope).toBeDefined();
-      expect(item.position.fret).toBeGreaterThanOrEqual(envelope?.minFret ?? -1);
-      expect(item.position.fret).toBeLessThanOrEqual(envelope?.maxFret ?? 99);
-    }
-  });
-
-  it("classifies every Cmaj7 tone as in-scale over C Major", () => {
-    const rows = buildFretboardRows("guitar", "C", "major");
-    const pattern = buildFretboardPattern(rows, "guitar", "guitar-standard", "C", "major", {
-      family: "all", cagedForm: "e", threeNpsStartDegree: 1,
-    });
-    const tones = deriveChordTones(chord("Cmaj7"));
-    expect(tones.map((tone) => tone.degree)).toEqual(["1", "3", "5", "7"]);
-    const decorated = decorateFretboardPositions(rows, pattern, tones);
-    expect(decorated.filter((item) => item.isChordTone).every((item) => item.isInScale)).toBe(true);
+    const decorated = decorateFretboardPositions(rows, focused);
+    expect(decorated.map((item) => item.key)).toEqual(focused.positionKeys);
+    expect(decorated.every((item) => item.isPatternTone && item.position.isScaleTone)).toBe(true);
+    expect(Object.isFrozen(decorated)).toBe(true);
+    expect(decorated.every(Object.isFrozen)).toBe(true);
   });
 });

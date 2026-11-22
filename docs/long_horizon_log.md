@@ -964,6 +964,24 @@ Reordered HASHER to Describe, Build Your Own, the Browse/Key/Mode/instrument rai
 
 **Current state:** `add-chord-preview-pins-midi-export` is 13/13 complete on branch `feat/hasher-hover-pins-midi-share`. PR #98 is ready for review; its integrated head preserves the newer OpenAI Realtime, privacy, control-alignment, and timeline-modification work from `main`. No deployment or OpenSpec archive occurred.
 
+---
+
+## 2026-10-02 04:19 JST — Guided tour, Discovery scale overlay, and light appearance local gate
+
+Implemented `guided-tour-improv-light-theme` on `feat/guided-tour-improv-light-theme` from current `origin/main` after the #109–111 workspace changes. The 19-step English/Japanese tour now follows the current HASHER, TUNE TOOLBOX, and DISCOVERY structure. Its two non-modal handoffs stop on HASHER and TUNE TOOLBOX respectively, keep the complete header and highlighted destination tab visible, omit forward controls, and advance only after the user activates the requested tab. Short 375×430 layouts compact the prompt beneath the target without overlap.
+
+DISCOVERY now receives the immutable HASHER progression and presents the canonical top six IMPROV INSIGHT recommendations in a compact selector. Highlight remains explicitly off by default; when enabled, the selected scale adds a quiet translucent layer to every matching Piano or Fretboard pitch while held/selected notes and focus remain dominant. The guitar view was rebuilt with a visible nut, graduated fret columns, graduated string weights, readable note/root markers, and an internal mobile scroller. The redundant chord-overlay picker, state, legend, rendering contract, and overlay-only tests were removed from FRET FINDER while CAGED/3NPS, tuning, handedness, spatial navigation, and SCALE SYNTHESIA remain intact.
+
+The new explicit Dark/Light preference lives in Help / About, persists under `hh:appearance:v1`, restores before React paints, updates browser color-scheme/theme-color metadata, and invalidates the mounted NOTE NEURAL NETWORK canvas palette. The approved light palette uses base `#F0EDE8`, raised `#F8F6F2`, ink `#18181E`, accent `#8A6517`, and muted `#67697C`. The supplied `initial_data/hh_loholite.jpg` source was moved to the shipped `public/hh_logo_light.jpg` slot and is used by the welcome/Help visual only in Light appearance; no copy remains under `initial_data/`. The privacy notice now discloses the local appearance preference.
+
+**Rendered proof:** inspected committed dark/light desktop and 375px mobile baselines for HASHER, TUNE TOOLBOX, Help / About and the new light logo, DISCOVERY Piano and Guitar, the live NOTE NEURAL NETWORK canvas, and both tour handoffs. The scale tint remains secondary, roots remain distinct, the selected guitar note retains gold priority, the light canvas redraws without stale dark pixels, all main workspaces remain horizontally contained, and both required tabs remain visibly clickable during the handoff pause.
+
+**Local release verification:** production build and lint pass; Vitest passes 73 files / 1,457 tests; the exact full sequential Chromium matrix passes 236/236 in 3.2 minutes; strict OpenSpec and diff hygiene pass. No skip, focused test, or snapshot-tolerance change was introduced. The inherited Vite main-chunk advisory remains unchanged and non-blocking.
+
+**Current state:** implementation is published as [PR #113](https://github.com/micro-JAY/harmony_hash/pull/113) from `feat/guided-tour-improv-light-theme` and attached to the active task. The exact implementation head passed both build-and-test runs, both 236-test Playwright runs, CodeQL, and the Worker build before the final delivery-record update. No merge, deployment, or OpenSpec archive is authorized in this change.
+
+---
+
 ## 2026-11-22 JST — Dependency security update
 
 The npm audit of `main` at `a77a85b` reported seven high and ten moderate affected package entries. The update in [PR #116](https://github.com/micro-JAY/harmony_hash/pull/116) brings both the full audit and the production-only audit to zero. The revised `package-lock.json` has SHA-256 `e0a989a1f93a407d090baa46365ca14ed6f593b6a9227697702ace384648261a`. Its resolved packages also fall outside all affected ranges in the repository's [Dependabot update job](https://github.com/micro-JAY/harmony_hash/actions/runs/41609510218).
